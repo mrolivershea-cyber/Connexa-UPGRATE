@@ -356,7 +356,7 @@ const AdminPanel = () => {
                   <SelectValue placeholder="Protocol" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Protocols</SelectItem>
+                  <SelectItem value="all">All Protocols</SelectItem>
                   <SelectItem value="pptp">PPTP</SelectItem>
                   <SelectItem value="ssh">SSH</SelectItem>
                   <SelectItem value="socks">SOCKS</SelectItem>
