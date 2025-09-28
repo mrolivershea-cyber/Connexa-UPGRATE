@@ -4,7 +4,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.sql import func
 import os
 from dotenv import load_dotenv
-from passlib.context import CryptContext
+from passlib.context import CryptContext\nimport hashlib
 
 load_dotenv()
 
