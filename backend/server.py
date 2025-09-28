@@ -1,7 +1,5 @@
 from fastapi import FastAPI, APIRouter, Depends, HTTPException, status, Request, File, UploadFile, Form
-from fastapi.responses import HTMLResponse, JSONResponse, FileResponse
-from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
+from fastapi.responses import JSONResponse, FileResponse
 from starlette.middleware.sessions import SessionMiddleware
 from starlette.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
