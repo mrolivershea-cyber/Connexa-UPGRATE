@@ -1,75 +1,550 @@
-from fastapi import FastAPI, APIRouter
-from dotenv import load_dotenv
+from fastapi import FastAPI, APIRouter, Depends, HTTPException, status, Request, File, UploadFile, Form
+from fastapi.responses import HTMLResponse, JSONResponse, FileResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
+from starlette.middleware.sessions import SessionMiddleware
 from starlette.middleware.cors import CORSMiddleware
-from motor.motor_asyncio import AsyncIOMotorClient
+from sqlalchemy.orm import Session
+from sqlalchemy import and_, or_
+from typing import List, Optional
 import os
-import logging
+import re
+import json
+import csv
+import io
+from datetime import datetime, timedelta
 from pathlib import Path
-from pydantic import BaseModel, Field
-from typing import List
-import uuid
-from datetime import datetime
+import logging
 
+# Local imports
+from database import get_db, User, Node, create_tables, hash_password, verify_password
+from auth import (
+    create_access_token, authenticate_user, get_current_user, 
+    get_current_user_optional, ACCESS_TOKEN_EXPIRE_MINUTES
+)
+from schemas import (
+    UserCreate, NodeCreate, NodeUpdate, LoginRequest, ChangePasswordRequest,
+    BulkImport, ExportRequest, Token
+)
 
+# Setup
 ROOT_DIR = Path(__file__).parent
-load_dotenv(ROOT_DIR / '.env')
+templates = Jinja2Templates(directory=str(ROOT_DIR / "templates"))
 
-# MongoDB connection
-mongo_url = os.environ['MONGO_URL']
-client = AsyncIOMotorClient(mongo_url)
-db = client[os.environ['DB_NAME']]
-
-# Create the main app without a prefix
-app = FastAPI()
-
-# Create a router with the /api prefix
+app = FastAPI(title="Connexa Admin Panel", version="1.7")
 api_router = APIRouter(prefix="/api")
 
-
-# Define Models
-class StatusCheck(BaseModel):
-    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    client_name: str
-    timestamp: datetime = Field(default_factory=datetime.utcnow)
-
-class StatusCheckCreate(BaseModel):
-    client_name: str
-
-# Add your routes to the router instead of directly to app
-@api_router.get("/")
-async def root():
-    return {"message": "Hello World"}
-
-@api_router.post("/status", response_model=StatusCheck)
-async def create_status_check(input: StatusCheckCreate):
-    status_dict = input.dict()
-    status_obj = StatusCheck(**status_dict)
-    _ = await db.status_checks.insert_one(status_obj.dict())
-    return status_obj
-
-@api_router.get("/status", response_model=List[StatusCheck])
-async def get_status_checks():
-    status_checks = await db.status_checks.find().to_list(1000)
-    return [StatusCheck(**status_check) for status_check in status_checks]
-
-# Include the router in the main app
-app.include_router(api_router)
-
+# Middleware
+app.add_middleware(SessionMiddleware, secret_key=os.getenv("SECRET_KEY", "connexa-secret"))
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
-    allow_origins=os.environ.get('CORS_ORIGINS', '*').split(','),
+    allow_origins=os.getenv('CORS_ORIGINS', '*').split(','),
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 # Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-@app.on_event("shutdown")
-async def shutdown_db_client():
-    client.close()
+# Create tables on startup
+create_tables()
+
+# Create default admin user if not exists
+@app.on_event("startup")
+async def startup_event():
+    db = next(get_db())
+    admin_user = db.query(User).filter(User.username == "admin").first()
+    if not admin_user:
+        admin_user = User(
+            username="admin",
+            password=hash_password("admin")
+        )
+        db.add(admin_user)
+        db.commit()
+        logger.info("Default admin user created with username: admin, password: admin")
+
+# Authentication Routes
+@api_router.post("/auth/login", response_model=Token)
+async def login(login_request: LoginRequest, request: Request, db: Session = Depends(get_db)):
+    user = authenticate_user(db, login_request.username, login_request.password)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect username or password"
+        )
+    
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(
+        data={"sub": user.username}, expires_delta=access_token_expires
+    )
+    
+    # Also set session for web UI
+    request.session["user_id"] = user.id
+    request.session["username"] = user.username
+    
+    return {"access_token": access_token, "token_type": "bearer"}
+
+@api_router.post("/auth/logout")
+async def logout(request: Request):
+    request.session.clear()
+    return {"message": "Logged out successfully"}
+
+@api_router.post("/auth/change-password")
+async def change_password(
+    change_request: ChangePasswordRequest, 
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    if not verify_password(change_request.old_password, current_user.password):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Incorrect old password"
+        )
+    
+    if change_request.new_password != change_request.confirm_password:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="New password and confirmation do not match"
+        )
+    
+    current_user.password = hash_password(change_request.new_password)
+    db.commit()
+    
+    return {"message": "Password changed successfully"}
+
+@api_router.get("/auth/me")
+async def get_current_user_info(current_user: User = Depends(get_current_user)):
+    return {"username": current_user.username, "id": current_user.id}
+
+# Node CRUD Routes
+@api_router.get("/nodes")
+async def get_nodes(
+    page: int = 1,
+    limit: int = 200,
+    ip: Optional[str] = None,
+    provider: Optional[str] = None,
+    country: Optional[str] = None,
+    state: Optional[str] = None,
+    city: Optional[str] = None,
+    zipcode: Optional[str] = None,
+    login: Optional[str] = None,
+    comment: Optional[str] = None,
+    status: Optional[str] = None,
+    protocol: Optional[str] = None,
+    only_online: Optional[bool] = False,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    query = db.query(Node)
+    
+    # Apply filters
+    if ip:
+        query = query.filter(Node.ip.ilike(f"%{ip}%"))
+    if provider:
+        query = query.filter(Node.provider.ilike(f"%{provider}%"))
+    if country:
+        query = query.filter(Node.country.ilike(f"%{country}%"))
+    if state:
+        query = query.filter(Node.state.ilike(f"%{state}%"))
+    if city:
+        query = query.filter(Node.city.ilike(f"%{city}%"))
+    if zipcode:
+        query = query.filter(Node.zipcode.ilike(f"%{zipcode}%"))
+    if login:
+        query = query.filter(Node.login.ilike(f"%{login}%"))
+    if comment:
+        query = query.filter(Node.comment.ilike(f"%{comment}%"))
+    if status:
+        query = query.filter(Node.status == status)
+    if protocol:
+        query = query.filter(Node.protocol == protocol)
+    if only_online:
+        query = query.filter(Node.status == "online")
+    
+    total_count = query.count()
+    nodes = query.offset((page - 1) * limit).limit(limit).all()
+    
+    return {
+        "nodes": nodes,
+        "total": total_count,
+        "page": page,
+        "limit": limit,
+        "total_pages": (total_count + limit - 1) // limit
+    }
+
+@api_router.post("/nodes")
+async def create_node(
+    node: NodeCreate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    db_node = Node(**node.dict())
+    db.add(db_node)
+    db.commit()
+    db.refresh(db_node)
+    return db_node
+
+@api_router.put("/nodes/{node_id}")
+async def update_node(
+    node_id: int,
+    node_update: NodeUpdate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    db_node = db.query(Node).filter(Node.id == node_id).first()
+    if not db_node:
+        raise HTTPException(status_code=404, detail="Node not found")
+    
+    update_data = node_update.dict(exclude_unset=True)
+    for field, value in update_data.items():
+        setattr(db_node, field, value)
+    
+    db.commit()
+    db.refresh(db_node)
+    return db_node
+
+@api_router.delete("/nodes/{node_id}")
+async def delete_node(
+    node_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    db_node = db.query(Node).filter(Node.id == node_id).first()
+    if not db_node:
+        raise HTTPException(status_code=404, detail="Node not found")
+    
+    db.delete(db_node)
+    db.commit()
+    return {"message": "Node deleted successfully"}
+
+@api_router.delete("/nodes")
+async def delete_multiple_nodes(
+    node_ids: List[int],
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    deleted_count = db.query(Node).filter(Node.id.in_(node_ids)).delete(synchronize_session=False)
+    db.commit()
+    return {"message": f"Deleted {deleted_count} nodes successfully"}
+
+# Import/Export Routes
+@api_router.post("/import")
+async def import_nodes(
+    data: BulkImport,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Parse and import nodes from text data"""
+    nodes_data = parse_nodes_text(data.data, data.protocol)
+    
+    created_nodes = []
+    errors = []
+    duplicates = 0
+    
+    for node_data in nodes_data:
+        try:
+            # Check for duplicates
+            existing = db.query(Node).filter(
+                and_(Node.ip == node_data['ip'], Node.login == node_data.get('login', ''))
+            ).first()
+            
+            if existing:
+                duplicates += 1
+                continue
+            
+            node = Node(**node_data)
+            db.add(node)
+            created_nodes.append(node_data)
+        except Exception as e:
+            errors.append(f"Error processing {node_data.get('ip', 'unknown')}: {str(e)}")
+    
+    db.commit()
+    
+    return {
+        "created": len(created_nodes),
+        "duplicates": duplicates,
+        "errors": errors,
+        "total_processed": len(nodes_data)
+    }
+
+@api_router.post("/export")
+async def export_nodes(
+    export_request: ExportRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Export selected nodes"""
+    nodes = db.query(Node).filter(Node.id.in_(export_request.node_ids)).all()
+    
+    if export_request.format == "csv":
+        output = io.StringIO()
+        writer = csv.writer(output)
+        writer.writerow(["IP", "Login", "Password", "Protocol", "Provider", "Country", "State", "City", "ZIP", "Comment"])
+        
+        for node in nodes:
+            writer.writerow([
+                node.ip, node.login, node.password, node.protocol,
+                node.provider, node.country, node.state, node.city,
+                node.zipcode, node.comment
+            ])
+        
+        return JSONResponse(
+            content={"data": output.getvalue(), "filename": f"connexa_export_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"}
+        )
+    
+    else:  # txt format (default)
+        lines = []
+        for node in nodes:
+            if export_request.format == "socks":
+                lines.append(f"{node.ip}:1080:{node.login}:{node.password}")
+            else:
+                lines.append(f"{node.ip} {node.login} {node.password} {node.country or 'N/A'}")
+        
+        return JSONResponse(
+            content={"data": "\n".join(lines), "filename": f"connexa_export_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"}
+        )
+
+def parse_nodes_text(text: str, protocol: str = "pptp") -> List[dict]:
+    """Parse different node text formats as per TZ requirements"""
+    nodes = []
+    blocks = re.split(r'\n\s*\n', text.strip())
+    
+    for block in blocks:
+        block = block.strip()
+        if not block:
+            continue
+            
+        node_data = {"protocol": protocol, "status": "offline"}
+        
+        # Format A (key=value multiline)
+        if "Ip:" in block or "IP:" in block:
+            lines = block.split('\n')
+            for line in lines:
+                if ':' in line:
+                    key, value = line.split(':', 1)
+                    key, value = key.strip().lower(), value.strip()
+                    if key in ['ip', 'host']:
+                        node_data['ip'] = value
+                    elif key == 'login':
+                        node_data['login'] = value
+                    elif key in ['pass', 'password']:
+                        node_data['password'] = value
+                    elif key == 'state':
+                        node_data['state'] = value
+                    elif key == 'city':
+                        node_data['city'] = value
+                    elif key in ['zip', 'zipcode']:
+                        node_data['zipcode'] = value
+                    elif key == 'country':
+                        node_data['country'] = value
+                    elif key == 'provider':
+                        node_data['provider'] = value
+        
+        # Format B (single line with spaces)
+        elif len(block.split()) >= 3:
+            parts = block.split()
+            if len(parts) >= 3:
+                node_data['ip'] = parts[0]
+                node_data['login'] = parts[1]
+                node_data['password'] = parts[2]
+                if len(parts) >= 4:
+                    node_data['state'] = normalize_state_code(parts[3])
+        
+        # Format C (with - and | separators)
+        elif ' - ' in block and ' | ' in block:
+            main_part = block.split(' | ')[0]
+            parts = main_part.split(' - ')
+            if len(parts) >= 3:
+                node_data['ip'] = parts[0].strip()
+                creds = parts[1].strip()
+                if ':' in creds:
+                    login, password = creds.split(':', 1)
+                    node_data['login'] = login
+                    node_data['password'] = password
+                location = parts[2].strip()
+                if '/' in location:
+                    state, city = location.split('/', 1)
+                    node_data['state'] = state.strip()
+                    node_data['city'] = city.split()[0].strip()
+                    # Extract ZIP if present
+                    zip_match = re.search(r'\d{5}', location)
+                    if zip_match:
+                        node_data['zipcode'] = zip_match.group()
+        
+        # Format D (colon separated)
+        elif block.count(':') >= 2:
+            parts = block.split(':')
+            if len(parts) >= 3:
+                node_data['ip'] = parts[0]
+                node_data['login'] = parts[1]
+                node_data['password'] = parts[2]
+                if len(parts) >= 4:
+                    node_data['country'] = normalize_country_code(parts[3])
+                if len(parts) >= 5:
+                    node_data['state'] = parts[4]
+                if len(parts) >= 6:
+                    node_data['zipcode'] = parts[5]
+        
+        # Format E/F (Location parsing)
+        elif "Location:" in block:
+            lines = block.split('\n')
+            for line in lines:
+                line = line.strip()
+                if line.startswith("IP:"):
+                    node_data['ip'] = line.split(':', 1)[1].strip()
+                elif line.startswith("Credentials:"):
+                    creds = line.split(':', 1)[1].strip()
+                    if ':' in creds:
+                        login, password = creds.split(':', 1)
+                        node_data['login'] = login
+                        node_data['password'] = password
+                elif line.startswith("Location:"):
+                    location = line.split(':', 1)[1].strip()
+                    # Parse "Texas (Austin)" format
+                    if '(' in location and ')' in location:
+                        state = location.split('(')[0].strip()
+                        city = location.split('(')[1].split(')')[0].strip()
+                        node_data['state'] = state
+                        node_data['city'] = city
+                elif line.startswith("ZIP:"):
+                    node_data['zipcode'] = line.split(':', 1)[1].strip()
+        
+        # Minimal format G (IP Login Pass)
+        else:
+            parts = block.split()
+            if len(parts) >= 3:
+                node_data['ip'] = parts[0]
+                node_data['login'] = parts[1] 
+                node_data['password'] = parts[2]
+        
+        # Validate IP and add node
+        if 'ip' in node_data and is_valid_ip(node_data['ip']):
+            nodes.append(node_data)
+    
+    return nodes
+
+def normalize_state_code(code: str) -> str:
+    """Convert state codes to full names"""
+    states = {
+        "CA": "California", "NY": "New York", "TX": "Texas", "FL": "Florida",
+        "NJ": "New Jersey", "IL": "Illinois", "OH": "Ohio", "PA": "Pennsylvania",
+        "MI": "Michigan", "GA": "Georgia", "NC": "North Carolina", "VA": "Virginia",
+        "WA": "Washington", "AZ": "Arizona", "MA": "Massachusetts", "TN": "Tennessee",
+        "IN": "Indiana", "MO": "Missouri", "MD": "Maryland", "WI": "Wisconsin",
+        "CO": "Colorado", "MN": "Minnesota", "SC": "South Carolina", "AL": "Alabama",
+        "LA": "Louisiana", "KY": "Kentucky", "OR": "Oregon", "OK": "Oklahoma",
+        "CT": "Connecticut", "IA": "Iowa", "MS": "Mississippi", "AR": "Arkansas",
+        "UT": "Utah", "KS": "Kansas", "NV": "Nevada", "NM": "New Mexico",
+        "NE": "Nebraska", "WV": "West Virginia", "ID": "Idaho", "HI": "Hawaii",
+        "NH": "New Hampshire", "ME": "Maine", "MT": "Montana", "RI": "Rhode Island",
+        "DE": "Delaware", "SD": "South Dakota", "ND": "North Dakota", "AK": "Alaska",
+        "VT": "Vermont", "WY": "Wyoming"
+    }
+    return states.get(code.upper(), code)
+
+def normalize_country_code(code: str) -> str:
+    """Convert country codes to full names"""
+    countries = {
+        "US": "United States", "USA": "United States", "GB": "Great Britain",
+        "UK": "United Kingdom", "CA": "Canada", "AU": "Australia",
+        "DE": "Germany", "FR": "France", "IT": "Italy", "ES": "Spain",
+        "NL": "Netherlands", "BE": "Belgium", "CH": "Switzerland",
+        "SE": "Sweden", "NO": "Norway", "DK": "Denmark", "FI": "Finland"
+    }
+    return countries.get(code.upper(), code)
+
+def is_valid_ip(ip: str) -> bool:
+    """Basic IP validation"""
+    import ipaddress
+    try:
+        ipaddress.ip_address(ip)
+        return True
+    except ValueError:
+        return False
+
+# Autocomplete/suggestions
+@api_router.get("/autocomplete/countries")
+async def get_countries(
+    q: Optional[str] = None,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    query = db.query(Node.country).filter(Node.country != "").distinct()
+    if q:
+        query = query.filter(Node.country.ilike(f"%{q}%"))
+    countries = [row[0] for row in query.limit(10).all()]
+    return countries
+
+@api_router.get("/autocomplete/states")
+async def get_states(
+    q: Optional[str] = None,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    query = db.query(Node.state).filter(Node.state != "").distinct()
+    if q:
+        query = query.filter(Node.state.ilike(f"%{q}%"))
+    states = [row[0] for row in query.limit(10).all()]
+    return states
+
+@api_router.get("/autocomplete/cities")
+async def get_cities(
+    q: Optional[str] = None,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    query = db.query(Node.city).filter(Node.city != "").distinct()
+    if q:
+        query = query.filter(Node.city.ilike(f"%{q}%"))
+    cities = [row[0] for row in query.limit(10).all()]
+    return cities
+
+@api_router.get("/autocomplete/providers")
+async def get_providers(
+    q: Optional[str] = None,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    query = db.query(Node.provider).filter(Node.provider != "").distinct()
+    if q:
+        query = query.filter(Node.provider.ilike(f"%{q}%"))
+    providers = [row[0] for row in query.limit(10).all()]
+    return providers
+
+# Statistics
+@api_router.get("/stats")
+async def get_stats(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    total_nodes = db.query(Node).count()
+    online_nodes = db.query(Node).filter(Node.status == "online").count()
+    offline_nodes = db.query(Node).filter(Node.status == "offline").count()
+    checking_nodes = db.query(Node).filter(Node.status == "checking").count()
+    
+    return {
+        "total": total_nodes,
+        "online": online_nodes,
+        "offline": offline_nodes,
+        "checking": checking_nodes,
+        "by_protocol": {
+            "pptp": db.query(Node).filter(Node.protocol == "pptp").count(),
+            "ssh": db.query(Node).filter(Node.protocol == "ssh").count(),
+            "socks": db.query(Node).filter(Node.protocol == "socks").count(),
+            "server": db.query(Node).filter(Node.protocol == "server").count(),
+        }
+    }
+
+# Include API router
+app.include_router(api_router)
+
+# Health check
+@app.get("/health")
+async def health_check():
+    return {"status": "ok", "timestamp": datetime.utcnow()}
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8001)
