@@ -27,7 +27,6 @@ from schemas import (
 
 # Setup
 ROOT_DIR = Path(__file__).parent
-templates = Jinja2Templates(directory=str(ROOT_DIR / "templates"))
 
 app = FastAPI(title="Connexa Admin Panel", version="1.7")
 api_router = APIRouter(prefix="/api")
