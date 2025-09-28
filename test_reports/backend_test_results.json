@@ -1,0 +1,116 @@
+{
+  "timestamp": "2025-09-28T18:23:44.964260",
+  "total_tests": 18,
+  "passed_tests": 18,
+  "success_rate": 100.0,
+  "test_details": [
+    {
+      "test": "Health Check",
+      "success": true,
+      "details": "",
+      "response_data": null
+    },
+    {
+      "test": "Admin Login",
+      "success": true,
+      "details": "",
+      "response_data": null
+    },
+    {
+      "test": "Get Current User",
+      "success": true,
+      "details": "",
+      "response_data": null
+    },
+    {
+      "test": "Get Nodes",
+      "success": true,
+      "details": "Found 4 nodes",
+      "response_data": null
+    },
+    {
+      "test": "Get Statistics",
+      "success": true,
+      "details": "Total: 4, Online: 0",
+      "response_data": null
+    },
+    {
+      "test": "Create Node",
+      "success": true,
+      "details": "Created node with ID: 5",
+      "response_data": null
+    },
+    {
+      "test": "Update Node",
+      "success": true,
+      "details": "Updated node 5",
+      "response_data": null
+    },
+    {
+      "test": "Node Filtering",
+      "success": true,
+      "details": "Filtered results: 5 nodes",
+      "response_data": null
+    },
+    {
+      "test": "Import Nodes",
+      "success": true,
+      "details": "Created: 2, Duplicates: 0",
+      "response_data": null
+    },
+    {
+      "test": "Get Nodes",
+      "success": true,
+      "details": "Found 7 nodes",
+      "response_data": null
+    },
+    {
+      "test": "Export Nodes",
+      "success": true,
+      "details": "Exported 2 nodes",
+      "response_data": null
+    },
+    {
+      "test": "Delete Node",
+      "success": true,
+      "details": "Deleted node 5",
+      "response_data": null
+    },
+    {
+      "test": "Bulk Delete Nodes",
+      "success": true,
+      "details": "Bulk deleted nodes",
+      "response_data": null
+    },
+    {
+      "test": "Autocomplete Countries",
+      "success": true,
+      "details": "Found 0 items",
+      "response_data": null
+    },
+    {
+      "test": "Autocomplete States",
+      "success": true,
+      "details": "Found 4 items",
+      "response_data": null
+    },
+    {
+      "test": "Autocomplete Cities",
+      "success": true,
+      "details": "Found 2 items",
+      "response_data": null
+    },
+    {
+      "test": "Autocomplete Providers",
+      "success": true,
+      "details": "Found 0 items",
+      "response_data": null
+    },
+    {
+      "test": "Change Password",
+      "success": true,
+      "details": "Password changed and reverted successfully",
+      "response_data": null
+    }
+  ]
+}
