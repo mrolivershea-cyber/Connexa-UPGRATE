@@ -69,7 +69,7 @@ const AdminPanel = () => {
         page,
         limit: 200,
         ...Object.fromEntries(
-          Object.entries(filters).filter(([key, value]) => value !== '' && value !== false)
+          Object.entries(filters).filter(([key, value]) => value !== '' && value !== false && value !== 'all')
         )
       };
       
