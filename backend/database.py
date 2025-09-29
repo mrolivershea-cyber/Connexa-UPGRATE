@@ -10,7 +10,7 @@ import hashlib
 load_dotenv()
 
 # Database configuration
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://connexa:connexa123@localhost/connexa")
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./connexa.db")
 
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
