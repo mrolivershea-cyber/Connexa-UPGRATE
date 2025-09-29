@@ -151,8 +151,8 @@ const AdminPanel = () => {
     }
 
     try {
-      await axios.delete(`${API}/nodes`, {
-        data: selectedNodes
+      const response = await axios.delete(`${API}/nodes`, {
+        data: { node_ids: selectedNodes }
       });
       toast.success(`Deleted ${selectedNodes.length} nodes`);
       setSelectedNodes([]);
