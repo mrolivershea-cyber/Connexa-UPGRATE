@@ -28,6 +28,20 @@ const NodesTable = ({ nodes, selectedNodes, onSelectNode, onNodeUpdated, loading
   const [editValues, setEditValues] = useState({});
   const [showPasswords, setShowPasswords] = useState({});
 
+  const handleSelectAll = () => {
+    if (selectedNodes.length === nodes.length && nodes.length > 0) {
+      // Deselect all
+      nodes.forEach(node => onSelectNode(node.id));
+    } else {
+      // Select all that are not already selected
+      nodes.forEach(node => {
+        if (!selectedNodes.includes(node.id)) {
+          onSelectNode(node.id);
+        }
+      });
+    }
+  };
+
   const getStatusBadge = (status) => {
     const statusConfig = {
       online: { emoji: '🟢', class: 'bg-green-100 text-green-800', label: 'Online' },
