@@ -301,6 +301,231 @@ City: Austin
             self.log_test("Change Password", False, f"Failed to change password: {response}")
             return False
 
+    def test_logout(self):
+        """Test logout functionality"""
+        success, response = self.make_request('POST', 'auth/logout')
+        
+        if success:
+            self.log_test("Logout", True, "Logged out successfully")
+            return True
+        else:
+            self.log_test("Logout", False, f"Failed to logout: {response}")
+            return False
+
+    def test_service_control_start(self, node_ids: List[int]):
+        """Test starting services for nodes"""
+        if not node_ids:
+            self.log_test("Start Services", False, "No node IDs provided")
+            return False
+            
+        service_data = {
+            "node_ids": node_ids[:1],  # Test with 1 node
+            "action": "start"
+        }
+        
+        success, response = self.make_request('POST', 'services/start', service_data)
+        
+        if success and 'results' in response:
+            self.log_test("Start Services", True, f"Service start attempted for {len(service_data['node_ids'])} nodes")
+            return True
+        else:
+            self.log_test("Start Services", False, f"Failed to start services: {response}")
+            return False
+
+    def test_service_control_stop(self, node_ids: List[int]):
+        """Test stopping services for nodes"""
+        if not node_ids:
+            self.log_test("Stop Services", False, "No node IDs provided")
+            return False
+            
+        service_data = {
+            "node_ids": node_ids[:1],  # Test with 1 node
+            "action": "stop"
+        }
+        
+        success, response = self.make_request('POST', 'services/stop', service_data)
+        
+        if success and 'results' in response:
+            self.log_test("Stop Services", True, f"Service stop attempted for {len(service_data['node_ids'])} nodes")
+            return True
+        else:
+            self.log_test("Stop Services", False, f"Failed to stop services: {response}")
+            return False
+
+    def test_service_status(self, node_id: int):
+        """Test getting service status for a node"""
+        if not node_id:
+            self.log_test("Service Status", False, "No node ID provided")
+            return False
+            
+        success, response = self.make_request('GET', f'services/status/{node_id}')
+        
+        if success:
+            self.log_test("Service Status", True, f"Got service status for node {node_id}")
+            return True
+        else:
+            self.log_test("Service Status", False, f"Failed to get service status: {response}")
+            return False
+
+    def test_ping_test(self, node_ids: List[int]):
+        """Test ping functionality for nodes"""
+        if not node_ids:
+            self.log_test("Ping Test", False, "No node IDs provided")
+            return False
+            
+        test_data = {
+            "node_ids": node_ids[:1],  # Test with 1 node
+            "test_type": "ping"
+        }
+        
+        success, response = self.make_request('POST', 'test/ping', test_data)
+        
+        if success and 'results' in response:
+            self.log_test("Ping Test", True, f"Ping test completed for {len(test_data['node_ids'])} nodes")
+            return True
+        else:
+            self.log_test("Ping Test", False, f"Failed to run ping test: {response}")
+            return False
+
+    def test_speed_test(self, node_ids: List[int]):
+        """Test speed functionality for nodes"""
+        if not node_ids:
+            self.log_test("Speed Test", False, "No node IDs provided")
+            return False
+            
+        test_data = {
+            "node_ids": node_ids[:1],  # Test with 1 node
+            "test_type": "speed"
+        }
+        
+        success, response = self.make_request('POST', 'test/speed', test_data)
+        
+        if success and 'results' in response:
+            self.log_test("Speed Test", True, f"Speed test completed for {len(test_data['node_ids'])} nodes")
+            return True
+        else:
+            self.log_test("Speed Test", False, f"Failed to run speed test: {response}")
+            return False
+
+    def test_combined_test(self, node_ids: List[int]):
+        """Test combined ping+speed functionality for nodes"""
+        if not node_ids:
+            self.log_test("Combined Test", False, "No node IDs provided")
+            return False
+            
+        test_data = {
+            "node_ids": node_ids[:1],  # Test with 1 node
+            "test_type": "both"
+        }
+        
+        success, response = self.make_request('POST', 'test/combined', test_data)
+        
+        if success and 'results' in response:
+            self.log_test("Combined Test", True, f"Combined test completed for {len(test_data['node_ids'])} nodes")
+            return True
+        else:
+            self.log_test("Combined Test", False, f"Failed to run combined test: {response}")
+            return False
+
+    def test_single_node_test(self, node_id: int):
+        """Test single node testing endpoint"""
+        if not node_id:
+            self.log_test("Single Node Test", False, "No node ID provided")
+            return False
+            
+        success, response = self.make_request('POST', f'nodes/{node_id}/test?test_type=ping')
+        
+        if success:
+            self.log_test("Single Node Test", True, f"Single node test completed for node {node_id}")
+            return True
+        else:
+            self.log_test("Single Node Test", False, f"Failed to test single node: {response}")
+            return False
+
+    def test_single_node_service_start(self, node_id: int):
+        """Test starting services for a single node"""
+        if not node_id:
+            self.log_test("Single Node Service Start", False, "No node ID provided")
+            return False
+            
+        success, response = self.make_request('POST', f'nodes/{node_id}/services/start')
+        
+        if success:
+            self.log_test("Single Node Service Start", True, f"Service start attempted for node {node_id}")
+            return True
+        else:
+            self.log_test("Single Node Service Start", False, f"Failed to start service for single node: {response}")
+            return False
+
+    def test_single_node_service_stop(self, node_id: int):
+        """Test stopping services for a single node"""
+        if not node_id:
+            self.log_test("Single Node Service Stop", False, "No node ID provided")
+            return False
+            
+        success, response = self.make_request('POST', f'nodes/{node_id}/services/stop')
+        
+        if success:
+            self.log_test("Single Node Service Stop", True, f"Service stop attempted for node {node_id}")
+            return True
+        else:
+            self.log_test("Single Node Service Stop", False, f"Failed to stop service for single node: {response}")
+            return False
+
+    def test_create_node_with_auto_test(self):
+        """Test creating node with automatic testing"""
+        test_node = {
+            "ip": "198.51.100.25",
+            "login": "vpnuser02",
+            "password": "AutoTest456!",
+            "protocol": "ssh",
+            "provider": "SecureVPN Corp",
+            "country": "Canada",
+            "state": "Ontario",
+            "city": "Toronto",
+            "zipcode": "M5V 3A8",
+            "comment": "Auto-test node created by automated test"
+        }
+        
+        success, response = self.make_request('POST', 'nodes/auto-test?test_type=ping', test_node)
+        
+        if success and 'node' in response:
+            self.log_test("Create Node with Auto Test", True, f"Created and tested node with ID: {response['node']['id']}")
+            return response['node']['id']
+        else:
+            self.log_test("Create Node with Auto Test", False, f"Failed to create node with auto test: {response}")
+            return None
+
+    def test_different_protocols(self):
+        """Test creating nodes with different protocols"""
+        protocols = ["pptp", "ssh", "socks", "server", "ovpn"]
+        created_nodes = []
+        
+        for i, protocol in enumerate(protocols):
+            test_node = {
+                "ip": f"203.0.113.{20 + i}",
+                "login": f"user_{protocol}",
+                "password": f"Pass_{protocol}_123!",
+                "protocol": protocol,
+                "provider": f"{protocol.upper()} Provider",
+                "country": "United States",
+                "state": "New York",
+                "city": "New York",
+                "zipcode": "10001",
+                "comment": f"Test {protocol} node"
+            }
+            
+            success, response = self.make_request('POST', 'nodes', test_node)
+            
+            if success and 'id' in response:
+                created_nodes.append(response['id'])
+            else:
+                self.log_test(f"Create {protocol.upper()} Node", False, f"Failed: {response}")
+                return []
+        
+        self.log_test("Create Different Protocol Nodes", True, f"Created {len(created_nodes)} nodes with different protocols")
+        return created_nodes
+
     def run_all_tests(self):
         """Run all backend tests"""
         print("🚀 Starting Connexa Backend API Tests")
