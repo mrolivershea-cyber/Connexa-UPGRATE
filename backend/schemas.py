@@ -21,6 +21,7 @@ class User(UserBase):
 # Node schemas  
 class NodeBase(BaseModel):
     ip: str
+    port: Optional[int] = None
     login: Optional[str] = ""
     password: Optional[str] = ""
     provider: Optional[str] = ""
