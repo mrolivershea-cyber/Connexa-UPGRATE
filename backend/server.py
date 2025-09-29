@@ -558,35 +558,190 @@ def parse_format_6(block: str, node_data: dict) -> dict:
             node_data['zipcode'] = line.split(':', 1)[1].strip()
     return node_data
 
-def normalize_state_code(code: str) -> str:
-    """Convert state codes to full names"""
-    states = {
-        "CA": "California", "NY": "New York", "TX": "Texas", "FL": "Florida",
-        "NJ": "New Jersey", "IL": "Illinois", "OH": "Ohio", "PA": "Pennsylvania",
-        "MI": "Michigan", "GA": "Georgia", "NC": "North Carolina", "VA": "Virginia",
-        "WA": "Washington", "AZ": "Arizona", "MA": "Massachusetts", "TN": "Tennessee",
-        "IN": "Indiana", "MO": "Missouri", "MD": "Maryland", "WI": "Wisconsin",
-        "CO": "Colorado", "MN": "Minnesota", "SC": "South Carolina", "AL": "Alabama",
-        "LA": "Louisiana", "KY": "Kentucky", "OR": "Oregon", "OK": "Oklahoma",
-        "CT": "Connecticut", "IA": "Iowa", "MS": "Mississippi", "AR": "Arkansas",
-        "UT": "Utah", "KS": "Kansas", "NV": "Nevada", "NM": "New Mexico",
-        "NE": "Nebraska", "WV": "West Virginia", "ID": "Idaho", "HI": "Hawaii",
-        "NH": "New Hampshire", "ME": "Maine", "MT": "Montana", "RI": "Rhode Island",
-        "DE": "Delaware", "SD": "South Dakota", "ND": "North Dakota", "AK": "Alaska",
-        "VT": "Vermont", "WY": "Wyoming"
+def normalize_state_country(state_code: str, country: str = "") -> str:
+    """Convert state codes to full names for multiple countries"""
+    
+    # USA States
+    usa_states = {
+        "AL": "Alabama", "AK": "Alaska", "AZ": "Arizona", "AR": "Arkansas", "CA": "California",
+        "CO": "Colorado", "CT": "Connecticut", "DE": "Delaware", "FL": "Florida", "GA": "Georgia",
+        "HI": "Hawaii", "ID": "Idaho", "IL": "Illinois", "IN": "Indiana", "IA": "Iowa",
+        "KS": "Kansas", "KY": "Kentucky", "LA": "Louisiana", "ME": "Maine", "MD": "Maryland",
+        "MA": "Massachusetts", "MI": "Michigan", "MN": "Minnesota", "MS": "Mississippi", "MO": "Missouri",
+        "MT": "Montana", "NE": "Nebraska", "NV": "Nevada", "NH": "New Hampshire", "NJ": "New Jersey",
+        "NM": "New Mexico", "NY": "New York", "NC": "North Carolina", "ND": "North Dakota", "OH": "Ohio",
+        "OK": "Oklahoma", "OR": "Oregon", "PA": "Pennsylvania", "RI": "Rhode Island", "SC": "South Carolina",
+        "SD": "South Dakota", "TN": "Tennessee", "TX": "Texas", "UT": "Utah", "VT": "Vermont",
+        "VA": "Virginia", "WA": "Washington", "WV": "West Virginia", "WI": "Wisconsin", "WY": "Wyoming",
+        "DC": "District of Columbia"
     }
-    return states.get(code.upper(), code)
+    
+    # Canada Provinces
+    canada_provinces = {
+        "AB": "Alberta", "BC": "British Columbia", "MB": "Manitoba", "NB": "New Brunswick",
+        "NL": "Newfoundland and Labrador", "NS": "Nova Scotia", "ON": "Ontario", "PE": "Prince Edward Island",
+        "QC": "Quebec", "SK": "Saskatchewan", "NT": "Northwest Territories", "NU": "Nunavut", "YT": "Yukon"
+    }
+    
+    # Australia States
+    australia_states = {
+        "ACT": "Australian Capital Territory", "NSW": "New South Wales", "NT": "Northern Territory",
+        "QLD": "Queensland", "SA": "South Australia", "TAS": "Tasmania", "VIC": "Victoria", "WA": "Western Australia"
+    }
+    
+    # Germany States (Länder)
+    germany_states = {
+        "BW": "Baden-Württemberg", "BY": "Bavaria", "BE": "Berlin", "BB": "Brandenburg", "HB": "Bremen",
+        "HH": "Hamburg", "HE": "Hesse", "MV": "Mecklenburg-Vorpommern", "NI": "Lower Saxony",
+        "NW": "North Rhine-Westphalia", "RP": "Rhineland-Palatinate", "SL": "Saarland", "SN": "Saxony",
+        "ST": "Saxony-Anhalt", "SH": "Schleswig-Holstein", "TH": "Thuringia"
+    }
+    
+    # UK Counties/Regions
+    uk_regions = {
+        "ENG": "England", "SCT": "Scotland", "WLS": "Wales", "NIR": "Northern Ireland",
+        "LON": "London", "MAN": "Manchester", "BIR": "Birmingham", "LIV": "Liverpool"
+    }
+    
+    # France Regions
+    france_regions = {
+        "ARA": "Auvergne-Rhône-Alpes", "BFC": "Bourgogne-Franche-Comté", "BRE": "Brittany",
+        "CVL": "Centre-Val de Loire", "COR": "Corsica", "GES": "Grand Est", "HDF": "Hauts-de-France",
+        "IDF": "Île-de-France", "NOR": "Normandy", "NAQ": "Nouvelle-Aquitaine", "OCC": "Occitanie",
+        "PDL": "Pays de la Loire", "PAC": "Provence-Alpes-Côte d'Azur"
+    }
+    
+    # Italy Regions
+    italy_regions = {
+        "ABR": "Abruzzo", "BAS": "Basilicata", "CAL": "Calabria", "CAM": "Campania", "EMR": "Emilia-Romagna",
+        "FVG": "Friuli-Venezia Giulia", "LAZ": "Lazio", "LIG": "Liguria", "LOM": "Lombardy", "MAR": "Marche",
+        "MOL": "Molise", "PIE": "Piedmont", "PUG": "Puglia", "SAR": "Sardinia", "SIC": "Sicily",
+        "TOS": "Tuscany", "TAA": "Trentino-Alto Adige", "UMB": "Umbria", "VDA": "Valle d'Aosta", "VEN": "Veneto"
+    }
+    
+    # Brazil States
+    brazil_states = {
+        "AC": "Acre", "AL": "Alagoas", "AP": "Amapá", "AM": "Amazonas", "BA": "Bahia", "CE": "Ceará",
+        "DF": "Distrito Federal", "ES": "Espírito Santo", "GO": "Goiás", "MA": "Maranhão", "MT": "Mato Grosso",
+        "MS": "Mato Grosso do Sul", "MG": "Minas Gerais", "PA": "Pará", "PB": "Paraíba", "PR": "Paraná",
+        "PE": "Pernambuco", "PI": "Piauí", "RJ": "Rio de Janeiro", "RN": "Rio Grande do Norte",
+        "RS": "Rio Grande do Sul", "RO": "Rondônia", "RR": "Roraima", "SC": "Santa Catarina",
+        "SP": "São Paulo", "SE": "Sergipe", "TO": "Tocantins"
+    }
+    
+    # India States
+    india_states = {
+        "AP": "Andhra Pradesh", "AR": "Arunachal Pradesh", "AS": "Assam", "BR": "Bihar", "CT": "Chhattisgarh",
+        "GA": "Goa", "GJ": "Gujarat", "HR": "Haryana", "HP": "Himachal Pradesh", "JK": "Jammu and Kashmir",
+        "JH": "Jharkhand", "KA": "Karnataka", "KL": "Kerala", "MP": "Madhya Pradesh", "MH": "Maharashtra",
+        "MN": "Manipur", "ML": "Meghalaya", "MZ": "Mizoram", "NL": "Nagaland", "OR": "Odisha",
+        "PB": "Punjab", "RJ": "Rajasthan", "SK": "Sikkim", "TN": "Tamil Nadu", "TG": "Telangana",
+        "TR": "Tripura", "UP": "Uttar Pradesh", "UT": "Uttarakhand", "WB": "West Bengal"
+    }
+    
+    state_upper = state_code.upper().strip()
+    
+    # Determine which database to use based on country
+    country_lower = country.lower().strip()
+    
+    if country_lower in ['us', 'usa', 'united states', 'america'] or not country:
+        return usa_states.get(state_upper, state_code)
+    elif country_lower in ['ca', 'canada']:
+        return canada_provinces.get(state_upper, state_code)
+    elif country_lower in ['au', 'australia']:
+        return australia_states.get(state_upper, state_code)
+    elif country_lower in ['de', 'germany', 'deutschland']:
+        return germany_states.get(state_upper, state_code)
+    elif country_lower in ['uk', 'gb', 'great britain', 'united kingdom']:
+        return uk_regions.get(state_upper, state_code)
+    elif country_lower in ['fr', 'france']:
+        return france_regions.get(state_upper, state_code)
+    elif country_lower in ['it', 'italy', 'italia']:
+        return italy_regions.get(state_upper, state_code)
+    elif country_lower in ['br', 'brazil', 'brasil']:
+        return brazil_states.get(state_upper, state_code)
+    elif country_lower in ['in', 'india']:
+        return india_states.get(state_upper, state_code)
+    
+    # Default fallback: try USA first, then return original
+    return usa_states.get(state_upper, state_code)
 
 def normalize_country_code(code: str) -> str:
-    """Convert country codes to full names"""
+    """Convert country codes to full names - comprehensive list"""
     countries = {
-        "US": "United States", "USA": "United States", "GB": "Great Britain",
-        "UK": "United Kingdom", "CA": "Canada", "AU": "Australia",
-        "DE": "Germany", "FR": "France", "IT": "Italy", "ES": "Spain",
-        "NL": "Netherlands", "BE": "Belgium", "CH": "Switzerland",
-        "SE": "Sweden", "NO": "Norway", "DK": "Denmark", "FI": "Finland"
+        # Major countries
+        "US": "United States", "USA": "United States", "AMERICA": "United States",
+        "GB": "Great Britain", "UK": "United Kingdom", "BRITAIN": "Great Britain",
+        "CA": "Canada", "CANADA": "Canada",
+        "AU": "Australia", "AUSTRALIA": "Australia",
+        "DE": "Germany", "GERMANY": "Germany", "DEUTSCHLAND": "Germany",
+        "FR": "France", "FRANCE": "France",
+        "IT": "Italy", "ITALY": "Italy", "ITALIA": "Italy",
+        "ES": "Spain", "SPAIN": "Spain", "ESPANA": "Spain",
+        "NL": "Netherlands", "NETHERLANDS": "Netherlands", "HOLLAND": "Netherlands",
+        "BE": "Belgium", "BELGIUM": "Belgium",
+        "CH": "Switzerland", "SWITZERLAND": "Switzerland",
+        "AT": "Austria", "AUSTRIA": "Austria",
+        "SE": "Sweden", "SWEDEN": "Sweden",
+        "NO": "Norway", "NORWAY": "Norway",
+        "DK": "Denmark", "DENMARK": "Denmark",
+        "FI": "Finland", "FINLAND": "Finland",
+        "IE": "Ireland", "IRELAND": "Ireland",
+        "PT": "Portugal", "PORTUGAL": "Portugal",
+        "GR": "Greece", "GREECE": "Greece",
+        "PL": "Poland", "POLAND": "Poland",
+        "CZ": "Czech Republic", "CZECH": "Czech Republic",
+        "HU": "Hungary", "HUNGARY": "Hungary",
+        "RO": "Romania", "ROMANIA": "Romania",
+        "BG": "Bulgaria", "BULGARIA": "Bulgaria",
+        "HR": "Croatia", "CROATIA": "Croatia",
+        "SI": "Slovenia", "SLOVENIA": "Slovenia",
+        "SK": "Slovakia", "SLOVAKIA": "Slovakia",
+        "LT": "Lithuania", "LITHUANIA": "Lithuania",
+        "LV": "Latvia", "LATVIA": "Latvia",
+        "EE": "Estonia", "ESTONIA": "Estonia",
+        
+        # Asian countries
+        "JP": "Japan", "JAPAN": "Japan",
+        "CN": "China", "CHINA": "China",
+        "IN": "India", "INDIA": "India",
+        "KR": "South Korea", "KOREA": "South Korea", "SOUTH KOREA": "South Korea",
+        "TH": "Thailand", "THAILAND": "Thailand",
+        "VN": "Vietnam", "VIETNAM": "Vietnam",
+        "SG": "Singapore", "SINGAPORE": "Singapore",
+        "MY": "Malaysia", "MALAYSIA": "Malaysia",
+        "ID": "Indonesia", "INDONESIA": "Indonesia",
+        "PH": "Philippines", "PHILIPPINES": "Philippines",
+        "TW": "Taiwan", "TAIWAN": "Taiwan",
+        "HK": "Hong Kong", "HONG KONG": "Hong Kong",
+        
+        # American countries
+        "BR": "Brazil", "BRAZIL": "Brazil", "BRASIL": "Brazil",
+        "MX": "Mexico", "MEXICO": "Mexico",
+        "AR": "Argentina", "ARGENTINA": "Argentina",
+        "CL": "Chile", "CHILE": "Chile",
+        "CO": "Colombia", "COLOMBIA": "Colombia",
+        "PE": "Peru", "PERU": "Peru",
+        "VE": "Venezuela", "VENEZUELA": "Venezuela",
+        
+        # Middle East & Africa
+        "IL": "Israel", "ISRAEL": "Israel",
+        "TR": "Turkey", "TURKEY": "Turkey",
+        "SA": "Saudi Arabia", "SAUDI ARABIA": "Saudi Arabia",
+        "AE": "United Arab Emirates", "UAE": "United Arab Emirates",
+        "EG": "Egypt", "EGYPT": "Egypt",
+        "ZA": "South Africa", "SOUTH AFRICA": "South Africa",
+        
+        # Oceania
+        "NZ": "New Zealand", "NEW ZEALAND": "New Zealand",
+        
+        # Others
+        "RU": "Russia", "RUSSIA": "Russia",
+        "UA": "Ukraine", "UKRAINE": "Ukraine",
+        "BY": "Belarus", "BELARUS": "Belarus"
     }
-    return countries.get(code.upper(), code)
+    
+    return countries.get(code.upper().strip(), code)
 
 def is_valid_ip(ip: str) -> bool:
     """Basic IP validation"""
