@@ -4,10 +4,14 @@ import sys
 import os
 sys.path.append('/app/backend')
 
-from database import get_db, User, hash_password
+from database import get_db, User, hash_password, create_tables
 from sqlalchemy.orm import Session
 
 def reset_admin_password():
+    # Create tables first
+    create_tables()
+    print("✅ Tables created")
+    
     db = next(get_db())
     
     # Find admin user
