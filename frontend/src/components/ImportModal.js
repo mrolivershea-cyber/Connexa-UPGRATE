@@ -134,6 +134,7 @@ server2.example.com root secret`
                 <SelectItem value="ssh">SSH</SelectItem>
                 <SelectItem value="socks">SOCKS</SelectItem>
                 <SelectItem value="server">SERVER</SelectItem>
+                <SelectItem value="ovpn">OVPN</SelectItem>
               </SelectContent>
             </Select>
           </div>
