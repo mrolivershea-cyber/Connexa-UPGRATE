@@ -120,8 +120,8 @@ const AdminPanel = () => {
       zipcode: '',
       login: '',
       comment: '',
-      status: 'all',
-      protocol: 'all',
+      status: '',
+      protocol: '',
       only_online: false
     });
   };
