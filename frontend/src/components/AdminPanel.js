@@ -166,6 +166,68 @@ const AdminPanel = () => {
     }
   };
 
+  const handleStartServices = async () => {
+    if (!selectedNodes.length) {
+      toast.error('No nodes selected');
+      return;
+    }
+
+    try {
+      const response = await axios.post(`${API}/services/start`, {
+        node_ids: selectedNodes,
+        action: 'start'
+      });
+
+      const results = response.data.results;
+      const successCount = results.filter(r => r.success).length;
+      const failCount = results.length - successCount;
+      
+      if (successCount > 0) {
+        toast.success(`Started services for ${successCount} nodes`);
+      }
+      if (failCount > 0) {
+        toast.error(`Failed to start ${failCount} services`);
+      }
+
+      loadNodes(currentPage);
+      loadStats();
+    } catch (error) {
+      console.error('Error starting services:', error);
+      toast.error('Failed to start services: ' + (error.response?.data?.detail || error.message));
+    }
+  };
+
+  const handleStopServices = async () => {
+    if (!selectedNodes.length) {
+      toast.error('No nodes selected');
+      return;
+    }
+
+    try {
+      const response = await axios.post(`${API}/services/stop`, {
+        node_ids: selectedNodes,
+        action: 'stop'
+      });
+
+      const results = response.data.results;
+      const successCount = results.filter(r => r.success).length;
+      const failCount = results.length - successCount;
+      
+      if (successCount > 0) {
+        toast.success(`Stopped services for ${successCount} nodes`);
+      }
+      if (failCount > 0) {
+        toast.error(`Failed to stop ${failCount} services`);
+      }
+
+      loadNodes(currentPage);
+      loadStats();
+    } catch (error) {
+      console.error('Error stopping services:', error);
+      toast.error('Failed to stop services: ' + (error.response?.data?.detail || error.message));
+    }
+  };
+
   const handleNodeAdded = () => {
     loadNodes(currentPage);
     loadStats();
