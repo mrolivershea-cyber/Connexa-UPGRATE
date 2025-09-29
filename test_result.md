@@ -198,15 +198,18 @@ backend:
 frontend:
   - task: "ServiceControlModal removal"
     implemented: true
-    working: "NA"
+    working: true
     file: "AdminPanel.js"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "ServiceControlModal removed and imports cleaned up as requested by user"
+      - working: true
+        agent: "testing"
+        comment: "✅ TESTED: ServiceControlModal has been successfully removed. No references to ServiceControlModal found in AdminPanel.js, and the Start/Stop Services functionality has been properly integrated directly into the filter panel as requested."
 
   - task: "Start/Stop Services buttons"
     implemented: true
