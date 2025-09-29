@@ -22,7 +22,7 @@ from auth import (
 )
 from schemas import (
     UserCreate, NodeCreate, NodeUpdate, LoginRequest, ChangePasswordRequest,
-    BulkImport, ExportRequest, Token, ServiceAction, TestRequest
+    BulkImport, ImportNodesSchema, ExportRequest, Token, ServiceAction, TestRequest
 )
 from services import service_manager, network_tester
 
