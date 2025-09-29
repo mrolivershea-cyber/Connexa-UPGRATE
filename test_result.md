@@ -182,15 +182,18 @@ backend:
 
   - task: "Enhanced import API with universal parser"
     implemented: true
-    working: "NA"
+    working: true
     file: "server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Created new /nodes/import endpoint with 6-format parser, deduplication logic, format error handling, and verification queue system"
+      - working: true
+        agent: "testing"
+        comment: "✅ TESTED: Enhanced import API working perfectly. All 6 formats tested successfully: Format 1 (key-value pairs), Format 2 (single line spaces), Format 3 (dash/pipe), Format 4 (colon separated), Format 5 (multi-line location), Format 6 (PPTP header). Detailed reporting shows added/skipped/replaced/queued counts correctly. API returns comprehensive report with processing statistics."
 
   - task: "Format error API endpoints"
     implemented: true
