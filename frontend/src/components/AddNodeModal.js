@@ -97,11 +97,11 @@ const AddNodeModal = ({ isOpen, onClose, onNodeAdded }) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto" data-testid={`add-${type}-modal`}>
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto" data-testid="add-server-modal">
         <DialogHeader>
-          <DialogTitle>Добавить {type?.toUpperCase() || 'PPTP'} Узел</DialogTitle>
+          <DialogTitle>Добавить {formData.protocol?.toUpperCase() || 'PPTP'} Сервер</DialogTitle>
           <DialogDescription>
-            Добавить новый {type} узел в список подключений.
+            Добавить новый {formData.protocol} сервер в список подключений.
           </DialogDescription>
         </DialogHeader>
         
