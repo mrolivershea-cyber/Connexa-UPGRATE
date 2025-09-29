@@ -506,6 +506,16 @@ const AdminPanel = () => {
         isOpen={showOptionsModal}
         onClose={() => setShowOptionsModal(false)}
       />
+      
+      <ServiceControlModal 
+        isOpen={showServiceControlModal}
+        onClose={() => setShowServiceControlModal(false)}
+      />
+      
+      <TestingModal 
+        isOpen={showTestingModal}
+        onClose={() => setShowTestingModal(false)}
+      />
     </div>
   );
 };
