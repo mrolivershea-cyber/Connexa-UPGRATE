@@ -249,23 +249,13 @@ vpn2.example.com:443 client2 pass456 GB`
           <Button type="button" variant="outline" onClick={onClose}>
             Cancel
           </Button>
-          {!showPreview ? (
-            <Button 
-              onClick={handlePreview}
-              disabled={loading || !importData.trim()}
-              data-testid="preview-import-btn"
-            >
-              {loading ? 'Generating Preview...' : 'Preview Import'}
-            </Button>
-          ) : (
-            <Button 
-              onClick={handleImport}
-              disabled={loading}
-              data-testid="confirm-import-btn"
-            >
-              {loading ? 'Importing...' : 'Confirm Import'}
-            </Button>
-          )}
+          <Button 
+            onClick={handleImport}
+            disabled={loading || !importData.trim()}
+            data-testid="import-btn"
+          >
+            {loading ? 'Importing...' : 'Import Nodes'}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
