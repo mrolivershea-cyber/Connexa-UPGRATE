@@ -202,40 +202,44 @@ vpn2.example.com:443 client2 pass456 GB`
           {showPreview && previewResult && (
             <Card>
               <CardHeader>
-                <CardTitle className="text-sm">Import Preview</CardTitle>
+                <CardTitle className="text-sm">Import Results</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-4 gap-4 text-sm">
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-sm">
                   <div className="text-center">
-                    <div className="text-xl font-bold text-green-600">{previewResult.created}</div>
-                    <div className="text-xs text-gray-600">Created</div>
+                    <div className="text-xl font-bold text-green-600">{previewResult.added || 0}</div>
+                    <div className="text-xs text-gray-600">Added</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-xl font-bold text-yellow-600">{previewResult.duplicates}</div>
+                    <div className="text-xl font-bold text-yellow-600">{previewResult.skipped_duplicates || 0}</div>
                     <div className="text-xs text-gray-600">Duplicates</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-xl font-bold text-red-600">{previewResult.errors?.length || 0}</div>
-                    <div className="text-xs text-gray-600">Errors</div>
+                    <div className="text-xl font-bold text-blue-600">{previewResult.replaced_old || 0}</div>
+                    <div className="text-xs text-gray-600">Replaced</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-xl font-bold">{previewResult.total_processed}</div>
-                    <div className="text-xs text-gray-600">Total</div>
+                    <div className="text-xl font-bold text-purple-600">{previewResult.queued_for_verification || 0}</div>
+                    <div className="text-xs text-gray-600">Queued</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-xl font-bold text-red-600">{previewResult.format_errors || 0}</div>
+                    <div className="text-xs text-gray-600">Format Errors</div>
                   </div>
                 </div>
-                {previewResult.errors && previewResult.errors.length > 0 && (
-                  <div className="mt-4">
-                    <h4 className="font-medium text-red-600 mb-2">Errors:</h4>
-                    <div className="text-xs text-red-600 space-y-1">
-                      {previewResult.errors.slice(0, 5).map((error, idx) => (
-                        <div key={idx}>{error}</div>
-                      ))}
-                      {previewResult.errors.length > 5 && (
-                        <div>... and {previewResult.errors.length - 5} more errors</div>
-                      )}
+                
+                {previewResult.processing_errors > 0 && (
+                  <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded">
+                    <h4 className="font-medium text-red-600 mb-2">Processing Errors: {previewResult.processing_errors}</h4>
+                    <div className="text-xs text-red-600">
+                      Check the Format Error log for details.
                     </div>
                   </div>
                 )}
+                
+                <div className="mt-4 text-xs text-gray-600">
+                  <strong>Summary:</strong> Processed {previewResult.total_processed} blocks, successfully parsed {previewResult.successfully_parsed}
+                </div>
               </CardContent>
             </Card>
           )}
