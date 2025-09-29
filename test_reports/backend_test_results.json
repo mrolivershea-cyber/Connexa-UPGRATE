@@ -1,8 +1,8 @@
 {
-  "timestamp": "2025-09-29T14:53:30.869840",
+  "timestamp": "2025-09-29T14:57:08.332340",
   "total_tests": 41,
-  "passed_tests": 39,
-  "success_rate": 95.1219512195122,
+  "passed_tests": 41,
+  "success_rate": 100.0,
   "test_details": [
     {
       "test": "Health Check",
@@ -25,25 +25,25 @@
     {
       "test": "Get Nodes",
       "success": true,
-      "details": "Found 45 nodes",
+      "details": "Found 58 nodes",
       "response_data": null
     },
     {
       "test": "Get Statistics",
       "success": true,
-      "details": "Total: 45, Online: 0",
+      "details": "Total: 58, Online: 0",
       "response_data": null
     },
     {
       "test": "Create Node",
       "success": true,
-      "details": "Created node with ID: 48",
+      "details": "Created node with ID: 63",
       "response_data": null
     },
     {
       "test": "Update Node",
       "success": true,
-      "details": "Updated node 48",
+      "details": "Updated node 63",
       "response_data": null
     },
     {
@@ -66,32 +66,32 @@
     },
     {
       "test": "Import Nodes (Legacy)",
-      "success": false,
-      "details": "Failed to import nodes: {'text': 'Internal Server Error', 'status_code': 500}",
+      "success": true,
+      "details": "Created: 0, Duplicates: 1",
       "response_data": null
     },
     {
       "test": "Enhanced Import Format 1",
       "success": true,
-      "details": "Added: 1, Skipped: 0, Format Errors: 0",
+      "details": "Added: 0, Skipped: 1, Format Errors: 0",
       "response_data": null
     },
     {
       "test": "Enhanced Import Format 2",
       "success": true,
-      "details": "Added: 1, Skipped: 0, Format Errors: 0",
+      "details": "Added: 0, Skipped: 1, Format Errors: 0",
       "response_data": null
     },
     {
       "test": "Enhanced Import Format 3",
       "success": true,
-      "details": "Added: 1, Skipped: 0, Format Errors: 0",
+      "details": "Added: 0, Skipped: 1, Format Errors: 0",
       "response_data": null
     },
     {
       "test": "Enhanced Import Format 4",
       "success": true,
-      "details": "Added: 1, Skipped: 0, Format Errors: 0",
+      "details": "Added: 0, Skipped: 1, Format Errors: 0",
       "response_data": null
     },
     {
@@ -114,8 +114,8 @@
     },
     {
       "test": "Country/State Normalization",
-      "success": false,
-      "details": "State normalization not working as expected",
+      "success": true,
+      "details": "CA\u2192California, US\u2192United States",
       "response_data": null
     },
     {
@@ -133,13 +133,13 @@
     {
       "test": "Mixed Format Import",
       "success": true,
-      "details": "Processed mixed formats - Added: 1, Errors: 0",
+      "details": "Processed mixed formats - Added: 0, Errors: 0",
       "response_data": null
     },
     {
       "test": "Get Nodes",
       "success": true,
-      "details": "Found 59 nodes",
+      "details": "Found 66 nodes",
       "response_data": null
     },
     {
@@ -169,13 +169,13 @@
     {
       "test": "Single Node Service Start",
       "success": true,
-      "details": "Service start attempted for node 48",
+      "details": "Service start attempted for node 63",
       "response_data": null
     },
     {
       "test": "Single Node Service Stop",
       "success": true,
-      "details": "Service stop attempted for node 48",
+      "details": "Service stop attempted for node 63",
       "response_data": null
     },
     {
@@ -199,13 +199,13 @@
     {
       "test": "Single Node Test",
       "success": true,
-      "details": "Single node test completed for node 48",
+      "details": "Single node test completed for node 63",
       "response_data": null
     },
     {
       "test": "Delete Node",
       "success": true,
-      "details": "Deleted node 48",
+      "details": "Deleted node 63",
       "response_data": null
     },
     {
