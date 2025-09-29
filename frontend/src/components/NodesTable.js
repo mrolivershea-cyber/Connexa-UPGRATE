@@ -15,7 +15,10 @@ import {
   Trash2,
   Edit,
   Check,
-  X
+  X,
+  Activity,
+  Play,
+  Square
 } from 'lucide-react';
 import axios from 'axios';
 
