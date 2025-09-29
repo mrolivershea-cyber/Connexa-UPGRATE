@@ -779,11 +779,6 @@ def normalize_country_code(code: str) -> str:
     
     return countries.get(code.upper().strip(), code)
 
-import os
-import json
-from datetime import datetime, timedelta
-from typing import List, Dict, Optional
-
 def write_format_errors(errors: List[str]) -> str:
     """Write format errors to file"""
     error_file_path = "/app/Format_error.txt"
