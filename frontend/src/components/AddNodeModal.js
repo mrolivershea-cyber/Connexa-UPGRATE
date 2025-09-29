@@ -33,6 +33,7 @@ const AddNodeModal = ({ isOpen, onClose, onNodeAdded }) => {
       setFormData({
         protocol: 'pptp',
         ip: '',
+        port: '',
         login: '',
         password: '',
         provider: '',
