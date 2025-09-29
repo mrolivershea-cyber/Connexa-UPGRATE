@@ -267,21 +267,9 @@ const AdminPanel = () => {
 
         {/* Control Buttons */}
         <div className="flex flex-wrap gap-3 mb-6">
-          <Button onClick={() => { setAddModalType('pptp'); setShowAddModal(true); }} data-testid="add-pptp-btn">
+          <Button onClick={() => setShowAddModal(true)} data-testid="add-server-btn">
             <Plus className="h-4 w-4 mr-2" />
-            Add PPTP
-          </Button>
-          <Button onClick={() => { setAddModalType('ssh'); setShowAddModal(true); }} data-testid="add-ssh-btn">
-            <Plus className="h-4 w-4 mr-2" />
-            Add SSH
-          </Button>
-          <Button onClick={() => { setAddModalType('socks'); setShowAddModal(true); }} data-testid="add-socks-btn">
-            <Plus className="h-4 w-4 mr-2" />
-            Add SOCKS
-          </Button>
-          <Button onClick={() => { setAddModalType('server'); setShowAddModal(true); }} data-testid="add-server-btn">
-            <Plus className="h-4 w-4 mr-2" />
-            Add SERVER
+            Add Server
           </Button>
           <Button variant="outline" onClick={() => setShowImportModal(true)} data-testid="import-btn">
             <Download className="h-4 w-4 mr-2" />
