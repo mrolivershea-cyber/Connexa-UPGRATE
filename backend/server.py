@@ -275,7 +275,13 @@ async def import_nodes_legacy(
     db: Session = Depends(get_db)
 ):
     """Parse and import nodes from text data"""
-    nodes_data = parse_nodes_text(data.data, data.protocol)
+    parsed_result = parse_nodes_text(data.data, data.protocol)
+    
+    # Handle both old and new format returns
+    if isinstance(parsed_result, dict) and 'nodes' in parsed_result:
+        nodes_data = parsed_result['nodes']
+    else:
+        nodes_data = parsed_result
     
     created_nodes = []
     errors = []
