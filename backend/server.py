@@ -269,7 +269,7 @@ async def import_nodes(
 
 # Import/Export Routes
 @api_router.post("/import")
-async def import_nodes(
+async def import_nodes_legacy(
     data: BulkImport,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
