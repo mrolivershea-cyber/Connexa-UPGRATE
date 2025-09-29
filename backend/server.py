@@ -532,6 +532,7 @@ async def get_stats(
             "ssh": db.query(Node).filter(Node.protocol == "ssh").count(),
             "socks": db.query(Node).filter(Node.protocol == "socks").count(),
             "server": db.query(Node).filter(Node.protocol == "server").count(),
+            "ovpn": db.query(Node).filter(Node.protocol == "ovpn").count(),
         }
     }
 
