@@ -1,7 +1,7 @@
 {
-  "timestamp": "2025-09-28T18:23:44.964260",
-  "total_tests": 18,
-  "passed_tests": 18,
+  "timestamp": "2025-09-29T14:09:54.470741",
+  "total_tests": 30,
+  "passed_tests": 30,
   "success_rate": 100.0,
   "test_details": [
     {
@@ -25,31 +25,43 @@
     {
       "test": "Get Nodes",
       "success": true,
-      "details": "Found 4 nodes",
+      "details": "Found 38 nodes",
       "response_data": null
     },
     {
       "test": "Get Statistics",
       "success": true,
-      "details": "Total: 4, Online: 0",
+      "details": "Total: 38, Online: 0",
       "response_data": null
     },
     {
       "test": "Create Node",
       "success": true,
-      "details": "Created node with ID: 5",
+      "details": "Created node with ID: 39",
       "response_data": null
     },
     {
       "test": "Update Node",
       "success": true,
-      "details": "Updated node 5",
+      "details": "Updated node 39",
+      "response_data": null
+    },
+    {
+      "test": "Create Node with Auto Test",
+      "success": true,
+      "details": "Node created with auto test, response: {'node': {}, 'test_result': {'ping': {'success': False, 'reachable': False, 'error': \"[Errno 2] No such file or directory: 'ping'\"}}, 'message': 'Node created and tested (ping)'}",
+      "response_data": null
+    },
+    {
+      "test": "Create Different Protocol Nodes",
+      "success": true,
+      "details": "Created 5 nodes with different protocols",
       "response_data": null
     },
     {
       "test": "Node Filtering",
       "success": true,
-      "details": "Filtered results: 5 nodes",
+      "details": "Filtered results: 10 nodes",
       "response_data": null
     },
     {
@@ -61,7 +73,7 @@
     {
       "test": "Get Nodes",
       "success": true,
-      "details": "Found 7 nodes",
+      "details": "Found 47 nodes",
       "response_data": null
     },
     {
@@ -71,9 +83,63 @@
       "response_data": null
     },
     {
+      "test": "Start Services",
+      "success": true,
+      "details": "Service start attempted for 1 nodes",
+      "response_data": null
+    },
+    {
+      "test": "Service Status",
+      "success": true,
+      "details": "Got service status for node 1",
+      "response_data": null
+    },
+    {
+      "test": "Stop Services",
+      "success": true,
+      "details": "Service stop attempted for 1 nodes",
+      "response_data": null
+    },
+    {
+      "test": "Single Node Service Start",
+      "success": true,
+      "details": "Service start attempted for node 39",
+      "response_data": null
+    },
+    {
+      "test": "Single Node Service Stop",
+      "success": true,
+      "details": "Service stop attempted for node 39",
+      "response_data": null
+    },
+    {
+      "test": "Ping Test",
+      "success": true,
+      "details": "Ping test completed for 1 nodes",
+      "response_data": null
+    },
+    {
+      "test": "Speed Test",
+      "success": true,
+      "details": "Speed test completed for 1 nodes",
+      "response_data": null
+    },
+    {
+      "test": "Combined Test",
+      "success": true,
+      "details": "Combined test completed for 1 nodes",
+      "response_data": null
+    },
+    {
+      "test": "Single Node Test",
+      "success": true,
+      "details": "Single node test completed for node 39",
+      "response_data": null
+    },
+    {
       "test": "Delete Node",
       "success": true,
-      "details": "Deleted node 5",
+      "details": "Deleted node 39",
       "response_data": null
     },
     {
@@ -85,31 +151,37 @@
     {
       "test": "Autocomplete Countries",
       "success": true,
-      "details": "Found 0 items",
+      "details": "Found 2 items",
       "response_data": null
     },
     {
       "test": "Autocomplete States",
       "success": true,
-      "details": "Found 4 items",
+      "details": "Found 7 items",
       "response_data": null
     },
     {
       "test": "Autocomplete Cities",
       "success": true,
-      "details": "Found 2 items",
+      "details": "Found 5 items",
       "response_data": null
     },
     {
       "test": "Autocomplete Providers",
       "success": true,
-      "details": "Found 0 items",
+      "details": "Found 7 items",
       "response_data": null
     },
     {
       "test": "Change Password",
       "success": true,
       "details": "Password changed and reverted successfully",
+      "response_data": null
+    },
+    {
+      "test": "Logout",
+      "success": true,
+      "details": "Logged out successfully",
       "response_data": null
     }
   ]
