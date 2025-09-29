@@ -38,6 +38,7 @@ class NodeCreate(NodeBase):
 
 class NodeUpdate(BaseModel):
     ip: Optional[str] = None
+    port: Optional[int] = None
     login: Optional[str] = None
     password: Optional[str] = None
     provider: Optional[str] = None
