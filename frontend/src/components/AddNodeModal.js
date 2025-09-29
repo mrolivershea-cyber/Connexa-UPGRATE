@@ -136,7 +136,7 @@ const AddNodeModal = ({ isOpen, onClose, onNodeAdded, type }) => {
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="login">Login</Label>
+              <Label htmlFor="login">Логин</Label>
               <Input
                 id="login"
                 value={formData.login}
@@ -146,7 +146,7 @@ const AddNodeModal = ({ isOpen, onClose, onNodeAdded, type }) => {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">Пароль</Label>
               <Input
                 id="password"
                 type="password"
