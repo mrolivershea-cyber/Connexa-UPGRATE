@@ -496,11 +496,21 @@ const AdminPanel = () => {
       <ServiceControlModal 
         isOpen={showServiceControlModal}
         onClose={() => setShowServiceControlModal(false)}
+        selectedNodeIds={selectedNodes}
+        onServiceComplete={() => {
+          loadNodes(currentPage);
+          loadStats();
+        }}
       />
       
       <TestingModal 
         isOpen={showTestingModal}
         onClose={() => setShowTestingModal(false)}
+        selectedNodeIds={selectedNodes}
+        onTestComplete={() => {
+          loadNodes(currentPage);
+          loadStats();
+        }}
       />
     </div>
   );
