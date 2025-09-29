@@ -78,7 +78,7 @@ const AddNodeModal = ({ isOpen, onClose, onNodeAdded }) => {
       } else {
         // Standard creation without test
         await axios.post(`${API}/nodes`, formData);
-        toast.success(`${type?.toUpperCase() || 'PPTP'} узел добавлен успешно!`);
+        toast.success(`${formData.protocol?.toUpperCase() || 'PPTP'} узел добавлен успешно!`);
       }
       
       onNodeAdded();
