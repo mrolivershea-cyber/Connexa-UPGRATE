@@ -50,7 +50,6 @@ const AdminPanel = () => {
   const [showImportModal, setShowImportModal] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
   const [showOptionsModal, setShowOptionsModal] = useState(false);
-  const [showServiceControlModal, setShowServiceControlModal] = useState(false);
   const [showTestingModal, setShowTestingModal] = useState(false);
   
   // Filters
