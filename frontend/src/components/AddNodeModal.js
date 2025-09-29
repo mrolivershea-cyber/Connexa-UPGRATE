@@ -41,6 +41,8 @@ const AddNodeModal = ({ isOpen, onClose, onNodeAdded, type }) => {
         comment: '',
         protocol: type || 'pptp'
       });
+      setAutoTest(true);
+      setTestType('ping');
     }
   }, [isOpen, type]);
 
