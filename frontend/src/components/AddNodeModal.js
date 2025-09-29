@@ -9,7 +9,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
 import axios from 'axios';
 
-const AddNodeModal = ({ isOpen, onClose, onNodeAdded, type }) => {
+const AddNodeModal = ({ isOpen, onClose, onNodeAdded }) => {
   const { API } = useAuth();
   const [loading, setLoading] = useState(false);
   const [autoTest, setAutoTest] = useState(true);
