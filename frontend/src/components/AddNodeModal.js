@@ -224,6 +224,42 @@ const AddNodeModal = ({ isOpen, onClose, onNodeAdded, type }) => {
               />
             </div>
           </div>
+
+          {/* Auto-test options */}
+          <div className="space-y-3 p-3 border rounded">
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="auto-test"
+                checked={autoTest}
+                onCheckedChange={setAutoTest}
+                data-testid="auto-test-checkbox"
+              />
+              <Label htmlFor="auto-test" className="text-sm font-medium">
+                Автоматическое тестирование после добавления
+              </Label>
+            </div>
+            
+            {autoTest && (
+              <div className="ml-6 space-y-2">
+                <Label htmlFor="test-type">Тип тестирования:</Label>
+                <Select value={testType} onValueChange={setTestType}>
+                  <SelectTrigger data-testid="auto-test-type-select">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="ping">Только Ping (быстро)</SelectItem>
+                    <SelectItem value="speed">Только Скорость</SelectItem>
+                    <SelectItem value="both">Ping + Скорость (полный)</SelectItem>
+                  </SelectContent>
+                </Select>
+                <div className="text-xs text-gray-600">
+                  {testType === 'ping' && 'Проверка доступности узла (ICMP ping)'}
+                  {testType === 'speed' && 'Тестирование скорости интернет соединения'}
+                  {testType === 'both' && 'Комбинированная проверка доступности и скорости'}
+                </div>
+              </div>
+            )}
+          </div>
         </form>
 
         <DialogFooter>
