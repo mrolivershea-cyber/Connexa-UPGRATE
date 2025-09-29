@@ -475,7 +475,6 @@ const AdminPanel = () => {
         isOpen={showAddModal}
         onClose={() => setShowAddModal(false)}
         onNodeAdded={handleNodeAdded}
-        type={addModalType}
       />
       
       <ImportModal 
