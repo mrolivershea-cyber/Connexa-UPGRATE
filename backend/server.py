@@ -918,6 +918,7 @@ def process_parsed_nodes(db: Session, parsed_data: dict) -> dict:
         results["errors"].append({"general": f"Database commit error: {str(e)}"})
     
     return results
+def is_valid_ip(ip: str) -> bool:
     """Basic IP validation"""
     import ipaddress
     try:
