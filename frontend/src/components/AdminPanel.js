@@ -324,20 +324,39 @@ const AdminPanel = () => {
           </Card>
         </div>
 
-        {/* Control Buttons */}
-        <div className="flex flex-wrap gap-3 mb-6">
-          <Button onClick={() => setShowAddModal(true)} data-testid="add-server-btn">
-            <Plus className="h-4 w-4 mr-2" />
-            Add Server
-          </Button>
-          <Button variant="outline" onClick={() => setShowImportModal(true)} data-testid="import-btn">
-            <Download className="h-4 w-4 mr-2" />
-            Import
-          </Button>
-          <Button variant="outline" onClick={() => setShowTestingModal(true)} data-testid="testing-btn">
-            <Activity className="h-4 w-4 mr-2" />
-            Testing
-          </Button>
+        {/* Actions */}
+        <div className="flex justify-between items-center mb-6">
+          <div className="flex space-x-3">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button data-testid="add-import-btn">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add/Import Server
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem onClick={() => setShowAddModal(true)}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Single Server
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setShowImportModal(true)}>
+                  <Download className="h-4 w-4 mr-2" />
+                  Import Multiple Servers
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <Button 
+              variant="outline" 
+              onClick={() => setShowTestingModal(true)}
+              data-testid="testing-btn"
+            >
+              <Activity className="h-4 w-4 mr-2" />
+              Testing
+            </Button>
+          </div>
+          <div>
+            <span className="text-sm text-gray-600">Total nodes: {stats.total || 0}</span>
+          </div>
         </div>
 
         {/* Filters */}
