@@ -870,6 +870,27 @@ State: CA
         # Test import/export
         self.test_import_nodes()
         
+        # Test enhanced import API with all 6 formats
+        print("\n🔍 Testing Enhanced Import API with Universal Parser...")
+        self.test_enhanced_import_format_1()
+        self.test_enhanced_import_format_2()
+        self.test_enhanced_import_format_3()
+        self.test_enhanced_import_format_4()
+        self.test_enhanced_import_format_5()
+        self.test_enhanced_import_format_6()
+        
+        # Test deduplication and normalization
+        print("\n🔄 Testing Deduplication and Normalization...")
+        self.test_deduplication_logic()
+        self.test_country_state_normalization()
+        
+        # Test format error handling
+        print("\n⚠️ Testing Format Error API...")
+        self.test_format_errors_api()
+        
+        # Test mixed format import
+        self.test_mixed_format_import()
+        
         # Get updated node list for service and testing operations
         updated_nodes = self.test_get_nodes()
         if updated_nodes:
