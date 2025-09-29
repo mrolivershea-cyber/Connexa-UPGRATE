@@ -553,33 +553,66 @@ City: Austin
         if new_node_id:
             self.test_update_node(new_node_id)
         
+        # Test creating node with auto-test
+        auto_test_node_id = self.test_create_node_with_auto_test()
+        
+        # Test different protocol nodes
+        protocol_node_ids = self.test_different_protocols()
+        
         # Test filtering
         self.test_node_filtering()
         
         # Test import/export
         self.test_import_nodes()
         
-        # Get updated node list for export/delete tests
+        # Get updated node list for service and testing operations
         updated_nodes = self.test_get_nodes()
         if updated_nodes:
             node_ids = [node['id'] for node in updated_nodes]
+            
+            # Test export functionality
             self.test_export_nodes(node_ids)
+            
+            # Test service control endpoints
+            if node_ids:
+                self.test_service_control_start(node_ids)
+                self.test_service_status(node_ids[0])
+                self.test_service_control_stop(node_ids)
+                
+                # Test single node service operations
+                if new_node_id:
+                    self.test_single_node_service_start(new_node_id)
+                    self.test_single_node_service_stop(new_node_id)
+            
+            # Test node testing endpoints
+            if node_ids:
+                self.test_ping_test(node_ids)
+                self.test_speed_test(node_ids)
+                self.test_combined_test(node_ids)
+                
+                # Test single node testing
+                if new_node_id:
+                    self.test_single_node_test(new_node_id)
             
             # Test delete operations (use newly created nodes)
             if new_node_id:
                 self.test_delete_node(new_node_id)
             
-            # Test bulk delete with remaining test nodes
-            test_nodes = [node for node in updated_nodes if 'Test' in node.get('comment', '')]
-            if test_nodes:
-                test_node_ids = [node['id'] for node in test_nodes[:1]]
-                self.test_bulk_delete_nodes(test_node_ids)
+            if auto_test_node_id:
+                self.test_delete_node(auto_test_node_id)
+            
+            # Test bulk delete with protocol test nodes
+            if protocol_node_ids:
+                self.test_bulk_delete_nodes(protocol_node_ids)
         
         # Test autocomplete
         self.test_autocomplete_endpoints()
         
         # Test password change
         self.test_change_password()
+        
+        # Test logout
+        self.test_logout()
         
         # Print summary
         print("\n" + "=" * 50)
