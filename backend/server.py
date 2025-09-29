@@ -219,10 +219,14 @@ async def delete_node(
 
 @api_router.delete("/nodes")
 async def delete_multiple_nodes(
-    node_ids: List[int],
+    request: dict,  # Accept JSON body
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
+    node_ids = request.get("node_ids", [])
+    if not node_ids:
+        raise HTTPException(status_code=400, detail="No node IDs provided")
+    
     deleted_count = db.query(Node).filter(Node.id.in_(node_ids)).delete(synchronize_session=False)
     db.commit()
     return {"message": f"Deleted {deleted_count} nodes successfully"}
