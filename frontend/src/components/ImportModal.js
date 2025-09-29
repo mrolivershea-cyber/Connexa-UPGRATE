@@ -29,26 +29,46 @@ const ImportModal = ({ isOpen, onClose, onImportComplete }) => {
 
   const addSampleText = () => {
     const sampleTexts = {
-      pptp: `Ip: 144.229.29.35
+      pptp: `Format 1 - Key-value pairs:
+Ip: 144.229.29.35
 Login: admin
 Pass: admin
 State: California
 City: Los Angeles
 Zip: 90035
-
+---------------------
+Format 2 - Single line with spaces (IP Pass Login State):
 76.178.64.46 admin admin CA
 96.234.52.227 admin admin NJ
-
+---------------------
+Format 3 - Dash/pipe format:
 68.227.241.4 - admin:admin - Arizona/Phoenix 85001 | 2025-09-03 16:05:25
-96.42.187.97 - 1:1 - Michigan/Lapeer 48446 | 2025-09-03 09:50:22`,
-      ssh: `192.168.1.100 root password123 US
-10.0.0.50 admin secret456 CA`,
-      socks: `proxy1.example.com:1080:user:pass
-proxy2.example.com:1080:user2:pass2`,
-      server: `server1.example.com admin password
-server2.example.com root secret`,
-      ovpn: `vpn1.example.com:1194 client1 pass123 US
-vpn2.example.com:443 client2 pass456 GB`
+96.42.187.97 - 1:1 - Michigan/Lapeer 48446 | 2025-09-03 09:50:22
+---------------------
+Format 4 - Colon separated:
+70.171.218.52:admin:admin:US:Arizona:85001
+---------------------
+Format 5 - Multi-line with Location:
+IP: 24.227.222.13
+Credentials: admin:admin
+Location: Texas (Austin)
+ZIP: 78701
+---------------------
+Format 6 - With PPTP header (first 2 lines ignored):
+> PPTP_SVOIM_VPN:
+🚨 PPTP Connection
+IP: 24.227.222.13
+Credentials: admin:admin
+Location: Texas (Austin)
+ZIP: 78701`,
+      ssh: `192.168.1.100:root:password123:US:New York:10001
+10.0.0.50 secret456 admin CA`,
+      socks: `proxy1.example.com:1080:user:pass:US:California:90210
+proxy2.example.com:1080:user2:pass2:GB:London:`,
+      server: `server1.example.com admin password US
+server2.example.com root secret CA`,
+      ovpn: `vpn1.example.com:1194:client1:pass123:US:Florida:33101
+vpn2.example.com:443:client2:pass456:GB:London:`
     };
     setImportData(sampleTexts[protocol] || sampleTexts.pptp);
   };
