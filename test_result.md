@@ -316,6 +316,54 @@ frontend:
         agent: "testing"
         comment: "✅ TESTED: Node selection functionality working perfectly. Individual node checkboxes work correctly, Select All checkbox properly selects/deselects all nodes, selection count is displayed accurately ('1 selected' shown in UI), and selected state properly enables/disables bulk action buttons."
 
+  - task: "Unified Add/Import Server button"
+    implemented: true
+    working: "NA"
+    file: "AdminPanel.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Replaced separate Add Server and Import buttons with unified dropdown menu containing 'Add Single Server' and 'Import Multiple Servers' options"
+
+  - task: "Format Error button and modal"
+    implemented: true
+    working: "NA"
+    file: "AdminPanel.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Added Format Error button in mass actions section with modal to view/clear parsing errors from Format_error.txt file"
+
+  - task: "Enhanced ImportModal with new API"
+    implemented: true
+    working: "NA"
+    file: "ImportModal.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Updated ImportModal to use new /nodes/import API endpoint with detailed reporting (added, skipped, replaced, queued, format errors)"
+
+  - task: "Enhanced sample texts with all 6 formats"
+    implemented: true
+    working: "NA"
+    file: "ImportModal.js"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Updated sample text generation to demonstrate all 6 supported parsing formats with clear format labels and separators"
+
 metadata:
   created_by: "main_agent"
   version: "1.0"
