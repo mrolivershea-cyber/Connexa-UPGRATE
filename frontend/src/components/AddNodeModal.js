@@ -136,18 +136,21 @@ const AddNodeModal = ({ isOpen, onClose, onNodeAdded }) => {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="protocol">Протокол</Label>
-              <Select value={formData.protocol} onValueChange={(value) => handleChange('protocol', value)}>
-                <SelectTrigger data-testid="node-protocol-select">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="pptp">PPTP</SelectItem>
-                  <SelectItem value="ssh">SSH</SelectItem>
-                  <SelectItem value="socks">SOCKS</SelectItem>
-                  <SelectItem value="server">SERVER</SelectItem>
-                </SelectContent>
-              </Select>
+              <Label htmlFor="port">Порт {formData.protocol === 'socks' ? 'SOCKS' : formData.protocol?.toUpperCase()}</Label>
+              <Input
+                id="port"
+                type="number"
+                value={formData.port || ''}
+                onChange={(e) => handleChange('port', e.target.value)}
+                placeholder={
+                  formData.protocol === 'pptp' ? '1723' :
+                  formData.protocol === 'ssh' ? '22' :
+                  formData.protocol === 'socks' ? '1080' :
+                  formData.protocol === 'ovpn' ? '1194' :
+                  '8080'
+                }
+                data-testid="server-port-input"
+              />
             </div>
           </div>
 
