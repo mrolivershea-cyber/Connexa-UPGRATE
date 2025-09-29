@@ -370,12 +370,15 @@ metadata:
   test_sequence: 1
   run_ui: false
 
-  test_plan:
+    test_plan:
   current_focus:
-    - "Start/Stop Services buttons under filters"
-    - "Node context menu actions (all 6 actions)"
-    - "Delete Selected button functionality"
-    - "UI feedback and notifications"
+    - "Enhanced import API with universal parser"
+    - "Format error API endpoints"
+    - "Universal parser with 6 formats"
+    - "Deduplication system with business rules"
+    - "Unified Add/Import Server button"
+    - "Format Error button and modal"
+    - "Enhanced ImportModal with new API"
   stuck_tasks: []
   test_all: true
   test_priority: "high_first"
