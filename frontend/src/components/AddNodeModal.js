@@ -204,7 +204,7 @@ const AddNodeModal = ({ isOpen, onClose, onNodeAdded, type }) => {
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="zipcode">ZIP Code</Label>
+              <Label htmlFor="zipcode">ZIP Код</Label>
               <Input
                 id="zipcode"
                 value={formData.zipcode}
@@ -214,12 +214,12 @@ const AddNodeModal = ({ isOpen, onClose, onNodeAdded, type }) => {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="comment">Comment</Label>
+              <Label htmlFor="comment">Комментарий</Label>
               <Input
                 id="comment"
                 value={formData.comment}
                 onChange={(e) => handleChange('comment', e.target.value)}
-                placeholder="Optional comment"
+                placeholder="Опциональный комментарий"
                 data-testid="node-comment-input"
               />
             </div>
