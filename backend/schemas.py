@@ -78,6 +78,10 @@ class BulkImport(BaseModel):
     data: str
     protocol: str = "pptp"
 
+class ImportNodesSchema(BaseModel):
+    data: str
+    protocol: str = "pptp"
+
 class ExportRequest(BaseModel):
     node_ids: List[int]
     format: str = "txt"  # txt, csv, xlsx
