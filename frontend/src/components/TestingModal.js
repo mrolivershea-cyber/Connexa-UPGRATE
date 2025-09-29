@@ -10,17 +10,15 @@ import { toast } from 'sonner';
 import { Activity, Zap, Wifi, Timer } from 'lucide-react';
 import axios from 'axios';
 
-const TestingModal = ({ isOpen, onClose }) => {
+const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], onTestComplete }) => {
   const { API } = useAuth();
   const [loading, setLoading] = useState(false);
-  const [selectedNodes, setSelectedNodes] = useState([]);
   const [testType, setTestType] = useState('ping');
   const [results, setResults] = useState(null);
   const [progress, setProgress] = useState(0);
 
   React.useEffect(() => {
     if (isOpen) {
-      setSelectedNodes([]);
       setTestType('ping');
       setResults(null);
       setProgress(0);
