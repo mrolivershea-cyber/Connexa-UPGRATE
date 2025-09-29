@@ -647,6 +647,33 @@ const AdminPanel = () => {
           loadStats();
         }}
       />
+      
+      {/* Format Error Modal */}
+      <Dialog open={showFormatErrorModal} onOpenChange={setShowFormatErrorModal}>
+        <DialogContent className="max-w-4xl max-h-[80vh]">
+          <DialogHeader>
+            <DialogTitle>Format Errors</DialogTitle>
+            <DialogDescription>
+              Review parsing errors and invalid formats
+            </DialogDescription>
+          </DialogHeader>
+          <div className="mt-4">
+            <div className="border rounded-lg p-4 bg-gray-50 max-h-96 overflow-y-auto">
+              <pre className="text-sm whitespace-pre-wrap font-mono">
+                {formatErrorContent || "No format errors found"}
+              </pre>
+            </div>
+            <div className="flex justify-between mt-4">
+              <Button variant="outline" onClick={() => setShowFormatErrorModal(false)}>
+                Close
+              </Button>
+              <Button variant="destructive" onClick={handleClearFormatErrors}>
+                Clear All Errors
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
