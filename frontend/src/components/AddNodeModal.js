@@ -12,6 +12,8 @@ import axios from 'axios';
 const AddNodeModal = ({ isOpen, onClose, onNodeAdded, type }) => {
   const { API } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [autoTest, setAutoTest] = useState(true);
+  const [testType, setTestType] = useState('ping');
   const [formData, setFormData] = useState({
     ip: '',
     login: '',
