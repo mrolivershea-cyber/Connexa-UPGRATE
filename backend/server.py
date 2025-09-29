@@ -873,6 +873,134 @@ async def create_node_with_test(
             "message": f"Node created but test failed: {str(e)}"
         }
 
+# Individual Node Actions
+@api_router.post("/nodes/{node_id}/test")
+async def test_single_node(
+    node_id: int,
+    test_type: str = "ping",
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Test a single node"""
+    node = db.query(Node).filter(Node.id == node_id).first()
+    if not node:
+        raise HTTPException(status_code=404, detail="Node not found")
+    
+    try:
+        # Set status to checking
+        node.status = "checking"
+        node.last_check = datetime.utcnow()
+        db.commit()
+        
+        if test_type == "ping":
+            result = await network_tester.ping_test(node.ip)
+            node.status = "online" if result['reachable'] else "offline"
+        elif test_type == "speed":
+            service_status = await service_manager.get_service_status(node_id)
+            interface = service_status.get('interface') if service_status['active'] else None
+            result = await network_tester.speed_test(interface)
+            node.status = "online" if result['success'] else "degraded"
+        else:  # both
+            service_status = await service_manager.get_service_status(node_id)
+            interface = service_status.get('interface') if service_status['active'] else None
+            result = await network_tester.combined_test(node.ip, interface, "both")
+            node.status = result['overall']
+        
+        db.commit()
+        
+        return {
+            "success": True,
+            "node_id": node_id,
+            "test_type": test_type,
+            "result": result,
+            "status": node.status
+        }
+        
+    except Exception as e:
+        node.status = "offline"
+        db.commit()
+        return {"success": False, "message": str(e)}
+
+@api_router.post("/nodes/{node_id}/services/start")
+async def start_single_node_services(
+    node_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Start services for a single node"""
+    node = db.query(Node).filter(Node.id == node_id).first()
+    if not node:
+        raise HTTPException(status_code=404, detail="Node not found")
+    
+    try:
+        # Start PPTP connection
+        pptp_result = await service_manager.start_pptp_connection(
+            node_id, node.ip, node.login, node.password
+        )
+        
+        if pptp_result['success']:
+            interface = pptp_result['interface']
+            
+            # Start SOCKS server
+            socks_result = await service_manager.start_socks_server(
+                node_id, interface
+            )
+            
+            if socks_result['success']:
+                node.status = "online"
+                db.commit()
+                
+                return {
+                    "success": True,
+                    "node_id": node_id,
+                    "pptp": pptp_result,
+                    "socks": socks_result,
+                    "message": f"Services started on {interface}:{socks_result['port']}"
+                }
+            else:
+                return {
+                    "success": False,
+                    "message": "PPTP OK, SOCKS failed",
+                    "pptp": pptp_result,
+                    "socks": socks_result
+                }
+        else:
+            return {
+                "success": False,
+                "message": "PPTP connection failed",
+                "pptp": pptp_result
+            }
+            
+    except Exception as e:
+        return {"success": False, "message": str(e)}
+
+@api_router.post("/nodes/{node_id}/services/stop")
+async def stop_single_node_services(
+    node_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Stop services for a single node"""
+    node = db.query(Node).filter(Node.id == node_id).first()
+    if not node:
+        raise HTTPException(status_code=404, detail="Node not found")
+    
+    try:
+        result = await service_manager.stop_services(node_id)
+        
+        if result['success']:
+            node.status = "offline"
+            db.commit()
+        
+        return {
+            "success": result['success'],
+            "node_id": node_id,
+            "message": result['message']
+        }
+        
+    except Exception as e:
+        return {"success": False, "message": str(e)}
+
 # Include API router
 app.include_router(api_router)
 
