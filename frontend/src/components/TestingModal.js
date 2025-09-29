@@ -1,0 +1,314 @@
+import React, { useState } from 'react';
+import { useAuth } from '../contexts/AuthContext';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Progress } from '@/components/ui/progress';
+import { Badge } from '@/components/ui/badge';
+import { toast } from 'sonner';
+import { Activity, Zap, Wifi, Timer } from 'lucide-react';
+import axios from 'axios';
+
+const TestingModal = ({ isOpen, onClose }) => {
+  const { API } = useAuth();
+  const [loading, setLoading] = useState(false);
+  const [selectedNodes, setSelectedNodes] = useState([]);
+  const [testType, setTestType] = useState('ping');
+  const [results, setResults] = useState(null);
+  const [progress, setProgress] = useState(0);
+
+  React.useEffect(() => {
+    if (isOpen) {
+      setSelectedNodes([]);
+      setTestType('ping');
+      setResults(null);
+      setProgress(0);
+    }
+  }, [isOpen]);
+
+  const handleTest = async () => {
+    if (selectedNodes.length === 0) {
+      toast.error('Выберите узлы для тестирования');
+      return;
+    }
+
+    setLoading(true);
+    setProgress(0);
+    
+    try {
+      let endpoint = 'test/ping';
+      if (testType === 'speed') endpoint = 'test/speed';
+      if (testType === 'both') endpoint = 'test/combined';
+      
+      // Simulate progress
+      const progressInterval = setInterval(() => {
+        setProgress(prev => prev < 90 ? prev + 10 : prev);
+      }, 500);
+      
+      const response = await axios.post(`${API}/${endpoint}`, {
+        node_ids: selectedNodes,
+        test_type: testType
+      });
+      
+      clearInterval(progressInterval);
+      setProgress(100);
+      
+      setResults(response.data.results);
+      
+      const successCount = response.data.results.filter(r => r.success).length;
+      const failCount = response.data.results.length - successCount;
+      
+      if (successCount > 0) {
+        toast.success(`Протестировано ${successCount} узлов`);
+      }
+      if (failCount > 0) {
+        toast.warning(`Ошибки с ${failCount} узлами`);
+      }
+      
+    } catch (error) {
+      console.error('Testing error:', error);
+      toast.error('Ошибка тестирования: ' + (error.response?.data?.detail || error.message));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getTestTypeDescription = () => {
+    switch (testType) {
+      case 'ping':
+        return 'Проверка доступности узлов (ICMP ping)';
+      case 'speed':
+        return 'Тестирование скорости интернет соединения';
+      case 'both':
+        return 'Комбинированный тест: ping + скорость';
+      default:
+        return '';
+    }
+  };
+
+  const renderTestResult = (result) => {
+    if (!result.success) {
+      return (
+        <div className="p-3 bg-red-100 text-red-800 rounded">
+          <div className="font-medium">Node {result.node_id} - {result.ip}</div>
+          <div className="text-sm">{result.message}</div>
+        </div>
+      );
+    }
+
+    if (result.ping) {
+      const ping = result.ping;
+      return (
+        <div className={`p-3 rounded ${
+          ping.reachable ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+        }`}>
+          <div className="flex justify-between items-start">
+            <div>
+              <div className="font-medium">Node {result.node_id} - {result.ip}</div>
+              <div className="text-sm">
+                {ping.reachable ? (
+                  <span>✅ Доступен • Ping: {ping.avg_latency}ms • Потери: {ping.packet_loss}%</span>
+                ) : (
+                  <span>❌ Недоступен</span>
+                )}
+              </div>
+            </div>
+            <Badge variant={ping.reachable ? 'default' : 'destructive'}>
+              {ping.reachable ? 'Online' : 'Offline'}
+            </Badge>
+          </div>
+        </div>
+      );
+    }
+
+    if (result.speed) {
+      const speed = result.speed;
+      return (
+        <div className={`p-3 rounded ${
+          speed.success ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+        }`}>
+          <div className="flex justify-between items-start">
+            <div>
+              <div className="font-medium">Node {result.node_id} - {result.ip}</div>
+              {speed.success ? (
+                <div className="text-sm">
+                  ⬇️ {speed.download} Mbps • ⬆️ {speed.upload} Mbps • Ping: {speed.ping}ms
+                  <br />
+                  <span className="text-xs">Сервер: {speed.server}</span>
+                </div>
+              ) : (
+                <div className="text-sm">❌ Ошибка: {speed.error}</div>
+              )}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    if (result.test) {
+      const test = result.test;
+      return (
+        <div className={`p-3 rounded ${
+          test.overall === 'online' ? 'bg-green-100 text-green-800' :
+          test.overall === 'degraded' ? 'bg-yellow-100 text-yellow-800' :
+          'bg-red-100 text-red-800'
+        }`}>
+          <div className="flex justify-between items-start">
+            <div>
+              <div className="font-medium">Node {result.node_id} - {result.ip}</div>
+              <div className="text-sm space-y-1">
+                {test.ping && (
+                  <div>
+                    Ping: {test.ping.reachable ? `${test.ping.avg_latency}ms` : 'Недоступен'}
+                  </div>
+                )}
+                {test.speed && (
+                  <div>
+                    {test.speed.success ? (
+                      `Скорость: ⬇️${test.speed.download} Mbps ⬆️${test.speed.upload} Mbps`
+                    ) : (
+                      'Скорость: Ошибка'
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+            <Badge variant={test.overall === 'online' ? 'default' : 
+                           test.overall === 'degraded' ? 'secondary' : 'destructive'}>
+              {test.overall}
+            </Badge>
+          </div>
+        </div>
+      );
+    }
+
+    return null;
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-[800px] max-h-[80vh] overflow-y-auto" data-testid="testing-modal">
+        <DialogHeader>
+          <DialogTitle className="flex items-center">
+            <Activity className="h-5 w-5 mr-2" />
+            Тестирование Узлов
+          </DialogTitle>
+          <DialogDescription>
+            Проверка доступности и скорости соединения для выбранных узлов.
+          </DialogDescription>
+        </DialogHeader>
+        
+        <div className="space-y-4">
+          {/* Test Type Selection */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-sm">Тип Тестирования</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                <Select value={testType} onValueChange={setTestType}>
+                  <SelectTrigger data-testid="test-type-select">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="ping">
+                      <div className="flex items-center">
+                        <Wifi className="h-4 w-4 mr-2" />
+                        Только Ping
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="speed">
+                      <div className="flex items-center">
+                        <Zap className="h-4 w-4 mr-2" />
+                        Только Скорость
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="both">
+                      <div className="flex items-center">
+                        <Activity className="h-4 w-4 mr-2" />
+                        Ping + Скорость
+                      </div>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+                
+                <div className="text-xs text-gray-600">
+                  {getTestTypeDescription()}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Node Selection Info */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-sm">Выбранные Узлы</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-sm text-gray-600">
+                {selectedNodes.length > 0 ? (
+                  <p>Выбрано {selectedNodes.length} узлов для тестирования</p>
+                ) : (
+                  <p>Используйте чекбоксы в таблице для выбора узлов</p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Progress */}
+          {loading && (
+            <Card>
+              <CardContent className="pt-6">
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span>Выполняется тестирование...</span>
+                    <span>{progress}%</span>
+                  </div>
+                  <Progress value={progress} className="w-full" />
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Results */}
+          {results && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-sm flex items-center">
+                  <Timer className="h-4 w-4 mr-2" />
+                  Результаты Тестирования
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2 max-h-60 overflow-y-auto">
+                  {results.map((result, index) => (
+                    <div key={index}>
+                      {renderTestResult(result)}
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+
+        <DialogFooter>
+          <Button type="button" variant="outline" onClick={onClose}>
+            Закрыть
+          </Button>
+          <Button 
+            onClick={handleTest}
+            disabled={loading || selectedNodes.length === 0}
+            data-testid="start-testing-btn"
+          >
+            <Activity className="h-4 w-4 mr-2" />
+            {loading ? 'Тестирование...' : 'Начать Тест'}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+export default TestingModal;
