@@ -828,8 +828,8 @@ def check_node_duplicate(db: Session, ip: str, login: str, password: str) -> dic
         # Check last update time (4 weeks = 28 days)
         four_weeks_ago = datetime.now() - timedelta(days=28)
         
-        old_nodes = [node for node in different_creds if node.updated_at < four_weeks_ago]
-        recent_nodes = [node for node in different_creds if node.updated_at >= four_weeks_ago]
+        old_nodes = [node for node in different_creds if node.last_update < four_weeks_ago]
+        recent_nodes = [node for node in different_creds if node.last_update >= four_weeks_ago]
         
         if old_nodes and not recent_nodes:
             # Delete old nodes and add new one
