@@ -15,5 +15,23 @@
       72
     ],
     "status": "pending"
+  },
+  {
+    "id": 1759190383,
+    "timestamp": "2025-09-29T23:59:43.495563",
+    "node_data": {
+      "protocol": "pptp",
+      "status": "offline",
+      "ip": "144.229.29.35",
+      "login": "admin",
+      "password": "admin",
+      "state": "California",
+      "city": "Los Angeles",
+      "zipcode": "90035"
+    },
+    "conflicting_node_ids": [
+      2
+    ],
+    "status": "pending"
   }
 ]
