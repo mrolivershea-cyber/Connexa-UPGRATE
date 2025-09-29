@@ -15,6 +15,7 @@ const AddNodeModal = ({ isOpen, onClose, onNodeAdded, type }) => {
   const [autoTest, setAutoTest] = useState(true);
   const [testType, setTestType] = useState('ping');
   const [formData, setFormData] = useState({
+    protocol: 'pptp', // Protocol selection first
     ip: '',
     login: '',
     password: '',
@@ -23,8 +24,7 @@ const AddNodeModal = ({ isOpen, onClose, onNodeAdded, type }) => {
     state: '',
     city: '',
     zipcode: '',
-    comment: '',
-    protocol: type || 'pptp'
+    comment: ''
   });
 
   React.useEffect(() => {
