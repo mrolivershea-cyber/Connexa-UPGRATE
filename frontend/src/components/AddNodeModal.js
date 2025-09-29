@@ -264,7 +264,7 @@ const AddNodeModal = ({ isOpen, onClose, onNodeAdded, type }) => {
 
         <DialogFooter>
           <Button type="button" variant="outline" onClick={onClose}>
-            Cancel
+            Отмена
           </Button>
           <Button 
             type="submit" 
@@ -272,7 +272,11 @@ const AddNodeModal = ({ isOpen, onClose, onNodeAdded, type }) => {
             disabled={loading || !formData.ip}
             data-testid="add-node-submit-btn"
           >
-            {loading ? 'Adding...' : `Add ${type?.toUpperCase() || 'PPTP'}`}
+            {loading ? (
+              autoTest ? 'Добавление и тестирование...' : 'Добавление...'
+            ) : (
+              `Добавить ${type?.toUpperCase() || 'PPTP'}`
+            )}
           </Button>
         </DialogFooter>
       </DialogContent>
