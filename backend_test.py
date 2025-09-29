@@ -260,7 +260,8 @@ City: Austin
             self.log_test("Bulk Delete Nodes", False, "No node IDs provided")
             return False
             
-        success, response = self.make_request('DELETE', 'nodes', node_ids[:1])  # Delete 1 node
+        delete_data = {"node_ids": node_ids[:1]}  # Delete 1 node
+        success, response = self.make_request('DELETE', 'nodes', delete_data)
         
         if success:
             self.log_test("Bulk Delete Nodes", True, f"Bulk deleted nodes")
