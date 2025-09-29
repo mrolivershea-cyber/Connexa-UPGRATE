@@ -9,30 +9,18 @@ import { toast } from 'sonner';
 import { Play, Square, Zap, Activity } from 'lucide-react';
 import axios from 'axios';
 
-const ServiceControlModal = ({ isOpen, onClose }) => {
+const ServiceControlModal = ({ isOpen, onClose, selectedNodeIds = [], onServiceComplete }) => {
   const { API } = useAuth();
   const [loading, setLoading] = useState(false);
-  const [selectedNodes, setSelectedNodes] = useState([]);
   const [action, setAction] = useState('start');
   const [results, setResults] = useState(null);
 
   React.useEffect(() => {
     if (isOpen) {
-      setSelectedNodes([]);
       setAction('start');
       setResults(null);
-      loadNodes();
     }
   }, [isOpen]);
-
-  const loadNodes = async () => {
-    try {
-      const response = await axios.get(`${API}/nodes`);
-      // You can set available nodes here if needed
-    } catch (error) {
-      console.error('Error loading nodes:', error);
-    }
-  };
 
   const handleServiceAction = async () => {
     if (selectedNodes.length === 0) {
