@@ -381,6 +381,28 @@ const AdminPanel = () => {
                 />
                 <label htmlFor="only-online" className="text-sm font-medium">Only Online</label>
               </div>
+              
+              {/* Start/Stop Services Buttons */}
+              <div className="flex gap-2 ml-4 pl-4 border-l border-gray-300">
+                <Button 
+                  onClick={handleStartServices}
+                  disabled={selectedNodes.length === 0}
+                  className="bg-green-600 hover:bg-green-700"
+                  data-testid="start-services-btn"
+                >
+                  <Play className="h-4 w-4 mr-2" />
+                  Start Services
+                </Button>
+                <Button 
+                  onClick={handleStopServices}
+                  disabled={selectedNodes.length === 0}
+                  variant="destructive"
+                  data-testid="stop-services-btn"
+                >
+                  <Square className="h-4 w-4 mr-2" />
+                  Stop Services
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>
