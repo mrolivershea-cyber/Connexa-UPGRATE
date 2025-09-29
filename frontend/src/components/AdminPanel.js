@@ -45,9 +45,9 @@ const AdminPanel = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   
-  // Add state for format error modal
-  const [showFormatErrorModal, setShowFormatErrorModal] = useState(false);
-  const [formatErrorContent, setFormatErrorContent] = useState('');
+  // Modals
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [showImportModal, setShowImportModal] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
   const [showOptionsModal, setShowOptionsModal] = useState(false);
   const [showTestingModal, setShowTestingModal] = useState(false);
