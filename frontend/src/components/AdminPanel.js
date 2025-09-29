@@ -48,7 +48,6 @@ const AdminPanel = () => {
   
   // Modals
   const [showAddModal, setShowAddModal] = useState(false);
-  const [addModalType, setAddModalType] = useState('pptp');
   const [showImportModal, setShowImportModal] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
   const [showOptionsModal, setShowOptionsModal] = useState(false);
