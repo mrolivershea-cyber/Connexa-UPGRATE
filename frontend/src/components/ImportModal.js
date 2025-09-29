@@ -68,7 +68,7 @@ vpn2.example.com:443 client2 pass456 GB`
     reader.readAsText(file);
   };
 
-  const handlePreview = async () => {
+  const handleImport = async () => {
     if (!importData.trim()) {
       toast.error('Please enter or upload data to import');
       return;
@@ -76,38 +76,32 @@ vpn2.example.com:443 client2 pass456 GB`
 
     setLoading(true);
     try {
-      const response = await axios.post(`${API}/import`, {
+      const response = await axios.post(`${API}/nodes/import`, {
         data: importData,
         protocol
       });
-      setPreviewResult(response.data);
-      setShowPreview(true);
-      toast.success('Preview generated successfully');
-    } catch (error) {
-      console.error('Error generating preview:', error);
-      const errorMsg = error.response?.data?.detail || 'Failed to generate preview';
-      toast.error(errorMsg);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleImport = async () => {
-    if (!previewResult) {
-      await handlePreview();
-      return;
-    }
-
-    setLoading(true);
-    try {
-      // Import was already done during preview, so we just complete
-      toast.success(
-        `Import completed! ${previewResult.created} nodes added, ${previewResult.duplicates} duplicates skipped`
-      );
-      onImportComplete();
+      
+      if (response.data.success) {
+        const report = response.data.report;
+        setPreviewResult(report);
+        setShowPreview(true);
+        
+        // Show detailed toast notification
+        let message = `Import complete: ${report.added} added`;
+        if (report.skipped_duplicates > 0) message += `, ${report.skipped_duplicates} duplicates`;
+        if (report.replaced_old > 0) message += `, ${report.replaced_old} replaced`;
+        if (report.queued_for_verification > 0) message += `, ${report.queued_for_verification} queued`;
+        if (report.format_errors > 0) message += `, ${report.format_errors} format errors`;
+        
+        toast.success(message);
+        onImportComplete(report);
+      } else {
+        toast.error(response.data.message || 'Import failed');
+      }
     } catch (error) {
       console.error('Error importing:', error);
-      toast.error('Failed to complete import');
+      const errorMsg = error.response?.data?.message || 'Failed to import data';
+      toast.error(errorMsg);
     } finally {
       setLoading(false);
     }
