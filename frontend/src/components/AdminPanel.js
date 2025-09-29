@@ -22,7 +22,11 @@ import {
   EyeOff,
   Copy,
   LogOut,
-  RefreshCw
+  RefreshCw,
+  Play,
+  Square,
+  Zap,
+  Activity
 } from 'lucide-react';
 import NodesTable from './NodesTable';
 import AddNodeModal from './AddNodeModal';
