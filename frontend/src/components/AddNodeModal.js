@@ -159,12 +159,12 @@ const AddNodeModal = ({ isOpen, onClose, onNodeAdded, type }) => {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="provider">Provider</Label>
+            <Label htmlFor="provider">Провайдер</Label>
             <Input
               id="provider"
               value={formData.provider}
               onChange={(e) => handleChange('provider', e.target.value)}
-              placeholder="e.g., DigitalOcean, AWS, etc."
+              placeholder="например, DigitalOcean, AWS, и т.д."
               data-testid="node-provider-input"
             />
           </div>
