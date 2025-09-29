@@ -106,6 +106,23 @@ const AddNodeModal = ({ isOpen, onClose, onNodeAdded }) => {
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Protocol Selection - First */}
+          <div className="space-y-2">
+            <Label htmlFor="protocol">Протокол Сервера *</Label>
+            <Select value={formData.protocol} onValueChange={(value) => handleChange('protocol', value)}>
+              <SelectTrigger data-testid="server-protocol-select">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="pptp">PPTP</SelectItem>
+                <SelectItem value="ssh">SSH</SelectItem>
+                <SelectItem value="socks">SOCKS</SelectItem>
+                <SelectItem value="server">SERVER</SelectItem>
+                <SelectItem value="ovpn">OVPN</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="ip">IP Адрес *</Label>
