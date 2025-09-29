@@ -30,6 +30,7 @@ const AddNodeModal = ({ isOpen, onClose, onNodeAdded }) => {
   React.useEffect(() => {
     if (isOpen) {
       setFormData({
+        protocol: 'pptp',
         ip: '',
         login: '',
         password: '',
@@ -38,13 +39,12 @@ const AddNodeModal = ({ isOpen, onClose, onNodeAdded }) => {
         state: '',
         city: '',
         zipcode: '',
-        comment: '',
-        protocol: type || 'pptp'
+        comment: ''
       });
       setAutoTest(true);
       setTestType('ping');
     }
-  }, [isOpen, type]);
+  }, [isOpen]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
