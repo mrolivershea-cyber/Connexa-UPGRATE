@@ -171,7 +171,7 @@ const AddNodeModal = ({ isOpen, onClose, onNodeAdded, type }) => {
 
           <div className="grid grid-cols-3 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="country">Country</Label>
+              <Label htmlFor="country">Страна</Label>
               <Input
                 id="country"
                 value={formData.country}
@@ -181,7 +181,7 @@ const AddNodeModal = ({ isOpen, onClose, onNodeAdded, type }) => {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="state">State</Label>
+              <Label htmlFor="state">Штат/Регион</Label>
               <Input
                 id="state"
                 value={formData.state}
@@ -191,7 +191,7 @@ const AddNodeModal = ({ isOpen, onClose, onNodeAdded, type }) => {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="city">City</Label>
+              <Label htmlFor="city">Город</Label>
               <Input
                 id="city"
                 value={formData.city}
