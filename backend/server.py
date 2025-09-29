@@ -535,6 +535,344 @@ async def get_stats(
         }
     }
 
+# Service Management Routes
+@api_router.post("/services/start")
+async def start_services(
+    action: ServiceAction,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Start PPTP + SOCKS services for selected nodes"""
+    results = []
+    
+    for node_id in action.node_ids:
+        # Get node data
+        node = db.query(Node).filter(Node.id == node_id).first()
+        if not node:
+            results.append({
+                "node_id": node_id,
+                "success": False,
+                "message": "Node not found"
+            })
+            continue
+        
+        try:
+            # Start PPTP connection
+            pptp_result = await service_manager.start_pptp_connection(
+                node_id, node.ip, node.login, node.password
+            )
+            
+            if pptp_result['success']:
+                interface = pptp_result['interface']
+                
+                # Start SOCKS server on the PPTP interface
+                socks_result = await service_manager.start_socks_server(
+                    node_id, interface
+                )
+                
+                if socks_result['success']:
+                    # Update node status
+                    node.status = "online"
+                    db.commit()
+                    
+                    results.append({
+                        "node_id": node_id,
+                        "success": True,
+                        "pptp": pptp_result,
+                        "socks": socks_result,
+                        "message": f"PPTP + SOCKS started on {interface}:{socks_result['port']}"
+                    })
+                else:
+                    results.append({
+                        "node_id": node_id,
+                        "success": False,
+                        "pptp": pptp_result,
+                        "socks": socks_result,
+                        "message": "PPTP OK, SOCKS failed"
+                    })
+            else:
+                results.append({
+                    "node_id": node_id,
+                    "success": False,
+                    "pptp": pptp_result,
+                    "message": "PPTP connection failed"
+                })
+                
+        except Exception as e:
+            results.append({
+                "node_id": node_id,
+                "success": False,
+                "message": f"Service start error: {str(e)}"
+            })
+    
+    return {"results": results}
+
+@api_router.post("/services/stop")
+async def stop_services(
+    action: ServiceAction,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Stop services for selected nodes"""
+    results = []
+    
+    for node_id in action.node_ids:
+        try:
+            result = await service_manager.stop_services(node_id)
+            
+            if result['success']:
+                # Update node status
+                node = db.query(Node).filter(Node.id == node_id).first()
+                if node:
+                    node.status = "offline"
+                    db.commit()
+            
+            results.append({
+                "node_id": node_id,
+                "success": result['success'],
+                "message": result['message']
+            })
+            
+        except Exception as e:
+            results.append({
+                "node_id": node_id,
+                "success": False,
+                "message": f"Service stop error: {str(e)}"
+            })
+    
+    return {"results": results}
+
+@api_router.get("/services/status/{node_id}")
+async def get_service_status(
+    node_id: int,
+    current_user: User = Depends(get_current_user)
+):
+    """Get service status for a specific node"""
+    try:
+        status = await service_manager.get_service_status(node_id)
+        return status
+    except Exception as e:
+        return {"error": str(e)}
+
+# Network Testing Routes  
+@api_router.post("/test/ping")
+async def test_ping(
+    test_request: TestRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Test ping for selected nodes"""
+    results = []
+    
+    for node_id in test_request.node_ids:
+        node = db.query(Node).filter(Node.id == node_id).first()
+        if not node:
+            results.append({
+                "node_id": node_id,
+                "success": False,
+                "message": "Node not found"
+            })
+            continue
+        
+        try:
+            # Set status to checking
+            node.status = "checking"
+            node.last_check = datetime.utcnow()
+            db.commit()
+            
+            ping_result = await network_tester.ping_test(node.ip)
+            
+            # Update status based on ping result
+            if ping_result['reachable']:
+                node.status = "online"
+            else:
+                node.status = "offline"
+            
+            db.commit()
+            
+            results.append({
+                "node_id": node_id,
+                "ip": node.ip,
+                "success": ping_result['success'],
+                "ping": ping_result
+            })
+            
+        except Exception as e:
+            # Reset status on error
+            node.status = "offline"
+            db.commit()
+            
+            results.append({
+                "node_id": node_id,
+                "success": False,
+                "message": f"Ping test error: {str(e)}"
+            })
+    
+    return {"results": results}
+
+@api_router.post("/test/speed")
+async def test_speed(
+    test_request: TestRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Test speed for selected nodes (requires active connection)"""
+    results = []
+    
+    for node_id in test_request.node_ids:
+        node = db.query(Node).filter(Node.id == node_id).first()
+        if not node:
+            results.append({
+                "node_id": node_id,
+                "success": False,
+                "message": "Node not found"
+            })
+            continue
+        
+        try:
+            # Check if service is active
+            service_status = await service_manager.get_service_status(node_id)
+            
+            if not service_status['active']:
+                results.append({
+                    "node_id": node_id,
+                    "success": False,
+                    "message": "Service not active - start PPTP connection first"
+                })
+                continue
+            
+            interface = service_status.get('interface')
+            speed_result = await network_tester.speed_test(interface)
+            
+            results.append({
+                "node_id": node_id,
+                "ip": node.ip,
+                "success": speed_result['success'],
+                "speed": speed_result,
+                "interface": interface
+            })
+            
+        except Exception as e:
+            results.append({
+                "node_id": node_id,
+                "success": False,
+                "message": f"Speed test error: {str(e)}"
+            })
+    
+    return {"results": results}
+
+@api_router.post("/test/combined") 
+async def test_combined(
+    test_request: TestRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Combined test (ping + speed) for selected nodes"""
+    results = []
+    
+    for node_id in test_request.node_ids:
+        node = db.query(Node).filter(Node.id == node_id).first()
+        if not node:
+            results.append({
+                "node_id": node_id,
+                "success": False,
+                "message": "Node not found"
+            })
+            continue
+        
+        try:
+            # Set status to checking
+            node.status = "checking"
+            node.last_check = datetime.utcnow()
+            db.commit()
+            
+            # Get interface if service is active
+            service_status = await service_manager.get_service_status(node_id)
+            interface = service_status.get('interface') if service_status['active'] else None
+            
+            # Run combined test
+            combined_result = await network_tester.combined_test(
+                node.ip, interface, test_request.test_type
+            )
+            
+            # Update node status
+            node.status = combined_result['overall']
+            db.commit()
+            
+            results.append({
+                "node_id": node_id,
+                "ip": node.ip,
+                "success": True,
+                "test": combined_result
+            })
+            
+        except Exception as e:
+            # Reset status on error
+            node.status = "offline"
+            db.commit()
+            
+            results.append({
+                "node_id": node_id,
+                "success": False,
+                "message": f"Combined test error: {str(e)}"
+            })
+    
+    return {"results": results}
+
+# Auto-test new nodes on creation
+@api_router.post("/nodes/auto-test")
+async def create_node_with_test(
+    node: NodeCreate,
+    test_type: str = "ping",  # ping, speed, both
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Create node and automatically test it"""
+    # Create node first
+    db_node = Node(**node.dict())
+    db_node.status = "checking"
+    db.add(db_node)
+    db.commit()
+    db.refresh(db_node)
+    
+    try:
+        # Run test based on type
+        if test_type == "ping":
+            ping_result = await network_tester.ping_test(db_node.ip)
+            db_node.status = "online" if ping_result['reachable'] else "offline"
+            test_result = {"ping": ping_result}
+            
+        elif test_type == "speed":
+            # Speed test without connection (using default interface)
+            speed_result = await network_tester.speed_test()
+            db_node.status = "online" if speed_result['success'] else "degraded"
+            test_result = {"speed": speed_result}
+            
+        else:  # both
+            combined_result = await network_tester.combined_test(db_node.ip, None, "both")
+            db_node.status = combined_result['overall']
+            test_result = {"combined": combined_result}
+        
+        db_node.last_check = datetime.utcnow()
+        db.commit()
+        
+        return {
+            "node": db_node,
+            "test_result": test_result,
+            "message": f"Node created and tested ({test_type})"
+        }
+        
+    except Exception as e:
+        # Fallback to offline if test fails
+        db_node.status = "offline"
+        db.commit()
+        
+        return {
+            "node": db_node,
+            "test_result": {"error": str(e)},
+            "message": f"Node created but test failed: {str(e)}"
+        }
+
 # Include API router
 app.include_router(api_router)
 
