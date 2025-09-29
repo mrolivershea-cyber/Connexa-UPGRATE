@@ -779,7 +779,7 @@ def normalize_country_code(code: str) -> str:
     
     return countries.get(code.upper().strip(), code)
 
-def write_format_errors(errors: List[str]) -> str:
+def write_format_errors(errors: list[str]) -> str:
     """Write format errors to file"""
     error_file_path = "/app/Format_error.txt"
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
