@@ -108,7 +108,7 @@ const AddNodeModal = ({ isOpen, onClose, onNodeAdded, type }) => {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="ip">IP Address *</Label>
+              <Label htmlFor="ip">IP Адрес *</Label>
               <Input
                 id="ip"
                 value={formData.ip}
@@ -119,7 +119,7 @@ const AddNodeModal = ({ isOpen, onClose, onNodeAdded, type }) => {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="protocol">Protocol</Label>
+              <Label htmlFor="protocol">Протокол</Label>
               <Select value={formData.protocol} onValueChange={(value) => handleChange('protocol', value)}>
                 <SelectTrigger data-testid="node-protocol-select">
                   <SelectValue />
