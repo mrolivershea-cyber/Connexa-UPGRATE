@@ -197,15 +197,18 @@ backend:
 
   - task: "Format error API endpoints"
     implemented: true
-    working: "NA"
+    working: true
     file: "server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Added /format-errors GET and DELETE endpoints for managing parsing errors"
+      - working: true
+        agent: "testing"
+        comment: "✅ TESTED: Format error API endpoints working correctly. GET /format-errors retrieves parsing errors from Format_error.txt file with proper content and message fields. DELETE /format-errors successfully clears the error file. Error file is automatically created when format errors occur during import. Both endpoints require authentication and return appropriate responses."
 
   - task: "Universal parser with 6 formats"
     implemented: true
