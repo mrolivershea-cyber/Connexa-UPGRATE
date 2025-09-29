@@ -241,10 +241,44 @@ const AdminPanel = () => {
     loadStats();
   };
 
-  const handleImportComplete = () => {
+  const handleImportComplete = (report) => {
     loadNodes(currentPage);
     loadStats();
     setShowImportModal(false);
+    
+    // Show detailed import report
+    if (report) {
+      const { added, skipped_duplicates, format_errors, replaced_old, queued_for_verification } = report;
+      let message = `Import complete: ${added} added`;
+      if (skipped_duplicates > 0) message += `, ${skipped_duplicates} duplicates skipped`;
+      if (replaced_old > 0) message += `, ${replaced_old} old configs replaced`;
+      if (queued_for_verification > 0) message += `, ${queued_for_verification} queued for verification`;
+      if (format_errors > 0) message += `, ${format_errors} format errors`;
+      
+      toast.success(message);
+    }
+  };
+
+  const handleFormatErrorClick = async () => {
+    try {
+      const response = await axios.get(`${API}/format-errors`);
+      setFormatErrorContent(response.data.content || "No format errors found");
+      setShowFormatErrorModal(true);
+    } catch (error) {
+      console.error('Error loading format errors:', error);
+      toast.error('Failed to load format errors');
+    }
+  };
+
+  const handleClearFormatErrors = async () => {
+    try {
+      await axios.delete(`${API}/format-errors`);
+      setFormatErrorContent("");
+      toast.success('Format errors cleared');
+    } catch (error) {
+      console.error('Error clearing format errors:', error);
+      toast.error('Failed to clear format errors');
+    }
   };
 
   const getStatusBadge = (status) => {
