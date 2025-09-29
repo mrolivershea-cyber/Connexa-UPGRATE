@@ -58,7 +58,7 @@ const AddNodeModal = ({ isOpen, onClose, onNodeAdded }) => {
         const node = response.data.node;
         const testResult = response.data.test_result;
         
-        toast.success(`${type?.toUpperCase() || 'PPTP'} узел добавлен и протестирован!`);
+        toast.success(`${formData.protocol?.toUpperCase() || 'PPTP'} узел добавлен и протестирован!`);
         
         // Show test results
         if (testResult.ping) {
