@@ -743,7 +743,181 @@ def normalize_country_code(code: str) -> str:
     
     return countries.get(code.upper().strip(), code)
 
-def is_valid_ip(ip: str) -> bool:
+import os
+import json
+from datetime import datetime, timedelta
+from typing import List, Dict, Optional
+
+def write_format_errors(errors: List[str]) -> str:
+    """Write format errors to file"""
+    error_file_path = "/app/Format_error.txt"
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    
+    error_content = f"\n\n=== Format Errors - {timestamp} ===\n"
+    for i, error in enumerate(errors, 1):
+        error_content += f"{i}. {error}\n"
+    
+    # Append to file
+    try:
+        with open(error_file_path, "a", encoding="utf-8") as f:
+            f.write(error_content)
+        return error_file_path
+    except Exception as e:
+        print(f"Error writing to format error file: {e}")
+        return ""
+
+def check_node_duplicate(db: Session, ip: str, login: str, password: str) -> Dict:
+    """Check for duplicates and handle according to business rules"""
+    # Find nodes with same IP
+    ip_matches = db.query(Node).filter(Node.ip == ip).all()
+    
+    if not ip_matches:
+        return {"action": "add", "reason": "new_node"}
+    
+    # Check for exact match (IP + Login + Pass)
+    exact_match = db.query(Node).filter(
+        Node.ip == ip,
+        Node.login == login,
+        Node.password == password
+    ).first()
+    
+    if exact_match:
+        return {"action": "skip", "reason": "duplicate", "existing_node": exact_match.id}
+    
+    # Check for IP match with different credentials
+    different_creds = [node for node in ip_matches if node.login != login or node.password != password]
+    
+    if different_creds:
+        # Check last update time (4 weeks = 28 days)
+        four_weeks_ago = datetime.now() - timedelta(days=28)
+        
+        old_nodes = [node for node in different_creds if node.updated_at < four_weeks_ago]
+        recent_nodes = [node for node in different_creds if node.updated_at >= four_weeks_ago]
+        
+        if old_nodes and not recent_nodes:
+            # Delete old nodes and add new one
+            for old_node in old_nodes:
+                db.delete(old_node)
+            return {"action": "replace", "reason": "replaced_old", "deleted_nodes": [n.id for n in old_nodes]}
+        
+        elif recent_nodes:
+            # Send to verification queue
+            return {"action": "queue", "reason": "verification_needed", "conflicting_nodes": [n.id for n in recent_nodes]}
+    
+    return {"action": "add", "reason": "unique_credentials"}
+
+def create_verification_queue_entry(db: Session, node_data: dict, conflicting_nodes: List[int]) -> int:
+    """Create entry in verification queue"""
+    # For now, store in a simple JSON file. Can be upgraded to database table later
+    queue_file = "/app/verification_queue.json"
+    
+    entry = {
+        "id": int(datetime.now().timestamp()),
+        "timestamp": datetime.now().isoformat(),
+        "node_data": node_data,
+        "conflicting_node_ids": conflicting_nodes,
+        "status": "pending"
+    }
+    
+    try:
+        # Load existing queue
+        queue_data = []
+        if os.path.exists(queue_file):
+            with open(queue_file, "r", encoding="utf-8") as f:
+                queue_data = json.load(f)
+        
+        # Add new entry
+        queue_data.append(entry)
+        
+        # Save updated queue
+        with open(queue_file, "w", encoding="utf-8") as f:
+            json.dump(queue_data, f, indent=2)
+        
+        return entry["id"]
+    except Exception as e:
+        print(f"Error creating verification queue entry: {e}")
+        return 0
+
+def process_parsed_nodes(db: Session, parsed_data: dict) -> dict:
+    """Process parsed nodes with deduplication logic"""
+    results = {
+        "added": [],
+        "skipped": [],
+        "replaced": [],
+        "queued": [],
+        "errors": [],
+        "format_errors": parsed_data['format_errors']
+    }
+    
+    for node_data in parsed_data['nodes']:
+        try:
+            # Check for duplicates
+            dup_result = check_node_duplicate(
+                db, 
+                node_data['ip'], 
+                node_data['login'], 
+                node_data['password']
+            )
+            
+            if dup_result["action"] == "add":
+                # Create new node
+                new_node = Node(**node_data)
+                db.add(new_node)
+                db.flush()  # Get ID without committing
+                results["added"].append({
+                    "id": new_node.id,
+                    "ip": node_data['ip'],
+                    "reason": dup_result["reason"]
+                })
+            
+            elif dup_result["action"] == "skip":
+                results["skipped"].append({
+                    "ip": node_data['ip'],
+                    "existing_id": dup_result["existing_node"],
+                    "reason": dup_result["reason"]
+                })
+            
+            elif dup_result["action"] == "replace":
+                # Create new node (old ones already deleted)
+                new_node = Node(**node_data)
+                db.add(new_node)
+                db.flush()
+                results["replaced"].append({
+                    "id": new_node.id,
+                    "ip": node_data['ip'],
+                    "deleted_nodes": dup_result["deleted_nodes"],
+                    "reason": dup_result["reason"]
+                })
+            
+            elif dup_result["action"] == "queue":
+                # Add to verification queue
+                queue_id = create_verification_queue_entry(
+                    db, node_data, dup_result["conflicting_nodes"]
+                )
+                results["queued"].append({
+                    "queue_id": queue_id,
+                    "ip": node_data['ip'],
+                    "conflicting_nodes": dup_result["conflicting_nodes"],
+                    "reason": dup_result["reason"]
+                })
+        
+        except Exception as e:
+            results["errors"].append({
+                "ip": node_data.get('ip', 'unknown'),
+                "error": str(e)
+            })
+    
+    # Write format errors to file
+    if results['format_errors']:
+        write_format_errors(results['format_errors'])
+    
+    try:
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        results["errors"].append({"general": f"Database commit error: {str(e)}"})
+    
+    return results
     """Basic IP validation"""
     import ipaddress
     try:
