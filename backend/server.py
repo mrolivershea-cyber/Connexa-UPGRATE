@@ -958,7 +958,39 @@ def is_valid_ip(ip: str) -> bool:
     except ValueError:
         return False
 
-# Autocomplete/suggestions
+@api_router.get("/format-errors")
+async def get_format_errors(
+    current_user: User = Depends(get_current_user)
+):
+    """Get format errors from file"""
+    error_file_path = "/app/Format_error.txt"
+    
+    try:
+        if not os.path.exists(error_file_path):
+            return {"content": "", "message": "No format errors found"}
+        
+        with open(error_file_path, "r", encoding="utf-8") as f:
+            content = f.read()
+        
+        return {"content": content, "message": "Format errors loaded successfully"}
+    
+    except Exception as e:
+        return {"content": "", "message": f"Error reading format errors: {str(e)}"}
+
+@api_router.delete("/format-errors")
+async def clear_format_errors(
+    current_user: User = Depends(get_current_user)
+):
+    """Clear format errors file"""
+    error_file_path = "/app/Format_error.txt"
+    
+    try:
+        if os.path.exists(error_file_path):
+            os.remove(error_file_path)
+        return {"message": "Format errors cleared successfully"}
+    
+    except Exception as e:
+        return {"message": f"Error clearing format errors: {str(e)}"}
 @api_router.get("/autocomplete/countries")
 async def get_countries(
     q: Optional[str] = None,
