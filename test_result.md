@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Test the functionality of the 'Start Services' and 'Stop Services' buttons, and all context menu actions after recent UI updates. Verify that the ServiceControlModal removal and new button implementations work correctly."
+user_problem_statement: "Fix and test Start/Stop Services buttons under filters, all node context menu actions (Copy IP, Copy SOCKS, Test Ping, Start Services, Stop Services, Delete), and Delete Selected button functionality. Ensure all UI interactions work correctly and provide proper feedback."
 
 backend:
   - task: "Node CRUD operations"
