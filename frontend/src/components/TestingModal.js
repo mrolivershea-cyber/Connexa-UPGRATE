@@ -249,8 +249,8 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], onTestComplete })
             </CardHeader>
             <CardContent>
               <div className="text-sm text-gray-600">
-                {selectedNodes.length > 0 ? (
-                  <p>Выбрано {selectedNodes.length} узлов для тестирования</p>
+                {selectedNodeIds.length > 0 ? (
+                  <p>Выбрано {selectedNodeIds.length} узлов для тестирования</p>
                 ) : (
                   <p>Используйте чекбоксы в таблице для выбора узлов</p>
                 )}
