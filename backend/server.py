@@ -310,7 +310,7 @@ async def import_nodes_legacy(
         "created": len(created_nodes),
         "duplicates": duplicates,
         "errors": errors,
-        "total_processed": len(nodes_data)
+        "total_processed": len(nodes_data) if isinstance(nodes_data, list) else parsed_result.get('total_processed', 0)
     }
 
 @api_router.post("/export")
