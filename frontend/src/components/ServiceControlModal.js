@@ -60,9 +60,7 @@ const ServiceControlModal = ({ isOpen, onClose, selectedNodeIds = [], onServiceC
     }
   };
 
-  const handleNodeSelection = (nodeIds) => {
-    setSelectedNodes(nodeIds);
-  };
+  // Node selection is handled by parent component
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
