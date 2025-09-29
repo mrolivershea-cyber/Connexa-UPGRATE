@@ -227,15 +227,18 @@ backend:
 
   - task: "Deduplication system with business rules"
     implemented: true
-    working: "NA"
+    working: true
     file: "server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Implemented complex deduplication logic: skip duplicates, replace old (>4 weeks), queue conflicting entries"
+      - working: true
+        agent: "testing"
+        comment: "✅ TESTED: Deduplication system working perfectly with all business rules. Exact duplicates (same IP+Login+Pass) are correctly skipped. Same IP with different credentials creates verification queue entries when nodes are recent (<4 weeks). Old nodes (>4 weeks) are replaced with new data. Verification queue file (/app/verification_queue.json) is created with proper structure including node data, conflicting node IDs, and pending status. Fixed field name issue (updated_at → last_update)."
 
   - task: "Country/State normalization database"
     implemented: true
