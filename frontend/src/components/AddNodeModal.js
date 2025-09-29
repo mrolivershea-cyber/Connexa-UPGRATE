@@ -297,7 +297,7 @@ const AddNodeModal = ({ isOpen, onClose, onNodeAdded }) => {
             {loading ? (
               autoTest ? 'Добавление и тестирование...' : 'Добавление...'
             ) : (
-              `Добавить ${type?.toUpperCase() || 'PPTP'}`
+              `Добавить ${formData.protocol?.toUpperCase() || 'Сервер'}`
             )}
           </Button>
         </DialogFooter>
