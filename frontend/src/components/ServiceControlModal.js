@@ -23,7 +23,7 @@ const ServiceControlModal = ({ isOpen, onClose, selectedNodeIds = [], onServiceC
   }, [isOpen]);
 
   const handleServiceAction = async () => {
-    if (selectedNodes.length === 0) {
+    if (selectedNodeIds.length === 0) {
       toast.error('Выберите узлы для управления сервисами');
       return;
     }
@@ -32,7 +32,7 @@ const ServiceControlModal = ({ isOpen, onClose, selectedNodeIds = [], onServiceC
     try {
       const endpoint = action === 'start' ? 'services/start' : 'services/stop';
       const response = await axios.post(`${API}/${endpoint}`, {
-        node_ids: selectedNodes,
+        node_ids: selectedNodeIds,
         action: action
       });
 
@@ -46,6 +46,10 @@ const ServiceControlModal = ({ isOpen, onClose, selectedNodeIds = [], onServiceC
       }
       if (failCount > 0) {
         toast.error(`Ошибка с ${failCount} сервисами`);
+      }
+
+      if (onServiceComplete) {
+        onServiceComplete();
       }
       
     } catch (error) {
