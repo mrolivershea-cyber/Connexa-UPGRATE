@@ -571,16 +571,6 @@ const AdminPanel = () => {
         onClose={() => setShowOptionsModal(false)}
       />
       
-      <ServiceControlModal 
-        isOpen={showServiceControlModal}
-        onClose={() => setShowServiceControlModal(false)}
-        selectedNodeIds={selectedNodes}
-        onServiceComplete={() => {
-          loadNodes(currentPage);
-          loadStats();
-        }}
-      />
-      
       <TestingModal 
         isOpen={showTestingModal}
         onClose={() => setShowTestingModal(false)}
