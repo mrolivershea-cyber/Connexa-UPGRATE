@@ -51,12 +51,40 @@ const AddNodeModal = ({ isOpen, onClose, onNodeAdded, type }) => {
     setLoading(true);
 
     try {
-      await axios.post(`${API}/nodes`, formData);
-      toast.success(`${type.toUpperCase()} node added successfully!`);
+      if (autoTest) {
+        // Use auto-test endpoint
+        const response = await axios.post(`${API}/nodes/auto-test?test_type=${testType}`, formData);
+        
+        const node = response.data.node;
+        const testResult = response.data.test_result;
+        
+        toast.success(`${type?.toUpperCase() || 'PPTP'} узел добавлен и протестирован!`);
+        
+        // Show test results
+        if (testResult.ping) {
+          const ping = testResult.ping;
+          if (ping.reachable) {
+            toast.success(`✅ Ping: ${ping.avg_latency}ms, потери: ${ping.packet_loss}%`);
+          } else {
+            toast.warning('⚠️ Узел недоступен по ping');
+          }
+        }
+        
+        if (testResult.speed && testResult.speed.success) {
+          const speed = testResult.speed;
+          toast.info(`🌐 Скорость: ⬇️${speed.download} Mbps ⬆️${speed.upload} Mbps`);
+        }
+        
+      } else {
+        // Standard creation without test
+        await axios.post(`${API}/nodes`, formData);
+        toast.success(`${type?.toUpperCase() || 'PPTP'} узел добавлен успешно!`);
+      }
+      
       onNodeAdded();
     } catch (error) {
       console.error('Error adding node:', error);
-      const errorMsg = error.response?.data?.detail || 'Failed to add node';
+      const errorMsg = error.response?.data?.detail || 'Ошибка добавления узла';
       toast.error(errorMsg);
     } finally {
       setLoading(false);
