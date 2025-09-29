@@ -262,14 +262,14 @@ metadata:
   test_sequence: 1
   run_ui: false
 
-test_plan:
+  test_plan:
   current_focus:
-    - "Service control API endpoints"
-    - "Start/Stop Services buttons"
-    - "Node context menu actions"
+    - "Start/Stop Services buttons under filters"
+    - "Node context menu actions (all 6 actions)"
     - "Delete Selected button functionality"
+    - "UI feedback and notifications"
   stuck_tasks: []
-  test_all: false
+  test_all: true
   test_priority: "high_first"
 
 agent_communication:
