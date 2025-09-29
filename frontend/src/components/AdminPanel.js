@@ -33,6 +33,8 @@ import AddNodeModal from './AddNodeModal';
 import ImportModal from './ImportModal';
 import ExportModal from './ExportModal';
 import OptionsModal from './OptionsModal';
+import ServiceControlModal from './ServiceControlModal';
+import TestingModal from './TestingModal';
 import axios from 'axios';
 
 const AdminPanel = () => {
