@@ -837,7 +837,7 @@ def check_node_duplicate(db: Session, ip: str, login: str, password: str) -> dic
     
     return {"action": "add", "reason": "unique_credentials"}
 
-def create_verification_queue_entry(db: Session, node_data: dict, conflicting_nodes: List[int]) -> int:
+def create_verification_queue_entry(db: Session, node_data: dict, conflicting_nodes: list[int]) -> int:
     """Create entry in verification queue"""
     # For now, store in a simple JSON file. Can be upgraded to database table later
     queue_file = "/app/verification_queue.json"
