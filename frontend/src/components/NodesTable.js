@@ -124,6 +124,8 @@ const NodesTable = ({ nodes, selectedNodes, onSelectNode, onNodeUpdated, loading
       toast.error('Stop failed: ' + (error.response?.data?.detail || error.message));
     }
   };
+
+  const togglePasswordVisibility = (nodeId) => {
     setShowPasswords(prev => ({
       ...prev,
       [nodeId]: !prev[nodeId]
