@@ -385,60 +385,49 @@ City: Los Angeles""",
 
     def test_country_state_normalization(self):
         """Test country and state code normalization"""
+        # Use unique timestamp-based login to avoid conflicts
+        import time
+        timestamp = str(int(time.time()))
+        
         import_data = {
-            "data": """Ip: 10.11.11.100
-Login: normalizeuser1
+            "data": f"""Ip: 10.11.11.{timestamp[-2:]}
+Login: norm_test_{timestamp}
 Pass: normalizepass123
 State: CA
 Country: US
-City: Los Angeles
-
-Ip: 10.11.11.101
-Login: normalizeuser2
-Pass: normalizepass456
-State: ON
-Country: CA
-City: Toronto
-
-Ip: 10.11.11.102
-Login: normalizeuser3
-Pass: normalizepass789
-State: NSW
-Country: AU
-City: Sydney""",
+City: Los Angeles""",
             "protocol": "pptp"
         }
         
         success, response = self.make_request('POST', 'nodes/import', import_data)
         
         if success and 'report' in response:
-            # Check if nodes were created and then verify normalization by getting nodes
-            nodes_success, nodes_response = self.make_request('GET', 'nodes?limit=50')
-            
-            if nodes_success and 'nodes' in nodes_response:
-                # Look for our test nodes and check if states are normalized
-                test_nodes = [node for node in nodes_response['nodes'] 
-                             if node.get('login', '').startswith('normalizeuser')]
+            report = response['report']
+            if report.get('added', 0) > 0:
+                # Get the specific node we just created
+                nodes_success, nodes_response = self.make_request('GET', f'nodes?login=norm_test_{timestamp}')
                 
-                normalized_found = False
-                for node in test_nodes:
-                    if (node.get('state') == 'California' or 
-                        node.get('state') == 'Ontario' or 
-                        node.get('state') == 'New South Wales'):
-                        normalized_found = True
-                        break
-                
-                if normalized_found:
-                    self.log_test("Country/State Normalization", True, 
-                                 f"Found normalized states in {len(test_nodes)} test nodes")
-                    return True
+                if nodes_success and 'nodes' in nodes_response and nodes_response['nodes']:
+                    node = nodes_response['nodes'][0]
+                    state = node.get('state', '')
+                    country = node.get('country', '')
+                    
+                    # Check if CA was normalized to California and US to United States
+                    if state == 'California' and country == 'United States':
+                        self.log_test("Country/State Normalization", True, 
+                                     f"CA→{state}, US→{country}")
+                        return True
+                    else:
+                        self.log_test("Country/State Normalization", False, 
+                                     f"Expected CA→California, US→United States, got {state}, {country}")
+                        return False
                 else:
                     self.log_test("Country/State Normalization", False, 
-                                 "State normalization not working as expected")
+                                 "Could not retrieve the created node")
                     return False
             else:
                 self.log_test("Country/State Normalization", False, 
-                             "Could not retrieve nodes to verify normalization")
+                             f"No nodes were added: {report}")
                 return False
         else:
             self.log_test("Country/State Normalization", False, f"Failed to import: {response}")
