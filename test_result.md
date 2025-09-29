@@ -180,20 +180,17 @@ backend:
         agent: "testing"
         comment: "✅ TESTED: Import/Export endpoints working perfectly. Import nodes from text data working (created 2 nodes, 0 duplicates), export nodes to CSV format working. Parser handles multiple text formats correctly."
 
-  - task: "Bulk operations API endpoints"
+  - task: "Enhanced import API with universal parser"
     implemented: true
-    working: true
+    working: "NA"
     file: "server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
       - working: "NA"
         agent: "main"
-        comment: "Delete multiple nodes endpoint updated, needs testing"
-      - working: true
-        agent: "testing"
-        comment: "✅ TESTED: Bulk delete endpoint working correctly. Successfully tested bulk deletion with proper JSON payload format {\"node_ids\": [1,2,3]}. Endpoint properly handles arrays of node IDs and returns success confirmation."
+        comment: "Created new /nodes/import endpoint with 6-format parser, deduplication logic, format error handling, and verification queue system"
 
 frontend:
   - task: "ServiceControlModal removal"
