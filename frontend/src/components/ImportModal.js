@@ -46,7 +46,9 @@ Zip: 90035
       socks: `proxy1.example.com:1080:user:pass
 proxy2.example.com:1080:user2:pass2`,
       server: `server1.example.com admin password
-server2.example.com root secret`
+server2.example.com root secret`,
+      ovpn: `vpn1.example.com:1194 client1 pass123 US
+vpn2.example.com:443 client2 pass456 GB`
     };
     setImportData(sampleTexts[protocol] || sampleTexts.pptp);
   };
