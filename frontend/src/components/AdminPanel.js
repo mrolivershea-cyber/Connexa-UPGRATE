@@ -287,6 +287,14 @@ const AdminPanel = () => {
             <Download className="h-4 w-4 mr-2" />
             Import
           </Button>
+          <Button variant="outline" onClick={() => setShowServiceControlModal(true)} data-testid="service-control-btn">
+            <Zap className="h-4 w-4 mr-2" />
+            Service Control
+          </Button>
+          <Button variant="outline" onClick={() => setShowTestingModal(true)} data-testid="testing-btn">
+            <Activity className="h-4 w-4 mr-2" />
+            Testing
+          </Button>
         </div>
 
         {/* Filters */}
