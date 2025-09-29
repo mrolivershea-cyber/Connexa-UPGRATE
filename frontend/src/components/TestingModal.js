@@ -26,7 +26,7 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], onTestComplete })
   }, [isOpen]);
 
   const handleTest = async () => {
-    if (selectedNodes.length === 0) {
+    if (selectedNodeIds.length === 0) {
       toast.error('Выберите узлы для тестирования');
       return;
     }
@@ -45,7 +45,7 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], onTestComplete })
       }, 500);
       
       const response = await axios.post(`${API}/${endpoint}`, {
-        node_ids: selectedNodes,
+        node_ids: selectedNodeIds,
         test_type: testType
       });
       
@@ -62,6 +62,10 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], onTestComplete })
       }
       if (failCount > 0) {
         toast.warning(`Ошибки с ${failCount} узлами`);
+      }
+
+      if (onTestComplete) {
+        onTestComplete();
       }
       
     } catch (error) {
