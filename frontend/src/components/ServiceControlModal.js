@@ -136,8 +136,8 @@ const ServiceControlModal = ({ isOpen, onClose, selectedNodeIds = [], onServiceC
             </CardHeader>
             <CardContent>
               <div className="text-sm text-gray-600">
-                {selectedNodes.length > 0 ? (
-                  <p>Выбрано {selectedNodes.length} узлов</p>
+                {selectedNodeIds.length > 0 ? (
+                  <p>Выбрано {selectedNodeIds.length} узлов</p>
                 ) : (
                   <p>Используйте чекбоксы в таблице для выбора узлов</p>
                 )}
