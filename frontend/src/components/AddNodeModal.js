@@ -17,6 +17,7 @@ const AddNodeModal = ({ isOpen, onClose, onNodeAdded }) => {
   const [formData, setFormData] = useState({
     protocol: 'pptp', // Protocol selection first
     ip: '',
+    port: '',
     login: '',
     password: '',
     provider: '',
