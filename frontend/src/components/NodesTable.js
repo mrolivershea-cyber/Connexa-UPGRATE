@@ -191,27 +191,6 @@ const NodesTable = ({ nodes, selectedNodes, onSelectNode, onNodeUpdated, loading
     }
   };
 
-  const testNode = async (nodeId, testType) => {
-    try {
-      toast.info(`Testing ${testType} for node...`);
-      const response = await axios.post(`${API}/nodes/${nodeId}/test`, {
-        test_type: testType
-      });
-      
-      if (response.data.success) {
-        toast.success(`${testType} test successful`);
-      } else {
-        toast.error(`${testType} test failed: ${response.data.message}`);
-      }
-      onNodeUpdated();
-    } catch (error) {
-      console.error('Error testing node:', error);
-      toast.error(`Failed to test ${testType}`);
-    }
-  };
-
- 
-
   const EditableCell = ({ node, field, className = '' }) => {
     const isEditing = editingNode === `${node.id}-${field}`;
     const value = node[field] || '';
