@@ -797,7 +797,7 @@ def write_format_errors(errors: List[str]) -> str:
         print(f"Error writing to format error file: {e}")
         return ""
 
-def check_node_duplicate(db: Session, ip: str, login: str, password: str) -> Dict:
+def check_node_duplicate(db: Session, ip: str, login: str, password: str) -> dict:
     """Check for duplicates and handle according to business rules"""
     # Find nodes with same IP
     ip_matches = db.query(Node).filter(Node.ip == ip).all()
