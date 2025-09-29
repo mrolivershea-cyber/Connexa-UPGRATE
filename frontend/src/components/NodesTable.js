@@ -66,7 +66,50 @@ const NodesTable = ({ nodes, selectedNodes, onSelectNode, onNodeUpdated, loading
     }
   };
 
-  const togglePasswordVisibility = (nodeId) => {
+  const testNode = async (nodeId, testType = 'ping') => {
+    try {
+      const response = await axios.post(`${API}/nodes/${nodeId}/test?test_type=${testType}`);
+      if (response.data.success) {
+        toast.success(`Test ${testType} completed for node ${nodeId}`);
+        onNodeUpdated();
+      } else {
+        toast.error(`Test failed: ${response.data.message}`);
+      }
+    } catch (error) {
+      console.error('Test error:', error);
+      toast.error('Test failed: ' + (error.response?.data?.detail || error.message));
+    }
+  };
+
+  const startServices = async (nodeId) => {
+    try {
+      const response = await axios.post(`${API}/nodes/${nodeId}/services/start`);
+      if (response.data.success) {
+        toast.success(response.data.message);
+        onNodeUpdated();
+      } else {
+        toast.error(`Start failed: ${response.data.message}`);
+      }
+    } catch (error) {
+      console.error('Start services error:', error);
+      toast.error('Start failed: ' + (error.response?.data?.detail || error.message));
+    }
+  };
+
+  const stopServices = async (nodeId) => {
+    try {
+      const response = await axios.post(`${API}/nodes/${nodeId}/services/stop`);
+      if (response.data.success) {
+        toast.success(response.data.message);
+        onNodeUpdated();
+      } else {
+        toast.error(`Stop failed: ${response.data.message}`);
+      }
+    } catch (error) {
+      console.error('Stop services error:', error);
+      toast.error('Stop failed: ' + (error.response?.data?.detail || error.message));
+    }
+  };
     setShowPasswords(prev => ({
       ...prev,
       [nodeId]: !prev[nodeId]
