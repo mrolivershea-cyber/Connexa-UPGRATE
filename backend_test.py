@@ -182,7 +182,7 @@ class ConnexaAPITester:
             return False
 
     def test_import_nodes(self):
-        """Test importing nodes from text"""
+        """Test importing nodes from text (legacy endpoint)"""
         import_data = {
             "data": """Ip: 10.0.0.1
 Login: admin
@@ -197,11 +197,310 @@ City: Austin
         success, response = self.make_request('POST', 'import', import_data)
         
         if success and 'created' in response:
-            self.log_test("Import Nodes", True, 
+            self.log_test("Import Nodes (Legacy)", True, 
                          f"Created: {response['created']}, Duplicates: {response.get('duplicates', 0)}")
             return True
         else:
-            self.log_test("Import Nodes", False, f"Failed to import nodes: {response}")
+            self.log_test("Import Nodes (Legacy)", False, f"Failed to import nodes: {response}")
+            return False
+
+    def test_enhanced_import_format_1(self):
+        """Test enhanced import API with Format 1: Key-value pairs"""
+        import_data = {
+            "data": """Ip: 192.168.1.100
+Login: vpnuser1
+Pass: SecurePass123
+State: CA
+City: San Francisco
+Zip: 94102
+Country: US
+Provider: TechVPN
+
+Ip: 192.168.1.101
+Login: vpnuser2
+Pass: AnotherPass456
+State: TX
+City: Houston
+Zip: 77001
+Country: US
+Provider: FastVPN""",
+            "protocol": "pptp"
+        }
+        
+        success, response = self.make_request('POST', 'nodes/import', import_data)
+        
+        if success and 'report' in response:
+            report = response['report']
+            self.log_test("Enhanced Import Format 1", True, 
+                         f"Added: {report.get('added', 0)}, Skipped: {report.get('skipped_duplicates', 0)}, Format Errors: {report.get('format_errors', 0)}")
+            return True
+        else:
+            self.log_test("Enhanced Import Format 1", False, f"Failed to import: {response}")
+            return False
+
+    def test_enhanced_import_format_2(self):
+        """Test enhanced import API with Format 2: Single line with spaces"""
+        import_data = {
+            "data": """192.168.2.100 MyPass123 vpnuser3 California
+192.168.2.101 SecretPass456 vpnuser4 Texas
+192.168.2.102 StrongPass789 vpnuser5 NewYork""",
+            "protocol": "ssh"
+        }
+        
+        success, response = self.make_request('POST', 'nodes/import', import_data)
+        
+        if success and 'report' in response:
+            report = response['report']
+            self.log_test("Enhanced Import Format 2", True, 
+                         f"Added: {report.get('added', 0)}, Skipped: {report.get('skipped_duplicates', 0)}, Format Errors: {report.get('format_errors', 0)}")
+            return True
+        else:
+            self.log_test("Enhanced Import Format 2", False, f"Failed to import: {response}")
+            return False
+
+    def test_enhanced_import_format_3(self):
+        """Test enhanced import API with Format 3: Dash/pipe format"""
+        import_data = {
+            "data": """192.168.3.100 - vpnuser6:MyPassword123 - California/Los Angeles 90210 | 2024-01-15
+192.168.3.101 - vpnuser7:SecurePass456 - Texas/Dallas 75201 | 2024-01-16""",
+            "protocol": "socks"
+        }
+        
+        success, response = self.make_request('POST', 'nodes/import', import_data)
+        
+        if success and 'report' in response:
+            report = response['report']
+            self.log_test("Enhanced Import Format 3", True, 
+                         f"Added: {report.get('added', 0)}, Skipped: {report.get('skipped_duplicates', 0)}, Format Errors: {report.get('format_errors', 0)}")
+            return True
+        else:
+            self.log_test("Enhanced Import Format 3", False, f"Failed to import: {response}")
+            return False
+
+    def test_enhanced_import_format_4(self):
+        """Test enhanced import API with Format 4: Colon separated"""
+        import_data = {
+            "data": """192.168.4.100:vpnuser8:MyPass123:US:California:94102
+192.168.4.101:vpnuser9:SecurePass456:CA:Ontario:M5V3A8
+192.168.4.102:vpnuser10:StrongPass789:AU:NSW:2000""",
+            "protocol": "server"
+        }
+        
+        success, response = self.make_request('POST', 'nodes/import', import_data)
+        
+        if success and 'report' in response:
+            report = response['report']
+            self.log_test("Enhanced Import Format 4", True, 
+                         f"Added: {report.get('added', 0)}, Skipped: {report.get('skipped_duplicates', 0)}, Format Errors: {report.get('format_errors', 0)}")
+            return True
+        else:
+            self.log_test("Enhanced Import Format 4", False, f"Failed to import: {response}")
+            return False
+
+    def test_enhanced_import_format_5(self):
+        """Test enhanced import API with Format 5: Multi-line with Location"""
+        import_data = {
+            "data": """IP: 192.168.5.100
+Credentials: vpnuser11:MyPassword123
+Location: California (San Francisco)
+ZIP: 94102
+
+IP: 192.168.5.101
+Credentials: vpnuser12:SecurePass456
+Location: Texas (Houston)
+ZIP: 77001""",
+            "protocol": "ovpn"
+        }
+        
+        success, response = self.make_request('POST', 'nodes/import', import_data)
+        
+        if success and 'report' in response:
+            report = response['report']
+            self.log_test("Enhanced Import Format 5", True, 
+                         f"Added: {report.get('added', 0)}, Skipped: {report.get('skipped_duplicates', 0)}, Format Errors: {report.get('format_errors', 0)}")
+            return True
+        else:
+            self.log_test("Enhanced Import Format 5", False, f"Failed to import: {response}")
+            return False
+
+    def test_enhanced_import_format_6(self):
+        """Test enhanced import API with Format 6: Multi-line with PPTP header"""
+        import_data = {
+            "data": """PPTP_SVOIM_VPN Connection Details
+PPTP Connection Information
+IP: 192.168.6.100
+Credentials: vpnuser13:MyPassword123
+Location: California (Los Angeles)
+ZIP: 90210
+
+PPTP_SVOIM_VPN Connection Details
+PPTP Connection Information  
+IP: 192.168.6.101
+Credentials: vpnuser14:SecurePass456
+Location: New York (New York)
+ZIP: 10001""",
+            "protocol": "pptp"
+        }
+        
+        success, response = self.make_request('POST', 'nodes/import', import_data)
+        
+        if success and 'report' in response:
+            report = response['report']
+            self.log_test("Enhanced Import Format 6", True, 
+                         f"Added: {report.get('added', 0)}, Skipped: {report.get('skipped_duplicates', 0)}, Format Errors: {report.get('format_errors', 0)}")
+            return True
+        else:
+            self.log_test("Enhanced Import Format 6", False, f"Failed to import: {response}")
+            return False
+
+    def test_deduplication_logic(self):
+        """Test deduplication logic with duplicate entries"""
+        # First, import some nodes
+        import_data = {
+            "data": """Ip: 10.10.10.100
+Login: testuser1
+Pass: testpass123
+State: CA
+City: Los Angeles""",
+            "protocol": "pptp"
+        }
+        
+        success1, response1 = self.make_request('POST', 'nodes/import', import_data)
+        
+        # Try to import the same node again (should be skipped as duplicate)
+        success2, response2 = self.make_request('POST', 'nodes/import', import_data)
+        
+        if success1 and success2 and 'report' in response2:
+            report = response2['report']
+            if report.get('skipped_duplicates', 0) > 0:
+                self.log_test("Deduplication Logic", True, 
+                             f"Correctly skipped {report['skipped_duplicates']} duplicates")
+                return True
+            else:
+                self.log_test("Deduplication Logic", False, "Expected duplicates to be skipped")
+                return False
+        else:
+            self.log_test("Deduplication Logic", False, f"Failed to test deduplication: {response2}")
+            return False
+
+    def test_country_state_normalization(self):
+        """Test country and state code normalization"""
+        import_data = {
+            "data": """Ip: 10.11.11.100
+Login: normalizeuser1
+Pass: normalizepass123
+State: CA
+Country: US
+City: Los Angeles
+
+Ip: 10.11.11.101
+Login: normalizeuser2
+Pass: normalizepass456
+State: ON
+Country: CA
+City: Toronto
+
+Ip: 10.11.11.102
+Login: normalizeuser3
+Pass: normalizepass789
+State: NSW
+Country: AU
+City: Sydney""",
+            "protocol": "pptp"
+        }
+        
+        success, response = self.make_request('POST', 'nodes/import', import_data)
+        
+        if success and 'report' in response:
+            # Check if nodes were created and then verify normalization by getting nodes
+            nodes_success, nodes_response = self.make_request('GET', 'nodes?limit=50')
+            
+            if nodes_success and 'nodes' in nodes_response:
+                # Look for our test nodes and check if states are normalized
+                test_nodes = [node for node in nodes_response['nodes'] 
+                             if node.get('login', '').startswith('normalizeuser')]
+                
+                normalized_found = False
+                for node in test_nodes:
+                    if (node.get('state') == 'California' or 
+                        node.get('state') == 'Ontario' or 
+                        node.get('state') == 'New South Wales'):
+                        normalized_found = True
+                        break
+                
+                if normalized_found:
+                    self.log_test("Country/State Normalization", True, 
+                                 f"Found normalized states in {len(test_nodes)} test nodes")
+                    return True
+                else:
+                    self.log_test("Country/State Normalization", False, 
+                                 "State normalization not working as expected")
+                    return False
+            else:
+                self.log_test("Country/State Normalization", False, 
+                             "Could not retrieve nodes to verify normalization")
+                return False
+        else:
+            self.log_test("Country/State Normalization", False, f"Failed to import: {response}")
+            return False
+
+    def test_format_errors_api(self):
+        """Test format errors API endpoints"""
+        # First, try to import some invalid data to generate format errors
+        import_data = {
+            "data": """Invalid data without proper format
+Another invalid line
+Not a valid IP or format
+Random text that should cause errors""",
+            "protocol": "pptp"
+        }
+        
+        # Import invalid data (should generate format errors)
+        self.make_request('POST', 'nodes/import', import_data)
+        
+        # Test GET format errors
+        success1, response1 = self.make_request('GET', 'format-errors')
+        
+        if success1 and 'content' in response1:
+            self.log_test("Get Format Errors", True, 
+                         f"Retrieved format errors: {len(response1.get('content', ''))} characters")
+            
+            # Test DELETE format errors
+            success2, response2 = self.make_request('DELETE', 'format-errors')
+            
+            if success2:
+                self.log_test("Clear Format Errors", True, "Format errors cleared successfully")
+                return True
+            else:
+                self.log_test("Clear Format Errors", False, f"Failed to clear: {response2}")
+                return False
+        else:
+            self.log_test("Get Format Errors", False, f"Failed to get format errors: {response1}")
+            return False
+
+    def test_mixed_format_import(self):
+        """Test importing mixed formats in single request"""
+        import_data = {
+            "data": """Ip: 10.12.12.100
+Login: mixeduser1
+Pass: mixedpass123
+State: CA
+
+10.12.12.101 mixedpass456 mixeduser2 Texas
+
+10.12.12.102:mixeduser3:mixedpass789:US:Florida:33101""",
+            "protocol": "pptp"
+        }
+        
+        success, response = self.make_request('POST', 'nodes/import', import_data)
+        
+        if success and 'report' in response:
+            report = response['report']
+            self.log_test("Mixed Format Import", True, 
+                         f"Processed mixed formats - Added: {report.get('added', 0)}, Errors: {report.get('format_errors', 0)}")
+            return True
+        else:
+            self.log_test("Mixed Format Import", False, f"Failed to import mixed formats: {response}")
             return False
 
     def test_export_nodes(self, node_ids: List[int]):
