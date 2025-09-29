@@ -1,5 +1,5 @@
 {
-  "timestamp": "2025-09-29T15:00:23.027070",
+  "timestamp": "2025-09-29T15:00:33.958412",
   "total_tests": 41,
   "passed_tests": 41,
   "success_rate": 100.0,
@@ -25,25 +25,25 @@
     {
       "test": "Get Nodes",
       "success": true,
-      "details": "Found 71 nodes",
+      "details": "Found 77 nodes",
       "response_data": null
     },
     {
       "test": "Get Statistics",
       "success": true,
-      "details": "Total: 71, Online: 0",
+      "details": "Total: 77, Online: 0",
       "response_data": null
     },
     {
       "test": "Create Node",
       "success": true,
-      "details": "Created node with ID: 80",
+      "details": "Created node with ID: 88",
       "response_data": null
     },
     {
       "test": "Update Node",
       "success": true,
-      "details": "Updated node 80",
+      "details": "Updated node 88",
       "response_data": null
     },
     {
@@ -139,7 +139,7 @@
     {
       "test": "Get Nodes",
       "success": true,
-      "details": "Found 79 nodes",
+      "details": "Found 85 nodes",
       "response_data": null
     },
     {
@@ -169,13 +169,13 @@
     {
       "test": "Single Node Service Start",
       "success": true,
-      "details": "Service start attempted for node 80",
+      "details": "Service start attempted for node 88",
       "response_data": null
     },
     {
       "test": "Single Node Service Stop",
       "success": true,
-      "details": "Service stop attempted for node 80",
+      "details": "Service stop attempted for node 88",
       "response_data": null
     },
     {
@@ -199,13 +199,13 @@
     {
       "test": "Single Node Test",
       "success": true,
-      "details": "Single node test completed for node 80",
+      "details": "Single node test completed for node 88",
       "response_data": null
     },
     {
       "test": "Delete Node",
       "success": true,
-      "details": "Deleted node 80",
+      "details": "Deleted node 88",
       "response_data": null
     },
     {
