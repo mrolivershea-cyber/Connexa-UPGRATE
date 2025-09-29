@@ -231,6 +231,42 @@ async def delete_multiple_nodes(
     db.commit()
     return {"message": f"Deleted {deleted_count} nodes successfully"}
 
+@api_router.post("/nodes/import")
+async def import_nodes(
+    data: ImportNodesSchema,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Enhanced import with comprehensive parsing and deduplication"""
+    try:
+        # Parse text data with enhanced parser
+        parsed_data = parse_nodes_text(data.data, data.protocol)
+        
+        # Process nodes with deduplication logic
+        results = process_parsed_nodes(db, parsed_data)
+        
+        # Create detailed report
+        report = {
+            "total_processed": parsed_data['total_processed'],
+            "successfully_parsed": parsed_data['successfully_parsed'],
+            "added": len(results['added']),
+            "skipped_duplicates": len(results['skipped']),
+            "replaced_old": len(results['replaced']),
+            "queued_for_verification": len(results['queued']),
+            "format_errors": len(results['format_errors']),
+            "processing_errors": len(results['errors']),
+            "details": results
+        }
+        
+        return {
+            "success": True,
+            "message": f"Import completed: {report['added']} added, {report['skipped_duplicates']} duplicates skipped, {report['format_errors']} format errors",
+            "report": report
+        }
+        
+    except Exception as e:
+        return {"success": False, "message": f"Import failed: {str(e)}"}
+
 # Import/Export Routes
 @api_router.post("/import")
 async def import_nodes(
