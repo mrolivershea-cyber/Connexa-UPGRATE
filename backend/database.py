@@ -41,6 +41,7 @@ class Node(Base):
     
     id = Column(Integer, primary_key=True, index=True)
     ip = Column(String(45), index=True, nullable=False)
+    port = Column(Integer, nullable=True)  # Port for the service
     login = Column(String(100), default="")
     password = Column(String(255), default="")
     provider = Column(String(100), default="")
