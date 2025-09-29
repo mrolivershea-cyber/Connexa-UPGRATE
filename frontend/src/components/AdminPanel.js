@@ -567,6 +567,16 @@ const AdminPanel = () => {
             <RefreshCw className="h-4 w-4 mr-2" />
             Refresh
           </Button>
+          
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={handleFormatErrorClick}
+            data-testid="format-error-btn"
+          >
+            <Zap className="h-4 w-4 mr-2" />
+            Format Error
+          </Button>
         </div>
 
         {/* Nodes Table */}
