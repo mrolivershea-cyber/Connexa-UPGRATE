@@ -208,39 +208,7 @@ const NodesTable = ({ nodes, selectedNodes, onSelectNode, onNodeUpdated, loading
     }
   };
 
-  const startServices = async (nodeId) => {
-    try {
-      toast.info('Starting services...');
-      const response = await axios.post(`${API}/nodes/${nodeId}/services/start`);
-      
-      if (response.data.success) {
-        toast.success('Services started successfully');
-      } else {
-        toast.error(`Failed to start services: ${response.data.message}`);
-      }
-      onNodeUpdated();
-    } catch (error) {
-      console.error('Error starting services:', error);
-      toast.error('Failed to start services');
-    }
-  };
-
-  const stopServices = async (nodeId) => {
-    try {
-      toast.info('Stopping services...');
-      const response = await axios.post(`${API}/nodes/${nodeId}/services/stop`);
-      
-      if (response.data.success) {
-        toast.success('Services stopped successfully');
-      } else {
-        toast.error(`Failed to stop services: ${response.data.message}`);
-      }
-      onNodeUpdated();
-    } catch (error) {
-      console.error('Error stopping services:', error);
-      toast.error('Failed to stop services');
-    }
-  };
+ 
 
   const EditableCell = ({ node, field, className = '' }) => {
     const isEditing = editingNode === `${node.id}-${field}`;
