@@ -79,3 +79,30 @@ class BulkImport(BaseModel):
 class ExportRequest(BaseModel):
     node_ids: List[int]
     format: str = "txt"  # txt, csv, xlsx
+
+# Service Management schemas
+class ServiceAction(BaseModel):
+    node_ids: List[int]
+    action: str  # start, stop, restart
+
+class TestRequest(BaseModel):
+    node_ids: List[int]
+    test_type: str = "both"  # ping, speed, both
+
+class ServiceStatus(BaseModel):
+    node_id: int
+    active: bool
+    services: List[str]
+    interface: Optional[str] = None
+    socks_port: Optional[int] = None
+    socks_ip: Optional[str] = None
+    uptime: Optional[float] = None
+
+class TestResult(BaseModel):
+    node_id: int
+    ip: str
+    test_type: str
+    ping: Optional[dict] = None
+    speed: Optional[dict] = None
+    overall: str  # online, offline, degraded
+    tested_at: datetime
