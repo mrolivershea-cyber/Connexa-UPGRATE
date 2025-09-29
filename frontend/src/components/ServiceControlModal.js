@@ -178,7 +178,7 @@ const ServiceControlModal = ({ isOpen, onClose, selectedNodeIds = [], onServiceC
           </Button>
           <Button 
             onClick={handleServiceAction}
-            disabled={loading || selectedNodes.length === 0}
+            disabled={loading || selectedNodeIds.length === 0}
             data-testid="execute-service-action-btn"
           >
             <Zap className="h-4 w-4 mr-2" />
