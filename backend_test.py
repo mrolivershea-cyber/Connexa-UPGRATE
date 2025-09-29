@@ -124,11 +124,11 @@ class ConnexaAPITester:
     def test_create_node(self):
         """Test creating a new node"""
         test_node = {
-            "ip": "192.168.100.1",
-            "login": "testuser",
-            "password": "testpass",
+            "ip": "203.0.113.10",
+            "login": "vpnuser01",
+            "password": "SecurePass123!",
             "protocol": "pptp",
-            "provider": "TestProvider",
+            "provider": "CloudVPN Services",
             "country": "United States",
             "state": "California",
             "city": "Los Angeles",
