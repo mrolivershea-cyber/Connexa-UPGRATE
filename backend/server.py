@@ -308,124 +308,255 @@ async def export_nodes(
             content={"data": "\n".join(lines), "filename": f"connexa_export_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"}
         )
 
-def parse_nodes_text(text: str, protocol: str = "pptp") -> List[dict]:
-    """Parse different node text formats as per TZ requirements"""
-    nodes = []
-    blocks = re.split(r'\n\s*\n', text.strip())
+def clean_text_data(text: str) -> str:
+    """Clean and normalize text data"""
+    # Remove extra whitespaces and empty lines
+    lines = []
+    for line in text.split('\n'):
+        # Remove multiple spaces, tabs, and clean line
+        cleaned_line = ' '.join(line.strip().split())
+        if cleaned_line:  # Only add non-empty lines
+            lines.append(cleaned_line)
+    return '\n'.join(lines)
+
+def detect_format(block: str) -> str:
+    """Detect which format the block matches"""
+    lines = block.split('\n')
     
-    for block in blocks:
+    # Format 1: Key-value with colons (Ip: xxx, Login: xxx, Pass: xxx)
+    if any(line.strip().startswith(('Ip:', 'IP:', 'Login:', 'Pass:', 'State:', 'City:', 'Zip:')) for line in lines):
+        return "format_1"
+    
+    # Format 6: Multi-line with PPTP header (ignore first 2 lines)
+    if len(lines) >= 6 and ('PPTP_SVOIM_VPN' in lines[0] or 'PPTP Connection' in lines[1]):
+        return "format_6"
+    
+    # Format 5: Multi-line with IP:, Credentials:, Location:, ZIP:
+    if len(lines) >= 4 and any('IP:' in line for line in lines) and any('Credentials:' in line for line in lines):
+        return "format_5"
+    
+    # Single line formats
+    single_line = block.strip()
+    
+    # Format 3: With - and | separators
+    if ' - ' in single_line and (' | ' in single_line or re.search(r'\d{4}-\d{2}-\d{2}', single_line)):
+        return "format_3"
+    
+    # Format 4: Colon separated (5+ colons)
+    if single_line.count(':') >= 4:
+        return "format_4"
+    
+    # Format 2: Single line with spaces (IP Pass Login State)
+    parts = single_line.split()
+    if len(parts) >= 4 and is_valid_ip(parts[0]):
+        return "format_2"
+    
+    return "unknown"
+
+def parse_nodes_text(text: str, protocol: str = "pptp") -> dict:
+    """Enhanced parser for all node formats with error handling"""
+    # Clean input text
+    text = clean_text_data(text)
+    
+    parsed_nodes = []
+    duplicates = []
+    format_errors = []
+    
+    # Split into blocks (handle different separators)
+    blocks = []
+    if '---------------------' in text:
+        blocks = text.split('---------------------')
+    elif '\n\n' in text:
+        blocks = re.split(r'\n\s*\n', text)
+    else:
+        blocks = [text]
+    
+    for block_index, block in enumerate(blocks):
         block = block.strip()
-        if not block:
+        if not block or len(block) < 5:  # Skip very short blocks
             continue
+        
+        try:
+            format_type = detect_format(block)
+            node_data = {"protocol": protocol, "status": "offline"}
             
-        node_data = {"protocol": protocol, "status": "offline"}
-        
-        # Format A (key=value multiline)
-        if "Ip:" in block or "IP:" in block:
-            lines = block.split('\n')
-            for line in lines:
-                if ':' in line:
-                    key, value = line.split(':', 1)
-                    key, value = key.strip().lower(), value.strip()
-                    if key in ['ip', 'host']:
-                        node_data['ip'] = value
-                    elif key == 'login':
-                        node_data['login'] = value
-                    elif key in ['pass', 'password']:
-                        node_data['password'] = value
-                    elif key == 'state':
-                        node_data['state'] = value
-                    elif key == 'city':
-                        node_data['city'] = value
-                    elif key in ['zip', 'zipcode']:
-                        node_data['zipcode'] = value
-                    elif key == 'country':
-                        node_data['country'] = value
-                    elif key == 'provider':
-                        node_data['provider'] = value
-        
-        # Format B (single line with spaces)
-        elif len(block.split()) >= 3:
-            parts = block.split()
-            if len(parts) >= 3:
-                node_data['ip'] = parts[0]
-                node_data['login'] = parts[1]
-                node_data['password'] = parts[2]
-                if len(parts) >= 4:
-                    node_data['state'] = normalize_state_code(parts[3])
-        
-        # Format C (with - and | separators)
-        elif ' - ' in block and ' | ' in block:
-            main_part = block.split(' | ')[0]
-            parts = main_part.split(' - ')
-            if len(parts) >= 3:
-                node_data['ip'] = parts[0].strip()
-                creds = parts[1].strip()
-                if ':' in creds:
-                    login, password = creds.split(':', 1)
-                    node_data['login'] = login
-                    node_data['password'] = password
-                location = parts[2].strip()
-                if '/' in location:
-                    state, city = location.split('/', 1)
-                    node_data['state'] = state.strip()
-                    node_data['city'] = city.split()[0].strip()
-                    # Extract ZIP if present
-                    zip_match = re.search(r'\d{5}', location)
-                    if zip_match:
-                        node_data['zipcode'] = zip_match.group()
-        
-        # Format D (colon separated)
-        elif block.count(':') >= 2:
-            parts = block.split(':')
-            if len(parts) >= 3:
-                node_data['ip'] = parts[0]
-                node_data['login'] = parts[1]
-                node_data['password'] = parts[2]
-                if len(parts) >= 4:
-                    node_data['country'] = normalize_country_code(parts[3])
-                if len(parts) >= 5:
-                    node_data['state'] = parts[4]
-                if len(parts) >= 6:
-                    node_data['zipcode'] = parts[5]
-        
-        # Format E/F (Location parsing)
-        elif "Location:" in block:
-            lines = block.split('\n')
-            for line in lines:
-                line = line.strip()
-                if line.startswith("IP:"):
-                    node_data['ip'] = line.split(':', 1)[1].strip()
-                elif line.startswith("Credentials:"):
-                    creds = line.split(':', 1)[1].strip()
-                    if ':' in creds:
-                        login, password = creds.split(':', 1)
-                        node_data['login'] = login
-                        node_data['password'] = password
-                elif line.startswith("Location:"):
-                    location = line.split(':', 1)[1].strip()
-                    # Parse "Texas (Austin)" format
-                    if '(' in location and ')' in location:
-                        state = location.split('(')[0].strip()
-                        city = location.split('(')[1].split(')')[0].strip()
-                        node_data['state'] = state
-                        node_data['city'] = city
-                elif line.startswith("ZIP:"):
-                    node_data['zipcode'] = line.split(':', 1)[1].strip()
-        
-        # Minimal format G (IP Login Pass)
-        else:
-            parts = block.split()
-            if len(parts) >= 3:
-                node_data['ip'] = parts[0]
-                node_data['login'] = parts[1] 
-                node_data['password'] = parts[2]
-        
-        # Validate IP and add node
-        if 'ip' in node_data and is_valid_ip(node_data['ip']):
-            nodes.append(node_data)
+            if format_type == "format_1":
+                node_data = parse_format_1(block, node_data)
+            elif format_type == "format_2":
+                node_data = parse_format_2(block, node_data)
+            elif format_type == "format_3":
+                node_data = parse_format_3(block, node_data)
+            elif format_type == "format_4":
+                node_data = parse_format_4(block, node_data)
+            elif format_type == "format_5":
+                node_data = parse_format_5(block, node_data)
+            elif format_type == "format_6":
+                node_data = parse_format_6(block, node_data)
+            else:
+                format_errors.append(f"Block {block_index + 1}: {block[:100]}")
+                continue
+            
+            # Validate required fields
+            if not node_data.get('ip') or not is_valid_ip(node_data['ip']):
+                format_errors.append(f"Invalid IP in block {block_index + 1}: {block[:100]}")
+                continue
+                
+            if not node_data.get('login') or not node_data.get('password'):
+                format_errors.append(f"Missing credentials in block {block_index + 1}: {block[:100]}")
+                continue
+            
+            # Normalize data
+            if node_data.get('state'):
+                node_data['state'] = normalize_state_country(node_data['state'], node_data.get('country', ''))
+            if node_data.get('country'):
+                node_data['country'] = normalize_country_code(node_data['country'])
+            
+            parsed_nodes.append(node_data)
+            
+        except Exception as e:
+            format_errors.append(f"Parse error in block {block_index + 1}: {str(e)} - {block[:100]}")
+            continue
     
-    return nodes
+    return {
+        'nodes': parsed_nodes,
+        'duplicates': duplicates,
+        'format_errors': format_errors,
+        'total_processed': len(blocks),
+        'successfully_parsed': len(parsed_nodes)
+    }
+
+def parse_format_1(block: str, node_data: dict) -> dict:
+    """Format 1: Ip: xxx, Login: xxx, Pass: xxx, State: xxx, City: xxx, Zip: xxx"""
+    lines = block.split('\n')
+    for line in lines:
+        if ':' in line:
+            key, value = line.split(':', 1)
+            key, value = key.strip().lower(), value.strip()
+            if key in ['ip', 'host']:
+                node_data['ip'] = value
+            elif key == 'login':
+                node_data['login'] = value
+            elif key in ['pass', 'password']:
+                node_data['password'] = value
+            elif key == 'state':
+                node_data['state'] = value
+            elif key == 'city':
+                node_data['city'] = value
+            elif key in ['zip', 'zipcode']:
+                node_data['zipcode'] = value
+            elif key == 'country':
+                node_data['country'] = value
+            elif key == 'provider':
+                node_data['provider'] = value
+    return node_data
+
+def parse_format_2(block: str, node_data: dict) -> dict:
+    """Format 2: IP Pass Login State (single line with spaces)"""
+    parts = block.split()
+    if len(parts) >= 4:
+        node_data['ip'] = parts[0]
+        node_data['password'] = parts[1]  # Note: order is IP Pass Login State
+        node_data['login'] = parts[2]
+        node_data['state'] = parts[3]
+    return node_data
+
+def parse_format_3(block: str, node_data: dict) -> dict:
+    """Format 3: IP - Login:Pass - State/City Zip | Last Update"""
+    # Remove timestamp part
+    main_part = block.split(' | ')[0] if ' | ' in block else block
+    parts = main_part.split(' - ')
+    
+    if len(parts) >= 3:
+        node_data['ip'] = parts[0].strip()
+        
+        # Parse credentials
+        creds = parts[1].strip()
+        if ':' in creds:
+            login, password = creds.split(':', 1)
+            node_data['login'] = login.strip()
+            node_data['password'] = password.strip()
+        
+        # Parse location
+        location = parts[2].strip()
+        if '/' in location:
+            state_part, city_part = location.split('/', 1)
+            node_data['state'] = state_part.strip()
+            
+            # Extract city (before ZIP)
+            city_and_zip = city_part.strip().split()
+            if city_and_zip:
+                node_data['city'] = city_and_zip[0]
+                # Look for ZIP in remaining parts
+                for part in city_and_zip[1:]:
+                    if re.match(r'^\d{5}(-\d{4})?$', part):
+                        node_data['zipcode'] = part
+                        break
+    return node_data
+
+def parse_format_4(block: str, node_data: dict) -> dict:
+    """Format 4: IP:Login:Pass:Country:State:Zip"""
+    parts = block.split(':')
+    if len(parts) >= 6:
+        node_data['ip'] = parts[0].strip()
+        node_data['login'] = parts[1].strip()
+        node_data['password'] = parts[2].strip()
+        node_data['country'] = parts[3].strip()
+        node_data['state'] = parts[4].strip()
+        node_data['zipcode'] = parts[5].strip()
+    return node_data
+
+def parse_format_5(block: str, node_data: dict) -> dict:
+    """Format 5: Multi-line with IP:, Credentials:, Location:, ZIP:"""
+    lines = block.split('\n')
+    for line in lines:
+        line = line.strip()
+        if line.startswith("IP:"):
+            node_data['ip'] = line.split(':', 1)[1].strip()
+        elif line.startswith("Credentials:"):
+            creds = line.split(':', 1)[1].strip()
+            if ':' in creds:
+                login, password = creds.split(':', 1)
+                node_data['login'] = login.strip()
+                node_data['password'] = password.strip()
+        elif line.startswith("Location:"):
+            location = line.split(':', 1)[1].strip()
+            # Parse "State (City)" format
+            if '(' in location and ')' in location:
+                state = location.split('(')[0].strip()
+                city = location.split('(')[1].split(')')[0].strip()
+                node_data['state'] = state
+                node_data['city'] = city
+        elif line.startswith("ZIP:"):
+            node_data['zipcode'] = line.split(':', 1)[1].strip()
+    return node_data
+
+def parse_format_6(block: str, node_data: dict) -> dict:
+    """Format 6: Multi-line with first 2 lines ignored"""
+    lines = block.split('\n')
+    # Skip first 2 lines
+    relevant_lines = lines[2:] if len(lines) > 2 else lines
+    
+    for line in relevant_lines:
+        line = line.strip()
+        if line.startswith("IP:"):
+            node_data['ip'] = line.split(':', 1)[1].strip()
+        elif line.startswith("Credentials:"):
+            creds = line.split(':', 1)[1].strip()
+            if ':' in creds:
+                login, password = creds.split(':', 1)
+                node_data['login'] = login.strip()
+                node_data['password'] = password.strip()
+        elif line.startswith("Location:"):
+            location = line.split(':', 1)[1].strip()
+            # Parse "State (City)" format
+            if '(' in location and ')' in location:
+                state = location.split('(')[0].strip()
+                city = location.split('(')[1].split(')')[0].strip()
+                node_data['state'] = state
+                node_data['city'] = city
+        elif line.startswith("ZIP:"):
+            node_data['zipcode'] = line.split(':', 1)[1].strip()
+    return node_data
 
 def normalize_state_code(code: str) -> str:
     """Convert state codes to full names"""
