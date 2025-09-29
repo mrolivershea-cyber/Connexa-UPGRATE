@@ -316,9 +316,8 @@ const NodesTable = ({ nodes, selectedNodes, onSelectNode, onNodeUpdated, loading
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 <Checkbox 
                   checked={selectedNodes.length === nodes.length && nodes.length > 0}
-                  onCheckedChange={() => {
-                    // This is handled by the parent component
-                  }}
+                  onCheckedChange={handleSelectAll}
+                  data-testid="select-all-nodes-checkbox"
                 />
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
