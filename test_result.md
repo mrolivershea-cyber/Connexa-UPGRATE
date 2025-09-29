@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Fix and test Start/Stop Services buttons under filters, all node context menu actions (Copy IP, Copy SOCKS, Test Ping, Start Services, Stop Services, Delete), and Delete Selected button functionality. Ensure all UI interactions work correctly and provide proper feedback."
+user_problem_statement: "Test the enhanced universal parser with 6 formats, deduplication system, format error handling, unified Add/Import button, and Format Error viewer. Verify all backend endpoints work correctly with the new parser and UI updates."
 
 backend:
   - task: "Node CRUD operations"
