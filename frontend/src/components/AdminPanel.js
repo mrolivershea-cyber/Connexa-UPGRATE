@@ -29,8 +29,7 @@ import {
   Activity
 } from 'lucide-react';
 import NodesTable from './NodesTable';
-import AddNodeModal from './AddNodeModal';
-import ImportModal from './ImportModal';
+import UnifiedImportModal from './UnifiedImportModal';
 import ExportModal from './ExportModal';
 import OptionsModal from './OptionsModal';
 import TestingModal from './TestingModal';
