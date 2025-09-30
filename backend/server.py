@@ -1415,8 +1415,9 @@ async def start_services(
                 )
                 
                 if socks_result['success']:
-                    # Update node status
-                    node.status = "online"
+                    # Update node status to online only if all previous steps passed
+                    if node.status in ["ping_ok", "speed_ok", "speed_slow"]:
+                        node.status = "online"
                     db.commit()
                     
                     results.append({
