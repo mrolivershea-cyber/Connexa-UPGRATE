@@ -846,6 +846,138 @@ Random text that should cause errors""",
             self.log_test("Comprehensive Format Errors", False, f"Failed to import: {response}")
             return False
 
+    def test_critical_real_user_data_mixed_formats(self):
+        """CRITICAL TEST - Real User Data with Multiple Configs (Review Request)"""
+        # Exact user data from review request
+        user_data = """StealUrVPN
+@StealUrVPN_bot
+
+Ip: 71.84.237.32	a_reg_107
+Login: admin
+Pass: admin
+State: California
+City: Pasadena
+Zip: 91101
+
+Ip: 144.229.29.35
+Login: admin
+Pass: admin
+State: California
+City: Los Angeles
+Zip: 90035
+---------------------
+GVBot
+@gv2you_bot
+
+76.178.64.46  admin admin CA
+96.234.52.227  admin admin NJ
+---------------------
+Worldwide VPN Hub
+@pptpmaster_bot
+
+68.227.241.4 - admin:admin - Arizona/Phoenix 85001 | 2025-09-03 16:05:25
+96.42.187.97 - 1:1 - Michigan/Lapeer 48446 | 2025-09-03 09:50:22
+
+---------------------
+
+PPTP INFINITY
+@pptpinfinity_bot
+70.171.218.52:admin:admin:US:Arizona:85001
+
+> PPTP_SVOIM_VPN:
+🚨 PPTP Connection
+IP: 24.227.222.13
+Credentials: admin:admin
+Location: Texas (Austin)
+ZIP: 78701
+
+> PPTP_SVOIM_VPN:
+🚨 PPTP Connection
+IP: 71.202.136.233
+Credentials: admin:admin
+Location: California (Fremont)
+ZIP: 94536
+
+> PPTP_SVOIM_VPN:
+🚨 PPTP Connection
+IP: 24.227.222.112
+Credentials: admin:admin
+Location: Texas (Austin)
+ZIP: 78701"""
+
+        import_data = {
+            "data": user_data,
+            "protocol": "pptp"
+        }
+        
+        success, response = self.make_request('POST', 'nodes/import', import_data)
+        
+        if success and 'report' in response:
+            report = response['report']
+            total_added = report.get('added', 0)
+            
+            # Expected: 10 nodes total
+            if total_added >= 10:
+                # Verify specific nodes were created correctly
+                expected_nodes = [
+                    {'ip': '71.84.237.32', 'login': 'admin', 'password': 'admin', 'state': 'California', 'city': 'Pasadena', 'zipcode': '91101'},
+                    {'ip': '144.229.29.35', 'login': 'admin', 'password': 'admin', 'state': 'California', 'city': 'Los Angeles', 'zipcode': '90035'},
+                    {'ip': '76.178.64.46', 'login': 'admin', 'password': 'admin', 'state': 'California'},
+                    {'ip': '96.234.52.227', 'login': 'admin', 'password': 'admin', 'state': 'New Jersey'},
+                    {'ip': '68.227.241.4', 'login': 'admin', 'password': 'admin', 'state': 'Arizona', 'city': 'Phoenix', 'zipcode': '85001'},
+                    {'ip': '96.42.187.97', 'login': '1', 'password': '1', 'state': 'Michigan', 'city': 'Lapeer', 'zipcode': '48446'},
+                    {'ip': '70.171.218.52', 'login': 'admin', 'password': 'admin', 'state': 'Arizona', 'zipcode': '85001'},
+                    {'ip': '24.227.222.13', 'login': 'admin', 'password': 'admin', 'state': 'Texas', 'city': 'Austin', 'zipcode': '78701'},
+                    {'ip': '71.202.136.233', 'login': 'admin', 'password': 'admin', 'state': 'California', 'city': 'Fremont', 'zipcode': '94536'},
+                    {'ip': '24.227.222.112', 'login': 'admin', 'password': 'admin', 'state': 'Texas', 'city': 'Austin', 'zipcode': '78701'}
+                ]
+                
+                verified_count = 0
+                verification_details = []
+                
+                for expected in expected_nodes:
+                    # Check if this specific node was created
+                    nodes_success, nodes_response = self.make_request('GET', f'nodes?ip={expected["ip"]}')
+                    
+                    if nodes_success and 'nodes' in nodes_response and nodes_response['nodes']:
+                        node = nodes_response['nodes'][0]
+                        
+                        # Verify all expected fields
+                        node_correct = True
+                        for key, expected_value in expected.items():
+                            if node.get(key) != expected_value:
+                                node_correct = False
+                                break
+                        
+                        if node_correct:
+                            verified_count += 1
+                            verification_details.append(f"✅ {expected['ip']} - {expected['login']}/{expected['password']} - {expected.get('state', 'N/A')}")
+                        else:
+                            verification_details.append(f"❌ {expected['ip']} - Field mismatch: Expected {expected}, Got {dict((k,node.get(k)) for k in expected.keys())}")
+                    else:
+                        verification_details.append(f"❌ {expected['ip']} - Node not found")
+                
+                # Log detailed verification results
+                print(f"\n🔍 CRITICAL TEST VERIFICATION DETAILS:")
+                for detail in verification_details:
+                    print(f"   {detail}")
+                
+                if verified_count >= 10:
+                    self.log_test("CRITICAL - Real User Data Mixed Formats", True, 
+                                 f"✅ SUCCESS: {verified_count}/10 nodes created correctly. Headers ignored (@mentions, channel names), multiple formats parsed, state normalization working (CA→California, NJ→New Jersey), extra text removed from IP (a_reg_107), smart block splitting working")
+                    return True
+                else:
+                    self.log_test("CRITICAL - Real User Data Mixed Formats", False, 
+                                 f"❌ CRITICAL ISSUE: Only {verified_count}/10 nodes verified correctly. Expected 10 nodes with exact field values.")
+                    return False
+            else:
+                self.log_test("CRITICAL - Real User Data Mixed Formats", False, 
+                             f"❌ CRITICAL ISSUE: Only {total_added} nodes created, expected 10. Smart parser failed to handle mixed formats correctly.")
+                return False
+        else:
+            self.log_test("CRITICAL - Real User Data Mixed Formats", False, f"Failed to import real user data: {response}")
+            return False
+
     def test_export_nodes(self, node_ids: List[int]):
         """Test exporting nodes"""
         if not node_ids:
