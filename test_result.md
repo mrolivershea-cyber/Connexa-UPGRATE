@@ -214,7 +214,7 @@ backend:
     implemented: true
     working: false
     file: "server.py"
-    stuck_count: 1
+    stuck_count: 2
     priority: "high"
     needs_retesting: false
     status_history:
@@ -233,6 +233,9 @@ backend:
       - working: false
         agent: "testing"
         comment: "❌ CRITICAL ISSUE FOUND: Real user data test failed. Only 9/10 nodes created from mixed format import. SPECIFIC PROBLEM: Format 4 node (70.171.218.52:admin:admin:US:Arizona:85001) is missing. ROOT CAUSE: Smart block splitting logic has bug when Format 4 (single-line colon-separated) appears immediately before Format 6 blocks (PPTP headers). The Format 4 line gets incorrectly grouped with Format 6 block instead of being processed as separate block. Individual format tests pass, but mixed format parsing fails. IMPACT: User reported only 1 config added from large text - this confirms the block splitting issue affects real-world usage."
+      - working: false
+        agent: "testing"
+        comment: "❌ CRITICAL RE-TEST CONFIRMS ISSUE: Tested with exact review request data. Only 9/10 nodes created, Format 4 node (70.171.218.52) missing. ROOT CAUSE IDENTIFIED: In parse_nodes_text() function, Pre-block 4 contains Format 4 line '70.171.218.52:admin:admin:US:Arizona:85001' followed by Format 6 blocks with 'IP:' keywords. Block splitting logic checks for multiple 'IP:' entries FIRST and splits entire block by 'IP:', destroying the Format 4 line. FIX NEEDED: Check for single-line formats (Format 2,3,4) BEFORE checking for multiple Format 1/6 entries. This will extract Format 4 line first, then process remaining Format 6 blocks separately. PRIORITY: HIGH - affects real user data parsing."
 
   - task: "Deduplication system with business rules"
     implemented: true
