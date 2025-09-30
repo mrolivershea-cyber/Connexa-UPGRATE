@@ -18,7 +18,8 @@ import {
   X,
   Activity,
   Play,
-  Square
+  Square,
+  Download
 } from 'lucide-react';
 import axios from 'axios';
 
