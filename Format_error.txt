@@ -62,3 +62,8 @@ Pass: pass1
 State: CA
 2. Block 2: 10.0.294.2 user2 pass2 NY
 3. Invalid IP in block 3: 10.0.294.3:admin:admin:US:Texas:78701
+
+
+=== Format Errors - 2025-09-30 10:49:29 ===
+1. Block 1: invalid line without proper format
+another bad line
