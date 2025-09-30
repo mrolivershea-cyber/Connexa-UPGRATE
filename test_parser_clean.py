@@ -31,42 +31,42 @@ def test_all_formats_clean():
     tests = [
         {
             "name": "Format 1 - Key-Value Pairs",
-            "data": f"Ip: 144.229.{timestamp}.35\nLogin: admin\nPass: admin\nState: California\nCity: Los Angeles\nZip: 90035",
+            "data": f"Ip: 144.229.{ip_suffix}.35\nLogin: admin\nPass: admin\nState: California\nCity: Los Angeles\nZip: 90035",
             "expected_nodes": 1
         },
         {
             "name": "Format 2 - Single Line (CRITICAL)",
-            "data": f"76.178.{timestamp}.46 admin admin CA\n96.234.{timestamp}.227 user1 pass1 NJ",
+            "data": f"76.178.{ip_suffix}.46 admin admin CA\n96.234.{ip_suffix}.227 user1 pass1 NJ",
             "expected_nodes": 2
         },
         {
             "name": "Format 3 - Dash/Pipe with Timestamp",
-            "data": f"68.227.{timestamp}.4 - admin:admin - Arizona/Phoenix 85001 | 2025-09-03 16:05:25\n96.42.{timestamp}.97 - user:pass - Michigan/Lapeer 48446 | 2025-09-03 09:50:22",
+            "data": f"68.227.{ip_suffix}.4 - admin:admin - Arizona/Phoenix 85001 | 2025-09-03 16:05:25\n96.42.{ip_suffix}.97 - user:pass - Michigan/Lapeer 48446 | 2025-09-03 09:50:22",
             "expected_nodes": 2
         },
         {
             "name": "Format 4 - Colon Separated",
-            "data": f"70.171.{timestamp}.52:admin:admin:US:Arizona:85001",
+            "data": f"70.171.{ip_suffix}.52:admin:admin:US:Arizona:85001",
             "expected_nodes": 1
         },
         {
             "name": "Format 5 - 4-Line Multi-line",
-            "data": f"IP: 24.227.{timestamp}.13\nCredentials: admin:admin\nLocation: Texas (Austin)\nZIP: 78701",
+            "data": f"IP: 24.227.{ip_suffix}.13\nCredentials: admin:admin\nLocation: Texas (Austin)\nZIP: 78701",
             "expected_nodes": 1
         },
         {
             "name": "Format 6 - PPTP Header",
-            "data": f"> PPTP_SVOIM_VPN:\n🚨 PPTP Connection\nIP: 24.227.{timestamp}.14\nCredentials: testuser:testpass\nLocation: Florida (Miami)\nZIP: 33101",
+            "data": f"> PPTP_SVOIM_VPN:\n🚨 PPTP Connection\nIP: 24.227.{ip_suffix}.14\nCredentials: testuser:testpass\nLocation: Florida (Miami)\nZIP: 33101",
             "expected_nodes": 1
         },
         {
             "name": "Edge Cases - Comments",
-            "data": f"# This is a comment\n\n76.178.{timestamp}.50 admin password TX  // inline comment\n\n# Another comment\n96.234.{timestamp}.230 user pass CA",
+            "data": f"# This is a comment\n\n76.178.{ip_suffix}.50 admin password TX  // inline comment\n\n# Another comment\n96.234.{ip_suffix}.230 user pass CA",
             "expected_nodes": 2
         },
         {
             "name": "Mixed Formats",
-            "data": f"Ip: 10.0.{timestamp}.1\nLogin: admin\nPass: pass1\nState: CA\n---------------------\n10.0.{timestamp}.2 user2 pass2 NY\n---------------------\n10.0.{timestamp}.3:admin:admin:US:Texas:78701",
+            "data": f"Ip: 10.0.{ip_suffix}.1\nLogin: admin\nPass: pass1\nState: CA\n---------------------\n10.0.{ip_suffix}.2 user2 pass2 NY\n---------------------\n10.0.{ip_suffix}.3:admin:admin:US:Texas:78701",
             "expected_nodes": 3
         }
     ]
