@@ -391,17 +391,17 @@ frontend:
         agent: "testing"
         comment: "✅ TESTED: Enhanced sample texts working perfectly. All 6 formats found in sample text: Format 1 (Key-value pairs), Format 2 (Single line spaces), Format 3 (Dash/pipe format), Format 4 (Colon separated), Format 5 (Multi-line Location), Format 6 (PPTP header). Sample text demonstrates comprehensive format variety as required."
 
-  - task: "Unified Import Modal - single window with text input"
+  - task: "Unified Import Modal with Testing Mode Selector"
     implemented: true
     working: "NA"
-    file: "UnifiedImportModal.js, AdminPanel.js"
+    file: "UnifiedImportModal.js, AdminPanel.js, schemas.py, server.py"
     stuck_count: 0
     priority: "high"
     needs_retesting: true
     status_history:
       - working: "NA"
         agent: "main"
-        comment: "User requested to merge Add Manual and Import from Text into single modal without tabs. Removed all manual input fields (Protocol, IP, Port, Login, Password, Country, State, City, ZIP, Comment) and manual add functionality. Now only has textarea for text import supporting all 6 formats. Changed button from 'Add/Import Server' dropdown to single 'Импорт' button. Unified modal contains: protocol selector, textarea for data, sample text button, file upload button, supported formats card, results preview card. All text in Russian."
+        comment: "Added Testing Mode dropdown selector with 4 options: Ping only (default), Speed only, Ping + Speed, No test. Dropdown positioned next to Import button in DialogFooter. Removed 'Supported Import Formats' card block from modal. Updated backend schema ImportNodesSchema to accept testing_mode parameter. Modified API endpoint to log and include testing_mode in response report. Testing mode is now properly sent to backend during import."
 
 metadata:
   created_by: "main_agent"
