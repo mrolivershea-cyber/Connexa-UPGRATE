@@ -437,11 +437,13 @@ const AdminPanel = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="online">Online</SelectItem>
+                  <SelectItem value="not_tested">Not Tested</SelectItem>
+                  <SelectItem value="ping_failed">PING Failed</SelectItem>
+                  <SelectItem value="ping_ok">PING OK</SelectItem>
+                  <SelectItem value="speed_slow">Speed Slow</SelectItem>
+                  <SelectItem value="speed_ok">Speed OK</SelectItem>
                   <SelectItem value="offline">Offline</SelectItem>
-                  <SelectItem value="checking">Checking</SelectItem>
-                  <SelectItem value="degraded">Degraded</SelectItem>
-                  <SelectItem value="needs_review">Needs Review</SelectItem>
+                  <SelectItem value="online">Online</SelectItem>
                 </SelectContent>
               </Select>
               <Select value={filters.protocol} onValueChange={(value) => handleFilterChange('protocol', value)}>
