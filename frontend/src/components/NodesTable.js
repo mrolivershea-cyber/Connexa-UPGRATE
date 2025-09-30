@@ -357,7 +357,6 @@ auth ${node.login}
                   <td className="px-2 py-2 whitespace-nowrap">
                     <div className="flex items-center">
                       {getStatusBadge(node.status)}
-                      {getPingStatusBadge(node.ping_status)}
                     </div>
                   </td>
                   <td className="px-2 py-2 whitespace-nowrap text-sm text-gray-900">
