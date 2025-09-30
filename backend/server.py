@@ -1755,10 +1755,21 @@ async def test_single_node(
             else:
                 node.status = "ping_failed"
         elif test_type == "speed":
-            service_status = await service_manager.get_service_status(node_id)
-            interface = service_status.get('interface') if service_status['active'] else None
-            result = await network_tester.speed_test(interface)
-            node.status = "online" if result['success'] else "degraded"
+            # Speed test only if node has passed ping test
+            if node.status in ["ping_ok", "speed_ok", "speed_slow", "online"]:
+                service_status = await service_manager.get_service_status(node_id)
+                interface = service_status.get('interface') if service_status['active'] else None
+                result = await network_tester.speed_test(interface)
+                if result['success'] and result.get('download_speed'):
+                    if result['download_speed'] > 1.0:
+                        node.status = "speed_ok"
+                    else:
+                        node.status = "speed_slow"
+                else:
+                    # Keep current status if speed test fails
+                    pass
+            else:
+                result = {"success": False, "error": "Ping test required first"}
         else:  # both
             service_status = await service_manager.get_service_status(node_id)
             interface = service_status.get('interface') if service_status['active'] else None
