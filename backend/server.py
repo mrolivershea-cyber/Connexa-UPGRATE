@@ -615,7 +615,7 @@ def parse_nodes_text(text: str, protocol: str = "pptp") -> dict:
         
         try:
             format_type = detect_format(block)
-            node_data = {"protocol": protocol, "status": "offline"}
+            node_data = {"protocol": protocol}  # Don't set status - let Node model default to "not_tested"
             
             if format_type == "format_1":
                 node_data = parse_format_1(block, node_data)
