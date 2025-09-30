@@ -276,8 +276,8 @@ const NodesTable = ({ nodes, selectedNodes, onSelectNode, onNodeUpdated, loading
   return (
     <div className="bg-white rounded-lg shadow overflow-hidden">
       <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200" data-testid="nodes-table">
-          <thead className="bg-gray-50">
+        <table className="min-w-full" data-testid="nodes-table">
+          <thead className="bg-gray-50 border-b border-gray-200">
             <tr>
               <th className="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 <Checkbox 
@@ -313,152 +313,142 @@ const NodesTable = ({ nodes, selectedNodes, onSelectNode, onNodeUpdated, loading
               <th className="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Comment
               </th>
-              <th className="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Country
-              </th>
-              <th className="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                State
-              </th>
-              <th className="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                City
-              </th>
-              <th className="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                ZIP
-              </th>
-              <th className="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Provider
-              </th>
-              <th className="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Last Update
-              </th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {nodes.map((node) => (
-              <tr key={node.id} className="hover:bg-gray-50" data-testid={`node-row-${node.id}`}>
-                <td className="px-2 py-3 whitespace-nowrap">
-                  <Checkbox 
-                    checked={selectedNodes.includes(node.id)}
-                    onCheckedChange={() => onSelectNode(node.id)}
-                    data-testid={`node-checkbox-${node.id}`}
-                  />
-                </td>
-                <td className="px-2 py-3 whitespace-nowrap">
-                  <div className="flex items-center">
-                    {getStatusBadge(node.status)}
-                    {getPingStatusBadge(node.ping_status)}
-                  </div>
-                </td>
-                <td className="px-2 py-3 whitespace-nowrap text-sm text-gray-900">
-                  {node.speed ? `${node.speed} Mbps` : '-'}
-                </td>
-                <td className="px-2 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
-                  {node.ip}
-                </td>
-                <td className="px-2 py-3 whitespace-nowrap text-sm text-gray-900">
-                  <Badge variant="outline">{node.protocol?.toUpperCase() || 'PPTP'}</Badge>
-                </td>
-                <td className="px-2 py-3 whitespace-nowrap text-sm text-gray-900">
-                  {node.login}
-                </td>
-                <td className="px-2 py-3 whitespace-nowrap text-sm text-gray-900">
-                  <div className="flex items-center space-x-1">
-                    <span className="text-xs">
-                      {showPasswords[node.id] ? node.password : '••••••••'}
-                    </span>
-                    <Button 
-                      size="sm" 
-                      variant="ghost" 
-                      onClick={() => togglePasswordVisibility(node.id)}
-                      data-testid={`toggle-password-${node.id}`}
-                      className="h-6 w-6 p-0"
-                    >
-                      {showPasswords[node.id] ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
-                    </Button>
-                    <Button 
-                      size="sm" 
-                      variant="ghost" 
-                      onClick={() => copyToClipboard(node.password, 'Password')}
-                      data-testid={`copy-password-${node.id}`}
-                      className="h-6 w-6 p-0"
-                    >
-                      <Copy className="h-3 w-3" />
-                    </Button>
-                  </div>
-                </td>
-                <td className="px-2 py-3 whitespace-nowrap text-sm text-gray-900">
-                  <Button 
-                    size="sm" 
-                    variant="outline" 
-                    onClick={() => copySocks(node)}
-                    data-testid={`copy-socks-${node.id}`}
-                    className="text-xs px-2 py-1"
-                  >
-                    <Copy className="h-3 w-3 mr-1" />
-                    Copy
-                  </Button>
-                </td>
-                <td className="px-2 py-3 whitespace-nowrap text-right text-sm font-medium">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="sm" data-testid={`node-actions-${node.id}`}>
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => copyToClipboard(node.ip, 'IP Address')}>
-                        <Copy className="h-4 w-4 mr-2" />
-                        Copy IP
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => copySocks(node)}>
-                        <Copy className="h-4 w-4 mr-2" />
-                        Copy SOCKS
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => testNode(node.id, 'ping')}>
-                        <Activity className="h-4 w-4 mr-2" />
-                        Test Ping
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => startServices(node.id)}>
-                        <Play className="h-4 w-4 mr-2" />
-                        Start Services
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => stopServices(node.id)}>
-                        <Square className="h-4 w-4 mr-2" />
-                        Stop Services
-                      </DropdownMenuItem>
-                      <DropdownMenuItem 
-                        onClick={() => deleteNode(node.id)}
-                        className="text-red-600"
-                        data-testid={`delete-node-${node.id}`}
+          <tbody className="bg-white">
+            {nodes.map((node, index) => (
+              <React.Fragment key={node.id}>
+                {/* First Row: Main Information */}
+                <tr className={`${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'} hover:bg-blue-50 border-b border-gray-100`} data-testid={`node-row-${node.id}`}>
+                  <td className="px-2 py-2 whitespace-nowrap" rowSpan={2}>
+                    <Checkbox 
+                      checked={selectedNodes.includes(node.id)}
+                      onCheckedChange={() => onSelectNode(node.id)}
+                      data-testid={`node-checkbox-${node.id}`}
+                    />
+                  </td>
+                  <td className="px-2 py-2 whitespace-nowrap">
+                    <div className="flex items-center">
+                      {getStatusBadge(node.status)}
+                      {getPingStatusBadge(node.ping_status)}
+                    </div>
+                  </td>
+                  <td className="px-2 py-2 whitespace-nowrap text-sm text-gray-900">
+                    {node.speed ? `${node.speed} Mbps` : '-'}
+                  </td>
+                  <td className="px-2 py-2 whitespace-nowrap text-sm font-medium text-gray-900">
+                    {node.ip}
+                  </td>
+                  <td className="px-2 py-2 whitespace-nowrap text-sm text-gray-900">
+                    <Badge variant="outline">{node.protocol?.toUpperCase() || 'PPTP'}</Badge>
+                  </td>
+                  <td className="px-2 py-2 whitespace-nowrap text-sm text-gray-900">
+                    {node.login}
+                  </td>
+                  <td className="px-2 py-2 whitespace-nowrap text-sm text-gray-900">
+                    <div className="flex items-center space-x-1">
+                      <span className="text-xs">
+                        {showPasswords[node.id] ? node.password : '••••••••'}
+                      </span>
+                      <Button 
+                        size="sm" 
+                        variant="ghost" 
+                        onClick={() => togglePasswordVisibility(node.id)}
+                        data-testid={`toggle-password-${node.id}`}
+                        className="h-6 w-6 p-0"
                       >
-                        <Trash2 className="h-4 w-4 mr-2" />
-                        Delete
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </td>
-                <td className="px-2 py-3 whitespace-nowrap text-sm text-gray-900 max-w-xs">
-                  <EditableCell node={node} field="comment" className="max-w-xs truncate" />
-                </td>
-                <td className="px-2 py-3 whitespace-nowrap text-sm text-gray-900">
-                  <EditableCell node={node} field="country" />
-                </td>
-                <td className="px-2 py-3 whitespace-nowrap text-sm text-gray-900">
-                  <EditableCell node={node} field="state" />
-                </td>
-                <td className="px-2 py-3 whitespace-nowrap text-sm text-gray-900">
-                  <EditableCell node={node} field="city" />
-                </td>
-                <td className="px-2 py-3 whitespace-nowrap text-sm text-gray-900">
-                  <EditableCell node={node} field="zipcode" />
-                </td>
-                <td className="px-2 py-3 whitespace-nowrap text-sm text-gray-900">
-                  <EditableCell node={node} field="provider" />
-                </td>
-                <td className="px-2 py-3 whitespace-nowrap text-sm text-gray-500">
-                  {formatDate(node.last_update)}
-                </td>
-              </tr>
+                        {showPasswords[node.id] ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        variant="ghost" 
+                        onClick={() => copyToClipboard(node.password, 'Password')}
+                        data-testid={`copy-password-${node.id}`}
+                        className="h-6 w-6 p-0"
+                      >
+                        <Copy className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  </td>
+                  <td className="px-2 py-2 whitespace-nowrap text-sm text-gray-900">
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      onClick={() => copySocks(node)}
+                      data-testid={`copy-socks-${node.id}`}
+                      className="text-xs px-2 py-1"
+                    >
+                      <Copy className="h-3 w-3 mr-1" />
+                      Copy
+                    </Button>
+                  </td>
+                  <td className="px-2 py-2 whitespace-nowrap text-right text-sm font-medium">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="sm" data-testid={`node-actions-${node.id}`}>
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => copyToClipboard(node.ip, 'IP Address')}>
+                          <Copy className="h-4 w-4 mr-2" />
+                          Copy IP
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => copySocks(node)}>
+                          <Copy className="h-4 w-4 mr-2" />
+                          Copy SOCKS
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => testNode(node.id, 'ping')}>
+                          <Activity className="h-4 w-4 mr-2" />
+                          Test Ping
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => startServices(node.id)}>
+                          <Play className="h-4 w-4 mr-2" />
+                          Start Services
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => stopServices(node.id)}>
+                          <Square className="h-4 w-4 mr-2" />
+                          Stop Services
+                        </DropdownMenuItem>
+                        <DropdownMenuItem 
+                          onClick={() => deleteNode(node.id)}
+                          className="text-red-600"
+                          data-testid={`delete-node-${node.id}`}
+                        >
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </td>
+                  <td className="px-2 py-2 whitespace-nowrap text-sm text-gray-900 max-w-xs">
+                    <EditableCell node={node} field="comment" className="max-w-xs truncate" />
+                  </td>
+                </tr>
+
+                {/* Second Row: Location and Date Information */}
+                <tr className={`${index % 2 === 0 ? 'bg-gray-25' : 'bg-gray-75'} text-xs text-gray-600 border-b-2 border-gray-200`}>
+                  <td className="px-2 py-1 text-xs text-gray-500">
+                    {formatDate(node.last_update)}
+                  </td>
+                  <td className="px-2 py-1">
+                    <EditableCell node={node} field="country" />
+                  </td>
+                  <td className="px-2 py-1">
+                    <EditableCell node={node} field="state" />
+                  </td>
+                  <td className="px-2 py-1">
+                    <EditableCell node={node} field="city" />
+                  </td>
+                  <td className="px-2 py-1">
+                    <EditableCell node={node} field="zipcode" />
+                  </td>
+                  <td className="px-2 py-1" colSpan={2}>
+                    <EditableCell node={node} field="provider" />
+                  </td>
+                  <td colSpan={3}></td>
+                </tr>
+              </React.Fragment>
             ))}
           </tbody>
         </table>
