@@ -1056,7 +1056,7 @@ def create_verification_queue_entry(db: Session, node_data: dict, conflicting_no
         return 0
 
 def process_parsed_nodes(db: Session, parsed_data: dict) -> dict:
-    """Process parsed nodes with deduplication logic"""
+    """Process parsed nodes with IN-IMPORT and DB deduplication logic"""
     results = {
         "added": [],
         "skipped": [],
@@ -1066,9 +1066,29 @@ def process_parsed_nodes(db: Session, parsed_data: dict) -> dict:
         "format_errors": parsed_data['format_errors']
     }
     
+    # STEP 1: Deduplicate WITHIN the import batch (before checking DB)
+    seen_in_import = set()  # Track (ip, login, password) tuples in this import
+    unique_nodes = []
+    
     for node_data in parsed_data['nodes']:
+        node_key = (node_data['ip'], node_data.get('login', ''), node_data.get('password', ''))
+        
+        if node_key in seen_in_import:
+            # Skip duplicate within import
+            results["skipped"].append({
+                "ip": node_data['ip'],
+                "existing_id": None,
+                "reason": "duplicate_in_import"
+            })
+            continue
+        
+        seen_in_import.add(node_key)
+        unique_nodes.append(node_data)
+    
+    # STEP 2: Process unique nodes against database
+    for node_data in unique_nodes:
         try:
-            # Check for duplicates
+            # Check for duplicates in database
             dup_result = check_node_duplicate(
                 db, 
                 node_data['ip'], 
@@ -1119,6 +1139,7 @@ def process_parsed_nodes(db: Session, parsed_data: dict) -> dict:
                 })
         
         except Exception as e:
+            logger.error(f"Error processing node {node_data.get('ip', 'unknown')}: {str(e)}")
             results["errors"].append({
                 "ip": node_data.get('ip', 'unknown'),
                 "error": str(e)
@@ -1126,11 +1147,16 @@ def process_parsed_nodes(db: Session, parsed_data: dict) -> dict:
     
     # Write format errors to file
     if results['format_errors']:
-        write_format_errors(results['format_errors'])
+        try:
+            write_format_errors(results['format_errors'])
+        except Exception as e:
+            logger.error(f"Error writing format errors: {str(e)}")
     
+    # Commit all changes
     try:
         db.commit()
     except Exception as e:
+        logger.error(f"Database commit error: {str(e)}")
         db.rollback()
         results["errors"].append({"general": f"Database commit error: {str(e)}"})
     
