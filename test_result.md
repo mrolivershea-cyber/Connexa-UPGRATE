@@ -393,15 +393,18 @@ frontend:
 
   - task: "Unified Import Modal with Testing Mode Selector"
     implemented: true
-    working: "NA"
+    working: true
     file: "UnifiedImportModal.js, AdminPanel.js, schemas.py, server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Added Testing Mode dropdown selector with 4 options: Ping only (default), Speed only, Ping + Speed, No test. Dropdown positioned next to Import button in DialogFooter. Removed 'Supported Import Formats' card block from modal. Updated backend schema ImportNodesSchema to accept testing_mode parameter. Modified API endpoint to log and include testing_mode in response report. Testing mode is now properly sent to backend during import."
+      - working: true
+        agent: "testing"
+        comment: "✅ COMPREHENSIVE TESTING COMPLETE: All functionality working perfectly. 1) Login Process: Successfully logged in with admin/admin credentials, 2) Import Button Access: 'Импорт' button visible and clickable on main admin panel, 3) Import Modal Opens: UnifiedImportModal opens correctly with proper title 'Импорт узлов', 4) Testing Mode Selector: All 4 options available (Ping only, Speed only, Ping + Speed, No test), default value 'Ping only' correctly set, dropdown functionality working perfectly with proper option selection, 5) Formats Block Removal: CONFIRMED - 'Поддерживаемые форматы импорта' card block completely removed from modal, 6) Modal Layout: Testing mode selector properly positioned in footer next to 'Импортировать узлы' button, 7) Backend Integration: CONFIRMED - testing_mode parameter correctly sent to backend (tested 'speed_only' and 'ping_speed' values), import functionality working with proper API calls to /api/nodes/import endpoint. All requirements successfully implemented and tested."
 
 metadata:
   created_by: "main_agent"
