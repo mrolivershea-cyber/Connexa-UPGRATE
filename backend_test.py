@@ -1391,15 +1391,18 @@ ZIP: 78701"""
     
     def test_critical_import_status_assignment_bug_fix(self):
         """CRITICAL TEST 1: Import status assignment - New nodes should get 'not_tested' status"""
+        import time
+        timestamp = str(int(time.time()))
+        
         import_data = {
-            "data": """Ip: 192.168.100.1
-Login: test_import_user1
+            "data": f"""Ip: 192.168.100.{timestamp[-2:]}
+Login: test_import_user1_{timestamp}
 Pass: test_import_pass1
 State: California
 City: Los Angeles
 
-Ip: 192.168.100.2
-Login: test_import_user2
+Ip: 192.168.101.{timestamp[-2:]}
+Login: test_import_user2_{timestamp}
 Pass: test_import_pass2
 State: Texas
 City: Houston""",
@@ -1412,8 +1415,8 @@ City: Houston""",
             report = response['report']
             if report.get('added', 0) >= 2:
                 # Verify both nodes have 'not_tested' status
-                nodes_success1, nodes_response1 = self.make_request('GET', 'nodes?ip=192.168.100.1')
-                nodes_success2, nodes_response2 = self.make_request('GET', 'nodes?ip=192.168.100.2')
+                nodes_success1, nodes_response1 = self.make_request('GET', f'nodes?ip=192.168.100.{timestamp[-2:]}')
+                nodes_success2, nodes_response2 = self.make_request('GET', f'nodes?ip=192.168.101.{timestamp[-2:]}')
                 
                 node1_correct = False
                 node2_correct = False
