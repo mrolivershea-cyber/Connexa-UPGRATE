@@ -354,7 +354,7 @@ async def export_nodes(
         )
 
 def clean_text_data(text: str) -> str:
-    """Clean and normalize text data"""
+    """Clean and normalize text data - remove headers, mentions, comments"""
     lines = []
     for line in text.split('\n'):
         line = line.strip()
@@ -367,9 +367,18 @@ def clean_text_data(text: str) -> str:
         if line.startswith('#') or line.startswith('//'):
             continue
         
+        # Skip Telegram channel mentions (lines starting with @)
+        if line.startswith('@'):
+            continue
+        
+        # Skip channel/group names (short lines with only letters/spaces, no colons or IPs)
+        # Examples: "StealUrVPN", "GVBot", "Worldwide VPN Hub", "PPTP INFINITY"
+        if len(line) < 50 and ':' not in line and not any(char.isdigit() for char in line):
+            # Check if it looks like a header (mostly uppercase or title case)
+            if line.isupper() or line.istitle() or all(c.isalpha() or c.isspace() for c in line):
+                continue
+        
         # Remove inline comments (text after # or // in single-line formats)
-        # But preserve these characters in credentials (e.g., password with #)
-        # Only remove if they appear after significant whitespace
         if '  #' in line:
             line = line.split('  #')[0].strip()
         elif '  //' in line:
