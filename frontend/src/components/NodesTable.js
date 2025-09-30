@@ -370,9 +370,10 @@ const NodesTable = ({ nodes, selectedNodes, onSelectNode, onNodeUpdated, loading
                       <Button 
                         size="sm" 
                         variant="ghost" 
-                        onClick={() => copyToClipboard(node.password, 'Password')}
-                        data-testid={`copy-password-${node.id}`}
+                        onClick={() => copyCredentials(node)}
+                        data-testid={`copy-credentials-${node.id}`}
                         className="h-6 w-6 p-0"
+                        title="Copy IP:Login:Password"
                       >
                         <Copy className="h-3 w-3" />
                       </Button>
