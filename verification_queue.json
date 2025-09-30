@@ -81,5 +81,75 @@
       10
     ],
     "status": "pending"
+  },
+  {
+    "id": 1759230229,
+    "timestamp": "2025-09-30T11:03:49.308737",
+    "node_data": {
+      "protocol": "pptp",
+      "status": "offline",
+      "ip": "192.168.1.100",
+      "login": "vpnuser1",
+      "password": "SecurePass123",
+      "state": "California",
+      "city": "San Francisco",
+      "zipcode": "94102",
+      "country": "United States",
+      "provider": "TechVPN"
+    },
+    "conflicting_node_ids": [
+      41
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759230231,
+    "timestamp": "2025-09-30T11:03:51.534805",
+    "node_data": {
+      "protocol": "pptp",
+      "status": "offline",
+      "ip": "10.0.0.1",
+      "login": "admin",
+      "password": "pass1",
+      "state": "California"
+    },
+    "conflicting_node_ids": [
+      9
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759230231,
+    "timestamp": "2025-09-30T11:03:51.690836",
+    "node_data": {
+      "protocol": "pptp",
+      "status": "offline",
+      "ip": "96.234.52.227",
+      "login": "admin",
+      "password": "admin",
+      "state": "New Jersey"
+    },
+    "conflicting_node_ids": [
+      22
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759230231,
+    "timestamp": "2025-09-30T11:03:51.691791",
+    "node_data": {
+      "protocol": "pptp",
+      "status": "offline",
+      "ip": "96.42.187.97",
+      "login": "1",
+      "password": "1",
+      "state": "Michigan",
+      "city": "Lapeer",
+      "zipcode": "48446"
+    },
+    "conflicting_node_ids": [
+      25
+    ],
+    "status": "pending"
   }
 ]
