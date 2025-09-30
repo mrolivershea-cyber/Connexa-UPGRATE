@@ -97,11 +97,11 @@ vpn2.example.com:443:client2:pass456:GB:London:`
 
   const handleImport = async () => {
     if (!importData.trim()) {
-      toast.error('Please enter or upload data to import');
+      toast.error('Пожалуйста, введите или загрузите данные для импорта');
       return;
     }
 
-    setLoadingImport(true);
+    setLoading(true);
     try {
       const response = await axios.post(`${API}/nodes/import`, {
         data: importData,
@@ -113,23 +113,23 @@ vpn2.example.com:443:client2:pass456:GB:London:`
         setPreviewResult(report);
         setShowPreview(true);
         
-        let message = `Import complete: ${report.added} added`;
-        if (report.skipped_duplicates > 0) message += `, ${report.skipped_duplicates} duplicates`;
-        if (report.replaced_old > 0) message += `, ${report.replaced_old} replaced`;
-        if (report.queued_for_verification > 0) message += `, ${report.queued_for_verification} queued`;
-        if (report.format_errors > 0) message += `, ${report.format_errors} format errors`;
+        let message = `Импорт завершен: ${report.added} добавлено`;
+        if (report.skipped_duplicates > 0) message += `, ${report.skipped_duplicates} дубликатов`;
+        if (report.replaced_old > 0) message += `, ${report.replaced_old} заменено`;
+        if (report.queued_for_verification > 0) message += `, ${report.queued_for_verification} в очереди`;
+        if (report.format_errors > 0) message += `, ${report.format_errors} ошибок`;
         
         toast.success(message);
         onComplete(report);
       } else {
-        toast.error(response.data.message || 'Import failed');
+        toast.error(response.data.message || 'Ошибка импорта');
       }
     } catch (error) {
       console.error('Error importing:', error);
-      const errorMsg = error.response?.data?.message || 'Failed to import data';
+      const errorMsg = error.response?.data?.message || 'Не удалось импортировать данные';
       toast.error(errorMsg);
     } finally {
-      setLoadingImport(false);
+      setLoading(false);
     }
   };
 
