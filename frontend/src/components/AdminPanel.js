@@ -322,7 +322,7 @@ const AdminPanel = () => {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-6 gap-4 mb-6">
           <Card>
             <CardContent className="pt-6">
               <div className="text-2xl font-bold">{stats.total || 0}</div>
@@ -332,19 +332,31 @@ const AdminPanel = () => {
           <Card>
             <CardContent className="pt-6">
               <div className="text-2xl font-bold text-green-600">{stats.online || 0}</div>
-              <p className="text-xs text-muted-foreground">Online</p>
+              <p className="text-xs text-muted-foreground">🟢 Online</p>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="pt-6">
               <div className="text-2xl font-bold text-red-600">{stats.offline || 0}</div>
-              <p className="text-xs text-muted-foreground">Offline</p>
+              <p className="text-xs text-muted-foreground">🔴 Offline</p>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="pt-6">
               <div className="text-2xl font-bold text-yellow-600">{stats.checking || 0}</div>
-              <p className="text-xs text-muted-foreground">Checking</p>
+              <p className="text-xs text-muted-foreground">🟡 Checking</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-6">
+              <div className="text-2xl font-bold text-blue-600">{stats.ping_success || 0}</div>
+              <p className="text-xs text-muted-foreground">🔵 PING Success</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-6">
+              <div className="text-2xl font-bold text-purple-600">{stats.ping_failed || 0}</div>
+              <p className="text-xs text-muted-foreground">🟣 PING Failed</p>
             </CardContent>
           </Card>
         </div>
