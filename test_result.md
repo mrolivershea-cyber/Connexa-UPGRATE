@@ -411,13 +411,7 @@ metadata:
 
     test_plan:
   current_focus:
-    - "Enhanced import API with universal parser"
-    - "Format error API endpoints"
-    - "Universal parser with 6 formats"
-    - "Deduplication system with business rules"
-    - "Unified Add/Import Server button"
-    - "Format Error button and modal"
-    - "Enhanced ImportModal with new API"
+    - "Unified Import Modal with Testing Mode Selector"
   stuck_tasks: []
   test_all: true
   test_priority: "high_first"
