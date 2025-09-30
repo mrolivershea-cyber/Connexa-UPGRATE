@@ -50,6 +50,7 @@ class NodeUpdate(BaseModel):
     comment: Optional[str] = None
     protocol: Optional[str] = None
     status: Optional[str] = None
+    speed: Optional[str] = None
 
 class Node(NodeBase):
     id: int
