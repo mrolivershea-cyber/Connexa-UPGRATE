@@ -23,8 +23,10 @@ def test_all_formats_clean():
         'Authorization': f'Bearer {token}'
     }
     
-    # Use timestamp to ensure unique IPs
-    timestamp = str(int(time.time()))[-3:]  # Last 3 digits
+    # Use timestamp to ensure unique IPs (but keep them valid)
+    timestamp = str(int(time.time()))[-2:]  # Last 2 digits
+    # Ensure the timestamp is within valid IP range (0-255)
+    ip_suffix = str(int(timestamp) % 200 + 50)  # Range 50-249
     
     tests = [
         {
