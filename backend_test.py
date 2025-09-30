@@ -1745,6 +1745,9 @@ ZIP: 78701"""
         print("=" * 60)
         self.test_critical_real_user_data_mixed_formats()
         
+        # 🚨 CRITICAL DEDUPLICATION TESTS - Real 400+ Config File (Review Request)
+        self.run_critical_deduplication_tests()
+        
         # Test deduplication and normalization
         print("\n🔄 Testing Deduplication and Normalization...")
         self.test_deduplication_logic()
