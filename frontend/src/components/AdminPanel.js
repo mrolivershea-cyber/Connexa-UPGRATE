@@ -602,16 +602,16 @@ const AdminPanel = () => {
       </div>
 
       {/* Modals */}
-      <AddNodeModal 
-        isOpen={showAddModal}
-        onClose={() => setShowAddModal(false)}
-        onNodeAdded={handleNodeAdded}
-      />
-      
-      <ImportModal 
+      <UnifiedImportModal 
         isOpen={showImportModal}
         onClose={() => setShowImportModal(false)}
-        onImportComplete={handleImportComplete}
+        onComplete={(report) => {
+          loadNodes(currentPage);
+          loadStats();
+          if (report) {
+            handleImportComplete(report);
+          }
+        }}
       />
       
       <ExportModal 
