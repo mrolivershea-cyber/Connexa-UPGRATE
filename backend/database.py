@@ -52,6 +52,7 @@ class Node(Base):
     comment = Column(Text, default="")
     protocol = Column(String(10), default="pptp")  # pptp, ssh, socks, server
     status = Column(String(20), default="offline")  # online, offline, checking, degraded, needs_review
+    ping_status = Column(String(20), nullable=True)  # ping_success, ping_failed, not_tested
     speed = Column(String(20), nullable=True)  # Connection speed in Mbps
     last_check = Column(DateTime, nullable=True)
     last_update = Column(DateTime, server_default=func.now(), onupdate=func.now())
