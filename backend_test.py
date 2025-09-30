@@ -1707,7 +1707,8 @@ City: Houston""",
         node_id = response['id']
         
         # Step 1: Verify initial status is 'not_tested'
-        nodes_success, nodes_response = self.make_request('GET', f'nodes?id={node_id}')
+        test_ip = test_node['ip']
+        nodes_success, nodes_response = self.make_request('GET', f'nodes?ip={test_ip}')
         if not (nodes_success and 'nodes' in nodes_response and nodes_response['nodes']):
             self.log_test("CRITICAL - Status Transition Workflow", False, "❌ Could not retrieve created node")
             return False
