@@ -270,16 +270,18 @@ const AdminPanel = () => {
 
   const getStatusBadge = (status) => {
     const variants = {
-      online: 'bg-green-100 text-green-800',
+      not_tested: 'bg-gray-100 text-gray-800',
+      ping_failed: 'bg-red-100 text-red-800', 
+      ping_ok: 'bg-orange-100 text-orange-800',
+      speed_slow: 'bg-yellow-100 text-yellow-800',
+      speed_ok: 'bg-blue-100 text-blue-800',
       offline: 'bg-red-100 text-red-800',
-      checking: 'bg-yellow-100 text-yellow-800',
-      degraded: 'bg-orange-100 text-orange-800',
-      needs_review: 'bg-gray-100 text-gray-800'
+      online: 'bg-green-100 text-green-800'
     };
     
     return (
-      <Badge className={variants[status] || variants.offline}>
-        {status}
+      <Badge className={variants[status] || variants.not_tested}>
+        {status?.replace('_', ' ') || 'not tested'}
       </Badge>
     );
   };
