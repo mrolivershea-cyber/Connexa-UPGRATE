@@ -268,7 +268,23 @@ async def import_nodes(
         }
         
     except Exception as e:
-        return {"success": False, "message": f"Import failed: {str(e)}"}
+        logger.error(f"Import error: {str(e)}", exc_info=True)
+        return {
+            "success": False, 
+            "message": f"Import failed: {str(e)}",
+            "report": {
+                "total_processed": 0,
+                "successfully_parsed": 0,
+                "added": 0,
+                "skipped_duplicates": 0,
+                "replaced_old": 0,
+                "queued_for_verification": 0,
+                "format_errors": 0,
+                "processing_errors": 1,
+                "testing_mode": data.testing_mode,
+                "details": {"errors": [{"general": str(e)}]}
+            }
+        }
 
 # Import/Export Routes
 @api_router.post("/import")
