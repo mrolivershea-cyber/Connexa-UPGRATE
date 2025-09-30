@@ -228,22 +228,12 @@ const AdminPanel = () => {
     }
   };
 
-  const handleNodeAdded = () => {
-    loadNodes(currentPage);
-    loadStats();
-    setShowAddModal(false);
-  };
-
   const handleNodeUpdated = () => {
     loadNodes(currentPage);
     loadStats();
   };
 
   const handleImportComplete = (report) => {
-    loadNodes(currentPage);
-    loadStats();
-    setShowImportModal(false);
-    
     // Show detailed import report
     if (report) {
       const { added, skipped_duplicates, format_errors, replaced_old, queued_for_verification } = report;
