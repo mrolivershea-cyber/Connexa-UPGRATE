@@ -111,11 +111,14 @@ backend:
     file: "server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "CRITICAL BUG FIXED: Import logic incorrectly set status='offline' during parsing. Fixed by removing status assignment from parsing (line 618) and ensuring 'not_tested' default in process_parsed_nodes. Also created fix_import_status_bug.py migration script to fix 4,662 incorrectly 'online' nodes to 'not_tested'. Result: 4,664 nodes now correctly show 'not_tested' status."
+      - working: true
+        agent: "testing"
+        comment: "✅ CRITICAL BUG VERIFIED FIXED: Testing confirmed that new imported nodes correctly receive 'not_tested' status instead of 'online' or 'offline'. Fixed schemas.py default testing_mode from 'ping_only' to 'no_test' to prevent automatic testing during import. Import status assignment bug is fully resolved."
 
   - task: "Manual testing workflow API endpoints"
     implemented: true
@@ -123,11 +126,14 @@ backend:
     file: "server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "IMPLEMENTED: Added 3 new API endpoints for manual workflow: /api/manual/ping-test (not_tested→ping_ok/ping_failed), /api/manual/speed-test (ping_ok→speed_ok/speed_slow), /api/manual/launch-services (speed_ok/slow→online). Each endpoint validates node status before proceeding. Tested ping endpoint successfully."
+      - working: true
+        agent: "testing"
+        comment: "✅ MANUAL WORKFLOW ENDPOINTS VERIFIED: All 3 endpoints working correctly. POST /api/manual/ping-test only accepts 'not_tested' nodes and changes status to 'ping_ok'/'ping_failed'. POST /api/manual/speed-test only accepts 'ping_ok' nodes and changes to 'speed_ok'/'speed_slow'. POST /api/manual/launch-services accepts 'speed_ok'/'speed_slow' nodes and changes to 'online'/'offline'. Status validation and workflow transitions working as designed."
 
   - task: "Background monitoring service for online nodes"
     implemented: true
@@ -135,11 +141,14 @@ backend:
     file: "server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "IMPLEMENTED: Background monitoring system using asyncio+threading. Monitors ONLY online nodes every 5 minutes. Checks service status and marks online→offline with last_update timestamp when services fail. Runs as daemon thread with proper startup/shutdown. Confirmed started in logs: '✅ Background monitoring service started'."
+      - working: true
+        agent: "testing"
+        comment: "✅ BACKGROUND MONITORING VERIFIED: Service is running and properly configured. Confirmed monitoring service starts with backend (logs show '✅ Background monitoring service started'). Stats API includes all required status fields (not_tested, ping_failed, ping_ok, speed_slow, speed_ok, offline, online). Node model includes last_update field for offline tracking. Service only monitors 'online' nodes as required."
 
   - task: "Stats API synchronization fix"
     implemented: true
@@ -152,6 +161,21 @@ backend:
       - working: true
         agent: "main"
         comment: "FIXED: /api/stats endpoint now correctly shows not_tested: 4664, online: 0 (was showing not_tested: 2, online: 2332). Database and API are now synchronized after fixing import bug and migration script."
+      - working: true
+        agent: "testing"
+        comment: "✅ STATS API ACCURACY VERIFIED: GET /api/stats returns correct structure with all status counts (not_tested, ping_failed, ping_ok, speed_slow, speed_ok, offline, online). Database and API consistency confirmed - all status counts sum to total correctly. Large dataset performance verified with ~4,666 nodes."
+
+  - task: "Complete status transition workflow"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ STATUS TRANSITION WORKFLOW VERIFIED: Complete chain working correctly: not_tested → (manual ping test) → ping_ok/ping_failed → (manual speed test) → speed_ok/speed_slow → (manual launch services) → online/offline. Each step validates previous status and rejects nodes in wrong status. Workflow stops appropriately when tests fail (e.g., ping_failed nodes cannot proceed to speed test)."
 
 frontend:
   - task: "Manual testing workflow admin buttons"
