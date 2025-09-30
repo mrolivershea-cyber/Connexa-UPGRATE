@@ -3534,6 +3534,31 @@ State: California""",
         # Test 9: Comprehensive workflow test
         self.test_ping_status_comprehensive_workflow()
         
+        # 🚨 CRITICAL PPTP ADMIN PANEL TESTS (Review Request Focus)
+        print("\n" + "="*80)
+        print("🚨 CRITICAL PPTP ADMIN PANEL FEATURES TESTING")
+        print("="*80)
+        
+        # Test 1: Critical import status assignment bug fix
+        self.test_critical_import_status_assignment_bug_fix()
+        
+        # Test 2: Stats API accuracy
+        self.test_critical_stats_api_accuracy()
+        
+        # Test 3: Manual testing workflow API endpoints
+        self.test_critical_manual_ping_test_workflow()
+        self.test_critical_manual_speed_test_workflow()
+        self.test_critical_manual_launch_services_workflow()
+        
+        # Test 4: Complete status transition workflow
+        self.test_critical_status_transition_workflow()
+        
+        # Test 5: Background monitoring service
+        self.test_critical_background_monitoring_service()
+        
+        # Test 6: Database & API consistency
+        self.test_critical_database_api_consistency()
+        
         # 🔄 NEW UNIFIED STATUS SYSTEM TESTS (Review Request Focus)
         print("\n" + "="*60)
         print("🔄 UNIFIED STATUS SYSTEM TESTS (Review Request)")
