@@ -1522,11 +1522,9 @@ async def test_ping(
             
             # Update status based on ping result
             if ping_result['reachable']:
-                node.status = "online"
-                node.ping_status = "ping_success"
+                node.status = "ping_ok"
             else:
-                node.status = "offline"
-                node.ping_status = "ping_failed"
+                node.status = "ping_failed"
             
             db.commit()
             
