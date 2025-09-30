@@ -6,7 +6,7 @@ import time
 
 def test_format_errors_and_deduplication():
     """Test format errors and deduplication logic"""
-    base_url = "https://proxy-mgmt-ui.preview.emergentagent.com"
+    base_url = "https://pptp-status-dash.preview.emergentagent.com"
     api_url = f"{base_url}/api"
     
     # Login first
