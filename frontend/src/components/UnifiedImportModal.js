@@ -269,20 +269,19 @@ vpn2.example.com:443:client2:pass456:GB:London:`
               </Card>
             )}
 
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={onClose}>
-                Отмена
-              </Button>
-              <Button 
-                onClick={handleImport}
-                disabled={loadingImport || !importData.trim()}
-                data-testid="import-btn"
-              >
-                {loadingImport ? 'Импорт...' : 'Импортировать узлы'}
-              </Button>
-            </DialogFooter>
-          </TabsContent>
-        </Tabs>
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={onClose}>
+              Отмена
+            </Button>
+            <Button 
+              onClick={handleImport}
+              disabled={loading || !importData.trim()}
+              data-testid="import-btn"
+            >
+              {loading ? 'Импорт...' : 'Импортировать узлы'}
+            </Button>
+          </DialogFooter>
+        </div>
       </DialogContent>
     </Dialog>
   );
