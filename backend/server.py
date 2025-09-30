@@ -433,7 +433,34 @@ def parse_nodes_text(text: str, protocol: str = "pptp") -> dict:
     elif '\n\n' in text:
         blocks = re.split(r'\n\s*\n', text)
     else:
-        blocks = [text]
+        # For single-line entries, split by newlines and treat each as a separate block
+        lines = text.split('\n')
+        current_block = []
+        
+        for line in lines:
+            line = line.strip()
+            if not line:
+                continue
+                
+            # Check if this line looks like a single-line format (Format 2)
+            parts = line.split()
+            if len(parts) >= 4 and is_valid_ip(parts[0]):
+                # This is a single-line entry, treat as separate block
+                if current_block:
+                    blocks.append('\n'.join(current_block))
+                    current_block = []
+                blocks.append(line)
+            else:
+                # This might be part of a multi-line format
+                current_block.append(line)
+        
+        # Add any remaining block
+        if current_block:
+            blocks.append('\n'.join(current_block))
+        
+        # If no blocks were created, treat the entire text as one block
+        if not blocks:
+            blocks = [text]
     
     for block_index, block in enumerate(blocks):
         block = block.strip()
