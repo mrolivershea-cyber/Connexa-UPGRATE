@@ -846,6 +846,147 @@ Random text that should cause errors""",
             self.log_test("Comprehensive Format Errors", False, f"Failed to import: {response}")
             return False
 
+    def test_critical_format_4_block_splitting_fix(self):
+        """CRITICAL RE-TEST - Fixed Smart Block Splitting for Format 4 (Review Request)"""
+        # Exact user data from review request - this should create exactly 10 nodes
+        user_data = """StealUrVPN
+@StealUrVPN_bot
+
+Ip: 71.84.237.32	a_reg_107
+Login: admin
+Pass: admin
+State: California
+City: Pasadena
+Zip: 91101
+
+Ip: 144.229.29.35
+Login: admin
+Pass: admin
+State: California
+City: Los Angeles
+Zip: 90035
+---------------------
+GVBot
+@gv2you_bot
+
+76.178.64.46  admin admin CA
+96.234.52.227  admin admin NJ
+---------------------
+Worldwide VPN Hub
+@pptpmaster_bot
+
+68.227.241.4 - admin:admin - Arizona/Phoenix 85001 | 2025-09-03 16:05:25
+96.42.187.97 - 1:1 - Michigan/Lapeer 48446 | 2025-09-03 09:50:22
+
+---------------------
+
+PPTP INFINITY
+@pptpinfinity_bot
+70.171.218.52:admin:admin:US:Arizona:85001
+
+> PPTP_SVOIM_VPN:
+🚨 PPTP Connection
+IP: 24.227.222.13
+Credentials: admin:admin
+Location: Texas (Austin)
+ZIP: 78701
+
+> PPTP_SVOIM_VPN:
+🚨 PPTP Connection
+IP: 71.202.136.233
+Credentials: admin:admin
+Location: California (Fremont)
+ZIP: 94536
+
+> PPTP_SVOIM_VPN:
+🚨 PPTP Connection
+IP: 24.227.222.112
+Credentials: admin:admin
+Location: Texas (Austin)
+ZIP: 78701"""
+
+        import_data = {
+            "data": user_data,
+            "protocol": "pptp"
+        }
+        
+        success, response = self.make_request('POST', 'nodes/import', import_data)
+        
+        if success and 'report' in response:
+            report = response['report']
+            total_added = report.get('added', 0)
+            
+            print(f"\n🔍 CRITICAL TEST RESULTS:")
+            print(f"   Total nodes created: {total_added} (Expected: 10)")
+            print(f"   Skipped duplicates: {report.get('skipped_duplicates', 0)}")
+            print(f"   Format errors: {report.get('format_errors', 0)}")
+            
+            # CRITICAL VERIFICATION: Must create exactly 10 nodes
+            expected_ips = [
+                '71.84.237.32',    # Format 1
+                '144.229.29.35',   # Format 1
+                '76.178.64.46',    # Format 2
+                '96.234.52.227',   # Format 2
+                '68.227.241.4',    # Format 3
+                '96.42.187.97',    # Format 3
+                '70.171.218.52',   # Format 4 - THIS WAS MISSING BEFORE
+                '24.227.222.13',   # Format 6
+                '71.202.136.233',  # Format 6
+                '24.227.222.112'   # Format 6
+            ]
+            
+            verified_nodes = []
+            missing_nodes = []
+            
+            for ip in expected_ips:
+                nodes_success, nodes_response = self.make_request('GET', f'nodes?ip={ip}')
+                
+                if nodes_success and 'nodes' in nodes_response and nodes_response['nodes']:
+                    node = nodes_response['nodes'][0]
+                    verified_nodes.append({
+                        'ip': ip,
+                        'login': node.get('login'),
+                        'password': node.get('password'),
+                        'state': node.get('state')
+                    })
+                else:
+                    missing_nodes.append(ip)
+            
+            print(f"\n📋 NODE VERIFICATION RESULTS:")
+            for i, node in enumerate(verified_nodes, 1):
+                print(f"   {i}. ✅ {node['ip']} - {node['login']}/{node['password']} - {node['state']}")
+            
+            if missing_nodes:
+                print(f"\n❌ MISSING NODES:")
+                for ip in missing_nodes:
+                    print(f"   - {ip}")
+            
+            # SPECIFIC CHECK: Node #7 (70.171.218.52) must exist
+            format_4_node_found = '70.171.218.52' in [n['ip'] for n in verified_nodes]
+            
+            if len(verified_nodes) == 10 and format_4_node_found:
+                # Verify specific Format 4 node details
+                format_4_node = next((n for n in verified_nodes if n['ip'] == '70.171.218.52'), None)
+                if (format_4_node and 
+                    format_4_node['login'] == 'admin' and 
+                    format_4_node['password'] == 'admin' and 
+                    format_4_node['state'] == 'Arizona'):
+                    
+                    self.log_test("CRITICAL - Format 4 Block Splitting Fix", True, 
+                                 f"✅ SUCCESS: All 10 nodes created correctly. Format 4 node (70.171.218.52) found with correct details: login=admin, password=admin, state=Arizona. Block splitting logic fixed!")
+                    return True
+                else:
+                    self.log_test("CRITICAL - Format 4 Block Splitting Fix", False, 
+                                 f"❌ Format 4 node found but details incorrect: {format_4_node}")
+                    return False
+            else:
+                self.log_test("CRITICAL - Format 4 Block Splitting Fix", False, 
+                             f"❌ CRITICAL ISSUE: Only {len(verified_nodes)}/10 nodes created. Format 4 node (70.171.218.52) found: {format_4_node_found}. Block splitting logic still has issues.")
+                return False
+        else:
+            self.log_test("CRITICAL - Format 4 Block Splitting Fix", False, f"Failed to import: {response}")
+            return False
+
     def test_critical_real_user_data_mixed_formats(self):
         """CRITICAL TEST - Real User Data with Multiple Configs (Review Request)"""
         # Exact user data from review request
