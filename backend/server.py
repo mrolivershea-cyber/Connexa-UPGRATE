@@ -496,12 +496,12 @@ def parse_format_1(block: str, node_data: dict) -> dict:
     return node_data
 
 def parse_format_2(block: str, node_data: dict) -> dict:
-    """Format 2: IP Pass Login State (single line with spaces)"""
+    """Format 2: IP Login Password State (single line with spaces)"""
     parts = block.split()
     if len(parts) >= 4:
         node_data['ip'] = parts[0]
-        node_data['password'] = parts[1]  # Note: order is IP Pass Login State
-        node_data['login'] = parts[2]
+        node_data['login'] = parts[1]  # Correct order: IP Login Password State
+        node_data['password'] = parts[2]
         node_data['state'] = parts[3]
     return node_data
 
