@@ -1682,10 +1682,13 @@ City: Houston""",
         """CRITICAL TEST 6: Complete status transition workflow verification"""
         # This test verifies the complete chain: not_tested → ping_ok → speed_ok → online
         
+        import time
+        timestamp = str(int(time.time()))
+        
         # Create a fresh test node
         test_node = {
-            "ip": "203.0.113.50",
-            "login": "workflow_test_user",
+            "ip": f"203.0.113.{timestamp[-2:]}",
+            "login": f"workflow_test_user_{timestamp}",
             "password": "workflow_test_pass",
             "protocol": "pptp",
             "provider": "Workflow Test Provider",
