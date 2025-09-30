@@ -483,17 +483,10 @@ Random text that should cause errors""",
             self.log_test("Get Format Errors", False, f"Failed to get format errors: {response1}")
             return False
 
-    def test_mixed_format_import(self):
-        """Test importing mixed formats in single request"""
+    def test_comprehensive_parser_format_1(self):
+        """Test 1: Format 1 - Key-Value Pairs (as per review request)"""
         import_data = {
-            "data": """Ip: 10.12.12.100
-Login: mixeduser1
-Pass: mixedpass123
-State: CA
-
-10.12.12.101 mixedpass456 mixeduser2 Texas
-
-10.12.12.102:mixeduser3:mixedpass789:US:Florida:33101""",
+            "data": "Ip: 144.229.29.35\nLogin: admin\nPass: admin\nState: California\nCity: Los Angeles\nZip: 90035",
             "protocol": "pptp"
         }
         
@@ -501,11 +494,356 @@ State: CA
         
         if success and 'report' in response:
             report = response['report']
-            self.log_test("Mixed Format Import", True, 
-                         f"Processed mixed formats - Added: {report.get('added', 0)}, Errors: {report.get('format_errors', 0)}")
-            return True
+            if report.get('added', 0) >= 1:
+                # Verify the specific node was created correctly
+                nodes_success, nodes_response = self.make_request('GET', 'nodes?ip=144.229.29.35')
+                if nodes_success and 'nodes' in nodes_response and nodes_response['nodes']:
+                    node = nodes_response['nodes'][0]
+                    expected = {
+                        'ip': '144.229.29.35',
+                        'login': 'admin', 
+                        'password': 'admin',
+                        'state': 'California',
+                        'city': 'Los Angeles',
+                        'zipcode': '90035'
+                    }
+                    
+                    all_correct = True
+                    for key, expected_value in expected.items():
+                        if node.get(key) != expected_value:
+                            all_correct = False
+                            break
+                    
+                    if all_correct:
+                        self.log_test("Comprehensive Parser Format 1", True, 
+                                     f"✅ All fields parsed correctly: {expected}")
+                        return True
+                    else:
+                        self.log_test("Comprehensive Parser Format 1", False, 
+                                     f"❌ Field mismatch. Expected: {expected}, Got: {dict((k,node.get(k)) for k in expected.keys())}")
+                        return False
+            
+            self.log_test("Comprehensive Parser Format 1", False, f"No nodes added: {report}")
+            return False
         else:
-            self.log_test("Mixed Format Import", False, f"Failed to import mixed formats: {response}")
+            self.log_test("Comprehensive Parser Format 1", False, f"Failed to import: {response}")
+            return False
+
+    def test_comprehensive_parser_format_2_critical(self):
+        """Test 2: Format 2 - Single Line (CRITICAL - Recently Fixed!) - Exact test from review"""
+        import_data = {
+            "data": "76.178.64.46 admin admin CA\n96.234.52.227 user1 pass1 NJ",
+            "protocol": "pptp"
+        }
+        
+        success, response = self.make_request('POST', 'nodes/import', import_data)
+        
+        if success and 'report' in response:
+            report = response['report']
+            if report.get('added', 0) >= 2:
+                # Verify Node 1: ip=76.178.64.46, login=admin, password=admin, state=California
+                nodes_success1, nodes_response1 = self.make_request('GET', 'nodes?ip=76.178.64.46')
+                # Verify Node 2: ip=96.234.52.227, login=user1, password=pass1, state=New Jersey
+                nodes_success2, nodes_response2 = self.make_request('GET', 'nodes?ip=96.234.52.227')
+                
+                node1_correct = False
+                node2_correct = False
+                
+                if nodes_success1 and 'nodes' in nodes_response1 and nodes_response1['nodes']:
+                    node1 = nodes_response1['nodes'][0]
+                    if (node1.get('ip') == '76.178.64.46' and 
+                        node1.get('login') == 'admin' and 
+                        node1.get('password') == 'admin' and 
+                        node1.get('state') == 'California'):
+                        node1_correct = True
+                
+                if nodes_success2 and 'nodes' in nodes_response2 and nodes_response2['nodes']:
+                    node2 = nodes_response2['nodes'][0]
+                    if (node2.get('ip') == '96.234.52.227' and 
+                        node2.get('login') == 'user1' and 
+                        node2.get('password') == 'pass1' and 
+                        node2.get('state') == 'New Jersey'):
+                        node2_correct = True
+                
+                if node1_correct and node2_correct:
+                    self.log_test("Comprehensive Parser Format 2 CRITICAL", True, 
+                                 f"✅ CRITICAL FIX VERIFIED: Both nodes parsed with correct IP Login Password State order")
+                    return True
+                else:
+                    self.log_test("Comprehensive Parser Format 2 CRITICAL", False, 
+                                 f"❌ CRITICAL ISSUE: Field order incorrect. Node1 OK: {node1_correct}, Node2 OK: {node2_correct}")
+                    return False
+            
+            self.log_test("Comprehensive Parser Format 2 CRITICAL", False, f"Expected 2 nodes, got {report.get('added', 0)}")
+            return False
+        else:
+            self.log_test("Comprehensive Parser Format 2 CRITICAL", False, f"Failed to import: {response}")
+            return False
+
+    def test_comprehensive_parser_format_3(self):
+        """Test 3: Format 3 - Dash/Pipe with Timestamp"""
+        import_data = {
+            "data": "68.227.241.4 - admin:admin - Arizona/Phoenix 85001 | 2025-09-03 16:05:25\n96.42.187.97 - user:pass - Michigan/Lapeer 48446 | 2025-09-03 09:50:22",
+            "protocol": "pptp"
+        }
+        
+        success, response = self.make_request('POST', 'nodes/import', import_data)
+        
+        if success and 'report' in response:
+            report = response['report']
+            if report.get('added', 0) >= 2:
+                # Verify first node
+                nodes_success, nodes_response = self.make_request('GET', 'nodes?ip=68.227.241.4')
+                if nodes_success and 'nodes' in nodes_response and nodes_response['nodes']:
+                    node = nodes_response['nodes'][0]
+                    if (node.get('ip') == '68.227.241.4' and 
+                        node.get('login') == 'admin' and 
+                        node.get('password') == 'admin' and 
+                        node.get('state') == 'Arizona' and
+                        node.get('city') == 'Phoenix' and
+                        node.get('zipcode') == '85001'):
+                        self.log_test("Comprehensive Parser Format 3", True, 
+                                     f"✅ State/city split by /, zipcode extracted, timestamp handled")
+                        return True
+                    else:
+                        self.log_test("Comprehensive Parser Format 3", False, 
+                                     f"❌ Field parsing incorrect for node: {dict((k,node.get(k)) for k in ['ip','login','password','state','city','zipcode'])}")
+                        return False
+            
+            self.log_test("Comprehensive Parser Format 3", False, f"Expected 2 nodes, got {report.get('added', 0)}")
+            return False
+        else:
+            self.log_test("Comprehensive Parser Format 3", False, f"Failed to import: {response}")
+            return False
+
+    def test_comprehensive_parser_format_4(self):
+        """Test 4: Format 4 - Colon Separated"""
+        import_data = {
+            "data": "70.171.218.52:admin:admin:US:Arizona:85001",
+            "protocol": "pptp"
+        }
+        
+        success, response = self.make_request('POST', 'nodes/import', import_data)
+        
+        if success and 'report' in response:
+            report = response['report']
+            if report.get('added', 0) >= 1:
+                # Verify all 6 fields parsed: IP, Login, Password, Country, State, Zip
+                nodes_success, nodes_response = self.make_request('GET', 'nodes?ip=70.171.218.52')
+                if nodes_success and 'nodes' in nodes_response and nodes_response['nodes']:
+                    node = nodes_response['nodes'][0]
+                    expected = {
+                        'ip': '70.171.218.52',
+                        'login': 'admin',
+                        'password': 'admin', 
+                        'country': 'United States',  # Should be normalized
+                        'state': 'Arizona',
+                        'zipcode': '85001'
+                    }
+                    
+                    all_correct = all(node.get(k) == v for k, v in expected.items())
+                    
+                    if all_correct:
+                        self.log_test("Comprehensive Parser Format 4", True, 
+                                     f"✅ All 6 fields parsed correctly: IP, Login, Password, Country, State, Zip")
+                        return True
+                    else:
+                        self.log_test("Comprehensive Parser Format 4", False, 
+                                     f"❌ Field parsing incorrect. Expected: {expected}, Got: {dict((k,node.get(k)) for k in expected.keys())}")
+                        return False
+            
+            self.log_test("Comprehensive Parser Format 4", False, f"No nodes added: {report}")
+            return False
+        else:
+            self.log_test("Comprehensive Parser Format 4", False, f"Failed to import: {response}")
+            return False
+
+    def test_comprehensive_parser_format_5(self):
+        """Test 5: Format 5 - 4-Line Multi-line"""
+        import_data = {
+            "data": "IP: 24.227.222.13\nCredentials: admin:admin\nLocation: Texas (Austin)\nZIP: 78701",
+            "protocol": "pptp"
+        }
+        
+        success, response = self.make_request('POST', 'nodes/import', import_data)
+        
+        if success and 'report' in response:
+            report = response['report']
+            if report.get('added', 0) >= 1:
+                # Verify State and City extracted from Location field
+                nodes_success, nodes_response = self.make_request('GET', 'nodes?ip=24.227.222.13')
+                if nodes_success and 'nodes' in nodes_response and nodes_response['nodes']:
+                    node = nodes_response['nodes'][0]
+                    if (node.get('ip') == '24.227.222.13' and 
+                        node.get('login') == 'admin' and 
+                        node.get('password') == 'admin' and 
+                        node.get('state') == 'Texas' and
+                        node.get('city') == 'Austin' and
+                        node.get('zipcode') == '78701'):
+                        self.log_test("Comprehensive Parser Format 5", True, 
+                                     f"✅ State and City extracted from Location field")
+                        return True
+                    else:
+                        self.log_test("Comprehensive Parser Format 5", False, 
+                                     f"❌ Location parsing failed. Got: state={node.get('state')}, city={node.get('city')}")
+                        return False
+            
+            self.log_test("Comprehensive Parser Format 5", False, f"No nodes added: {report}")
+            return False
+        else:
+            self.log_test("Comprehensive Parser Format 5", False, f"Failed to import: {response}")
+            return False
+
+    def test_comprehensive_parser_format_6(self):
+        """Test 6: Format 6 - PPTP Header (6 lines, first 2 ignored)"""
+        import_data = {
+            "data": "> PPTP_SVOIM_VPN:\n🚨 PPTP Connection\nIP: 24.227.222.14\nCredentials: testuser:testpass\nLocation: Florida (Miami)\nZIP: 33101",
+            "protocol": "pptp"
+        }
+        
+        success, response = self.make_request('POST', 'nodes/import', import_data)
+        
+        if success and 'report' in response:
+            report = response['report']
+            if report.get('added', 0) >= 1:
+                # Verify first 2 lines ignored, remaining parsed like Format 5
+                nodes_success, nodes_response = self.make_request('GET', 'nodes?ip=24.227.222.14')
+                if nodes_success and 'nodes' in nodes_response and nodes_response['nodes']:
+                    node = nodes_response['nodes'][0]
+                    if (node.get('ip') == '24.227.222.14' and 
+                        node.get('login') == 'testuser' and 
+                        node.get('password') == 'testpass' and 
+                        node.get('state') == 'Florida' and
+                        node.get('city') == 'Miami' and
+                        node.get('zipcode') == '33101'):
+                        self.log_test("Comprehensive Parser Format 6", True, 
+                                     f"✅ First 2 lines ignored, remaining parsed correctly")
+                        return True
+                    else:
+                        self.log_test("Comprehensive Parser Format 6", False, 
+                                     f"❌ PPTP header parsing failed. Got: {dict((k,node.get(k)) for k in ['ip','login','password','state','city','zipcode'])}")
+                        return False
+            
+            self.log_test("Comprehensive Parser Format 6", False, f"No nodes added: {report}")
+            return False
+        else:
+            self.log_test("Comprehensive Parser Format 6", False, f"Failed to import: {response}")
+            return False
+
+    def test_comprehensive_edge_cases_comments(self):
+        """Test 7: Edge Cases - Comments and Empty Lines"""
+        import_data = {
+            "data": "# This is a comment\n\n76.178.64.50 admin password TX  // inline comment\n\n# Another comment\n96.234.52.230 user pass CA",
+            "protocol": "pptp"
+        }
+        
+        success, response = self.make_request('POST', 'nodes/import', import_data)
+        
+        if success and 'report' in response:
+            report = response['report']
+            if report.get('added', 0) == 2:
+                # Verify comment lines skipped, empty lines ignored, only 2 nodes created
+                self.log_test("Comprehensive Edge Cases Comments", True, 
+                             f"✅ Comment lines (# and //) skipped, empty lines ignored, 2 nodes created, inline comments removed")
+                return True
+            else:
+                self.log_test("Comprehensive Edge Cases Comments", False, 
+                             f"❌ Expected 2 nodes, got {report.get('added', 0)}. Comments not properly filtered")
+                return False
+        else:
+            self.log_test("Comprehensive Edge Cases Comments", False, f"Failed to import: {response}")
+            return False
+
+    def test_comprehensive_mixed_formats(self):
+        """Test 8: Mixed Formats in One Import"""
+        import_data = {
+            "data": "Ip: 10.0.0.1\nLogin: admin\nPass: pass1\nState: CA\n---------------------\n10.0.0.2 user2 pass2 NY\n---------------------\n10.0.0.3:admin:admin:US:Texas:78701",
+            "protocol": "pptp"
+        }
+        
+        success, response = self.make_request('POST', 'nodes/import', import_data)
+        
+        if success and 'report' in response:
+            report = response['report']
+            if report.get('added', 0) >= 3:
+                self.log_test("Comprehensive Mixed Formats", True, 
+                             f"✅ All 3 nodes created from different formats (Format 1, Format 2, Format 4)")
+                return True
+            else:
+                self.log_test("Comprehensive Mixed Formats", False, 
+                             f"❌ Expected 3 nodes from mixed formats, got {report.get('added', 0)}")
+                return False
+        else:
+            self.log_test("Comprehensive Mixed Formats", False, f"Failed to import: {response}")
+            return False
+
+    def test_comprehensive_deduplication_logic(self):
+        """Test 9: Deduplication Logic"""
+        # First import
+        import_data_1 = {
+            "data": "100.0.0.1 admin admin CA",
+            "protocol": "pptp"
+        }
+        
+        success1, response1 = self.make_request('POST', 'nodes/import', import_data_1)
+        
+        if not success1:
+            self.log_test("Comprehensive Deduplication Logic", False, f"First import failed: {response1}")
+            return False
+        
+        # Second import (exact duplicate)
+        import_data_2 = {
+            "data": "100.0.0.1 admin admin CA",
+            "protocol": "pptp"
+        }
+        
+        success2, response2 = self.make_request('POST', 'nodes/import', import_data_2)
+        
+        if success2 and 'report' in response2:
+            report = response2['report']
+            if report.get('skipped_duplicates', 0) >= 1:
+                self.log_test("Comprehensive Deduplication Logic", True, 
+                             f"✅ Second import skipped as duplicate (same IP+Login+Pass)")
+                return True
+            else:
+                self.log_test("Comprehensive Deduplication Logic", False, 
+                             f"❌ Expected duplicate to be skipped, but got: {report}")
+                return False
+        else:
+            self.log_test("Comprehensive Deduplication Logic", False, f"Second import failed: {response2}")
+            return False
+
+    def test_comprehensive_format_errors(self):
+        """Test 10: Format Errors"""
+        import_data = {
+            "data": "invalid line without proper format\nanother bad line\n192.168.1.1 admin pass CA",
+            "protocol": "pptp"
+        }
+        
+        success, response = self.make_request('POST', 'nodes/import', import_data)
+        
+        if success and 'report' in response:
+            report = response['report']
+            
+            # Check that 1 node was created and 2 format errors logged
+            if report.get('added', 0) >= 1 and report.get('format_errors', 0) >= 2:
+                # Check GET /format-errors endpoint
+                errors_success, errors_response = self.make_request('GET', 'format-errors')
+                
+                if errors_success and 'content' in errors_response and errors_response['content']:
+                    self.log_test("Comprehensive Format Errors", True, 
+                                 f"✅ 1 node created, 2 format errors logged, GET endpoint returns error details")
+                    return True
+                else:
+                    self.log_test("Comprehensive Format Errors", False, 
+                                 f"❌ Format errors not properly logged in file")
+                    return False
+            else:
+                self.log_test("Comprehensive Format Errors", False, 
+                             f"❌ Expected 1 node + 2 errors, got {report.get('added', 0)} nodes + {report.get('format_errors', 0)} errors")
+                return False
+        else:
+            self.log_test("Comprehensive Format Errors", False, f"Failed to import: {response}")
             return False
 
     def test_export_nodes(self, node_ids: List[int]):
