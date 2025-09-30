@@ -1190,8 +1190,12 @@ def process_parsed_nodes(db: Session, parsed_data: dict, testing_mode: str = "no
             )
             
             if dup_result["action"] == "add":
-                # Create new node
-                new_node = Node(**node_data)
+                # Create new node - ensure default status is not_tested
+                node_data_with_defaults = {**node_data}
+                if 'status' not in node_data_with_defaults:
+                    node_data_with_defaults['status'] = 'not_tested'
+                
+                new_node = Node(**node_data_with_defaults)
                 db.add(new_node)
                 db.flush()  # Get ID without committing
                 results["added"].append({
