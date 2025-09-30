@@ -46,3 +46,18 @@ IP: 24.227.
 70.171.218.52:admin:admin:US:Arizona:85001
 > PPTP_SVOIM_VPN:
 🚨 PPTP 
+
+
+=== Format Errors - 2025-09-30 04:11:27 ===
+1. Block 2: GVBot
+@gv2you_bot
+76.178.64.46 admin admin CA
+96.234.52.227 admin admin NJ
+2. Invalid IP in block 3: Worldwide VPN Hub
+@pptpmaster_bot
+68.227.241.4 - admin:admin - Arizona/Phoenix 85001 | 2025-09-03 16
+3. Missing credentials in block 4: PPTP INFINITY
+@pptpinfinity_bot
+70.171.218.52:admin:admin:US:Arizona:85001
+> PPTP_SVOIM_VPN:
+🚨 PPTP 

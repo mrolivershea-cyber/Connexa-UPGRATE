@@ -33,53 +33,7 @@ const UnifiedImportModal = ({ isOpen, onClose, onComplete }) => {
     }
   }, [isOpen]);
 
-  // ============ Manual Add Functions ============
-  const handleManualSubmit = async (e) => {
-    e.preventDefault();
-    setLoadingManual(true);
-
-    try {
-      if (autoTest) {
-        const response = await axios.post(`${API}/nodes/auto-test?test_type=${testType}`, formData);
-        const node = response.data.node;
-        const testResult = response.data.test_result;
-        
-        toast.success(`${formData.protocol?.toUpperCase() || 'PPTP'} узел добавлен и протестирован!`);
-        
-        if (testResult.ping) {
-          const ping = testResult.ping;
-          if (ping.reachable) {
-            toast.success(`✅ Ping: ${ping.avg_latency}ms, потери: ${ping.packet_loss}%`);
-          } else {
-            toast.warning('⚠️ Узел недоступен по ping');
-          }
-        }
-        
-        if (testResult.speed && testResult.speed.success) {
-          const speed = testResult.speed;
-          toast.info(`🌐 Скорость: ⬇️${speed.download} Mbps ⬆️${speed.upload} Mbps`);
-        }
-      } else {
-        await axios.post(`${API}/nodes`, formData);
-        toast.success(`${formData.protocol?.toUpperCase() || 'PPTP'} узел добавлен успешно!`);
-      }
-      
-      onComplete();
-      onClose();
-    } catch (error) {
-      console.error('Error adding node:', error);
-      const errorMsg = error.response?.data?.detail || 'Ошибка добавления узла';
-      toast.error(errorMsg);
-    } finally {
-      setLoadingManual(false);
-    }
-  };
-
-  const handleManualChange = (field, value) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-  };
-
-  // ============ Bulk Import Functions ============
+  // ============ Import Functions ============
   const addSampleText = () => {
     const sampleTexts = {
       pptp: `Format 1 - Key-value pairs:
