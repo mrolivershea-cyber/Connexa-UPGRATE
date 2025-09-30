@@ -209,20 +209,6 @@ vpn2.example.com:443:client2:pass456:GB:London:`
               />
             </div>
 
-            {/* Supported Formats Help */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-sm">Поддерживаемые форматы импорта</CardTitle>
-              </CardHeader>
-              <CardContent className="text-xs space-y-2">
-                <div><strong>Формат 1:</strong> Пары ключ-значение (Ip: xxx, Login: xxx, Pass: xxx)</div>
-                <div><strong>Формат 2:</strong> Разделенные пробелами (IP login pass state_code)</div>
-                <div><strong>Формат 3:</strong> Формат с тире/вертикальной чертой (IP - login:pass - State/City ZIP | date)</div>
-                <div><strong>Формат 4:</strong> Разделенные двоеточием (IP:login:pass:country:state:zip)</div>
-                <div><strong>Формат 5/6:</strong> Многострочный с Location: State (City)</div>
-              </CardContent>
-            </Card>
-
           {/* Preview Results */}
           {showPreview && previewResult && (
             <Card>
