@@ -212,9 +212,9 @@ backend:
 
   - task: "Universal parser with 6 formats"
     implemented: true
-    working: true
+    working: false
     file: "server.py"
-    stuck_count: 0
+    stuck_count: 1
     priority: "high"
     needs_retesting: false
     status_history:
@@ -230,6 +230,9 @@ backend:
       - working: true
         agent: "testing"
         comment: "✅ COMPREHENSIVE PARSER TESTING COMPLETE: All 6 formats + edge cases tested successfully (8/8 tests passed, 100% success rate). CRITICAL FIXES VERIFIED: 1) Format 2 field order corrected to IP Login Password State (was causing parsing errors), 2) Format detection logic improved - Format 5/6 now detected correctly before Format 1, 3) Block splitting enhanced to handle single-line entries properly, 4) Comment filtering working perfectly (# and // comments skipped, inline comments removed), 5) All formats tested with exact data from review request: Format 1 (key-value pairs), Format 2 (single line - CRITICAL FIX), Format 3 (dash/pipe with timestamp), Format 4 (colon separated), Format 5 (4-line multi-line), Format 6 (PPTP header), Edge cases (comments), Mixed formats. State/country normalization working (CA→California, NJ→New Jersey, US→United States). Deduplication logic working perfectly (exact duplicates skipped). Format error handling working correctly. Parser is production-ready."
+      - working: false
+        agent: "testing"
+        comment: "❌ CRITICAL ISSUE FOUND: Real user data test failed. Only 9/10 nodes created from mixed format import. SPECIFIC PROBLEM: Format 4 node (70.171.218.52:admin:admin:US:Arizona:85001) is missing. ROOT CAUSE: Smart block splitting logic has bug when Format 4 (single-line colon-separated) appears immediately before Format 6 blocks (PPTP headers). The Format 4 line gets incorrectly grouped with Format 6 block instead of being processed as separate block. Individual format tests pass, but mixed format parsing fails. IMPACT: User reported only 1 config added from large text - this confirms the block splitting issue affects real-world usage."
 
   - task: "Deduplication system with business rules"
     implemented: true
