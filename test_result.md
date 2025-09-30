@@ -391,6 +391,18 @@ frontend:
         agent: "testing"
         comment: "✅ TESTED: Enhanced sample texts working perfectly. All 6 formats found in sample text: Format 1 (Key-value pairs), Format 2 (Single line spaces), Format 3 (Dash/pipe format), Format 4 (Colon separated), Format 5 (Multi-line Location), Format 6 (PPTP header). Sample text demonstrates comprehensive format variety as required."
 
+  - task: "Unified Import Modal - single window with text input"
+    implemented: true
+    working: "NA"
+    file: "UnifiedImportModal.js, AdminPanel.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "User requested to merge Add Manual and Import from Text into single modal without tabs. Removed all manual input fields (Protocol, IP, Port, Login, Password, Country, State, City, ZIP, Comment) and manual add functionality. Now only has textarea for text import supporting all 6 formats. Changed button from 'Add/Import Server' dropdown to single 'Импорт' button. Unified modal contains: protocol selector, textarea for data, sample text button, file upload button, supported formats card, results preview card. All text in Russian."
+
 metadata:
   created_by: "main_agent"
   version: "1.0"
