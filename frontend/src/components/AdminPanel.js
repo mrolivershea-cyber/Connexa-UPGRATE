@@ -349,25 +349,8 @@ const AdminPanel = () => {
           </Card>
         </div>
 
-        {/* Actions */}
-        <div className="flex justify-between items-center mb-6">
-          <div className="flex space-x-3">
-            <Button 
-              onClick={() => setShowImportModal(true)}
-              data-testid="import-btn"
-            >
-              <Download className="h-4 w-4 mr-2" />
-              Импорт
-            </Button>
-            <Button 
-              variant="outline" 
-              onClick={() => setShowTestingModal(true)}
-              data-testid="testing-btn"
-            >
-              <Activity className="h-4 w-4 mr-2" />
-              Testing
-            </Button>
-          </div>
+        {/* Stats Summary */}
+        <div className="flex justify-end items-center mb-6">
           <div>
             <span className="text-sm text-gray-600">Total nodes: {stats.total || 0}</span>
           </div>
