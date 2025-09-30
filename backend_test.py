@@ -1222,6 +1222,20 @@ Random text that should cause errors""",
         self.test_enhanced_import_format_5()
         self.test_enhanced_import_format_6()
         
+        # COMPREHENSIVE PARSER TESTING - All 6 Formats + Edge Cases (as per review request)
+        print("\n🎯 COMPREHENSIVE PARSER TESTING - All 6 Formats + Edge Cases")
+        print("=" * 60)
+        self.test_comprehensive_parser_format_1()
+        self.test_comprehensive_parser_format_2_critical()
+        self.test_comprehensive_parser_format_3()
+        self.test_comprehensive_parser_format_4()
+        self.test_comprehensive_parser_format_5()
+        self.test_comprehensive_parser_format_6()
+        self.test_comprehensive_edge_cases_comments()
+        self.test_comprehensive_mixed_formats()
+        self.test_comprehensive_deduplication_logic()
+        self.test_comprehensive_format_errors()
+        
         # Test deduplication and normalization
         print("\n🔄 Testing Deduplication and Normalization...")
         self.test_deduplication_logic()
