@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Test the enhanced universal parser with 6 formats, deduplication system, format error handling, unified Add/Import button, and Format Error viewer. Verify all backend endpoints work correctly with the new parser and UI updates."
+user_problem_statement: "Add Testing Mode Selector to Import Modal & Remove Formats Block. The task is to add a Testing Mode dropdown with 4 options (Ping only, Speed only, Ping + Speed, No test) next to the import button, set Ping only as default, and remove the 'Supported Import Formats' block from the modal."
 
 backend:
   - task: "Node CRUD operations"
