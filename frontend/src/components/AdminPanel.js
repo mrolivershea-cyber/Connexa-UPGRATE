@@ -232,6 +232,101 @@ const AdminPanel = () => {
     loadStats();
   };
 
+  // ===== MANUAL TESTING WORKFLOW FUNCTIONS =====
+  
+  const handleManualPingTest = async () => {
+    if (!selectedNodes.length) {
+      toast.error('No nodes selected');
+      return;
+    }
+
+    try {
+      const response = await axios.post(`${API}/manual/ping-test`, {
+        node_ids: selectedNodes
+      });
+
+      const results = response.data.results;
+      const successCount = results.filter(r => r.success).length;
+      const failCount = results.length - successCount;
+      
+      if (successCount > 0) {
+        toast.success(`Ping test completed for ${successCount} nodes`);
+      }
+      if (failCount > 0) {
+        toast.error(`Ping test failed for ${failCount} nodes`);
+      }
+
+      loadNodes(currentPage);
+      loadStats();
+      setSelectedNodes([]);
+    } catch (error) {
+      console.error('Error running ping test:', error);
+      toast.error('Failed to run ping test: ' + (error.response?.data?.detail || error.message));
+    }
+  };
+
+  const handleManualSpeedTest = async () => {
+    if (!selectedNodes.length) {
+      toast.error('No nodes selected');
+      return;
+    }
+
+    try {
+      const response = await axios.post(`${API}/manual/speed-test`, {
+        node_ids: selectedNodes
+      });
+
+      const results = response.data.results;
+      const successCount = results.filter(r => r.success).length;
+      const failCount = results.length - successCount;
+      
+      if (successCount > 0) {
+        toast.success(`Speed test completed for ${successCount} nodes`);
+      }
+      if (failCount > 0) {
+        toast.error(`Speed test failed for ${failCount} nodes`);
+      }
+
+      loadNodes(currentPage);
+      loadStats();
+      setSelectedNodes([]);
+    } catch (error) {
+      console.error('Error running speed test:', error);
+      toast.error('Failed to run speed test: ' + (error.response?.data?.detail || error.message));
+    }
+  };
+
+  const handleManualLaunchServices = async () => {
+    if (!selectedNodes.length) {
+      toast.error('No nodes selected');
+      return;
+    }
+
+    try {
+      const response = await axios.post(`${API}/manual/launch-services`, {
+        node_ids: selectedNodes
+      });
+
+      const results = response.data.results;
+      const successCount = results.filter(r => r.success).length;
+      const failCount = results.length - successCount;
+      
+      if (successCount > 0) {
+        toast.success(`Services launched for ${successCount} nodes`);
+      }
+      if (failCount > 0) {
+        toast.error(`Service launch failed for ${failCount} nodes`);
+      }
+
+      loadNodes(currentPage);
+      loadStats();
+      setSelectedNodes([]);
+    } catch (error) {
+      console.error('Error launching services:', error);
+      toast.error('Failed to launch services: ' + (error.response?.data?.detail || error.message));
+    }
+  };
+
   const handleImportComplete = (report) => {
     // Show detailed import report
     if (report) {
