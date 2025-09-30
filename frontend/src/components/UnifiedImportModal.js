@@ -17,6 +17,7 @@ const UnifiedImportModal = ({ isOpen, onClose, onComplete }) => {
   const [loading, setLoading] = useState(false);
   const [importData, setImportData] = useState('');
   const [protocol, setProtocol] = useState('pptp');
+  const [testingMode, setTestingMode] = useState('ping_only');
   const [previewResult, setPreviewResult] = useState(null);
   const [showPreview, setShowPreview] = useState(false);
 
