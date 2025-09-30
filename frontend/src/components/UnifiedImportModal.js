@@ -226,6 +226,27 @@ vpn2.example.com:443:client2:pass456:GB:London:`
                 <CardTitle className="text-sm">Результаты импорта</CardTitle>
               </CardHeader>
               <CardContent>
+                {/* Smart Summary */}
+                {previewResult.smart_summary && (
+                  <div className={`mb-4 p-3 rounded border ${
+                    previewResult.added === 0 && previewResult.skipped_duplicates > 0
+                      ? 'bg-blue-50 border-blue-200'
+                      : previewResult.added > 0
+                      ? 'bg-green-50 border-green-200'
+                      : 'bg-gray-50 border-gray-200'
+                  }`}>
+                    <p className={`text-sm font-medium ${
+                      previewResult.added === 0 && previewResult.skipped_duplicates > 0
+                        ? 'text-blue-800'
+                        : previewResult.added > 0
+                        ? 'text-green-800'
+                        : 'text-gray-800'
+                    }`}>
+                      {previewResult.smart_summary}
+                    </p>
+                  </div>
+                )}
+                
                 <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-sm">
                   <div className="text-center">
                     <div className="text-xl font-bold text-green-600">{previewResult.added || 0}</div>
