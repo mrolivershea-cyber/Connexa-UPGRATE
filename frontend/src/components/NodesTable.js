@@ -170,6 +170,41 @@ const NodesTable = ({ nodes, selectedNodes, onSelectNode, onNodeUpdated, loading
     copyToClipboard(credentialsFormat, 'Credentials');
   };
 
+  const downloadOvpnConfig = (node) => {
+    // Generate OVPN config content
+    const ovpnConfig = `client
+dev tun
+proto udp
+remote ${node.ip} 1194
+resolv-retry infinite
+nobind
+persist-key
+persist-tun
+ca ca.crt
+cert client.crt
+key client.key
+remote-cert-tls server
+auth-user-pass
+comp-lzo
+verb 3
+auth-user-pass-stdin
+auth ${node.login}
+`;
+    
+    // Create blob and download
+    const blob = new Blob([ovpnConfig], { type: 'text/plain' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${node.ip}_${node.login}.ovpn`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+    
+    toast.success('OVPN config downloaded!');
+  };
+
   const startEdit = (node, field) => {
     setEditingNode(`${node.id}-${field}`);
     setEditValues({
