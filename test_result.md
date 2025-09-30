@@ -472,11 +472,15 @@ metadata:
   test_sequence: 1
   run_ui: false
 
-    test_plan:
+test_plan:
   current_focus:
-    - "Unified Import Modal with Testing Mode Selector"
+    - "Relocate Import and Testing buttons to Filters block"
+    - "Remove Only Online checkbox from Filters"
+    - "Add Speed column to nodes table"
+    - "Modify Status column to show only indicator"
+    - "Reduce table column spacing for compact view"
   stuck_tasks: []
-  test_all: true
+  test_all: false
   test_priority: "high_first"
 
 agent_communication:
