@@ -247,23 +247,56 @@ async def import_nodes(
         # Process nodes with deduplication logic
         results = process_parsed_nodes(db, parsed_data)
         
-        # Create detailed report
+        # Create detailed report with smart summary
+        added_count = len(results['added'])
+        skipped_count = len(results['skipped'])
+        replaced_count = len(results['replaced'])
+        queued_count = len(results['queued'])
+        format_errors_count = len(results['format_errors'])
+        processing_errors_count = len(results['errors'])
+        
+        # Generate smart message based on results
+        if added_count == 0 and skipped_count > 0:
+            # All duplicates - nothing new added
+            if skipped_count == parsed_data['successfully_parsed']:
+                smart_message = f"Ничего не добавлено: все {skipped_count} конфигураций уже существуют в базе данных. Дубликаты не добавляются автоматически."
+            else:
+                smart_message = f"Импорт завершён: {added_count} добавлено, {skipped_count} пропущено (уже в базе)"
+        elif added_count > 0 and skipped_count > 0:
+            # Mixed: some new, some duplicates
+            smart_message = f"Импорт завершён: {added_count} новых конфигураций добавлено, {skipped_count} дубликатов пропущено"
+            if replaced_count > 0:
+                smart_message += f", {replaced_count} старых заменено"
+        elif added_count > 0 and skipped_count == 0:
+            # All new
+            smart_message = f"Успешно добавлено {added_count} новых конфигураций"
+        else:
+            # Nothing processed successfully
+            smart_message = f"Импорт не выполнен: {format_errors_count} ошибок формата"
+        
+        # Add additional info if needed
+        if queued_count > 0:
+            smart_message += f", {queued_count} отправлено на проверку"
+        if format_errors_count > 0:
+            smart_message += f", {format_errors_count} ошибок формата"
+        
         report = {
             "total_processed": parsed_data['total_processed'],
             "successfully_parsed": parsed_data['successfully_parsed'],
-            "added": len(results['added']),
-            "skipped_duplicates": len(results['skipped']),
-            "replaced_old": len(results['replaced']),
-            "queued_for_verification": len(results['queued']),
-            "format_errors": len(results['format_errors']),
-            "processing_errors": len(results['errors']),
+            "added": added_count,
+            "skipped_duplicates": skipped_count,
+            "replaced_old": replaced_count,
+            "queued_for_verification": queued_count,
+            "format_errors": format_errors_count,
+            "processing_errors": processing_errors_count,
             "testing_mode": data.testing_mode,
+            "smart_summary": smart_message,
             "details": results
         }
         
         return {
             "success": True,
-            "message": f"Import completed: {report['added']} added, {report['skipped_duplicates']} duplicates skipped, {report['format_errors']} format errors",
+            "message": smart_message,
             "report": report
         }
         
