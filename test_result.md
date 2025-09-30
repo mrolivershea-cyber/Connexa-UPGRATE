@@ -569,7 +569,12 @@ metadata:
   run_ui: false
 
 test_plan:
-  current_focus: []
+  current_focus:
+    - "Advanced deduplication with last_update 4-week rule"
+    - "PING status indicators and visual updates"
+    - "Column reordering: ACTION after SOCKS, COMMENT after ACTION"
+    - "Two-row table format for better readability"
+    - "PING status visual indicators with color coding"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
