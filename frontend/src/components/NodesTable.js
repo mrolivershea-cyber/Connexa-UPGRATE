@@ -344,7 +344,10 @@ const NodesTable = ({ nodes, selectedNodes, onSelectNode, onNodeUpdated, loading
                   />
                 </td>
                 <td className="px-2 py-3 whitespace-nowrap">
-                  {getStatusBadge(node.status)}
+                  <div className="flex items-center">
+                    {getStatusBadge(node.status)}
+                    {getPingStatusBadge(node.ping_status)}
+                  </div>
                 </td>
                 <td className="px-2 py-3 whitespace-nowrap text-sm text-gray-900">
                   {node.speed ? `${node.speed} Mbps` : '-'}
