@@ -3067,6 +3067,20 @@ State: California""",
         # Test 9: Comprehensive workflow test
         self.test_ping_status_comprehensive_workflow()
         
+        # 🔄 NEW UNIFIED STATUS SYSTEM TESTS (Review Request Focus)
+        print("\n" + "="*60)
+        print("🔄 UNIFIED STATUS SYSTEM TESTS (Review Request)")
+        print("="*60)
+        
+        # Test unified status system
+        self.test_unified_status_stats_endpoint()
+        unified_ping_node_id = self.test_unified_status_ping_test_endpoint()
+        self.test_unified_status_speed_test_requires_ping_ok()
+        self.test_unified_status_service_start_sets_online_offline()
+        self.test_unified_status_import_with_testing_sets_correct_status()
+        self.test_unified_status_progression_logic()
+        self.test_unified_status_no_ping_status_field_references()
+        
         # Get updated node list for service and testing operations
         updated_nodes = self.test_get_nodes()
         if updated_nodes:
