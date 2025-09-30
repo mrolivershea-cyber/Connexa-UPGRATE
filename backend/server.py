@@ -1428,6 +1428,9 @@ async def start_services(
                         "message": f"PPTP + SOCKS started on {interface}:{socks_result['port']}"
                     })
                 else:
+                    # Service failed to start properly
+                    node.status = "offline"
+                    db.commit()
                     results.append({
                         "node_id": node_id,
                         "success": False,
@@ -1436,6 +1439,9 @@ async def start_services(
                         "message": "PPTP OK, SOCKS failed"
                     })
             else:
+                # PPTP connection failed
+                node.status = "offline"
+                db.commit()
                 results.append({
                     "node_id": node_id,
                     "success": False,
