@@ -233,5 +233,87 @@
       18
     ],
     "status": "pending"
+  },
+  {
+    "id": 1759231168,
+    "timestamp": "2025-09-30T11:19:28.202481",
+    "node_data": {
+      "protocol": "pptp",
+      "status": "offline",
+      "ip": "96.234.52.227",
+      "login": "user1",
+      "password": "pass1",
+      "state": "New Jersey"
+    },
+    "conflicting_node_ids": [
+      42
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759231168,
+    "timestamp": "2025-09-30T11:19:28.470032",
+    "node_data": {
+      "protocol": "pptp",
+      "status": "offline",
+      "ip": "96.234.52.227",
+      "login": "user1",
+      "password": "pass1",
+      "state": "New Jersey"
+    },
+    "conflicting_node_ids": [
+      42
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759231168,
+    "timestamp": "2025-09-30T11:19:28.506417",
+    "node_data": {
+      "protocol": "pptp",
+      "status": "offline",
+      "ip": "96.42.187.97",
+      "login": "user",
+      "password": "pass",
+      "state": "Michigan",
+      "city": "Lapeer",
+      "zipcode": "48446"
+    },
+    "conflicting_node_ids": [
+      44
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759231168,
+    "timestamp": "2025-09-30T11:19:28.737500",
+    "node_data": {
+      "protocol": "pptp",
+      "status": "offline",
+      "ip": "10.0.0.1",
+      "login": "admin",
+      "password": "pass1",
+      "state": "California"
+    },
+    "conflicting_node_ids": [
+      17
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759231168,
+    "timestamp": "2025-09-30T11:19:28.738397",
+    "node_data": {
+      "protocol": "pptp",
+      "status": "offline",
+      "ip": "10.0.0.2",
+      "login": "user2",
+      "password": "pass2",
+      "state": "New York"
+    },
+    "conflicting_node_ids": [
+      18
+    ],
+    "status": "pending"
   }
 ]
