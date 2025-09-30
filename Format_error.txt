@@ -5,3 +5,8 @@
 Credentials: admin:admin
 Location: Texas (Austin)
 ZIP: 78701
+
+
+=== Format Errors - 2025-09-30 10:47:38 ===
+1. Block 1: invalid line without proper format
+another bad line

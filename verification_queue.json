@@ -49,5 +49,21 @@
       9
     ],
     "status": "pending"
+  },
+  {
+    "id": 1759229258,
+    "timestamp": "2025-09-30T10:47:38.880284",
+    "node_data": {
+      "protocol": "pptp",
+      "status": "offline",
+      "ip": "10.0.0.1",
+      "login": "admin",
+      "password": "pass1",
+      "state": "California"
+    },
+    "conflicting_node_ids": [
+      9
+    ],
+    "status": "pending"
   }
 ]
