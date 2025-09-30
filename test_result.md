@@ -497,8 +497,10 @@ metadata:
   run_ui: false
 
 test_plan:
-  current_focus: []
-  stuck_tasks: []
+  current_focus: 
+    - "Universal parser with 6 formats"
+  stuck_tasks: 
+    - "Universal parser with 6 formats"
   test_all: false
   test_priority: "high_first"
 
@@ -527,3 +529,5 @@ agent_communication:
     message: "✅ UI IMPROVEMENTS TESTING COMPLETE: All 5 UI improvements successfully tested and verified. COMPREHENSIVE RESULTS: 1) Import and Testing Button Relocation: ✅ CONFIRMED - Both buttons relocated from top Actions section to Filters block, positioned after Stop Services button, full functionality maintained (Import opens UnifiedImportModal, Testing opens TestingModal), 2) Only Online Checkbox Removal: ✅ CONFIRMED - Completely removed from Filters section (0 'Only Online' text elements found), 3) Speed Column Addition: ✅ CONFIRMED - New SPEED column added immediately after STATUS column, displays '-' for nodes without speed data, ready for 'X Mbps' format, 4) Status Column Visual Changes: ✅ CONFIRMED - Shows only emoji indicators (🔴, 🟢, 🟡, 🟠, ⚪, 🔁) without text labels, 5) Compact Table Layout: ✅ CONFIRMED - Table cells use compact padding (px-2 py-3), password buttons optimized (h-6 w-6 p-0), improved space utilization. All UI improvements working perfectly and ready for production use."
   - agent: "testing"
     message: "✅ COMPREHENSIVE PARSER TESTING COMPLETE - ALL 6 FORMATS + EDGE CASES: Successfully tested all parser formats as requested in review (8/8 tests passed, 100% success rate). CRITICAL FIXES VERIFIED: 1) Format 2 field order corrected to 'IP Login Password State' (was causing parsing errors), 2) Format detection logic improved to properly distinguish between formats, 3) Block splitting enhanced for single-line entries, 4) Comment filtering working perfectly. DETAILED RESULTS: Format 1 (key-value pairs) ✅, Format 2 (single line - CRITICAL FIX) ✅, Format 3 (dash/pipe with timestamp) ✅, Format 4 (colon separated) ✅, Format 5 (4-line multi-line) ✅, Format 6 (PPTP header) ✅, Edge cases (comments and empty lines) ✅, Mixed formats in one import ✅. Deduplication logic working perfectly (exact duplicates skipped). State/country normalization working (CA→California, NJ→New Jersey, US→United States). Format error handling and API endpoints working correctly. Parser is production-ready and handles all specified requirements."
+  - agent: "testing"
+    message: "❌ CRITICAL ISSUE DISCOVERED: Real user data test FAILED. Smart parser has critical bug in block splitting logic. PROBLEM: Only 9/10 nodes created from mixed format import. Missing node: 70.171.218.52:admin:admin:US:Arizona:85001 (Format 4). ROOT CAUSE: When Format 4 (single-line colon-separated) appears immediately before Format 6 blocks (PPTP headers), the block splitting logic incorrectly groups the Format 4 line with the Format 6 block instead of processing it as a separate block. EVIDENCE: Individual format tests pass, but mixed format parsing fails. This explains user's report of only 1 config being added from large mixed-format text. IMPACT: Critical production issue affecting real-world usage. RECOMMENDATION: Fix smart block splitting logic to properly separate single-line formats from multi-line formats when they appear consecutively."
