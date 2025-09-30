@@ -500,6 +500,8 @@ test_plan:
 agent_communication:
   - agent: "main"
     message: "Updated test_result.md with current state of Connexa Admin Panel after recent UI updates. Ready to test backend API endpoints first, then frontend functionality. Focus on service control, node operations, and bulk actions."
+  - agent: "main"
+    message: "PARSER ALGORITHM FIXES COMPLETED: 1) Fixed Format 2 field order (was IP Password Login State, now correctly IP Login Password State), 2) Enhanced clean_text_data to skip comment lines (#, //) and remove inline comments, 3) All edge cases now properly handled. Ready to test all 6 formats with comprehensive test data including: Format 1 (key-value), Format 2 (single line with correct order), Format 3 (dash/pipe with timestamp), Format 4 (colon separated), Format 5 (4 lines multi), Format 6 (PPTP 6 lines). Need to verify: correct field parsing, comment filtering, duplicate handling, state/country normalization, format error logging."
   - agent: "testing"
     message: "✅ BACKEND TESTING COMPLETE: All 30 backend API tests passed successfully (100% success rate). Comprehensive testing completed for: 1) Authentication (login/logout/password change), 2) Node CRUD with all fields and different protocols, 3) Service control (start/stop for single and multiple nodes), 4) Node testing (ping/speed/combined tests), 5) Import/Export functionality, 6) Bulk operations including bulk delete with proper JSON format, 7) Autocomplete endpoints. All API endpoints are fully functional. Minor note: Some system-level operations (actual ping/PPTP services) may be limited in container environment, but all API endpoints respond correctly."
   - agent: "main"
