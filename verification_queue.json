@@ -683,5 +683,22 @@
       2344
     ],
     "status": "pending"
+  },
+  {
+    "id": 1759235847,
+    "timestamp": "2025-09-30T12:37:27.791239",
+    "node_data": {
+      "protocol": "pptp",
+      "status": "offline",
+      "ip": "208.67.222.222",
+      "login": "opendns_user",
+      "password": "opendns_pass",
+      "state": "California",
+      "city": "San Francisco"
+    },
+    "conflicting_node_ids": [
+      2584
+    ],
+    "status": "pending"
   }
 ]
