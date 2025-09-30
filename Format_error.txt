@@ -79,3 +79,39 @@ IP: 24.227.
 Начинается с пробела далее - пробел Login:Pass поесть (разделить и не учи
 3. Missing credentials in block 4: Это формат 1 строки через : его не учитываем формат начитается с Ip Login Pass Country State Zip
 70.
+
+
+=== Format Errors - 2025-09-30 09:17:15 ===
+1. Block 2: Format 2 - Single line with spaces (IP Pass Login State):
+76.178.64.46 admin admin CA
+96.234.52.227 
+2. Invalid IP in block 3: Format 3 - Dash/pipe format:
+68.227.241.4 - admin:admin - Arizona/Phoenix 85001 | 2025-09-03 16:05:2
+3. Invalid IP in block 4: Format 4 - Colon separated:
+70.171.218.52:admin:admin:US:Arizona:85001
+4. Missing credentials in block 5: Format 5 - Multi-line with Location:
+IP: 24.227.222.13
+Credentials: admin:admin
+Location: Texas (Aus
+5. Missing credentials in block 6: Format 6 - With PPTP header (first 2 lines ignored):
+> PPTP_SVOIM_VPN:
+🚨 PPTP Connection
+IP: 24.227.
+
+
+=== Format Errors - 2025-09-30 09:17:21 ===
+1. Block 2: Format 2 - Single line with spaces (IP Pass Login State):
+76.178.64.46 admin admin CA
+96.234.52.227 
+2. Invalid IP in block 3: Format 3 - Dash/pipe format:
+68.227.241.4 - admin:admin - Arizona/Phoenix 85001 | 2025-09-03 16:05:2
+3. Invalid IP in block 4: Format 4 - Colon separated:
+70.171.218.52:admin:admin:US:Arizona:85001
+4. Missing credentials in block 5: Format 5 - Multi-line with Location:
+IP: 24.227.222.13
+Credentials: admin:admin
+Location: Texas (Aus
+5. Missing credentials in block 6: Format 6 - With PPTP header (first 2 lines ignored):
+> PPTP_SVOIM_VPN:
+🚨 PPTP Connection
+IP: 24.227.
