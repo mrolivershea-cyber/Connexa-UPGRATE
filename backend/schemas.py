@@ -83,7 +83,7 @@ class BulkImport(BaseModel):
 class ImportNodesSchema(BaseModel):
     data: str
     protocol: str = "pptp"
-    testing_mode: str = "ping_only"  # ping_only, speed_only, ping_speed, no_test
+    testing_mode: str = "no_test"  # ping_only, speed_only, ping_speed, no_test
 
 class ExportRequest(BaseModel):
     node_ids: List[int]
