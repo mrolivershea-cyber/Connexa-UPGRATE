@@ -61,6 +61,24 @@ const NodesTable = ({ nodes, selectedNodes, onSelectNode, onNodeUpdated, loading
     );
   };
 
+  const getPingStatusBadge = (pingStatus) => {
+    const pingConfig = {
+      ping_success: { emoji: '🔵', class: 'bg-blue-100 text-blue-800', label: 'Ping Success' },
+      ping_failed: { emoji: '🟣', class: 'bg-purple-100 text-purple-800', label: 'Ping Failed' },
+      not_tested: { emoji: '⚫', class: 'bg-gray-100 text-gray-600', label: 'Not Tested' }
+    };
+    
+    if (!pingStatus) return null;
+    
+    const config = pingConfig[pingStatus] || pingConfig.not_tested;
+    
+    return (
+      <Badge className={`${config.class} ml-1`} title={config.label}>
+        {config.emoji}
+      </Badge>
+    );
+  };
+
   const formatDate = (dateString) => {
     if (!dateString) return 'Never';
     const date = new Date(dateString);
