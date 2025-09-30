@@ -32,6 +32,7 @@ class NodeBase(BaseModel):
     comment: Optional[str] = ""
     protocol: Optional[str] = "pptp"
     status: Optional[str] = "offline"
+    speed: Optional[str] = None
 
 class NodeCreate(NodeBase):
     pass
