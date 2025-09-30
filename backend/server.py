@@ -239,6 +239,8 @@ async def import_nodes(
 ):
     """Enhanced import with comprehensive parsing and deduplication"""
     try:
+        logger.info(f"Import request with testing_mode: {data.testing_mode}")
+        
         # Parse text data with enhanced parser
         parsed_data = parse_nodes_text(data.data, data.protocol)
         
