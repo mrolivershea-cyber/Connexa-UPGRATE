@@ -1886,6 +1886,257 @@ async def stop_single_node_services(
     except Exception as e:
         return {"success": False, "message": str(e)}
 
+# ===== MANUAL TESTING WORKFLOW API ENDPOINTS =====
+# These endpoints implement the user's required manual testing workflow:
+# not_tested → ping_test → ping_ok/ping_failed  
+# ping_ok → speed_test → speed_ok/speed_slow
+# speed_ok/speed_slow → launch_services → online
+
+@api_router.post("/manual/ping-test")
+async def manual_ping_test(
+    test_request: TestRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Manual ping test - only for not_tested nodes"""
+    results = []
+    
+    for node_id in test_request.node_ids:
+        node = db.query(Node).filter(Node.id == node_id).first()
+        if not node:
+            results.append({
+                "node_id": node_id,
+                "success": False,
+                "message": "Node not found"
+            })
+            continue
+        
+        # Check if node is in correct status for ping test
+        if node.status != "not_tested":
+            results.append({
+                "node_id": node_id,
+                "success": False,
+                "message": f"Node status is '{node.status}', expected 'not_tested'"
+            })
+            continue
+        
+        try:
+            # Set status to checking during test
+            node.status = "checking"
+            node.last_check = datetime.utcnow()
+            db.commit()
+            
+            # Perform ping test
+            ping_result = await network_tester.ping_test(node.ip)
+            
+            # Update status based on result
+            if ping_result['reachable']:
+                node.status = "ping_ok"
+            else:
+                node.status = "ping_failed"
+            
+            node.last_check = datetime.utcnow()
+            db.commit()
+            
+            results.append({
+                "node_id": node_id,
+                "ip": node.ip,
+                "success": True,
+                "status": node.status,
+                "ping_result": ping_result,
+                "message": f"Ping test completed: {node.status}"
+            })
+            
+        except Exception as e:
+            # On error, set to offline
+            node.status = "offline"
+            node.last_check = datetime.utcnow()
+            db.commit()
+            
+            results.append({
+                "node_id": node_id,
+                "success": False,
+                "message": f"Ping test error: {str(e)}"
+            })
+    
+    return {"results": results}
+
+@api_router.post("/manual/speed-test")
+async def manual_speed_test(
+    test_request: TestRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Manual speed test - only for ping_ok nodes"""
+    results = []
+    
+    for node_id in test_request.node_ids:
+        node = db.query(Node).filter(Node.id == node_id).first()
+        if not node:
+            results.append({
+                "node_id": node_id,
+                "success": False,
+                "message": "Node not found"
+            })
+            continue
+        
+        # Check if node is in correct status for speed test
+        if node.status != "ping_ok":
+            results.append({
+                "node_id": node_id,
+                "success": False,
+                "message": f"Node status is '{node.status}', expected 'ping_ok'"
+            })
+            continue
+        
+        try:
+            # Set status to checking during test
+            node.status = "checking"
+            node.last_check = datetime.utcnow()
+            db.commit()
+            
+            # Perform speed test (simplified version without requiring active connection)
+            speed_result = await network_tester.speed_test()
+            
+            if speed_result['success'] and speed_result.get('download_speed'):
+                node.speed = f"{speed_result['download_speed']:.1f}"
+                
+                # Set status based on speed: >1 Mbps = speed_ok, ≤1 Mbps = speed_slow  
+                if speed_result['download_speed'] > 1.0:
+                    node.status = "speed_ok"
+                else:
+                    node.status = "speed_slow"
+            else:
+                # Speed test failed - set to ping_failed to retry ping
+                node.status = "ping_failed"
+                node.speed = None
+            
+            node.last_check = datetime.utcnow()
+            db.commit()
+            
+            results.append({
+                "node_id": node_id,
+                "ip": node.ip,
+                "success": True,
+                "status": node.status,
+                "speed": node.speed,
+                "speed_result": speed_result,
+                "message": f"Speed test completed: {node.status}"
+            })
+            
+        except Exception as e:
+            # On error, set back to ping_failed to retry ping
+            node.status = "ping_failed"
+            node.last_check = datetime.utcnow()
+            db.commit()
+            
+            results.append({
+                "node_id": node_id,
+                "success": False,
+                "message": f"Speed test error: {str(e)}"
+            })
+    
+    return {"results": results}
+
+@api_router.post("/manual/launch-services")
+async def manual_launch_services(
+    test_request: TestRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Manual service launch - only for speed_ok or speed_slow nodes"""
+    results = []
+    
+    for node_id in test_request.node_ids:
+        node = db.query(Node).filter(Node.id == node_id).first()
+        if not node:
+            results.append({
+                "node_id": node_id,
+                "success": False,
+                "message": "Node not found"
+            })
+            continue
+        
+        # Check if node is in correct status for service launch
+        if node.status not in ["speed_ok", "speed_slow"]:
+            results.append({
+                "node_id": node_id,
+                "success": False,
+                "message": f"Node status is '{node.status}', expected 'speed_ok' or 'speed_slow'"
+            })
+            continue
+        
+        try:
+            # Set status to checking during service launch
+            node.status = "checking"
+            db.commit()
+            
+            # Launch SOCKS + OVPN services simultaneously
+            # Use existing service launch logic
+            pptp_result = await service_manager.start_pptp_connection(
+                node.ip, node.login, node.password
+            )
+            
+            if pptp_result['success']:
+                interface = pptp_result['interface']
+                
+                # Start SOCKS server
+                socks_result = await service_manager.start_socks_server(
+                    node_id, interface
+                )
+                
+                if socks_result['success']:
+                    # Service launch successful - set to online
+                    node.status = "online"
+                    node.last_check = datetime.utcnow()
+                    db.commit()
+                    
+                    results.append({
+                        "node_id": node_id,
+                        "ip": node.ip,
+                        "success": True,
+                        "status": "online",
+                        "pptp": pptp_result,
+                        "socks": socks_result,
+                        "message": f"Services launched successfully on {interface}:{socks_result['port']}"
+                    })
+                else:
+                    # SOCKS failed - set to offline
+                    node.status = "offline"
+                    node.last_check = datetime.utcnow()
+                    db.commit()
+                    
+                    results.append({
+                        "node_id": node_id,
+                        "success": False,
+                        "message": f"SOCKS launch failed: {socks_result.get('message', 'Unknown error')}"
+                    })
+            else:
+                # PPTP failed - set to offline
+                node.status = "offline" 
+                node.last_check = datetime.utcnow()
+                db.commit()
+                
+                results.append({
+                    "node_id": node_id,
+                    "success": False,
+                    "message": f"PPTP connection failed: {pptp_result.get('message', 'Unknown error')}"
+                })
+        
+        except Exception as e:
+            # On error, set to offline
+            node.status = "offline"
+            node.last_check = datetime.utcnow()
+            db.commit()
+            
+            results.append({
+                "node_id": node_id,
+                "success": False,
+                "message": f"Service launch error: {str(e)}"
+            })
+    
+    return {"results": results}
+
 # Include API router
 app.include_router(api_router)
 
