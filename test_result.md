@@ -276,6 +276,30 @@ backend:
         agent: "testing"
         comment: "✅ TESTED: Country/State normalization working correctly. State codes are properly normalized (CA→California, TX→Texas, ON→Ontario, NSW→New South Wales). Country codes normalized (US→United States, CA→Canada, AU→Australia). Comprehensive database includes USA (50 states), Canada (13 provinces), Australia (8 states), Germany (16 länder), UK regions, France regions, Italy regions, Brazil states, and India states. Normalization is context-aware based on country field."
 
+  - task: "Advanced deduplication with last_update 4-week rule"
+    implemented: true
+    working: "NA"
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "DISCOVERED: Advanced deduplication logic already exists in check_node_duplicate() function (lines 1035-1073). Includes exact duplicate checking, IP+different credentials checking, 4-week last_update comparison, old node replacement, and verification queue. Need to test this existing functionality."
+
+  - task: "PING status indicators and visual updates"
+    implemented: false
+    working: "NA"
+    file: "server.py, schemas.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Need to add PING status field to Node model/schema and ensure PING test results update this field with appropriate status values for visual indicators."
+
 frontend:
   - task: "ServiceControlModal removal"
     implemented: true
