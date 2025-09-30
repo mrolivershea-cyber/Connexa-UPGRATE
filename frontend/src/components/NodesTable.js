@@ -488,22 +488,24 @@ auth ${node.login}
                   <td className="px-2 py-1 text-xs text-gray-500">
                     {formatDate(node.last_update)}
                   </td>
-                  <td className="px-2 py-1">
-                    <EditableCell node={node} field="country" />
+                  <td className="px-2 py-1 text-xs text-gray-900 max-w-xs truncate">
+                    {node.comment || 'Empty'}
                   </td>
-                  <td className="px-2 py-1">
-                    <EditableCell node={node} field="state" />
+                  <td className="px-2 py-1 text-xs text-gray-700">
+                    {node.country || 'Empty'}
                   </td>
-                  <td className="px-2 py-1">
-                    <EditableCell node={node} field="city" />
+                  <td className="px-2 py-1 text-xs text-gray-700">
+                    {node.state || 'Empty'}
                   </td>
-                  <td className="px-2 py-1">
-                    <EditableCell node={node} field="zipcode" />
+                  <td className="px-2 py-1 text-xs text-gray-700">
+                    {node.city || 'Empty'}
                   </td>
-                  <td className="px-2 py-1" colSpan={2}>
-                    <EditableCell node={node} field="provider" />
+                  <td className="px-2 py-1 text-xs text-gray-700">
+                    {node.zipcode || 'Empty'}
                   </td>
-                  <td colSpan={3}></td>
+                  <td className="px-2 py-1 text-xs text-gray-700" colSpan={4}>
+                    {node.provider || 'Empty'}
+                  </td>
                 </tr>
               </Fragment>
             ))}
