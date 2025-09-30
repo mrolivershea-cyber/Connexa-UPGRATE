@@ -67,3 +67,8 @@ State: CA
 === Format Errors - 2025-09-30 10:49:29 ===
 1. Block 1: invalid line without proper format
 another bad line
+
+
+=== Format Errors - 2025-09-30 10:49:49 ===
+1. Block 1: invalid line without proper format
+another bad line
