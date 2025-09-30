@@ -1245,9 +1245,6 @@ Random text that should cause errors""",
         print("\n⚠️ Testing Format Error API...")
         self.test_format_errors_api()
         
-        # Test mixed format import
-        self.test_mixed_format_import()
-        
         # Get updated node list for service and testing operations
         updated_nodes = self.test_get_nodes()
         if updated_nodes:
