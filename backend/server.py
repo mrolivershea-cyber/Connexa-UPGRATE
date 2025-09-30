@@ -485,17 +485,36 @@ def parse_nodes_text(text: str, protocol: str = "pptp") -> dict:
                 if not line:
                     continue
                 
-                # Check if this line is a single-line format (starts with IP)
-                parts = line.split()
-                if len(parts) >= 3 and is_valid_ip(parts[0]):
-                    # This is a single-line entry
+                # Check Format 4: Colon-separated (IP:Login:Pass:Country:State:Zip)
+                if line.count(':') >= 5 and is_valid_ip(line.split(':')[0]):
+                    # This is Format 4 - single-line colon-separated
                     if multi_line_block:
                         blocks.append('\n'.join(multi_line_block))
                         multi_line_block = []
                     blocks.append(line)
-                else:
-                    # This might be part of a multi-line format
-                    multi_line_block.append(line)
+                    continue
+                
+                # Check Format 3: Dash format (IP - login:pass - State/City)
+                if ' - ' in line and is_valid_ip(line.split()[0] if line.split() else ''):
+                    # This is Format 3
+                    if multi_line_block:
+                        blocks.append('\n'.join(multi_line_block))
+                        multi_line_block = []
+                    blocks.append(line)
+                    continue
+                
+                # Check Format 2: Space-separated (IP Login Password State)
+                parts = line.split()
+                if len(parts) >= 3 and is_valid_ip(parts[0]):
+                    # This is a single-line entry (Format 2)
+                    if multi_line_block:
+                        blocks.append('\n'.join(multi_line_block))
+                        multi_line_block = []
+                    blocks.append(line)
+                    continue
+                
+                # Not a single-line format - might be part of multi-line format
+                multi_line_block.append(line)
             
             # Add any remaining multi-line block
             if multi_line_block:
