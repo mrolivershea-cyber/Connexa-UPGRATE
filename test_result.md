@@ -212,11 +212,11 @@ backend:
 
   - task: "Universal parser with 6 formats"
     implemented: true
-    working: true
+    working: "NA"
     file: "server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
       - working: "NA"
         agent: "main"
@@ -224,6 +224,9 @@ backend:
       - working: true
         agent: "testing"
         comment: "✅ TESTED: Universal parser working excellently with all 6 formats. Format detection is accurate and automatic. Successfully tested: Format 1 (Ip: xxx, Login: xxx), Format 2 (IP Pass Login State), Format 3 (IP - Login:Pass - State/City), Format 4 (IP:Login:Pass:Country:State:Zip), Format 5 (multi-line IP:, Credentials:, Location:), Format 6 (PPTP header ignored). Parser handles mixed formats in single import and provides detailed error reporting for invalid data."
+      - working: "NA"
+        agent: "main"
+        comment: "FIXED: Format 2 parser had incorrect field order. Changed from 'IP Password Login State' to correct 'IP Login Password State' as per user's technical specification. Also improved clean_text_data function to skip comment lines starting with # or // and remove inline comments. Ready for re-testing with all 6 formats and edge cases."
 
   - task: "Deduplication system with business rules"
     implemented: true
