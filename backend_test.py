@@ -3419,6 +3419,80 @@ State: California""",
                          f"❌ Failed to get nodes: {response}")
             return False
 
+    def run_critical_pptp_admin_panel_tests(self):
+        """Run only the critical PPTP admin panel tests as specified in review request"""
+        print("🚨 CRITICAL PPTP ADMIN PANEL FEATURES TESTING")
+        print("=" * 80)
+        print("Testing comprehensive PPTP admin panel features after major implementation")
+        print("=" * 80)
+        
+        # Test health check and authentication first
+        if not self.test_health_check():
+            print("❌ Health check failed - stopping tests")
+            return False
+        
+        if not self.test_login():
+            print("❌ Login failed - stopping tests")
+            return False
+        
+        print("\n🔍 CRITICAL BUG FIXES VERIFICATION:")
+        print("-" * 50)
+        
+        # Test 1: Import status assignment bug fix
+        print("\n1. Testing import status assignment bug fix...")
+        self.test_critical_import_status_assignment_bug_fix()
+        
+        # Test 2: Stats API accuracy
+        print("\n2. Testing stats API accuracy...")
+        self.test_critical_stats_api_accuracy()
+        
+        print("\n🔍 MANUAL TESTING WORKFLOW API ENDPOINTS:")
+        print("-" * 50)
+        
+        # Test 3: Manual ping test workflow
+        print("\n3. Testing manual ping test workflow...")
+        self.test_critical_manual_ping_test_workflow()
+        
+        # Test 4: Manual speed test workflow
+        print("\n4. Testing manual speed test workflow...")
+        self.test_critical_manual_speed_test_workflow()
+        
+        # Test 5: Manual launch services workflow
+        print("\n5. Testing manual launch services workflow...")
+        self.test_critical_manual_launch_services_workflow()
+        
+        print("\n🔍 STATUS TRANSITION WORKFLOW:")
+        print("-" * 50)
+        
+        # Test 6: Complete status transition workflow
+        print("\n6. Testing complete status transition workflow...")
+        self.test_critical_status_transition_workflow()
+        
+        print("\n🔍 BACKGROUND MONITORING SERVICE:")
+        print("-" * 50)
+        
+        # Test 7: Background monitoring service
+        print("\n7. Testing background monitoring service...")
+        self.test_critical_background_monitoring_service()
+        
+        print("\n🔍 DATABASE & API CONSISTENCY:")
+        print("-" * 50)
+        
+        # Test 8: Database & API consistency
+        print("\n8. Testing database & API consistency...")
+        self.test_critical_database_api_consistency()
+        
+        # Print summary
+        print("\n" + "=" * 80)
+        print(f"📊 CRITICAL PPTP ADMIN PANEL TEST SUMMARY:")
+        print(f"   Total Tests: {self.tests_run}")
+        print(f"   Passed: {self.tests_passed}")
+        print(f"   Failed: {self.tests_run - self.tests_passed}")
+        print(f"   Success Rate: {(self.tests_passed/self.tests_run)*100:.1f}%")
+        print("=" * 80)
+        
+        return self.tests_passed == self.tests_run
+
     def run_all_tests(self):
         """Run all backend tests"""
         print("🚀 Starting Connexa Backend API Tests")
