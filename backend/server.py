@@ -427,104 +427,94 @@ def detect_format(block: str) -> str:
     return "unknown"
 
 def parse_nodes_text(text: str, protocol: str = "pptp") -> dict:
-    """Enhanced parser for all node formats with smart block splitting"""
+    """Enhanced parser with TWO-PASS smart block splitting algorithm"""
     # Clean input text (removes headers, @mentions, comments)
     text = clean_text_data(text)
     
     parsed_nodes = []
     duplicates = []
     format_errors = []
-    
-    # SMART BLOCK SPLITTING - Priority order:
-    # 1. Split by explicit separator '---------------------'
-    # 2. For Format 1 (Ip:), split by each "Ip:" occurrence to handle multiple configs
-    # 3. For Format 6 (PPTP header), split by "> PPTP_SVOIM_VPN:" marker
-    # 4. For single-line formats, each line is a block
-    # 5. For other multi-line formats, split by double newline
-    
     blocks = []
     
-    # First, split by explicit separator
+    # PASS 1: Split by explicit separator '---------------------' first
     if '---------------------' in text:
         pre_blocks = text.split('---------------------')
     else:
         pre_blocks = [text]
     
-    # Now process each pre_block for further splitting
+    # PASS 2: Process each pre_block with TWO-PASS algorithm
     for pre_block in pre_blocks:
         pre_block = pre_block.strip()
         if not pre_block:
             continue
         
-        # Check if this pre_block contains multiple Format 1 entries (multiple "Ip:")
-        if pre_block.count('Ip:') > 1 or pre_block.count('IP:') > 1:
-            # Split by "Ip:" or "IP:" to separate multiple configs
-            # Use regex to split while keeping the delimiter
-            entries = re.split(r'(?=\bIp:|\bIP:)', pre_block, flags=re.IGNORECASE)
-            for entry in entries:
-                entry = entry.strip()
-                if entry and ('Ip:' in entry or 'IP:' in entry):
-                    blocks.append(entry)
+        # SUB-PASS 1: Extract all single-line formats first (Format 2, 3, 4)
+        lines = pre_block.split('\n')
+        single_line_blocks = []
+        remaining_lines = []
         
-        # Check if this pre_block contains multiple Format 6 entries (PPTP header)
-        elif pre_block.count('> PPTP_SVOIM_VPN:') > 1 or pre_block.count('🚨 PPTP Connection') > 1:
-            # Split by PPTP marker
-            entries = re.split(r'(?=> PPTP_SVOIM_VPN:)', pre_block)
-            for entry in entries:
-                entry = entry.strip()
-                if entry:
-                    blocks.append(entry)
-        
-        # Check if this looks like single-line format entries (Format 2, 3, 4)
-        elif '\n' in pre_block:
-            lines = pre_block.split('\n')
-            multi_line_block = []
+        for line in lines:
+            line = line.strip()
+            if not line:
+                continue
             
-            for line in lines:
-                line = line.strip()
-                if not line:
-                    continue
-                
-                # Check Format 4: Colon-separated (IP:Login:Pass:Country:State:Zip)
-                if line.count(':') >= 5 and is_valid_ip(line.split(':')[0]):
-                    # This is Format 4 - single-line colon-separated
-                    if multi_line_block:
-                        blocks.append('\n'.join(multi_line_block))
-                        multi_line_block = []
-                    blocks.append(line)
-                    continue
-                
-                # Check Format 3: Dash format (IP - login:pass - State/City)
-                if ' - ' in line and is_valid_ip(line.split()[0] if line.split() else ''):
-                    # This is Format 3
-                    if multi_line_block:
-                        blocks.append('\n'.join(multi_line_block))
-                        multi_line_block = []
-                    blocks.append(line)
-                    continue
-                
-                # Check Format 2: Space-separated (IP Login Password State)
-                parts = line.split()
-                if len(parts) >= 3 and is_valid_ip(parts[0]):
-                    # This is a single-line entry (Format 2)
-                    if multi_line_block:
-                        blocks.append('\n'.join(multi_line_block))
-                        multi_line_block = []
-                    blocks.append(line)
-                    continue
-                
-                # Not a single-line format - might be part of multi-line format
-                multi_line_block.append(line)
+            is_single_line = False
             
-            # Add any remaining multi-line block
-            if multi_line_block:
-                blocks.append('\n'.join(multi_line_block))
+            # Check Format 4: Colon-separated (at least 5 colons, starts with IP)
+            parts_colon = line.split(':')
+            if len(parts_colon) >= 6 and is_valid_ip(parts_colon[0].strip()):
+                single_line_blocks.append(line)
+                is_single_line = True
+            
+            # Check Format 3: Dash format (IP - login:pass - State/City)
+            elif ' - ' in line:
+                parts_space = line.split()
+                if parts_space and is_valid_ip(parts_space[0]):
+                    single_line_blocks.append(line)
+                    is_single_line = True
+            
+            # Check Format 2: Space-separated (IP Login Password State)
+            elif not is_single_line:
+                parts_space = line.split()
+                if len(parts_space) >= 3 and is_valid_ip(parts_space[0]):
+                    # Make sure it's not a line like "IP: xxx" (Format 1/5/6)
+                    if ':' not in line or line.count(':') < 2:
+                        single_line_blocks.append(line)
+                        is_single_line = True
+            
+            # If not a single-line format, add to remaining for multi-line processing
+            if not is_single_line:
+                remaining_lines.append(line)
         
-        else:
-            # Single block
-            blocks.append(pre_block)
+        # Add all extracted single-line blocks
+        blocks.extend(single_line_blocks)
+        
+        # SUB-PASS 2: Process remaining lines for multi-line formats (Format 1, 5, 6)
+        if remaining_lines:
+            remaining_text = '\n'.join(remaining_lines)
+            
+            # Check for multiple Format 1 entries (multiple "Ip:")
+            if remaining_text.count('Ip:') > 1 or remaining_text.count('IP:') > 1:
+                # Split by "Ip:" to separate multiple configs
+                entries = re.split(r'(?=\bIp:|\bIP:)', remaining_text, flags=re.IGNORECASE)
+                for entry in entries:
+                    entry = entry.strip()
+                    if entry and ('Ip:' in entry or 'IP:' in entry):
+                        blocks.append(entry)
+            
+            # Check for multiple Format 6 entries (PPTP header)
+            elif remaining_text.count('> PPTP_SVOIM_VPN:') > 1:
+                entries = re.split(r'(?=> PPTP_SVOIM_VPN:)', remaining_text)
+                for entry in entries:
+                    entry = entry.strip()
+                    if entry:
+                        blocks.append(entry)
+            
+            # Single multi-line block
+            elif remaining_text.strip():
+                blocks.append(remaining_text.strip())
     
-    # Process each block
+    # PASS 3: Parse each block
     for block_index, block in enumerate(blocks):
         block = block.strip()
         if not block or len(block) < 5:
