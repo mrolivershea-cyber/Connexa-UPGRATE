@@ -247,6 +247,46 @@ async def import_nodes(
         # Process nodes with deduplication logic
         results = process_parsed_nodes(db, parsed_data, data.testing_mode)
         
+        # Perform testing if requested  
+        if data.testing_mode != "no_test" and (results['added'] or results['replaced']):
+            # Get node IDs to test
+            nodes_to_test = []
+            for added_node in results['added']:
+                nodes_to_test.append(added_node['id'])
+            for replaced_node in results['replaced']:
+                nodes_to_test.append(replaced_node['id'])
+            
+            if nodes_to_test:
+                try:
+                    # Perform testing based on mode
+                    for node_id in nodes_to_test:
+                        node = db.query(Node).filter(Node.id == node_id).first()
+                        if node:
+                            node.status = "checking"
+                            
+                            if data.testing_mode in ["ping_only", "ping_speed"]:
+                                # Perform ping test
+                                ping_result = await network_tester.ping_test(node.ip)
+                                if ping_result['reachable']:
+                                    node.ping_status = "ping_success"
+                                    node.status = "online" if node.status != "degraded" else "degraded"
+                                else:
+                                    node.ping_status = "ping_failed"
+                                    node.status = "offline"
+                            
+                            if data.testing_mode in ["speed_only", "ping_speed"]:
+                                # Perform speed test
+                                speed_result = await network_tester.speed_test()
+                                if speed_result['success'] and speed_result.get('download_speed'):
+                                    node.speed = f"{speed_result['download_speed']:.1f}"
+                                
+                            node.last_check = datetime.utcnow()
+                    
+                    db.commit()
+                except Exception as e:
+                    logger.warning(f"Testing during import failed: {str(e)}")
+                    # Don't fail the import if testing fails
+        
         # Create detailed report with smart summary
         added_count = len(results['added'])
         skipped_count = len(results['skipped'])
