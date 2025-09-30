@@ -239,18 +239,34 @@ Provider: FastVPN""",
             return False
 
     def test_enhanced_import_format_2(self):
-        """Test enhanced import API with Format 2: Single line with spaces"""
+        """Test enhanced import API with Format 2: Single line with spaces (CRITICAL - Recently Fixed!)"""
         import_data = {
-            "data": """192.168.2.100 MyPass123 vpnuser3 California
-192.168.2.101 SecretPass456 vpnuser4 Texas
-192.168.2.102 StrongPass789 vpnuser5 NewYork""",
-            "protocol": "ssh"
+            "data": """76.178.64.46 admin admin CA
+96.234.52.227 user1 pass1 NJ""",
+            "protocol": "pptp"
         }
         
         success, response = self.make_request('POST', 'nodes/import', import_data)
         
         if success and 'report' in response:
             report = response['report']
+            # Verify the field order is correct: IP Login Password State
+            if report.get('added', 0) >= 2:
+                # Get the nodes we just created to verify field order
+                nodes_success, nodes_response = self.make_request('GET', 'nodes?ip=76.178.64.46')
+                if nodes_success and 'nodes' in nodes_response and nodes_response['nodes']:
+                    node = nodes_response['nodes'][0]
+                    if (node.get('ip') == '76.178.64.46' and 
+                        node.get('login') == 'admin' and 
+                        node.get('password') == 'admin' and 
+                        node.get('state') == 'California'):
+                        self.log_test("Enhanced Import Format 2 (Field Order)", True, 
+                                     f"✅ CRITICAL FIX VERIFIED: IP Login Password State order correct")
+                    else:
+                        self.log_test("Enhanced Import Format 2 (Field Order)", False, 
+                                     f"❌ FIELD ORDER WRONG: Expected IP=76.178.64.46, Login=admin, Pass=admin, State=California, Got IP={node.get('ip')}, Login={node.get('login')}, Pass={node.get('password')}, State={node.get('state')}")
+                        return False
+            
             self.log_test("Enhanced Import Format 2", True, 
                          f"Added: {report.get('added', 0)}, Skipped: {report.get('skipped_duplicates', 0)}, Format Errors: {report.get('format_errors', 0)}")
             return True
