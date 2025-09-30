@@ -1104,7 +1104,7 @@ def create_verification_queue_entry(db: Session, node_data: dict, conflicting_no
         print(f"Error creating verification queue entry: {e}")
         return 0
 
-def process_parsed_nodes(db: Session, parsed_data: dict) -> dict:
+def process_parsed_nodes(db: Session, parsed_data: dict, testing_mode: str = "no_test") -> dict:
     """Process parsed nodes with IN-IMPORT and DB deduplication logic"""
     results = {
         "added": [],
