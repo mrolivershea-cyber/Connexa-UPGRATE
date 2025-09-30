@@ -700,5 +700,105 @@
       2584
     ],
     "status": "pending"
+  },
+  {
+    "id": 1759245592,
+    "timestamp": "2025-09-30T15:19:52.615197",
+    "node_data": {
+      "protocol": "pptp",
+      "status": "offline",
+      "ip": "96.234.52.227",
+      "login": "user1",
+      "password": "pass1",
+      "state": "New Jersey"
+    },
+    "conflicting_node_ids": [
+      2372
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759245592,
+    "timestamp": "2025-09-30T15:19:52.851332",
+    "node_data": {
+      "protocol": "pptp",
+      "status": "offline",
+      "ip": "96.234.52.227",
+      "login": "user1",
+      "password": "pass1",
+      "state": "New Jersey"
+    },
+    "conflicting_node_ids": [
+      2372
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759245592,
+    "timestamp": "2025-09-30T15:19:52.888980",
+    "node_data": {
+      "protocol": "pptp",
+      "status": "offline",
+      "ip": "96.42.187.97",
+      "login": "user",
+      "password": "pass",
+      "state": "Michigan",
+      "city": "Lapeer",
+      "zipcode": "48446"
+    },
+    "conflicting_node_ids": [
+      2374
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759245593,
+    "timestamp": "2025-09-30T15:19:53.001810",
+    "node_data": {
+      "protocol": "pptp",
+      "status": "offline",
+      "ip": "24.227.222.14",
+      "login": "testuser",
+      "password": "testpass",
+      "state": "Florida",
+      "city": "Miami",
+      "zipcode": "33101"
+    },
+    "conflicting_node_ids": [
+      505
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759245593,
+    "timestamp": "2025-09-30T15:19:53.122676",
+    "node_data": {
+      "protocol": "pptp",
+      "status": "offline",
+      "ip": "10.0.0.1",
+      "login": "admin",
+      "password": "pass1",
+      "state": "California"
+    },
+    "conflicting_node_ids": [
+      2345
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759245593,
+    "timestamp": "2025-09-30T15:19:53.123915",
+    "node_data": {
+      "protocol": "pptp",
+      "status": "offline",
+      "ip": "10.0.0.2",
+      "login": "user2",
+      "password": "pass2",
+      "state": "New York"
+    },
+    "conflicting_node_ids": [
+      2344
+    ],
+    "status": "pending"
   }
 ]
