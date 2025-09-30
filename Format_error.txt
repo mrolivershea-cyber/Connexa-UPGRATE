@@ -1,0 +1,19 @@
+
+
+=== Format Errors - 2025-09-30 11:36:06 ===
+1. Block 1: Location: Minnesota (Minneapolis)
+ZIP: 55401
+> PPTP_SVOIM_VPN:
+🚨 PPTP Connection
+
+
+=== Format Errors - 2025-09-30 11:36:20 ===
+1. Missing credentials in block 715: IP: 98.13.228.237
+
+
+=== Format Errors - 2025-09-30 11:36:20 ===
+1. Invalid IP in block 1: Credentials: admin:admin
+Location: New York (Bellerose Terrace)
+ZIP: 11418
+> PPTP_SVOIM_VPN:
+🚨 PPTP 
