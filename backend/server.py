@@ -257,6 +257,7 @@ async def import_nodes(
             "queued_for_verification": len(results['queued']),
             "format_errors": len(results['format_errors']),
             "processing_errors": len(results['errors']),
+            "testing_mode": data.testing_mode,
             "details": results
         }
         
