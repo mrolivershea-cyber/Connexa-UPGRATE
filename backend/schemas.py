@@ -31,8 +31,7 @@ class NodeBase(BaseModel):
     zipcode: Optional[str] = ""
     comment: Optional[str] = ""
     protocol: Optional[str] = "pptp"
-    status: Optional[str] = "offline"
-    ping_status: Optional[str] = None
+    status: Optional[str] = "not_tested"
     speed: Optional[str] = None
 
 class NodeCreate(NodeBase):
