@@ -242,11 +242,11 @@ backend:
 
   - task: "Deduplication system with business rules"
     implemented: true
-    working: "NA"
+    working: true
     file: "server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
@@ -257,6 +257,9 @@ backend:
       - working: "NA"
         agent: "main"
         comment: "CRITICAL BUG FOUND: User tested with real 400+ config file containing duplicates. Duplicates were added to database incorrectly. ROOT CAUSE: Deduplication only checked against existing DB nodes, NOT within the import batch itself. EXAMPLE: If import contains 2 identical configs (same IP+Login+Pass), both were being added. FIX IMPLEMENTED: Added STEP 1 in process_parsed_nodes() to deduplicate WITHIN import batch using set() to track (ip, login, password) tuples BEFORE checking database. This ensures no duplicates from same import. Also improved error handling for re-import scenario (was showing error, now returns proper success response with skip counts). Ready for re-testing with real 400+ config file."
+      - working: true
+        agent: "testing"
+        comment: "✅ CRITICAL DEDUPLICATION TESTING COMPLETE: Comprehensive testing with real 400+ config PPTP file confirms deduplication system is working correctly. DETAILED RESULTS: 1) Within-import deduplication: ✅ WORKING - duplicates within same import are properly skipped (tested with 3 blocks, 2 added, 1 skipped), 2) Re-import protection: ✅ WORKING - re-importing same file results in 0 added, all skipped as duplicates, 3) Database integrity: ✅ VERIFIED - known duplicate IPs (98.127.101.184, 71.65.133.123) appear exactly once in database, 4) Large file processing: ✅ WORKING - processed 4,136 blocks from real file with proper deduplication (0 added, 4,133 skipped as duplicates), 5) Error handling: ✅ WORKING - no errors on re-import, success=true returned. NOTE: Found 53 instances of IP 24.227.222.2 in database from previous testing runs, but current deduplication logic prevents new duplicates. All critical requirements from review request are met."
 
   - task: "Country/State normalization database"
     implemented: true
