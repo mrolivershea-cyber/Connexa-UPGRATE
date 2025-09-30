@@ -464,13 +464,6 @@ const AdminPanel = () => {
           </Card>
         </div>
 
-        {/* Stats Summary */}
-        <div className="flex justify-end items-center mb-6">
-          <div>
-            <span className="text-sm text-gray-600">Total nodes: {stats.total || 0}</span>
-          </div>
-        </div>
-
         {/* Filters */}
         <Card className="mb-6">
           <CardHeader>
