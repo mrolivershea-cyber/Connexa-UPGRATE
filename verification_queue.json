@@ -515,5 +515,73 @@
       2344
     ],
     "status": "pending"
+  },
+  {
+    "id": 1759234696,
+    "timestamp": "2025-09-30T12:18:16.419005",
+    "node_data": {
+      "protocol": "pptp",
+      "status": "offline",
+      "ip": "192.168.101.96",
+      "login": "newuser",
+      "password": "newpass456",
+      "state": "California",
+      "city": "San Francisco"
+    },
+    "conflicting_node_ids": [
+      2577
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759234696,
+    "timestamp": "2025-09-30T12:18:16.497762",
+    "node_data": {
+      "protocol": "pptp",
+      "status": "offline",
+      "ip": "192.168.102.96",
+      "login": "conflictuser",
+      "password": "conflictpass456",
+      "state": "New York",
+      "city": "New York"
+    },
+    "conflicting_node_ids": [
+      2578
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759234696,
+    "timestamp": "2025-09-30T12:18:16.575762",
+    "node_data": {
+      "protocol": "pptp",
+      "status": "offline",
+      "ip": "192.168.103.96",
+      "login": "queueuser2",
+      "password": "queuepass456",
+      "state": "Oregon",
+      "city": "Portland"
+    },
+    "conflicting_node_ids": [
+      2579
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759234696,
+    "timestamp": "2025-09-30T12:18:16.656935",
+    "node_data": {
+      "protocol": "pptp",
+      "status": "offline",
+      "ip": "74.125.224.72",
+      "login": "different_user",
+      "password": "DifferentPass789",
+      "state": "New York",
+      "city": "New York"
+    },
+    "conflicting_node_ids": [
+      2583
+    ],
+    "status": "pending"
   }
 ]
