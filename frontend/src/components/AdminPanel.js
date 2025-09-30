@@ -45,7 +45,6 @@ const AdminPanel = () => {
   const [totalPages, setTotalPages] = useState(1);
   
   // Modals
-  const [showAddModal, setShowAddModal] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
   const [showOptionsModal, setShowOptionsModal] = useState(false);
