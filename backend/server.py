@@ -1690,9 +1690,18 @@ async def create_node_with_test(
             test_result = {"ping": ping_result}
             
         elif test_type == "speed":
-            # Speed test without connection (using default interface)
-            speed_result = await network_tester.speed_test()
-            db_node.status = "online" if speed_result['success'] else "degraded"
+            # Speed test only if current status allows it
+            if db_node.status in ["ping_ok", "speed_ok", "speed_slow", "online"]:
+                speed_result = await network_tester.speed_test()
+                if speed_result['success'] and speed_result.get('download_speed'):
+                    if speed_result['download_speed'] > 1.0:
+                        db_node.status = "speed_ok"
+                    else:
+                        db_node.status = "speed_slow"
+                else:
+                    db_node.status = "ping_ok"  # Keep ping status if speed test fails
+            else:
+                speed_result = {"success": False, "error": "Ping test required first"}
             test_result = {"speed": speed_result}
             
         else:  # both
