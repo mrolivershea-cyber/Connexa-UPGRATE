@@ -104,7 +104,8 @@ vpn2.example.com:443:client2:pass456:GB:London:`
     try {
       const response = await axios.post(`${API}/nodes/import`, {
         data: importData,
-        protocol
+        protocol,
+        testing_mode: testingMode
       });
       
       if (response.data.success) {
