@@ -7,7 +7,7 @@ from datetime import datetime
 from typing import Dict, Any, List
 
 class PingStatusTester:
-    def __init__(self, base_url="https://configimport.preview.emergentagent.com"):
+    def __init__(self, base_url="https://proxy-mgmt-ui.preview.emergentagent.com"):
         self.base_url = base_url
         self.api_url = f"{base_url}/api"
         self.token = None

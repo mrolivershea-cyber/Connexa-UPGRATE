@@ -97,7 +97,7 @@ base_url=https://demobackend.emergentagent.com
 code_server_password=585c01c7
 integration_proxy_url=https://integrations.emergentagent.com
 monitor_polling_interval=1
-preview_endpoint=https://configimport.preview.emergentagent.com
+preview_endpoint=https://proxy-mgmt-ui.preview.emergentagent.com
 run_id=configimport for the current import batch, followed by a database query to check against existing records.
 - **Process Management**: backend                          RUNNING   pid 41, uptime 0:00:02
 code-server                      RUNNING   pid 43, uptime 0:00:02
