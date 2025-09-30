@@ -1,8 +1,8 @@
 {
-  "timestamp": "2025-09-30T11:03:55.627973",
-  "total_tests": 51,
-  "passed_tests": 41,
-  "success_rate": 80.3921568627451,
+  "timestamp": "2025-09-30T11:10:34.410202",
+  "total_tests": 52,
+  "passed_tests": 45,
+  "success_rate": 86.53846153846155,
   "test_details": [
     {
       "test": "Health Check",
@@ -25,25 +25,25 @@
     {
       "test": "Get Nodes",
       "success": true,
-      "details": "Found 41 nodes",
+      "details": "Found 9 nodes",
       "response_data": null
     },
     {
       "test": "Get Statistics",
       "success": true,
-      "details": "Total: 41, Online: 0",
+      "details": "Total: 9, Online: 0",
       "response_data": null
     },
     {
       "test": "Create Node",
       "success": true,
-      "details": "Created node with ID: 44",
+      "details": "Created node with ID: 10",
       "response_data": null
     },
     {
       "test": "Update Node",
       "success": true,
-      "details": "Updated node 44",
+      "details": "Updated node 10",
       "response_data": null
     },
     {
@@ -67,31 +67,31 @@
     {
       "test": "Import Nodes (Legacy)",
       "success": true,
-      "details": "Created: 1, Duplicates: 1",
+      "details": "Created: 2, Duplicates: 0",
       "response_data": null
     },
     {
       "test": "Enhanced Import Format 1",
       "success": true,
-      "details": "Added: 0, Skipped: 1, Format Errors: 0",
+      "details": "Added: 2, Skipped: 0, Format Errors: 0",
       "response_data": null
     },
     {
       "test": "Enhanced Import Format 2",
       "success": true,
-      "details": "Added: 0, Skipped: 2, Format Errors: 0",
+      "details": "Added: 0, Skipped: 1, Format Errors: 0",
       "response_data": null
     },
     {
       "test": "Enhanced Import Format 3",
       "success": true,
-      "details": "Added: 1, Skipped: 1, Format Errors: 0",
+      "details": "Added: 2, Skipped: 0, Format Errors: 0",
       "response_data": null
     },
     {
       "test": "Enhanced Import Format 4",
       "success": true,
-      "details": "Added: 0, Skipped: 1, Format Errors: 0",
+      "details": "Added: 3, Skipped: 0, Format Errors: 0",
       "response_data": null
     },
     {
@@ -109,7 +109,7 @@
     {
       "test": "Comprehensive Parser Format 1",
       "success": false,
-      "details": "No nodes added: {'total_processed': 1, 'successfully_parsed': 1, 'added': 0, 'skipped_duplicates': 1, 'replaced_old': 0, 'queued_for_verification': 0, 'format_errors': 0, 'processing_errors': 0, 'testing_mode': 'ping_only', 'details': {'added': [], 'skipped': [{'ip': '144.229.29.35', 'existing_id': 1, 'reason': 'duplicate'}], 'replaced': [], 'queued': [], 'errors': [], 'format_errors': []}}",
+      "details": "No nodes added: {'total_processed': 1, 'successfully_parsed': 1, 'added': 0, 'skipped_duplicates': 1, 'replaced_old': 0, 'queued_for_verification': 0, 'format_errors': 0, 'processing_errors': 0, 'testing_mode': 'ping_only', 'details': {'added': [], 'skipped': [{'ip': '144.229.29.35', 'existing_id': 2, 'reason': 'duplicate'}], 'replaced': [], 'queued': [], 'errors': [], 'format_errors': []}}",
       "response_data": null
     },
     {
@@ -126,32 +126,32 @@
     },
     {
       "test": "Comprehensive Parser Format 4",
-      "success": false,
-      "details": "No nodes added: {'total_processed': 1, 'successfully_parsed': 1, 'added': 0, 'skipped_duplicates': 1, 'replaced_old': 0, 'queued_for_verification': 0, 'format_errors': 0, 'processing_errors': 0, 'testing_mode': 'ping_only', 'details': {'added': [], 'skipped': [{'ip': '70.171.218.52', 'existing_id': 15, 'reason': 'duplicate'}], 'replaced': [], 'queued': [], 'errors': [], 'format_errors': []}}",
+      "success": true,
+      "details": "\u2705 All 6 fields parsed correctly: IP, Login, Password, Country, State, Zip",
       "response_data": null
     },
     {
       "test": "Comprehensive Parser Format 5",
       "success": false,
-      "details": "No nodes added: {'total_processed': 1, 'successfully_parsed': 1, 'added': 0, 'skipped_duplicates': 1, 'replaced_old': 0, 'queued_for_verification': 0, 'format_errors': 0, 'processing_errors': 0, 'testing_mode': 'ping_only', 'details': {'added': [], 'skipped': [{'ip': '24.227.222.13', 'existing_id': 23, 'reason': 'duplicate'}], 'replaced': [], 'queued': [], 'errors': [], 'format_errors': []}}",
+      "details": "No nodes added: {'total_processed': 1, 'successfully_parsed': 1, 'added': 0, 'skipped_duplicates': 1, 'replaced_old': 0, 'queued_for_verification': 0, 'format_errors': 0, 'processing_errors': 0, 'testing_mode': 'ping_only', 'details': {'added': [], 'skipped': [{'ip': '24.227.222.13', 'existing_id': 7, 'reason': 'duplicate'}], 'replaced': [], 'queued': [], 'errors': [], 'format_errors': []}}",
       "response_data": null
     },
     {
       "test": "Comprehensive Parser Format 6",
-      "success": false,
-      "details": "No nodes added: {'total_processed': 1, 'successfully_parsed': 1, 'added': 0, 'skipped_duplicates': 1, 'replaced_old': 0, 'queued_for_verification': 0, 'format_errors': 0, 'processing_errors': 0, 'testing_mode': 'ping_only', 'details': {'added': [], 'skipped': [{'ip': '24.227.222.14', 'existing_id': 26, 'reason': 'duplicate'}], 'replaced': [], 'queued': [], 'errors': [], 'format_errors': []}}",
+      "success": true,
+      "details": "\u2705 First 2 lines ignored, remaining parsed correctly",
       "response_data": null
     },
     {
       "test": "Comprehensive Edge Cases Comments",
-      "success": false,
-      "details": "\u274c Expected 2 nodes, got 0. Comments not properly filtered",
+      "success": true,
+      "details": "\u2705 Comment lines (# and //) skipped, empty lines ignored, 2 nodes created, inline comments removed",
       "response_data": null
     },
     {
       "test": "Comprehensive Mixed Formats",
       "success": false,
-      "details": "\u274c Expected 3 nodes from mixed formats, got 0",
+      "details": "\u274c Expected 3 nodes from mixed formats, got 1",
       "response_data": null
     },
     {
@@ -163,13 +163,19 @@
     {
       "test": "Comprehensive Format Errors",
       "success": false,
-      "details": "\u274c Expected 1 node + 2 errors, got 0 nodes + 0 errors",
+      "details": "\u274c Expected 1 node + 2 errors, got 1 nodes + 0 errors",
+      "response_data": null
+    },
+    {
+      "test": "CRITICAL - Format 4 Block Splitting Fix",
+      "success": true,
+      "details": "\u2705 SUCCESS: All 10 nodes created correctly. Format 4 node (70.171.218.52) found with correct details: login=admin, password=admin, state=Arizona. Block splitting logic fixed!",
       "response_data": null
     },
     {
       "test": "CRITICAL - Real User Data Mixed Formats",
       "success": false,
-      "details": "\u274c CRITICAL ISSUE: Only 2 nodes created, expected 10. Smart parser failed to handle mixed formats correctly.",
+      "details": "\u274c CRITICAL ISSUE: Only 0 nodes created, expected 10. Smart parser failed to handle mixed formats correctly.",
       "response_data": null
     },
     {
@@ -199,7 +205,7 @@
     {
       "test": "Get Nodes",
       "success": true,
-      "details": "Found 57 nodes",
+      "details": "Found 38 nodes",
       "response_data": null
     },
     {
@@ -229,13 +235,13 @@
     {
       "test": "Single Node Service Start",
       "success": true,
-      "details": "Service start attempted for node 44",
+      "details": "Service start attempted for node 10",
       "response_data": null
     },
     {
       "test": "Single Node Service Stop",
       "success": true,
-      "details": "Service stop attempted for node 44",
+      "details": "Service stop attempted for node 10",
       "response_data": null
     },
     {
@@ -259,13 +265,13 @@
     {
       "test": "Single Node Test",
       "success": true,
-      "details": "Single node test completed for node 44",
+      "details": "Single node test completed for node 10",
       "response_data": null
     },
     {
       "test": "Delete Node",
       "success": true,
-      "details": "Deleted node 44",
+      "details": "Deleted node 10",
       "response_data": null
     },
     {
@@ -277,13 +283,13 @@
     {
       "test": "Autocomplete Countries",
       "success": true,
-      "details": "Found 2 items",
+      "details": "Found 3 items",
       "response_data": null
     },
     {
       "test": "Autocomplete States",
       "success": true,
-      "details": "Found 8 items",
+      "details": "Found 9 items",
       "response_data": null
     },
     {
@@ -295,7 +301,7 @@
     {
       "test": "Autocomplete Providers",
       "success": true,
-      "details": "Found 6 items",
+      "details": "Found 7 items",
       "response_data": null
     },
     {
