@@ -257,16 +257,37 @@ vpn2.example.com:443:client2:pass456:GB:London:`
         </div>
 
         <DialogFooter>
-          <Button type="button" variant="outline" onClick={onClose}>
-            Отмена
-          </Button>
-          <Button 
-            onClick={handleImport}
-            disabled={loading || !importData.trim()}
-            data-testid="import-btn"
-          >
-            {loading ? 'Импорт...' : 'Импортировать узлы'}
-          </Button>
+          <div className="flex items-center justify-between w-full">
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2">
+                <Label className="text-sm">Режим тестирования:</Label>
+                <Select value={testingMode} onValueChange={setTestingMode}>
+                  <SelectTrigger className="w-[180px]" data-testid="testing-mode-select">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="ping_only">Ping only</SelectItem>
+                    <SelectItem value="speed_only">Speed only</SelectItem>
+                    <SelectItem value="ping_speed">Ping + Speed</SelectItem>
+                    <SelectItem value="no_test">No test</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            
+            <div className="flex space-x-2">
+              <Button type="button" variant="outline" onClick={onClose}>
+                Отмена
+              </Button>
+              <Button 
+                onClick={handleImport}
+                disabled={loading || !importData.trim()}
+                data-testid="import-btn"
+              >
+                {loading ? 'Импорт...' : 'Импортировать узлы'}
+              </Button>
+            </div>
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>
