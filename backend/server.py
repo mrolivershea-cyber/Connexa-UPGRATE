@@ -1212,8 +1212,12 @@ def process_parsed_nodes(db: Session, parsed_data: dict, testing_mode: str = "no
                 })
             
             elif dup_result["action"] == "replace":
-                # Create new node (old ones already deleted)
-                new_node = Node(**node_data)
+                # Create new node (old ones already deleted) - ensure default status is not_tested
+                node_data_with_defaults = {**node_data}
+                if 'status' not in node_data_with_defaults:
+                    node_data_with_defaults['status'] = 'not_tested'
+                
+                new_node = Node(**node_data_with_defaults)
                 db.add(new_node)
                 db.flush()
                 results["replaced"].append({
