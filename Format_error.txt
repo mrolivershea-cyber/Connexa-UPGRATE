@@ -10,3 +10,55 @@ ZIP: 78701
 === Format Errors - 2025-09-30 10:47:38 ===
 1. Block 1: invalid line without proper format
 another bad line
+
+
+=== Format Errors - 2025-09-30 10:48:14 ===
+1. Invalid IP in block 1: Ip: 144.229.294.35
+Login: admin
+Pass: admin
+State: California
+City: Los Angeles
+Zip: 90035
+
+
+=== Format Errors - 2025-09-30 10:48:14 ===
+1. Block 1: 76.178.294.46 admin admin CA
+96.234.294.227 user1 pass1 NJ
+
+
+=== Format Errors - 2025-09-30 10:48:14 ===
+1. Invalid IP in block 1: 68.227.294.4 - admin:admin - Arizona/Phoenix 85001 | 2025-09-03 16:05:25
+96.42.294.97 - user:pass - 
+
+
+=== Format Errors - 2025-09-30 10:48:14 ===
+1. Invalid IP in block 1: 70.171.294.52:admin:admin:US:Arizona:85001
+
+
+=== Format Errors - 2025-09-30 10:48:15 ===
+1. Invalid IP in block 1: IP: 24.227.294.13
+Credentials: admin:admin
+Location: Texas (Austin)
+ZIP: 78701
+
+
+=== Format Errors - 2025-09-30 10:48:15 ===
+1. Invalid IP in block 1: > PPTP_SVOIM_VPN:
+🚨 PPTP Connection
+IP: 24.227.294.14
+Credentials: testuser:testpass
+Location: Flori
+
+
+=== Format Errors - 2025-09-30 10:48:15 ===
+1. Block 1: 76.178.294.50 admin password TX
+96.234.294.230 user pass CA
+
+
+=== Format Errors - 2025-09-30 10:48:15 ===
+1. Invalid IP in block 1: Ip: 10.0.294.1
+Login: admin
+Pass: pass1
+State: CA
+2. Block 2: 10.0.294.2 user2 pass2 NY
+3. Invalid IP in block 3: 10.0.294.3:admin:admin:US:Texas:78701
