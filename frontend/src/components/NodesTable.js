@@ -448,7 +448,7 @@ const NodesTable = ({ nodes, selectedNodes, onSelectNode, onNodeUpdated, loading
                   </td>
                   <td colSpan={3}></td>
                 </tr>
-              </React.Fragment>
+              </Fragment>
             ))}
           </tbody>
         </table>
