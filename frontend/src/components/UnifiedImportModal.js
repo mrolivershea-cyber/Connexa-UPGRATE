@@ -220,65 +220,65 @@ vpn2.example.com:443:client2:pass456:GB:London:`
               </CardContent>
             </Card>
 
-            {/* Preview Results */}
-            {showPreview && previewResult && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-sm">Результаты импорта</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-sm">
-                    <div className="text-center">
-                      <div className="text-xl font-bold text-green-600">{previewResult.added || 0}</div>
-                      <div className="text-xs text-gray-600">Добавлено</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-xl font-bold text-yellow-600">{previewResult.skipped_duplicates || 0}</div>
-                      <div className="text-xs text-gray-600">Дубликатов</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-xl font-bold text-blue-600">{previewResult.replaced_old || 0}</div>
-                      <div className="text-xs text-gray-600">Заменено</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-xl font-bold text-purple-600">{previewResult.queued_for_verification || 0}</div>
-                      <div className="text-xs text-gray-600">В очереди</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-xl font-bold text-red-600">{previewResult.format_errors || 0}</div>
-                      <div className="text-xs text-gray-600">Ошибок</div>
+          {/* Preview Results */}
+          {showPreview && previewResult && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-sm">Результаты импорта</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-sm">
+                  <div className="text-center">
+                    <div className="text-xl font-bold text-green-600">{previewResult.added || 0}</div>
+                    <div className="text-xs text-gray-600">Добавлено</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-xl font-bold text-yellow-600">{previewResult.skipped_duplicates || 0}</div>
+                    <div className="text-xs text-gray-600">Дубликатов</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-xl font-bold text-blue-600">{previewResult.replaced_old || 0}</div>
+                    <div className="text-xs text-gray-600">Заменено</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-xl font-bold text-purple-600">{previewResult.queued_for_verification || 0}</div>
+                    <div className="text-xs text-gray-600">В очереди</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-xl font-bold text-red-600">{previewResult.format_errors || 0}</div>
+                    <div className="text-xs text-gray-600">Ошибок</div>
+                  </div>
+                </div>
+                
+                {previewResult.processing_errors > 0 && (
+                  <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded">
+                    <h4 className="font-medium text-red-600 mb-2">Ошибок обработки: {previewResult.processing_errors}</h4>
+                    <div className="text-xs text-red-600">
+                      Проверьте журнал ошибок формата для деталей.
                     </div>
                   </div>
-                  
-                  {previewResult.processing_errors > 0 && (
-                    <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded">
-                      <h4 className="font-medium text-red-600 mb-2">Ошибок обработки: {previewResult.processing_errors}</h4>
-                      <div className="text-xs text-red-600">
-                        Проверьте журнал ошибок формата для деталей.
-                      </div>
-                    </div>
-                  )}
-                  
-                  <div className="mt-4 text-xs text-gray-600">
-                    <strong>Сводка:</strong> Обработано {previewResult.total_processed} блоков, успешно распознано {previewResult.successfully_parsed}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={onClose}>
-              Отмена
-            </Button>
-            <Button 
-              onClick={handleImport}
-              disabled={loading || !importData.trim()}
-              data-testid="import-btn"
-            >
-              {loading ? 'Импорт...' : 'Импортировать узлы'}
-            </Button>
-          </DialogFooter>
+                )}
+                
+                <div className="mt-4 text-xs text-gray-600">
+                  <strong>Сводка:</strong> Обработано {previewResult.total_processed} блоков, успешно распознано {previewResult.successfully_parsed}
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
+
+        <DialogFooter>
+          <Button type="button" variant="outline" onClick={onClose}>
+            Отмена
+          </Button>
+          <Button 
+            onClick={handleImport}
+            disabled={loading || !importData.trim()}
+            data-testid="import-btn"
+          >
+            {loading ? 'Импорт...' : 'Импортировать узлы'}
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
