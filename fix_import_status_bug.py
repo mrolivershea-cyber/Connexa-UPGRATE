@@ -13,7 +13,8 @@ User reported: 2,336 nodes with 2,332 having 'online' status (should be 'not_tes
 
 import sys
 import os
-sys.path.append(os.path.join(os.path.dirname(__file__), 'backend'))
+# Ensure we use the backend directory's database
+os.chdir(os.path.join(os.path.dirname(__file__), 'backend'))
 
 from database import get_db, Node
 from collections import Counter
