@@ -1347,29 +1347,25 @@ async def get_stats(
     db: Session = Depends(get_db)
 ):
     total_nodes = db.query(Node).count()
-    online_nodes = db.query(Node).filter(Node.status == "online").count()
-    offline_nodes = db.query(Node).filter(Node.status == "offline").count()
-    checking_nodes = db.query(Node).filter(Node.status == "checking").count()
-    degraded_nodes = db.query(Node).filter(Node.status == "degraded").count()
-    needs_review_nodes = db.query(Node).filter(Node.status == "needs_review").count()
-    reconnecting_nodes = db.query(Node).filter(Node.status == "reconnecting").count()
     
-    # PING status statistics
-    ping_success_nodes = db.query(Node).filter(Node.ping_status == "ping_success").count()
-    ping_failed_nodes = db.query(Node).filter(Node.ping_status == "ping_failed").count()
-    ping_not_tested_nodes = db.query(Node).filter(Node.ping_status.is_(None)).count()
+    # Unified status statistics
+    not_tested_nodes = db.query(Node).filter(Node.status == "not_tested").count()
+    ping_failed_nodes = db.query(Node).filter(Node.status == "ping_failed").count()
+    ping_ok_nodes = db.query(Node).filter(Node.status == "ping_ok").count()
+    speed_slow_nodes = db.query(Node).filter(Node.status == "speed_slow").count()
+    speed_ok_nodes = db.query(Node).filter(Node.status == "speed_ok").count()
+    offline_nodes = db.query(Node).filter(Node.status == "offline").count()
+    online_nodes = db.query(Node).filter(Node.status == "online").count()
     
     return {
         "total": total_nodes,
-        "online": online_nodes,
-        "offline": offline_nodes,
-        "checking": checking_nodes,
-        "degraded": degraded_nodes,
-        "needs_review": needs_review_nodes,
-        "reconnecting": reconnecting_nodes,
-        "ping_success": ping_success_nodes,
+        "not_tested": not_tested_nodes,
         "ping_failed": ping_failed_nodes,
-        "ping_not_tested": ping_not_tested_nodes,
+        "ping_ok": ping_ok_nodes,
+        "speed_slow": speed_slow_nodes,
+        "speed_ok": speed_ok_nodes,
+        "offline": offline_nodes,
+        "online": online_nodes,
         "by_protocol": {
             "pptp": db.query(Node).filter(Node.protocol == "pptp").count(),
             "ssh": db.query(Node).filter(Node.protocol == "ssh").count(),
