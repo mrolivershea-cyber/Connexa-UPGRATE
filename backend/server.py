@@ -567,25 +567,100 @@ def parse_format_1(block: str, node_data: dict) -> dict:
     """Format 1: Ip: xxx, Login: xxx, Pass: xxx, State: xxx, City: xxx, Zip: xxx"""
     lines = block.split('\n')
     for line in lines:
-        if ':' in line:
-            key, value = line.split(':', 1)
-            key, value = key.strip().lower(), value.strip()
-            if key in ['ip', 'host']:
-                node_data['ip'] = value
-            elif key == 'login':
-                node_data['login'] = value
-            elif key in ['pass', 'password']:
-                node_data['password'] = value
-            elif key == 'state':
-                node_data['state'] = value
-            elif key == 'city':
-                node_data['city'] = value
-            elif key in ['zip', 'zipcode']:
-                node_data['zipcode'] = value
-            elif key == 'country':
-                node_data['country'] = value
-            elif key == 'provider':
-                node_data['provider'] = value
+        if ':' not in line:
+            continue
+        
+        # Split only on first colon to handle values with colons
+        parts = line.split(':', 1)
+        if len(parts) < 2:
+            continue
+            
+        key = parts[0].strip().lower()
+        value = parts[1].strip()
+        
+        # Remove extra text after IP (e.g., "71.84.237.32 a_reg_107" -> "71.84.237.32")
+        if key in ['ip', 'host']:
+            # Extract only the IP part (first word if multiple words)
+            ip_match = re.match(r'(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})', value)
+            if ip_match:
+                node_data['ip'] = ip_match.group(1)
+            else:
+                # Just take first word
+                node_data['ip'] = value.split()[0] if value else value
+        elif key == 'login':
+            node_data['login'] = value
+        elif key in ['pass', 'password']:
+            node_data['password'] = value
+        elif key == 'state':
+            node_data['state'] = value
+        elif key == 'city':
+            node_data['city'] = value
+        elif key in ['zip', 'zipcode']:
+            node_data['zipcode'] = value
+        elif key == 'country':
+            node_data['country'] = value
+        elif key == 'provider':
+            node_data['provider'] = value
+    
+    return node_data
+
+def parse_with_smart_regex(block: str, node_data: dict) -> dict:
+    """Smart regex-based parser as fallback when format detection fails"""
+    # Try to extract IP address
+    ip_pattern = r'\b(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\b'
+    ip_match = re.search(ip_pattern, block)
+    if ip_match:
+        node_data['ip'] = ip_match.group(1)
+    
+    # Try to extract login and password
+    # Pattern 1: "Login: xxx" and "Pass: xxx"
+    login_match = re.search(r'(?:Login|login|USERNAME|username):\s*(\S+)', block)
+    if login_match:
+        node_data['login'] = login_match.group(1)
+    
+    pass_match = re.search(r'(?:Pass|pass|Password|password|PASS):\s*(\S+)', block)
+    if pass_match:
+        node_data['password'] = pass_match.group(1)
+    
+    # Pattern 2: "Credentials: login:password"
+    cred_match = re.search(r'Credentials:\s*(\S+):(\S+)', block)
+    if cred_match:
+        node_data['login'] = cred_match.group(1)
+        node_data['password'] = cred_match.group(2)
+    
+    # Pattern 3: Space-separated "IP login password state"
+    if not node_data.get('login') and node_data.get('ip'):
+        # Try to find login/pass after IP
+        parts = block.split()
+        for i, part in enumerate(parts):
+            if part == node_data['ip'] and i + 2 < len(parts):
+                node_data['login'] = parts[i + 1]
+                node_data['password'] = parts[i + 2]
+                if i + 3 < len(parts):
+                    node_data['state'] = parts[i + 3]
+                break
+    
+    # Try to extract state
+    state_match = re.search(r'(?:State|state|STATE):\s*(\S+)', block)
+    if state_match:
+        node_data['state'] = state_match.group(1)
+    
+    # Try to extract city
+    city_match = re.search(r'(?:City|city|CITY):\s*([^\n]+)', block)
+    if city_match:
+        node_data['city'] = city_match.group(1).strip()
+    
+    # Try to extract ZIP
+    zip_match = re.search(r'(?:Zip|ZIP|zipcode|Zipcode):\s*(\d{5})', block)
+    if zip_match:
+        node_data['zipcode'] = zip_match.group(1)
+    
+    # Try to extract Location: "State (City)"
+    location_match = re.search(r'Location:\s*([^(]+)\(([^)]+)\)', block)
+    if location_match:
+        node_data['state'] = location_match.group(1).strip()
+        node_data['city'] = location_match.group(2).strip()
+    
     return node_data
 
 def parse_format_2(block: str, node_data: dict) -> dict:
