@@ -1368,6 +1368,11 @@ ZIP: 78701"""
         self.test_comprehensive_deduplication_logic()
         self.test_comprehensive_format_errors()
         
+        # CRITICAL TEST - Real User Data (Review Request)
+        print("\n🚨 CRITICAL TEST - Real User Data with Multiple Configs")
+        print("=" * 60)
+        self.test_critical_real_user_data_mixed_formats()
+        
         # Test deduplication and normalization
         print("\n🔄 Testing Deduplication and Normalization...")
         self.test_deduplication_logic()
