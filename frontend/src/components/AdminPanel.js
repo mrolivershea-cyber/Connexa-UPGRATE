@@ -448,15 +448,6 @@ const AdminPanel = () => {
                 <X className="h-4 w-4 mr-2" />
                 Reset
               </Button>
-              <div className="flex items-center space-x-2">
-                <Checkbox 
-                  id="only-online" 
-                  checked={filters.only_online}
-                  onCheckedChange={(checked) => handleFilterChange('only_online', checked)}
-                  data-testid="only-online-checkbox"
-                />
-                <label htmlFor="only-online" className="text-sm font-medium">Only Online</label>
-              </div>
               
               {/* Start/Stop Services Buttons */}
               <div className="flex gap-2 ml-4 pl-4 border-l border-gray-300">
@@ -477,6 +468,21 @@ const AdminPanel = () => {
                 >
                   <Square className="h-4 w-4 mr-2" />
                   Stop Services
+                </Button>
+                <Button 
+                  onClick={() => setShowImportModal(true)}
+                  data-testid="import-btn"
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  Import
+                </Button>
+                <Button 
+                  variant="outline" 
+                  onClick={() => setShowTestingModal(true)}
+                  data-testid="testing-btn"
+                >
+                  <Activity className="h-4 w-4 mr-2" />
+                  Testing
                 </Button>
               </div>
             </div>
