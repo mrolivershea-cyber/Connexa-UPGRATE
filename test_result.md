@@ -406,6 +406,66 @@ frontend:
         agent: "testing"
         comment: "✅ COMPREHENSIVE TESTING COMPLETE: All functionality working perfectly. 1) Login Process: Successfully logged in with admin/admin credentials, 2) Import Button Access: 'Импорт' button visible and clickable on main admin panel, 3) Import Modal Opens: UnifiedImportModal opens correctly with proper title 'Импорт узлов', 4) Testing Mode Selector: All 4 options available (Ping only, Speed only, Ping + Speed, No test), default value 'Ping only' correctly set, dropdown functionality working perfectly with proper option selection, 5) Formats Block Removal: CONFIRMED - 'Поддерживаемые форматы импорта' card block completely removed from modal, 6) Modal Layout: Testing mode selector properly positioned in footer next to 'Импортировать узлы' button, 7) Backend Integration: CONFIRMED - testing_mode parameter correctly sent to backend (tested 'speed_only' and 'ping_speed' values), import functionality working with proper API calls to /api/nodes/import endpoint. All requirements successfully implemented and tested."
 
+  - task: "Relocate Import and Testing buttons to Filters block"
+    implemented: true
+    working: "NA"
+    file: "AdminPanel.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Removed Import and Testing buttons from top 'Actions' section. Moved both buttons into Filters block, positioned after Stop Services button. Import button shows 'Import' text with Download icon, Testing button shows 'Testing' text with Activity icon. Both buttons maintain full functionality and are now properly positioned within the Filters card as requested."
+
+  - task: "Remove Only Online checkbox from Filters"
+    implemented: true
+    working: "NA"
+    file: "AdminPanel.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Removed 'Only Online' checkbox and its associated label from the Filters section. The checkbox was previously positioned between Reset button and Start Services, and has been completely removed from the UI. Filter state still contains only_online field for backward compatibility, but UI control is removed as requested."
+
+  - task: "Add Speed column to nodes table"
+    implemented: true
+    working: "NA"
+    file: "NodesTable.js, database.py, schemas.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Added Speed column to table header and data rows, positioned immediately after Status column. Column displays speed value in Mbps format when available (e.g., '25 Mbps'), or '-' when no speed data exists. Backend support added: speed field added to Node model in database.py, NodeBase and NodeUpdate schemas in schemas.py, and database table (ALTER TABLE nodes ADD COLUMN speed VARCHAR(20)). Speed data will be populated when connections are tested."
+
+  - task: "Modify Status column to show only indicator"
+    implemented: true
+    working: "NA"
+    file: "NodesTable.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Modified getStatusBadge function to display only emoji indicator without text label. Status column now shows: 🟢 for online, 🔴 for offline, 🟡 for checking, 🟠 for degraded, ⚪ for needs_review, 🔁 for reconnecting. Text labels moved to title attribute for tooltip on hover. This provides cleaner, more compact status display while preserving information accessibility."
+
+  - task: "Reduce table column spacing for compact view"
+    implemented: true
+    working: "NA"
+    file: "NodesTable.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Reduced table column padding from px-6 py-4 to px-2 py-3 for both header and data cells. This creates more compact table layout and reduces need for horizontal scrolling. Also optimized button sizes in password column (added h-6 w-6 p-0 classes) and SOCKS column (reduced text size and padding) for better space utilization. Table now displays more data in viewport without scrolling."
+
 metadata:
   created_by: "main_agent"
   version: "1.0"
