@@ -317,7 +317,7 @@ const NodesTable = ({ nodes, selectedNodes, onSelectNode, onNodeUpdated, loading
           </thead>
           <tbody className="bg-white">
             {nodes.map((node, index) => (
-              <React.Fragment key={node.id}>
+              <Fragment key={node.id}>
                 {/* First Row: Main Information */}
                 <tr className={`${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'} hover:bg-blue-50 border-b border-gray-100`} data-testid={`node-row-${node.id}`}>
                   <td className="px-2 py-2 whitespace-nowrap" rowSpan={2}>
