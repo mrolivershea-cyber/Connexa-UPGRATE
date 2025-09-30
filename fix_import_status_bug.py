@@ -64,37 +64,31 @@ def main():
         for i, node in enumerate(incorrectly_online_nodes[:5]):
             print(f"  {i+1}. {node.ip} - Status: {node.status}, Last Check: {node.last_check}, Created: {node.created_at}")
         
-        # Ask for confirmation
-        print(f"\nThis will change {len(incorrectly_online_nodes)} nodes from 'online' to 'not_tested'")
+        # Automatic fix for non-interactive environment
+        print(f"\nAutomatically fixing {len(incorrectly_online_nodes)} nodes from 'online' to 'not_tested'")
         print("These appear to be nodes that were incorrectly assigned 'online' status during import.")
         print("Nodes with actual test history will remain 'online'.")
         
-        confirm = input("\nProceed with status fix? (y/N): ").lower().strip()
+        print("\nFixing node statuses...")
+        fixed_count = 0
+        for node in incorrectly_online_nodes:
+            node.status = 'not_tested'
+            fixed_count += 1
+            if fixed_count % 100 == 0:
+                print(f"  Fixed {fixed_count}/{len(incorrectly_online_nodes)} nodes...")
         
-        if confirm == 'y':
-            print("\nFixing node statuses...")
-            fixed_count = 0
-            for node in incorrectly_online_nodes:
-                node.status = 'not_tested'
-                fixed_count += 1
-                if fixed_count % 100 == 0:
-                    print(f"  Fixed {fixed_count}/{len(incorrectly_online_nodes)} nodes...")
-            
-            db.commit()
-            
-            print(f"\n✅ Successfully fixed {fixed_count} nodes!")
-            
-            # Show final status distribution
-            print("\nFinal status distribution:")
-            nodes = db.query(Node).all()
-            statuses = [node.status for node in nodes]
-            status_counts = Counter(statuses)
-            
-            for status, count in sorted(status_counts.items()):
-                print(f"  {status}: {count}")
-                
-        else:
-            print("\nOperation cancelled.")
+        db.commit()
+        
+        print(f"\n✅ Successfully fixed {fixed_count} nodes!")
+        
+        # Show final status distribution
+        print("\nFinal status distribution:")
+        nodes = db.query(Node).all()
+        statuses = [node.status for node in nodes]
+        status_counts = Counter(statuses)
+        
+        for status, count in sorted(status_counts.items()):
+            print(f"  {status}: {count}")
     else:
         print("\n✅ No incorrectly assigned 'online' nodes found!")
     
