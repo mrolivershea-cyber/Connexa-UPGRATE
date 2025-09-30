@@ -800,5 +800,39 @@
       2344
     ],
     "status": "pending"
+  },
+  {
+    "id": 1759245702,
+    "timestamp": "2025-09-30T15:21:42.661557",
+    "node_data": {
+      "protocol": "pptp",
+      "status": "offline",
+      "ip": "1.1.1.1",
+      "login": "cloudflare_test",
+      "password": "cloudflare_pass",
+      "state": "California"
+    },
+    "conflicting_node_ids": [
+      2594
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759245702,
+    "timestamp": "2025-09-30T15:21:42.662837",
+    "node_data": {
+      "protocol": "pptp",
+      "status": "offline",
+      "ip": "8.8.8.8",
+      "login": "google_test",
+      "password": "google_pass",
+      "state": "California"
+    },
+    "conflicting_node_ids": [
+      2585,
+      2593,
+      2605
+    ],
+    "status": "pending"
   }
 ]
