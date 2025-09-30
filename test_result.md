@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "UI Improvements for Connexa Admin Panel v1.7: 1) Relocate Import Button - Move Import button from top panel into Filters block after Stop Services button. 2) Remove Only Online Checkbox - Delete 'Only Online' checkbox from filters section. 3) Add Testing Button - Add Testing button in Filters block after Import button. 4) Update Table Layout - Add Speed column after Status, remove text from Status (show only indicator), reduce column spacing for compact view. 5) Backend - Add speed field to Node model and schemas to support new Speed column display."
+user_problem_statement: "Parser Algorithm Improvements for Connexa Admin Panel: Fix Format 2 parsing (correct login/password order from 'IP Login Password State'), improve comment handling in clean_text_data function (skip lines starting with # or //), and verify all 6 import formats work correctly with edge cases (empty lines, comments, extra whitespace)."
 
 backend:
   - task: "Node CRUD operations"
