@@ -55,9 +55,8 @@ const NodesTable = ({ nodes, selectedNodes, onSelectNode, onNodeUpdated, loading
     const config = statusConfig[status] || statusConfig.offline;
     
     return (
-      <Badge className={config.class}>
-        <span className="mr-1">{config.emoji}</span>
-        {config.label}
+      <Badge className={config.class} title={config.label}>
+        {config.emoji}
       </Badge>
     );
   };
