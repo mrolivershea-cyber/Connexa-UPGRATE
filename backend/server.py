@@ -355,13 +355,32 @@ async def export_nodes(
 
 def clean_text_data(text: str) -> str:
     """Clean and normalize text data"""
-    # Remove extra whitespaces and empty lines
     lines = []
     for line in text.split('\n'):
-        # Remove multiple spaces, tabs, and clean line
-        cleaned_line = ' '.join(line.strip().split())
-        if cleaned_line:  # Only add non-empty lines
+        line = line.strip()
+        
+        # Skip empty lines
+        if not line:
+            continue
+        
+        # Skip comment lines (starting with # or //)
+        if line.startswith('#') or line.startswith('//'):
+            continue
+        
+        # Remove inline comments (text after # or // in single-line formats)
+        # But preserve these characters in credentials (e.g., password with #)
+        # Only remove if they appear after significant whitespace
+        if '  #' in line:
+            line = line.split('  #')[0].strip()
+        elif '  //' in line:
+            line = line.split('  //')[0].strip()
+        
+        # Remove multiple spaces, tabs, and normalize
+        cleaned_line = ' '.join(line.split())
+        
+        if cleaned_line:
             lines.append(cleaned_line)
+    
     return '\n'.join(lines)
 
 def detect_format(block: str) -> str:
