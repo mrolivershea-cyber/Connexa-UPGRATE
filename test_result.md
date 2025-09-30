@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Critical Deduplication Fix for Real-World Import: User reported 400+ configs with duplicates being added incorrectly to database. Need to implement IN-IMPORT deduplication (remove duplicates within single import batch) in addition to existing DB deduplication. Also fix error handling when re-importing same file (error message displayed). Test with real user file containing 400+ PPTP configs with known duplicates."
+user_problem_statement: "Critical Status Assignment Bug and Admin Panel Enhancement: User imported 2,336 PPTP configurations which incorrectly received 'online' status instead of 'not_tested'. The /api/stats endpoint shows 'Not Tested: 2' when it should show 2,332. Need to: 1) Fix status assignment logic for new imports, 2) Implement manual testing workflow (ping → speed → SOCKS+OVPN service launch), 3) Add background monitoring for online nodes every 5 minutes, 4) Add last_update field for offline status tracking."
 
 backend:
   - task: "Node CRUD operations"
