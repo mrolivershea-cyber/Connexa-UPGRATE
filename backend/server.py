@@ -387,17 +387,17 @@ def detect_format(block: str) -> str:
     """Detect which format the block matches"""
     lines = block.split('\n')
     
-    # Format 1: Key-value with colons (Ip: xxx, Login: xxx, Pass: xxx)
-    if any(line.strip().startswith(('Ip:', 'IP:', 'Login:', 'Pass:', 'State:', 'City:', 'Zip:')) for line in lines):
-        return "format_1"
-    
-    # Format 6: Multi-line with PPTP header (ignore first 2 lines)
+    # Format 6: Multi-line with PPTP header (ignore first 2 lines) - Check first
     if len(lines) >= 6 and ('PPTP_SVOIM_VPN' in lines[0] or 'PPTP Connection' in lines[1]):
         return "format_6"
     
-    # Format 5: Multi-line with IP:, Credentials:, Location:, ZIP:
+    # Format 5: Multi-line with IP:, Credentials:, Location:, ZIP: - Check before Format 1
     if len(lines) >= 4 and any('IP:' in line for line in lines) and any('Credentials:' in line for line in lines):
         return "format_5"
+    
+    # Format 1: Key-value with colons (Ip: xxx, Login: xxx, Pass: xxx) - More specific check
+    if any(line.strip().startswith(('Ip:', 'Login:', 'Pass:')) for line in lines):
+        return "format_1"
     
     # Single line formats
     single_line = block.strip()
@@ -410,7 +410,7 @@ def detect_format(block: str) -> str:
     if single_line.count(':') >= 4:
         return "format_4"
     
-    # Format 2: Single line with spaces (IP Pass Login State)
+    # Format 2: Single line with spaces (IP Login Password State)
     parts = single_line.split()
     if len(parts) >= 4 and is_valid_ip(parts[0]):
         return "format_2"
