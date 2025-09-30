@@ -212,9 +212,9 @@ backend:
 
   - task: "Universal parser with 6 formats"
     implemented: true
-    working: false
+    working: true
     file: "server.py"
-    stuck_count: 2
+    stuck_count: 0
     priority: "high"
     needs_retesting: false
     status_history:
@@ -236,6 +236,9 @@ backend:
       - working: false
         agent: "testing"
         comment: "❌ CRITICAL RE-TEST CONFIRMS ISSUE: Tested with exact review request data. Only 9/10 nodes created, Format 4 node (70.171.218.52) missing. ROOT CAUSE IDENTIFIED: In parse_nodes_text() function, Pre-block 4 contains Format 4 line '70.171.218.52:admin:admin:US:Arizona:85001' followed by Format 6 blocks with 'IP:' keywords. Block splitting logic checks for multiple 'IP:' entries FIRST and splits entire block by 'IP:', destroying the Format 4 line. FIX NEEDED: Check for single-line formats (Format 2,3,4) BEFORE checking for multiple Format 1/6 entries. This will extract Format 4 line first, then process remaining Format 6 blocks separately. PRIORITY: HIGH - affects real user data parsing."
+      - working: true
+        agent: "testing"
+        comment: "✅ CRITICAL ISSUE RESOLVED: Comprehensive testing with exact review request data confirms Format 4 block splitting issue is FIXED. VERIFIED RESULTS: All 10 nodes created correctly from mixed format import including the critical Format 4 node (70.171.218.52:admin:admin:US:Arizona:85001). DETAILED VERIFICATION: 1) Format 1 nodes: 71.84.237.32 & 144.229.29.35 (key-value pairs with extra text removal), 2) Format 2 nodes: 76.178.64.46 & 96.234.52.227 (single line with correct IP Login Password State order), 3) Format 3 nodes: 68.227.241.4 & 96.42.187.97 (dash/pipe format with timestamp handling), 4) Format 4 node: 70.171.218.52 (colon-separated - CRITICAL FIX CONFIRMED), 5) Format 6 nodes: 24.227.222.13, 71.202.136.233, 24.227.222.112 (PPTP headers ignored). ADDITIONAL VERIFICATIONS: Headers filtered (@mentions, channel names), state normalization working (CA→California, NJ→New Jersey), extra text removed (a_reg_107), smart block splitting now correctly separates single-line formats from multi-line formats. Parser is production-ready and handles real-world mixed format data correctly."
 
   - task: "Deduplication system with business rules"
     implemented: true
