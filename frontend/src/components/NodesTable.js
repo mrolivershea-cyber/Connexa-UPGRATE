@@ -427,6 +427,18 @@ auth ${node.login}
                       Copy
                     </Button>
                   </td>
+                  <td className="px-2 py-2 whitespace-nowrap text-sm text-gray-900">
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      onClick={() => downloadOvpnConfig(node)}
+                      data-testid={`download-ovpn-${node.id}`}
+                      className="text-xs px-2 py-1"
+                    >
+                      <Download className="h-3 w-3 mr-1" />
+                      Config
+                    </Button>
+                  </td>
                   <td className="px-2 py-2 whitespace-nowrap text-right text-sm font-medium">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
