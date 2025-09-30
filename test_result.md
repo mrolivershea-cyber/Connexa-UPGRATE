@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Parser Algorithm Improvements for Connexa Admin Panel: Fix Format 2 parsing (correct login/password order from 'IP Login Password State'), improve comment handling in clean_text_data function (skip lines starting with # or //), and verify all 6 import formats work correctly with edge cases (empty lines, comments, extra whitespace)."
+user_problem_statement: "Critical Deduplication Fix for Real-World Import: User reported 400+ configs with duplicates being added incorrectly to database. Need to implement IN-IMPORT deduplication (remove duplicates within single import batch) in addition to existing DB deduplication. Also fix error handling when re-importing same file (error message displayed). Test with real user file containing 400+ PPTP configs with known duplicates."
 
 backend:
   - task: "Node CRUD operations"
