@@ -1447,6 +1447,232 @@ ZIP: 78701"""
         self.log_test("Create Different Protocol Nodes", True, f"Created {len(created_nodes)} nodes with different protocols")
         return created_nodes
 
+    def test_critical_deduplication_real_file_first_import(self):
+        """CRITICAL TEST 1: First import of real PPTP file with 400+ configs - should deduplicate WITHIN import"""
+        print("\n🚨 CRITICAL TEST 1: First import of real PPTP file (400+ configs)")
+        
+        # Read the real PPTP file
+        try:
+            with open('/tmp/pptp_test.txt', 'r', encoding='utf-8') as f:
+                file_content = f.read()
+        except Exception as e:
+            self.log_test("CRITICAL - Real File First Import", False, f"Failed to read test file: {e}")
+            return False
+        
+        import_data = {
+            "data": file_content,
+            "protocol": "pptp"
+        }
+        
+        success, response = self.make_request('POST', 'nodes/import', import_data)
+        
+        if success and 'report' in response:
+            report = response['report']
+            total_processed = report.get('total_processed', 0)
+            added = report.get('added', 0)
+            skipped_duplicates = report.get('skipped_duplicates', 0)
+            format_errors = report.get('format_errors', 0)
+            
+            print(f"📊 FIRST IMPORT RESULTS:")
+            print(f"   Total processed blocks: {total_processed}")
+            print(f"   Added to database: {added}")
+            print(f"   Skipped duplicates (within import): {skipped_duplicates}")
+            print(f"   Format errors: {format_errors}")
+            
+            # CRITICAL CHECKS:
+            # 1. Should process ~400+ blocks
+            # 2. Should have skipped_duplicates > 0 (duplicates within file)
+            # 3. Added should be < total_processed (due to internal deduplication)
+            
+            if total_processed >= 400:
+                if skipped_duplicates > 0:
+                    if added < total_processed:
+                        # Verify specific duplicate IPs are only added once
+                        duplicate_ips = ['98.127.101.184', '71.65.133.123', '24.227.222.2']
+                        all_single = True
+                        
+                        for ip in duplicate_ips:
+                            nodes_success, nodes_response = self.make_request('GET', f'nodes?ip={ip}')
+                            if nodes_success and 'nodes' in nodes_response:
+                                count = len(nodes_response['nodes'])
+                                print(f"   {ip}: {count} instance(s) in database")
+                                if count != 1:
+                                    all_single = False
+                            else:
+                                print(f"   {ip}: Failed to check")
+                                all_single = False
+                        
+                        if all_single:
+                            self.log_test("CRITICAL - Real File First Import", True, 
+                                         f"✅ SUCCESS: {total_processed} blocks processed, {added} unique added, {skipped_duplicates} duplicates skipped WITHIN import. Known duplicate IPs (98.127.101.184, 71.65.133.123, 24.227.222.2) appear only once each in database.")
+                            return True, report
+                        else:
+                            self.log_test("CRITICAL - Real File First Import", False, 
+                                         f"❌ CRITICAL ISSUE: Duplicate IPs found multiple times in database - internal deduplication failed")
+                            return False, report
+                    else:
+                        self.log_test("CRITICAL - Real File First Import", False, 
+                                     f"❌ CRITICAL ISSUE: Added ({added}) should be less than processed ({total_processed}) due to internal deduplication")
+                        return False, report
+                else:
+                    self.log_test("CRITICAL - Real File First Import", False, 
+                                 f"❌ CRITICAL ISSUE: No duplicates skipped - internal deduplication not working")
+                    return False, report
+            else:
+                self.log_test("CRITICAL - Real File First Import", False, 
+                             f"❌ CRITICAL ISSUE: Only {total_processed} blocks processed, expected 400+")
+                return False, report
+        else:
+            self.log_test("CRITICAL - Real File First Import", False, f"Import failed: {response}")
+            return False, None
+
+    def test_critical_deduplication_real_file_second_import(self, first_import_report):
+        """CRITICAL TEST 2: Re-import same file - should skip all as duplicates, no errors"""
+        print("\n🚨 CRITICAL TEST 2: Re-import same PPTP file (should skip all)")
+        
+        # Read the same file again
+        try:
+            with open('/tmp/pptp_test.txt', 'r', encoding='utf-8') as f:
+                file_content = f.read()
+        except Exception as e:
+            self.log_test("CRITICAL - Real File Second Import", False, f"Failed to read test file: {e}")
+            return False
+        
+        import_data = {
+            "data": file_content,
+            "protocol": "pptp"
+        }
+        
+        success, response = self.make_request('POST', 'nodes/import', import_data)
+        
+        if success and 'report' in response:
+            report = response['report']
+            added = report.get('added', 0)
+            skipped_duplicates = report.get('skipped_duplicates', 0)
+            
+            print(f"📊 SECOND IMPORT RESULTS:")
+            print(f"   Added to database: {added}")
+            print(f"   Skipped duplicates: {skipped_duplicates}")
+            print(f"   Success: {response.get('success', False)}")
+            
+            # CRITICAL CHECKS:
+            # 1. Should NOT have any errors
+            # 2. Added should be 0
+            # 3. Skipped duplicates should equal unique nodes from first import
+            # 4. Success should be true
+            
+            expected_skipped = first_import_report.get('added', 0) if first_import_report else 0
+            
+            if response.get('success', False):
+                if added == 0:
+                    if skipped_duplicates > 0:
+                        # Verify specific IPs still only appear once
+                        duplicate_ips = ['98.127.101.184', '71.65.133.123', '24.227.222.2']
+                        all_still_single = True
+                        
+                        for ip in duplicate_ips:
+                            nodes_success, nodes_response = self.make_request('GET', f'nodes?ip={ip}')
+                            if nodes_success and 'nodes' in nodes_response:
+                                count = len(nodes_response['nodes'])
+                                print(f"   {ip}: {count} instance(s) in database (should still be 1)")
+                                if count != 1:
+                                    all_still_single = False
+                            else:
+                                all_still_single = False
+                        
+                        if all_still_single:
+                            self.log_test("CRITICAL - Real File Second Import", True, 
+                                         f"✅ SUCCESS: Re-import successful with 0 added, {skipped_duplicates} skipped. No errors occurred. Known duplicate IPs still appear only once each.")
+                            return True
+                        else:
+                            self.log_test("CRITICAL - Real File Second Import", False, 
+                                         f"❌ CRITICAL ISSUE: Duplicate IPs found multiple times after re-import")
+                            return False
+                    else:
+                        self.log_test("CRITICAL - Real File Second Import", False, 
+                                     f"❌ CRITICAL ISSUE: No duplicates skipped on re-import")
+                        return False
+                else:
+                    self.log_test("CRITICAL - Real File Second Import", False, 
+                                 f"❌ CRITICAL ISSUE: {added} nodes added on re-import (should be 0)")
+                    return False
+            else:
+                self.log_test("CRITICAL - Real File Second Import", False, 
+                             f"❌ CRITICAL ISSUE: Re-import failed with error")
+                return False
+        else:
+            self.log_test("CRITICAL - Real File Second Import", False, f"Re-import failed: {response}")
+            return False
+
+    def test_critical_deduplication_verification(self):
+        """CRITICAL TEST 3: Final verification of database state"""
+        print("\n🚨 CRITICAL TEST 3: Final database verification")
+        
+        # Check specific duplicate IPs one more time
+        duplicate_ips = ['98.127.101.184', '71.65.133.123', '24.227.222.2']
+        verification_results = {}
+        
+        for ip in duplicate_ips:
+            nodes_success, nodes_response = self.make_request('GET', f'nodes?ip={ip}')
+            if nodes_success and 'nodes' in nodes_response:
+                count = len(nodes_response['nodes'])
+                verification_results[ip] = count
+                if count == 1:
+                    node = nodes_response['nodes'][0]
+                    print(f"   ✅ {ip}: 1 instance - Login: {node.get('login')}, Password: {node.get('password')}")
+                else:
+                    print(f"   ❌ {ip}: {count} instances (SHOULD BE 1)")
+            else:
+                verification_results[ip] = 0
+                print(f"   ❌ {ip}: Not found or error")
+        
+        # All should have exactly 1 instance
+        all_correct = all(count == 1 for count in verification_results.values())
+        
+        if all_correct:
+            self.log_test("CRITICAL - Database Verification", True, 
+                         f"✅ FINAL VERIFICATION PASSED: All known duplicate IPs (98.127.101.184, 71.65.133.123, 24.227.222.2) appear exactly once in database")
+            return True
+        else:
+            self.log_test("CRITICAL - Database Verification", False, 
+                         f"❌ FINAL VERIFICATION FAILED: Duplicate IPs found: {verification_results}")
+            return False
+
+    def run_critical_deduplication_tests(self):
+        """Run the critical deduplication tests as specified in review request"""
+        print("\n" + "="*80)
+        print("🚨 CRITICAL DEDUPLICATION TESTS - Real 400+ Config File")
+        print("="*80)
+        
+        # Test 1: First import (should deduplicate within import)
+        success1, first_report = self.test_critical_deduplication_real_file_first_import()
+        
+        if not success1:
+            print("❌ CRITICAL TEST 1 FAILED - Stopping deduplication tests")
+            return False
+        
+        # Test 2: Re-import same file (should skip all, no errors)
+        success2 = self.test_critical_deduplication_real_file_second_import(first_report)
+        
+        if not success2:
+            print("❌ CRITICAL TEST 2 FAILED - Continuing to verification")
+        
+        # Test 3: Final verification
+        success3 = self.test_critical_deduplication_verification()
+        
+        # Overall result
+        overall_success = success1 and success2 and success3
+        
+        print("\n" + "="*80)
+        print("🏁 CRITICAL DEDUPLICATION TESTS SUMMARY:")
+        print(f"   Test 1 (First Import): {'✅ PASSED' if success1 else '❌ FAILED'}")
+        print(f"   Test 2 (Re-import): {'✅ PASSED' if success2 else '❌ FAILED'}")
+        print(f"   Test 3 (Verification): {'✅ PASSED' if success3 else '❌ FAILED'}")
+        print(f"   OVERALL: {'✅ ALL TESTS PASSED' if overall_success else '❌ SOME TESTS FAILED'}")
+        print("="*80)
+        
+        return overall_success
+
     def run_all_tests(self):
         """Run all backend tests"""
         print("🚀 Starting Connexa Backend API Tests")
