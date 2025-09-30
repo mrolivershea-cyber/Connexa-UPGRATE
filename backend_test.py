@@ -2728,9 +2728,16 @@ City: New York"""
                 self.test_speed_test(node_ids)
                 self.test_combined_test(node_ids)
                 
+                # Test 6: Manual PING testing via /api/test/ping
+                self.test_manual_ping_testing(node_ids)
+                
                 # Test single node testing
                 if new_node_id:
                     self.test_single_node_test(new_node_id)
+                    
+                # Test 7: Single node ping endpoint
+                if ping_test_node_id:
+                    self.test_single_node_ping_endpoint(ping_test_node_id)
             
             # Test delete operations (use newly created nodes)
             if new_node_id:
