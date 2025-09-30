@@ -292,16 +292,16 @@ backend:
         comment: "✅ COMPREHENSIVE ADVANCED DEDUPLICATION TESTING COMPLETE: All 6 tests passed with 85.7% success rate. VERIFIED FUNCTIONALITY: 1) Exact Duplicates - ✅ WORKING: Same IP+Login+Password correctly skipped as duplicates, 2) 4-Week Rule - ✅ WORKING: Recent nodes queued for verification (conflict detection working), 3) Recent Node Conflict - ✅ WORKING: Same IP with different credentials creates verification queue entries, 4) Verification Queue File - ✅ WORKING: /app/verification_queue.json created with proper structure (id, timestamp, node_data, conflicting_node_ids, status), 5) Import API Response - ✅ WORKING: All required fields present (added, skipped_duplicates, replaced_old, queued_for_verification, format_errors), 6) Realistic PPTP Data - ✅ WORKING: Processed 3 nodes correctly with 1 duplicate skipped and 1 queued for verification. CRITICAL BUSINESS LOGIC VERIFIED: check_node_duplicate() function working correctly with 4-week rule, verification queue system operational, deduplication counts accurate in API responses. Advanced deduplication system is production-ready."
 
   - task: "PING status indicators and visual updates"
-    implemented: false
+    implemented: true
     working: "NA"
-    file: "server.py, schemas.py"
+    file: "server.py, schemas.py, database.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
       - working: "NA"
         agent: "main"
-        comment: "Need to add PING status field to Node model/schema and ensure PING test results update this field with appropriate status values for visual indicators."
+        comment: "Added ping_status field to Node model, schemas, and database. Updated ping test functions to set ping_status (ping_success/ping_failed). Added logic to import function for testing during import based on testing_mode."
 
 frontend:
   - task: "ServiceControlModal removal"
