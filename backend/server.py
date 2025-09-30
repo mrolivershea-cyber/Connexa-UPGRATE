@@ -64,6 +64,86 @@ async def startup_event():
         db.add(admin_user)
         db.commit()
         logger.info("Default admin user created with username: admin, password: admin")
+    
+    # Start background monitoring service for online nodes
+    start_background_monitoring()
+
+# ===== BACKGROUND MONITORING SYSTEM =====
+# This system monitors ONLY online nodes every 5 minutes as per user requirements
+
+monitoring_active = False
+
+async def monitor_online_nodes():
+    """Background monitoring task for online nodes"""
+    global monitoring_active
+    
+    while monitoring_active:
+        try:
+            db = next(get_db())
+            
+            # Get all online nodes
+            online_nodes = db.query(Node).filter(Node.status == "online").all()
+            
+            if online_nodes:
+                logger.info(f"Monitoring {len(online_nodes)} online nodes...")
+                
+                for node in online_nodes:
+                    try:
+                        # Check if services are still running
+                        service_status = await service_manager.get_service_status(node.id)
+                        
+                        if not service_status.get('active', False):
+                            # Service is not active - mark as offline
+                            logger.warning(f"Node {node.id} ({node.ip}) services failed - marking offline")
+                            node.status = "offline"
+                            node.last_update = datetime.utcnow()
+                            
+                            # Additional check: try ping test
+                            try:
+                                ping_result = await network_tester.ping_test(node.ip)
+                                if not ping_result.get('reachable', False):
+                                    logger.warning(f"Node {node.id} ({node.ip}) also failed ping test")
+                            except Exception as ping_error:
+                                logger.warning(f"Ping check failed for node {node.id}: {ping_error}")
+                        
+                    except Exception as node_error:
+                        logger.error(f"Error monitoring node {node.id}: {node_error}")
+                        # On monitoring error, mark as offline to be safe
+                        node.status = "offline"
+                        node.last_update = datetime.utcnow()
+                
+                db.commit()
+            
+            db.close()
+            
+        except Exception as e:
+            logger.error(f"Background monitoring error: {e}")
+        
+        # Wait 5 minutes before next check
+        await asyncio.sleep(300)  # 300 seconds = 5 minutes
+
+def run_monitoring_loop():
+    """Run the monitoring loop in a separate thread"""
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    loop.run_until_complete(monitor_online_nodes())
+
+def start_background_monitoring():
+    """Start the background monitoring service"""
+    global monitoring_active
+    
+    if not monitoring_active:
+        monitoring_active = True
+        monitoring_thread = threading.Thread(target=run_monitoring_loop, daemon=True)
+        monitoring_thread.start()
+        logger.info("✅ Background monitoring service started - checking online nodes every 5 minutes")
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    """Stop monitoring on app shutdown"""
+    global monitoring_active
+    monitoring_active = False
+    logger.info("Background monitoring service stopped")
 
 # Authentication Routes
 @api_router.post("/auth/login", response_model=Token)
