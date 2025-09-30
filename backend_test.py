@@ -2683,6 +2683,26 @@ City: New York"""
         print("\n⚠️ Testing Format Error API...")
         self.test_format_errors_api()
         
+        # 🚨 NEW PING STATUS TESTS (Review Request Focus)
+        print("\n" + "="*60)
+        print("🚨 PING STATUS FUNCTIONALITY TESTS")
+        print("="*60)
+        
+        # Test 1: Verify ping_status field exists and is initially null
+        ping_test_node_id = self.test_ping_status_field_exists()
+        
+        # Test 2-5: Import with different testing modes
+        self.test_import_with_ping_only_mode()
+        self.test_import_with_speed_only_mode()
+        self.test_import_with_ping_speed_mode()
+        self.test_import_with_no_test_mode()
+        
+        # Test 8: Verify ping_status in API responses
+        self.test_ping_status_in_api_responses()
+        
+        # Test 9: Comprehensive workflow test
+        self.test_ping_status_comprehensive_workflow()
+        
         # Get updated node list for service and testing operations
         updated_nodes = self.test_get_nodes()
         if updated_nodes:
