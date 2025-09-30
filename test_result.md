@@ -242,11 +242,11 @@ backend:
 
   - task: "Deduplication system with business rules"
     implemented: true
-    working: true
+    working: "NA"
     file: "server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
       - working: "NA"
         agent: "main"
@@ -254,6 +254,9 @@ backend:
       - working: true
         agent: "testing"
         comment: "✅ TESTED: Deduplication system working perfectly with all business rules. Exact duplicates (same IP+Login+Pass) are correctly skipped. Same IP with different credentials creates verification queue entries when nodes are recent (<4 weeks). Old nodes (>4 weeks) are replaced with new data. Verification queue file (/app/verification_queue.json) is created with proper structure including node data, conflicting node IDs, and pending status. Fixed field name issue (updated_at → last_update)."
+      - working: "NA"
+        agent: "main"
+        comment: "CRITICAL BUG FOUND: User tested with real 400+ config file containing duplicates. Duplicates were added to database incorrectly. ROOT CAUSE: Deduplication only checked against existing DB nodes, NOT within the import batch itself. EXAMPLE: If import contains 2 identical configs (same IP+Login+Pass), both were being added. FIX IMPLEMENTED: Added STEP 1 in process_parsed_nodes() to deduplicate WITHIN import batch using set() to track (ip, login, password) tuples BEFORE checking database. This ensures no duplicates from same import. Also improved error handling for re-import scenario (was showing error, now returns proper success response with skip counts). Ready for re-testing with real 400+ config file."
 
   - task: "Country/State normalization database"
     implemented: true
