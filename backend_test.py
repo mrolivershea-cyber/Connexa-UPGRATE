@@ -2165,6 +2165,17 @@ City: New York"""
         self.test_deduplication_logic()
         self.test_country_state_normalization()
         
+        # ADVANCED DEDUPLICATION TESTS (Review Request Focus)
+        print("\n" + "="*60)
+        print("🚨 ADVANCED DEDUPLICATION WITH 4-WEEK RULE TESTS")
+        print("="*60)
+        self.test_advanced_deduplication_exact_duplicates()
+        self.test_advanced_deduplication_4_week_rule()
+        self.test_advanced_deduplication_recent_node_conflict()
+        self.test_advanced_deduplication_verification_queue()
+        self.test_advanced_deduplication_import_api_response()
+        self.test_advanced_deduplication_realistic_pptp_data()
+        
         # Test format error handling
         print("\n⚠️ Testing Format Error API...")
         self.test_format_errors_api()
