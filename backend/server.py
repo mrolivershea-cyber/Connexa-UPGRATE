@@ -245,7 +245,7 @@ async def import_nodes(
         parsed_data = parse_nodes_text(data.data, data.protocol)
         
         # Process nodes with deduplication logic
-        results = process_parsed_nodes(db, parsed_data)
+        results = process_parsed_nodes(db, parsed_data, data.testing_mode)
         
         # Create detailed report with smart summary
         added_count = len(results['added'])
