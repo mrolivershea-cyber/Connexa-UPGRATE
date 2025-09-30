@@ -363,24 +363,13 @@ const AdminPanel = () => {
         {/* Actions */}
         <div className="flex justify-between items-center mb-6">
           <div className="flex space-x-3">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button data-testid="add-import-btn">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add/Import Server
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuItem onClick={() => setShowAddModal(true)}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Single Server
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setShowImportModal(true)}>
-                  <Download className="h-4 w-4 mr-2" />
-                  Import Multiple Servers
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <Button 
+              onClick={() => setShowImportModal(true)}
+              data-testid="import-btn"
+            >
+              <Download className="h-4 w-4 mr-2" />
+              Импорт
+            </Button>
             <Button 
               variant="outline" 
               onClick={() => setShowTestingModal(true)}
