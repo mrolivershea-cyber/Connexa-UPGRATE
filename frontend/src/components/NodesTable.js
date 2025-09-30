@@ -45,36 +45,19 @@ const NodesTable = ({ nodes, selectedNodes, onSelectNode, onNodeUpdated, loading
 
   const getStatusBadge = (status) => {
     const statusConfig = {
-      online: { emoji: '🟢', class: 'bg-green-100 text-green-800', label: 'Online' },
+      not_tested: { emoji: '⚫', class: 'bg-gray-100 text-gray-800', label: 'Not Tested' },
+      ping_failed: { emoji: '🔴', class: 'bg-red-100 text-red-800', label: 'PING Failed' },
+      ping_ok: { emoji: '🟠', class: 'bg-orange-100 text-orange-800', label: 'PING OK' },
+      speed_slow: { emoji: '🟡', class: 'bg-yellow-100 text-yellow-800', label: 'Speed Slow' },
+      speed_ok: { emoji: '🔵', class: 'bg-blue-100 text-blue-800', label: 'Speed OK' },
       offline: { emoji: '🔴', class: 'bg-red-100 text-red-800', label: 'Offline' },
-      checking: { emoji: '🟡', class: 'bg-yellow-100 text-yellow-800', label: 'Checking' },
-      degraded: { emoji: '🟠', class: 'bg-orange-100 text-orange-800', label: 'Degraded' },
-      needs_review: { emoji: '⚪', class: 'bg-gray-100 text-gray-800', label: 'Needs Review' },
-      reconnecting: { emoji: '🔁', class: 'bg-blue-100 text-blue-800', label: 'Reconnecting' }
+      online: { emoji: '🟢', class: 'bg-green-100 text-green-800', label: 'Online' }
     };
     
-    const config = statusConfig[status] || statusConfig.offline;
+    const config = statusConfig[status] || statusConfig.not_tested;
     
     return (
       <Badge className={config.class} title={config.label}>
-        {config.emoji}
-      </Badge>
-    );
-  };
-
-  const getPingStatusBadge = (pingStatus) => {
-    const pingConfig = {
-      ping_success: { emoji: '🔵', class: 'bg-blue-100 text-blue-800', label: 'Ping Success' },
-      ping_failed: { emoji: '🟣', class: 'bg-purple-100 text-purple-800', label: 'Ping Failed' },
-      not_tested: { emoji: '⚫', class: 'bg-gray-100 text-gray-600', label: 'Not Tested' }
-    };
-    
-    if (!pingStatus) return null;
-    
-    const config = pingConfig[pingStatus] || pingConfig.not_tested;
-    
-    return (
-      <Badge className={`${config.class} ml-1`} title={config.label}>
         {config.emoji}
       </Badge>
     );
