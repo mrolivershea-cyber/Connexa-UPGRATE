@@ -1678,11 +1678,9 @@ async def create_node_with_test(
         if test_type == "ping":
             ping_result = await network_tester.ping_test(db_node.ip)
             if ping_result['reachable']:
-                db_node.status = "online"
-                db_node.ping_status = "ping_success"
+                db_node.status = "ping_ok"
             else:
-                db_node.status = "offline"
-                db_node.ping_status = "ping_failed"
+                db_node.status = "ping_failed"
             test_result = {"ping": ping_result}
             
         elif test_type == "speed":
