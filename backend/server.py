@@ -268,11 +268,9 @@ async def import_nodes(
                                 # Perform ping test
                                 ping_result = await network_tester.ping_test(node.ip)
                                 if ping_result['reachable']:
-                                    node.ping_status = "ping_success"
-                                    node.status = "online" if node.status != "degraded" else "degraded"
+                                    node.status = "ping_ok"
                                 else:
-                                    node.ping_status = "ping_failed"
-                                    node.status = "offline"
+                                    node.status = "ping_failed"
                             
                             if data.testing_mode in ["speed_only", "ping_speed"]:
                                 # Perform speed test
