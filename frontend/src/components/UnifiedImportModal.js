@@ -26,6 +26,7 @@ const UnifiedImportModal = ({ isOpen, onClose, onComplete }) => {
       // Reset form
       setImportData('');
       setProtocol('pptp');
+      setTestingMode('ping_only');
       setPreviewResult(null);
       setShowPreview(false);
     }
