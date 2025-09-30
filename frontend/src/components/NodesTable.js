@@ -164,6 +164,11 @@ const NodesTable = ({ nodes, selectedNodes, onSelectNode, onNodeUpdated, loading
     copyToClipboard(socksFormat, 'SOCKS config');
   };
 
+  const copyCredentials = (node) => {
+    const credentialsFormat = `${node.ip}:${node.login}:${node.password}`;
+    copyToClipboard(credentialsFormat, 'Credentials');
+  };
+
   const startEdit = (node, field) => {
     setEditingNode(`${node.id}-${field}`);
     setEditValues({
