@@ -530,40 +530,40 @@ frontend:
         comment: "✅ TESTED: Compact table layout implementation working perfectly. CONFIRMED: Table cells have compact padding (px-2 py-3) instead of old padding (px-6 py-4). Password column buttons optimized with compact sizing (h-6 w-6 p-0 classes). Table layout is more compact and displays more data in viewport. All column spacing has been reduced for better space utilization as requested."
 
   - task: "Column reordering: ACTION after SOCKS, COMMENT after ACTION"
-    implemented: false
+    implemented: true
     working: "NA"
     file: "NodesTable.js"
     stuck_count: 0
     priority: "high"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
       - working: "NA"
         agent: "main"
-        comment: "Need to reorder table columns: move ACTION column after SOCKS, move COMMENT column after ACTION. Current order needs update."
+        comment: "Reordered table columns: ACTION column moved after SOCKS, COMMENT column moved after ACTION. Column order updated in both header and data rows."
 
   - task: "Two-row table format for better readability"
-    implemented: false
+    implemented: true
     working: "NA"
     file: "NodesTable.js"
     stuck_count: 0
     priority: "high"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
       - working: "NA"
         agent: "main"
-        comment: "Implement two-row format: Row 1 (STATUS|SPEED|IP|PROTOCOL|LOGIN|PASSWORD|SOCKS|ACTION|COMMENT), Row 2 (LAST UPDATE|COUNTRY|STATE|CITY|ZIP|PROVIDER). Maintain sorting functionality."
+        comment: "Implemented two-row format: Row 1 (STATUS|SPEED|IP|PROTOCOL|LOGIN|PASSWORD|SOCKS|ACTION|COMMENT), Row 2 (LAST UPDATE|COUNTRY|STATE|CITY|ZIP|PROVIDER). Used React.Fragment for grouping rows. Each node now spans 2 table rows for better readability."
 
   - task: "PING status visual indicators with color coding"
-    implemented: false
+    implemented: true
     working: "NA"
     file: "NodesTable.js"
     stuck_count: 0
     priority: "high"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
       - working: "NA"
         agent: "main"
-        comment: "Add visual PING status indicators: 🔵 for PING yes, 🟣 for PING no. Update getStatusBadge() function to handle PING status separately from connection status."
+        comment: "Added getPingStatusBadge() function with 🔵 for ping_success, 🟣 for ping_failed, ⚫ for not_tested. Updated status column to show both connection status and ping status badges side by side."
 
 metadata:
   created_by: "main_agent"
