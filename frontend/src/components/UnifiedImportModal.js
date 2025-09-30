@@ -113,13 +113,23 @@ vpn2.example.com:443:client2:pass456:GB:London:`
         setPreviewResult(report);
         setShowPreview(true);
         
-        let message = `Импорт завершен: ${report.added} добавлено`;
-        if (report.skipped_duplicates > 0) message += `, ${report.skipped_duplicates} дубликатов`;
-        if (report.replaced_old > 0) message += `, ${report.replaced_old} заменено`;
-        if (report.queued_for_verification > 0) message += `, ${report.queued_for_verification} в очереди`;
-        if (report.format_errors > 0) message += `, ${report.format_errors} ошибок`;
+        // Use smart summary from backend if available
+        const message = report.smart_summary || response.data.message;
         
-        toast.success(message);
+        // Show appropriate toast based on what happened
+        if (report.added === 0 && report.skipped_duplicates > 0) {
+          // All duplicates - show info toast
+          toast.info(message, { duration: 5000 });
+        } else if (report.added > 0) {
+          // Some added - show success
+          toast.success(message, { duration: 5000 });
+        } else if (report.format_errors > 0) {
+          // Errors - show warning
+          toast.warning(message, { duration: 5000 });
+        } else {
+          toast.info(message, { duration: 5000 });
+        }
+        
         onComplete(report);
       } else {
         toast.error(response.data.message || 'Ошибка импорта');
