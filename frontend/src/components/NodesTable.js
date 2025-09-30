@@ -308,6 +308,9 @@ const NodesTable = ({ nodes, selectedNodes, onSelectNode, onNodeUpdated, loading
                 SOCKS
               </th>
               <th className="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                OVPN
+              </th>
+              <th className="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Actions
               </th>
               <th className="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
