@@ -377,27 +377,6 @@ const NodesTable = ({ nodes, selectedNodes, onSelectNode, onNodeUpdated, loading
                     Copy
                   </Button>
                 </td>
-                <td className="px-2 py-3 whitespace-nowrap text-sm text-gray-900">
-                  <EditableCell node={node} field="country" />
-                </td>
-                <td className="px-2 py-3 whitespace-nowrap text-sm text-gray-900">
-                  <EditableCell node={node} field="state" />
-                </td>
-                <td className="px-2 py-3 whitespace-nowrap text-sm text-gray-900">
-                  <EditableCell node={node} field="city" />
-                </td>
-                <td className="px-2 py-3 whitespace-nowrap text-sm text-gray-900">
-                  <EditableCell node={node} field="zipcode" />
-                </td>
-                <td className="px-2 py-3 whitespace-nowrap text-sm text-gray-900">
-                  <EditableCell node={node} field="provider" />
-                </td>
-                <td className="px-2 py-3 whitespace-nowrap text-sm text-gray-900 max-w-xs">
-                  <EditableCell node={node} field="comment" className="max-w-xs truncate" />
-                </td>
-                <td className="px-2 py-3 whitespace-nowrap text-sm text-gray-500">
-                  {formatDate(node.last_update)}
-                </td>
                 <td className="px-2 py-3 whitespace-nowrap text-right text-sm font-medium">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -436,6 +415,27 @@ const NodesTable = ({ nodes, selectedNodes, onSelectNode, onNodeUpdated, loading
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
+                </td>
+                <td className="px-2 py-3 whitespace-nowrap text-sm text-gray-900 max-w-xs">
+                  <EditableCell node={node} field="comment" className="max-w-xs truncate" />
+                </td>
+                <td className="px-2 py-3 whitespace-nowrap text-sm text-gray-900">
+                  <EditableCell node={node} field="country" />
+                </td>
+                <td className="px-2 py-3 whitespace-nowrap text-sm text-gray-900">
+                  <EditableCell node={node} field="state" />
+                </td>
+                <td className="px-2 py-3 whitespace-nowrap text-sm text-gray-900">
+                  <EditableCell node={node} field="city" />
+                </td>
+                <td className="px-2 py-3 whitespace-nowrap text-sm text-gray-900">
+                  <EditableCell node={node} field="zipcode" />
+                </td>
+                <td className="px-2 py-3 whitespace-nowrap text-sm text-gray-900">
+                  <EditableCell node={node} field="provider" />
+                </td>
+                <td className="px-2 py-3 whitespace-nowrap text-sm text-gray-500">
+                  {formatDate(node.last_update)}
                 </td>
               </tr>
             ))}
