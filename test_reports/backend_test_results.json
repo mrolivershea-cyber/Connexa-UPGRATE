@@ -1,8 +1,8 @@
 {
-  "timestamp": "2025-09-29T15:00:50.764025",
-  "total_tests": 41,
-  "passed_tests": 41,
-  "success_rate": 100.0,
+  "timestamp": "2025-09-30T10:45:02.755770",
+  "total_tests": 50,
+  "passed_tests": 42,
+  "success_rate": 84.0,
   "test_details": [
     {
       "test": "Health Check",
@@ -25,25 +25,25 @@
     {
       "test": "Get Nodes",
       "success": true,
-      "details": "Found 83 nodes",
+      "details": "Found 1 nodes",
       "response_data": null
     },
     {
       "test": "Get Statistics",
       "success": true,
-      "details": "Total: 83, Online: 0",
+      "details": "Total: 1, Online: 0",
       "response_data": null
     },
     {
       "test": "Create Node",
       "success": true,
-      "details": "Created node with ID: 96",
+      "details": "Created node with ID: 2",
       "response_data": null
     },
     {
       "test": "Update Node",
       "success": true,
-      "details": "Updated node 96",
+      "details": "Updated node 2",
       "response_data": null
     },
     {
@@ -61,37 +61,37 @@
     {
       "test": "Node Filtering",
       "success": true,
-      "details": "Filtered results: 10 nodes",
+      "details": "Filtered results: 3 nodes",
       "response_data": null
     },
     {
       "test": "Import Nodes (Legacy)",
       "success": true,
-      "details": "Created: 0, Duplicates: 1",
+      "details": "Created: 1, Duplicates: 0",
       "response_data": null
     },
     {
       "test": "Enhanced Import Format 1",
       "success": true,
-      "details": "Added: 0, Skipped: 1, Format Errors: 0",
+      "details": "Added: 1, Skipped: 0, Format Errors: 0",
       "response_data": null
     },
     {
       "test": "Enhanced Import Format 2",
       "success": true,
-      "details": "Added: 0, Skipped: 1, Format Errors: 0",
+      "details": "Added: 1, Skipped: 0, Format Errors: 0",
       "response_data": null
     },
     {
       "test": "Enhanced Import Format 3",
       "success": true,
-      "details": "Added: 0, Skipped: 1, Format Errors: 0",
+      "details": "Added: 1, Skipped: 0, Format Errors: 0",
       "response_data": null
     },
     {
       "test": "Enhanced Import Format 4",
       "success": true,
-      "details": "Added: 0, Skipped: 1, Format Errors: 0",
+      "details": "Added: 1, Skipped: 0, Format Errors: 0",
       "response_data": null
     },
     {
@@ -104,6 +104,66 @@
       "test": "Enhanced Import Format 6",
       "success": true,
       "details": "Added: 0, Skipped: 0, Format Errors: 1",
+      "response_data": null
+    },
+    {
+      "test": "Comprehensive Parser Format 1",
+      "success": false,
+      "details": "No nodes added: {'total_processed': 1, 'successfully_parsed': 1, 'added': 0, 'skipped_duplicates': 1, 'replaced_old': 0, 'queued_for_verification': 0, 'format_errors': 0, 'processing_errors': 0, 'testing_mode': 'ping_only', 'details': {'added': [], 'skipped': [{'ip': '144.229.29.35', 'existing_id': 1, 'reason': 'duplicate'}], 'replaced': [], 'queued': [], 'errors': [], 'format_errors': []}}",
+      "response_data": null
+    },
+    {
+      "test": "Comprehensive Parser Format 2 CRITICAL",
+      "success": false,
+      "details": "Expected 2 nodes, got 0",
+      "response_data": null
+    },
+    {
+      "test": "Comprehensive Parser Format 3",
+      "success": false,
+      "details": "Expected 2 nodes, got 1",
+      "response_data": null
+    },
+    {
+      "test": "Comprehensive Parser Format 4",
+      "success": true,
+      "details": "\u2705 All 6 fields parsed correctly: IP, Login, Password, Country, State, Zip",
+      "response_data": null
+    },
+    {
+      "test": "Comprehensive Parser Format 5",
+      "success": false,
+      "details": "No nodes added: {'total_processed': 1, 'successfully_parsed': 0, 'added': 0, 'skipped_duplicates': 0, 'replaced_old': 0, 'queued_for_verification': 0, 'format_errors': 1, 'processing_errors': 0, 'testing_mode': 'ping_only', 'details': {'added': [], 'skipped': [], 'replaced': [], 'queued': [], 'errors': [], 'format_errors': ['Missing credentials in block 1: IP: 24.227.222.13\\nCredentials: admin:admin\\nLocation: Texas (Austin)\\nZIP: 78701']}}",
+      "response_data": null
+    },
+    {
+      "test": "Comprehensive Parser Format 6",
+      "success": false,
+      "details": "No nodes added: {'total_processed': 1, 'successfully_parsed': 0, 'added': 0, 'skipped_duplicates': 0, 'replaced_old': 0, 'queued_for_verification': 0, 'format_errors': 1, 'processing_errors': 0, 'testing_mode': 'ping_only', 'details': {'added': [], 'skipped': [], 'replaced': [], 'queued': [], 'errors': [], 'format_errors': ['Missing credentials in block 1: > PPTP_SVOIM_VPN:\\n\ud83d\udea8 PPTP Connection\\nIP: 24.227.222.14\\nCredentials: testuser:testpass\\nLocation: Flori']}}",
+      "response_data": null
+    },
+    {
+      "test": "Comprehensive Edge Cases Comments",
+      "success": false,
+      "details": "\u274c Expected 2 nodes, got 1. Comments not properly filtered",
+      "response_data": null
+    },
+    {
+      "test": "Comprehensive Mixed Formats",
+      "success": false,
+      "details": "\u274c Expected 3 nodes from mixed formats, got 2",
+      "response_data": null
+    },
+    {
+      "test": "Comprehensive Deduplication Logic",
+      "success": true,
+      "details": "\u2705 Second import skipped as duplicate (same IP+Login+Pass)",
+      "response_data": null
+    },
+    {
+      "test": "Comprehensive Format Errors",
+      "success": false,
+      "details": "\u274c Expected 1 node + 2 errors, got 0 nodes + 1 errors",
       "response_data": null
     },
     {
@@ -121,7 +181,7 @@
     {
       "test": "Get Format Errors",
       "success": true,
-      "details": "Retrieved format errors: 523 characters",
+      "details": "Retrieved format errors: 1397 characters",
       "response_data": null
     },
     {
@@ -131,15 +191,9 @@
       "response_data": null
     },
     {
-      "test": "Mixed Format Import",
-      "success": true,
-      "details": "Processed mixed formats - Added: 0, Errors: 0",
-      "response_data": null
-    },
-    {
       "test": "Get Nodes",
       "success": true,
-      "details": "Found 91 nodes",
+      "details": "Found 21 nodes",
       "response_data": null
     },
     {
@@ -169,13 +223,13 @@
     {
       "test": "Single Node Service Start",
       "success": true,
-      "details": "Service start attempted for node 96",
+      "details": "Service start attempted for node 2",
       "response_data": null
     },
     {
       "test": "Single Node Service Stop",
       "success": true,
-      "details": "Service stop attempted for node 96",
+      "details": "Service stop attempted for node 2",
       "response_data": null
     },
     {
@@ -199,13 +253,13 @@
     {
       "test": "Single Node Test",
       "success": true,
-      "details": "Single node test completed for node 96",
+      "details": "Single node test completed for node 2",
       "response_data": null
     },
     {
       "test": "Delete Node",
       "success": true,
-      "details": "Deleted node 96",
+      "details": "Deleted node 2",
       "response_data": null
     },
     {
@@ -217,25 +271,25 @@
     {
       "test": "Autocomplete Countries",
       "success": true,
-      "details": "Found 3 items",
+      "details": "Found 2 items",
       "response_data": null
     },
     {
       "test": "Autocomplete States",
       "success": true,
-      "details": "Found 8 items",
+      "details": "Found 5 items",
       "response_data": null
     },
     {
       "test": "Autocomplete Cities",
       "success": true,
-      "details": "Found 8 items",
+      "details": "Found 7 items",
       "response_data": null
     },
     {
       "test": "Autocomplete Providers",
       "success": true,
-      "details": "Found 8 items",
+      "details": "Found 6 items",
       "response_data": null
     },
     {
