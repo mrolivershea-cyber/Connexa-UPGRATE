@@ -15,28 +15,9 @@ import axios from 'axios';
 
 const UnifiedImportModal = ({ isOpen, onClose, onComplete }) => {
   const { API } = useAuth();
-  const [activeTab, setActiveTab] = useState('manual');
   
-  // Manual Add State
-  const [loadingManual, setLoadingManual] = useState(false);
-  const [autoTest, setAutoTest] = useState(true);
-  const [testType, setTestType] = useState('ping');
-  const [formData, setFormData] = useState({
-    protocol: 'pptp',
-    ip: '',
-    port: '',
-    login: '',
-    password: '',
-    provider: '',
-    country: '',
-    state: '',
-    city: '',
-    zipcode: '',
-    comment: ''
-  });
-
-  // Bulk Import State
-  const [loadingImport, setLoadingImport] = useState(false);
+  // Import State
+  const [loading, setLoading] = useState(false);
   const [importData, setImportData] = useState('');
   const [protocol, setProtocol] = useState('pptp');
   const [previewResult, setPreviewResult] = useState(null);
@@ -44,31 +25,11 @@ const UnifiedImportModal = ({ isOpen, onClose, onComplete }) => {
 
   React.useEffect(() => {
     if (isOpen) {
-      // Reset Manual form
-      setFormData({
-        protocol: 'pptp',
-        ip: '',
-        port: '',
-        login: '',
-        password: '',
-        provider: '',
-        country: '',
-        state: '',
-        city: '',
-        zipcode: '',
-        comment: ''
-      });
-      setAutoTest(true);
-      setTestType('ping');
-      
-      // Reset Import form
+      // Reset form
       setImportData('');
       setProtocol('pptp');
       setPreviewResult(null);
       setShowPreview(false);
-      
-      // Reset to manual tab
-      setActiveTab('manual');
     }
   }, [isOpen]);
 
