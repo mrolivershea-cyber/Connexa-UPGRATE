@@ -1736,11 +1736,9 @@ async def test_single_node(
         if test_type == "ping":
             result = await network_tester.ping_test(node.ip)
             if result['reachable']:
-                node.status = "online"
-                node.ping_status = "ping_success"
+                node.status = "ping_ok"
             else:
-                node.status = "offline"
-                node.ping_status = "ping_failed"
+                node.status = "ping_failed"
         elif test_type == "speed":
             service_status = await service_manager.get_service_status(node_id)
             interface = service_status.get('interface') if service_status['active'] else None
