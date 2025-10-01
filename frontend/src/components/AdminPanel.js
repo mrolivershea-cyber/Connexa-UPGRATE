@@ -597,7 +597,6 @@ const AdminPanel = () => {
                   <SelectItem value="not_tested">Not Tested</SelectItem>
                   <SelectItem value="ping_failed">PING Failed</SelectItem>
                   <SelectItem value="ping_ok">PING OK</SelectItem>
-                  <SelectItem value="speed_slow">Speed Slow</SelectItem>
                   <SelectItem value="speed_ok">Speed OK</SelectItem>
                   <SelectItem value="offline">Offline</SelectItem>
                   <SelectItem value="online">Online</SelectItem>
