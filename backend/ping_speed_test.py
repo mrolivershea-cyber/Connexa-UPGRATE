@@ -23,45 +23,64 @@ class PPTPTester:
         Returns: {"success": bool, "avg_time": float, "packet_loss": float, "message": str}
         """
         
+        # Set aggressive timeouts for container environment
+        max_timeout = 2 if fast_mode else 5  # Very short timeouts
+        attempts = 1 if fast_mode else 2      # Fewer attempts
+        actual_timeout = min(timeout, max_timeout)
+        
         try:
-            # Test PPTP port 1723 directly - this is what we really need
-            # Use fewer attempts and shorter timeout for fast mode (mass testing)
-            attempts = 1 if fast_mode else 3
-            timeout = min(timeout, 3 if fast_mode else 10)
             successful_connections = 0
             total_time = 0
             connection_times = []
+            last_error = None
             
             for attempt in range(attempts):
                 try:
+                    # Use asyncio timeout wrapper for better control
                     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                    sock.settimeout(timeout)
+                    sock.settimeout(actual_timeout)
+                    sock.setblocking(False)  # Non-blocking socket
                     
                     start_time = time.time()
+                    
+                    # Attempt connection with strict timeout
                     result = sock.connect_ex((ip, 1723))
-                    end_time = time.time()
-                    connection_time = (end_time - start_time) * 1000
                     
-                    sock.close()
-                    
-                    if result == 0:  # Connection successful
+                    # For non-blocking sockets, EINPROGRESS or EWOULDBLOCK is normal
+                    if result == 0:
+                        # Connection successful immediately
+                        end_time = time.time()
+                        connection_time = (end_time - start_time) * 1000
                         successful_connections += 1
                         total_time += connection_time
                         connection_times.append(connection_time)
+                    elif result in [115, 11]:  # EINPROGRESS or EWOULDBLOCK
+                        # Wait for connection completion with select
+                        import select
+                        ready = select.select([], [sock], [], actual_timeout)
+                        if ready[1]:
+                            # Connection completed, check if successful
+                            error = sock.getsockopt(socket.SOL_SOCKET, socket.SO_ERROR)
+                            if error == 0:
+                                end_time = time.time()
+                                connection_time = (end_time - start_time) * 1000
+                                successful_connections += 1
+                                total_time += connection_time
+                                connection_times.append(connection_time)
+                    
+                    sock.close()
                     
                 except socket.timeout:
-                    # Connection timed out - server likely not responding
-                    pass
-                except socket.gaierror:
-                    # DNS resolution failed - invalid IP
-                    break
-                except Exception:
-                    # Other connection errors
-                    pass
+                    last_error = "Connection timeout"
+                except socket.gaierror as e:
+                    last_error = f"DNS resolution failed: {str(e)}"
+                    break  # No point in retrying DNS errors
+                except Exception as e:
+                    last_error = f"Socket error: {str(e)}"
                 
-                # Small delay between attempts (skip in fast mode)
+                # Very short delay between attempts in fast mode
                 if attempt < attempts - 1 and not fast_mode:
-                    await asyncio.sleep(0.2)
+                    await asyncio.sleep(0.1)
             
             # Calculate results
             if successful_connections > 0:
