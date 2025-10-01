@@ -4672,7 +4672,7 @@ def main():
     tester.test_get_current_user()
     
     # Run timestamp fix tests
-    timestamp_test_node_ids = tester.run_timestamp_fix_tests()
+    tester.run_timestamp_tests()
     
     # Print summary
     print("\n" + "=" * 80)
