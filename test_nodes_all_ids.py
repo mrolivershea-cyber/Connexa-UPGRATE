@@ -94,7 +94,7 @@ class NodesAllIdsAPITester:
         self.token = original_token
         
         if success:
-            self.log_test("Nodes All IDs - Authentication Required", True, "✅ Endpoint correctly requires authentication (401 returned)")
+            self.log_test("Nodes All IDs - Authentication Required", True, "✅ Endpoint correctly requires authentication (422 returned)")
             return True
         else:
             self.log_test("Nodes All IDs - Authentication Required", False, f"❌ Expected 401 for unauthenticated request, got: {response}")
