@@ -1789,6 +1789,7 @@ async def test_combined(
             # Set status to checking
             node.status = "checking"
             node.last_check = datetime.utcnow()
+            node.last_update = datetime.utcnow()  # Update time when status changes
             db.commit()
             
             # Get interface if service is active
@@ -1802,6 +1803,7 @@ async def test_combined(
             
             # Update node status
             node.status = combined_result['overall']
+            node.last_update = datetime.utcnow()  # Update time after test
             db.commit()
             
             results.append({
@@ -1814,6 +1816,7 @@ async def test_combined(
         except Exception as e:
             # Reset status on error
             node.status = "offline"
+            node.last_update = datetime.utcnow()  # Update time on error
             db.commit()
             
             results.append({
