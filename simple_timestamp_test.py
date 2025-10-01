@@ -42,12 +42,16 @@ def test_timestamp_update():
     # Wait a moment
     time.sleep(2)
     
+    print(f"Current Python time before ping test: {datetime.utcnow().isoformat()}")
+    
     # Try manual ping test
     ping_data = {"node_ids": [node_id]}
     response = requests.post(f"{api_url}/manual/ping-test", json=ping_data, headers=headers)
     
     print(f"Manual ping test response: {response.status_code}")
     print(f"Response body: {response.text}")
+    
+    print(f"Current Python time after ping test: {datetime.utcnow().isoformat()}")
     
     # Check node status after ping test
     response = requests.get(f"{api_url}/nodes?id={node_id}", headers=headers)
@@ -62,6 +66,22 @@ def test_timestamp_update():
             print(f"  Status: {new_status}")
             print(f"  Timestamp: {new_timestamp}")
             print(f"  Timestamp changed: {new_timestamp != initial_timestamp}")
+            
+            # Parse timestamps to compare
+            try:
+                initial_dt = datetime.fromisoformat(initial_timestamp.replace('Z', '+00:00'))
+                new_dt = datetime.fromisoformat(new_timestamp.replace('Z', '+00:00'))
+                time_diff = (new_dt - initial_dt).total_seconds()
+                print(f"  Time difference: {time_diff:.2f} seconds")
+                
+                if time_diff > 0:
+                    print("  ✅ Timestamp was updated to a newer time")
+                elif time_diff < 0:
+                    print("  ❌ Timestamp was updated to an OLDER time")
+                else:
+                    print("  ❌ Timestamp was not changed")
+            except Exception as e:
+                print(f"  Error parsing timestamps: {e}")
         else:
             print("❌ Node not found after ping test")
     else:
