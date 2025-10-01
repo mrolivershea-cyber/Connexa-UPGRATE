@@ -2205,8 +2205,8 @@ async def manual_ping_test_batch(
                 "message": f"Ping test error: {str(e)}"
             }
     
-    # Run tests in parallel with reduced concurrency for stability
-    semaphore = asyncio.Semaphore(5)  # Reduce to max 5 concurrent tests
+    # Run tests in parallel with better concurrency balance
+    semaphore = asyncio.Semaphore(8)  # Increase to max 8 concurrent tests for better performance
     
     async def limited_test(node):
         async with semaphore:
