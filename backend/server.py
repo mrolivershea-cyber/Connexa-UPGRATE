@@ -1988,6 +1988,7 @@ async def start_single_node_services(
             
             if socks_result['success']:
                 node.status = "online"
+                node.last_update = datetime.utcnow()  # Update time when online
                 db.commit()
                 
                 return {
