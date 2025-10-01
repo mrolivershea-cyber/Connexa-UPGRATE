@@ -5208,5 +5208,54 @@ def main():
         print("❌ Some timestamp fix tests failed!")
         return 1
 
+def run_service_management_tests():
+    """Run critical service management tests as requested in the review"""
+    tester = ConnexaAPITester()
+    
+    print("🔥 CRITICAL SERVICE MANAGEMENT TESTS (Review Request)")
+    print("="*80)
+    
+    # Authentication
+    if not tester.test_login():
+        print("❌ Login failed - cannot continue tests")
+        return 1
+    
+    # Test 1: Complete Service Management Workflow
+    print("\n1. Testing Complete Service Management Workflow...")
+    tester.test_service_management_workflow_complete()
+    
+    # Test 2: Start/Stop Services Functions
+    print("\n2. Testing Start/Stop Services Functions...")
+    tester.test_service_start_stop_functions()
+    
+    # Test 3: Status Transition Validation
+    print("\n3. Testing Status Transition Validation...")
+    tester.test_status_transition_validation()
+    
+    # Test 4: Timestamp Updates on Status Changes
+    print("\n4. Testing Timestamp Updates on Status Changes...")
+    tester.test_timestamp_updates_on_status_changes()
+    
+    print("\n" + "="*80)
+    print("🔥 SERVICE MANAGEMENT TESTS COMPLETED")
+    print("="*80)
+    
+    # Final summary
+    print("\n" + "=" * 50)
+    print("🏁 Service Management Test Summary")
+    print("=" * 50)
+    print(f"Total tests run: {tester.tests_run}")
+    print(f"Tests passed: {tester.tests_passed}")
+    print(f"Tests failed: {tester.tests_run - tester.tests_passed}")
+    print(f"Success rate: {(tester.tests_passed / tester.tests_run * 100):.1f}%")
+    
+    if tester.tests_passed == tester.tests_run:
+        print("🎉 All service management tests passed!")
+        return 0
+    else:
+        print("❌ Some service management tests failed!")
+        return 1
+
 if __name__ == "__main__":
-    sys.exit(main())
+    # Run service management tests specifically for the review request
+    sys.exit(run_service_management_tests())
