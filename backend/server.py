@@ -2219,7 +2219,7 @@ async def manual_launch_services(
             continue
         
         # Check if node is in correct status for service launch
-        if node.status not in ["speed_ok", "speed_slow"]:
+        if node.status != "speed_ok":
             results.append({
                 "node_id": node_id,
                 "success": False,
