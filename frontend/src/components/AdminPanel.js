@@ -127,11 +127,36 @@ const AdminPanel = () => {
     });
   };
 
-  const handleSelectAll = () => {
-    if (selectedNodes.length === nodes.length) {
+  const getAllNodeIds = async () => {
+    try {
+      const params = Object.fromEntries(
+        Object.entries(filters).filter(([key, value]) => value !== '' && value !== false && value !== 'all')
+      );
+      
+      const response = await axios.get(`${API}/nodes/all-ids`, { params });
+      return response.data.node_ids;
+    } catch (error) {
+      console.error('Error getting all node IDs:', error);
+      toast.error('Failed to get all node IDs');
+      return [];
+    }
+  };
+
+  const handleSelectAll = async () => {
+    if (selectAllMode) {
+      // Currently in "select all" mode - deselect all
       setSelectedNodes([]);
+      setAllSelectedIds([]);
+      setSelectAllMode(false);
     } else {
-      setSelectedNodes(nodes.map(node => node.id));
+      // Select all nodes matching current filters
+      const allIds = await getAllNodeIds();
+      if (allIds.length > 0) {
+        setAllSelectedIds(allIds);
+        setSelectedNodes(nodes.map(node => node.id).filter(id => allIds.includes(id)));
+        setSelectAllMode(true);
+        toast.success(`Selected ${allIds.length} nodes total`);
+      }
     }
   };
 
