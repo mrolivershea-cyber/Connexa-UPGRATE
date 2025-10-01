@@ -220,14 +220,16 @@ const AdminPanel = () => {
   };
 
   const handleStartServices = async () => {
-    if (!selectedNodes.length) {
+    const targetIds = selectAllMode ? allSelectedIds : selectedNodes;
+    
+    if (!targetIds.length) {
       toast.error('No nodes selected');
       return;
     }
 
     try {
       const response = await axios.post(`${API}/services/start`, {
-        node_ids: selectedNodes,
+        node_ids: targetIds,
         action: 'start'
       });
 
