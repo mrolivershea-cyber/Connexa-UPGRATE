@@ -40,10 +40,15 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], onTestComplete })
       if (testType === 'speed') endpoint = 'manual/speed-test';
       if (testType === 'both') endpoint = 'test/combined';
       
-      // Simulate progress
+      // Improved progress simulation based on node count
+      const expectedDuration = selectedNodeIds.length > 1 ? 
+        Math.min(selectedNodeIds.length * 1000, 30000) : // Batch: ~1s per node, max 30s
+        12000; // Single: ~12s
+      const progressStep = 85 / (expectedDuration / 1000); // Reach 85% by expected time
+      
       const progressInterval = setInterval(() => {
-        setProgress(prev => prev < 90 ? prev + 10 : prev);
-      }, 500);
+        setProgress(prev => prev < 85 ? prev + progressStep : prev);
+      }, 1000);
       
       const response = await axios.post(`${API}/${endpoint}`, {
         node_ids: selectedNodeIds,
