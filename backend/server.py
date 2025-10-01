@@ -2095,8 +2095,9 @@ async def manual_ping_test(
                 "ip": node.ip,
                 "success": True,
                 "status": node.status,
+                "original_status": original_status,
                 "ping_result": ping_result,
-                "message": f"Ping test completed: {node.status}"
+                "message": f"Ping test completed: {original_status} -> {node.status}"
             })
             
         except Exception as e:
