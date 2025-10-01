@@ -1512,7 +1512,6 @@ async def get_stats(
         "not_tested": not_tested_nodes,
         "ping_failed": ping_failed_nodes,
         "ping_ok": ping_ok_nodes,
-        "speed_slow": speed_slow_nodes,
         "speed_ok": speed_ok_nodes,
         "offline": offline_nodes,
         "online": online_nodes,
