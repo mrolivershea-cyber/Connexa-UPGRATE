@@ -818,7 +818,7 @@ const AdminPanel = () => {
       <TestingModal 
         isOpen={showTestingModal}
         onClose={() => setShowTestingModal(false)}
-        selectedNodeIds={selectedNodes}
+        selectedNodeIds={selectAllMode ? allSelectedIds : selectedNodes}
         onTestComplete={() => {
           loadNodes(currentPage);
           loadStats();
