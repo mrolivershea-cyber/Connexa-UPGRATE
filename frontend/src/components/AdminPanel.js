@@ -363,14 +363,16 @@ const AdminPanel = () => {
   };
 
   const handleManualLaunchServices = async () => {
-    if (!selectedNodes.length) {
+    const targetIds = selectAllMode ? allSelectedIds : selectedNodes;
+    
+    if (!targetIds.length) {
       toast.error('No nodes selected');
       return;
     }
 
     try {
       const response = await axios.post(`${API}/manual/launch-services`, {
-        node_ids: selectedNodes
+        node_ids: targetIds
       });
 
       const results = response.data.results;
@@ -387,6 +389,8 @@ const AdminPanel = () => {
       loadNodes(currentPage);
       loadStats();
       setSelectedNodes([]);
+      setAllSelectedIds([]);
+      setSelectAllMode(false);
     } catch (error) {
       console.error('Error launching services:', error);
       toast.error('Failed to launch services: ' + (error.response?.data?.detail || error.message));
