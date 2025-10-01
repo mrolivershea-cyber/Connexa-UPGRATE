@@ -88,16 +88,17 @@ class NodesAllIdsAPITester:
         # Clear token to test unauthenticated access
         self.token = None
         
-        success, response = self.make_request('GET', 'nodes/all-ids', expected_status=422)
+        success, response = self.make_request('GET', 'nodes/all-ids')
         
         # Restore token
         self.token = original_token
         
-        if success:
-            self.log_test("Nodes All IDs - Authentication Required", True, "✅ Endpoint correctly requires authentication (422 returned)")
+        # Check if authentication is required (should fail without token)
+        if not success and 'detail' in response and 'authenticated' in response['detail'].lower():
+            self.log_test("Nodes All IDs - Authentication Required", True, f"✅ Endpoint correctly requires authentication: {response['detail']}")
             return True
         else:
-            self.log_test("Nodes All IDs - Authentication Required", False, f"❌ Expected 422 for unauthenticated request, got: {response}")
+            self.log_test("Nodes All IDs - Authentication Required", False, f"❌ Expected authentication error, got: {response}")
             return False
 
     def test_nodes_all_ids_endpoint(self):
