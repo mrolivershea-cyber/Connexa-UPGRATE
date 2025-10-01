@@ -3686,6 +3686,12 @@ State: California""",
         nodes = self.test_get_nodes()
         self.test_get_stats()
         
+        # Test NEW /api/nodes/all-ids endpoint (Review Request)
+        print("\n🆕 TESTING NEW /api/nodes/all-ids ENDPOINT (Review Request)")
+        print("=" * 60)
+        self.test_nodes_all_ids_authentication()
+        self.test_nodes_all_ids_endpoint()
+        
         # Test node creation and manipulation
         new_node_id = self.test_create_node()
         if new_node_id:
