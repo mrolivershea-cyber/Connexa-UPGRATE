@@ -18,56 +18,113 @@ class PPTPTester:
     @staticmethod
     async def ping_test(ip: str, timeout: int = 5) -> Dict:
         """
-        Perform TCP connection test to PPTP server (port 1723)
-        More reliable than ICMP ping in container environments
+        Perform connectivity test for PPTP server
+        1. First check general host reachability (common ports)
+        2. Then check PPTP port 1723 specifically
         Returns: {"success": bool, "avg_time": float, "packet_loss": float, "message": str}
         """
         import socket
         
         try:
-            # Test multiple connection attempts to get average time
-            attempts = 3
-            successful_connections = 0
-            total_time = 0
+            # First check if host is reachable via common ports (80, 443, 53, 22)
+            common_ports = [80, 443, 53, 22]
+            host_reachable = False
+            host_response_time = 0
             
-            for _ in range(attempts):
+            for port in common_ports:
+                try:
+                    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                    sock.settimeout(2)  # Quick timeout for reachability check
+                    
+                    start_time = time.time()
+                    result = sock.connect_ex((ip, port))
+                    end_time = time.time()
+                    sock.close()
+                    
+                    if result == 0:
+                        host_reachable = True
+                        host_response_time = (end_time - start_time) * 1000
+                        break
+                        
+                except Exception:
+                    continue
+            
+            # If host is not reachable via common ports, check PPTP port directly
+            if not host_reachable:
+                # Test PPTP port 1723 specifically
+                attempts = 2
+                pptp_connections = 0
+                pptp_total_time = 0
+                
+                for _ in range(attempts):
+                    try:
+                        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                        sock.settimeout(timeout)
+                        
+                        start_time = time.time()
+                        result = sock.connect_ex((ip, 1723))
+                        end_time = time.time()
+                        sock.close()
+                        
+                        if result == 0:
+                            pptp_connections += 1
+                            connection_time = (end_time - start_time) * 1000
+                            pptp_total_time += connection_time
+                            
+                    except Exception:
+                        pass
+                    
+                    await asyncio.sleep(0.1)
+                
+                if pptp_connections > 0:
+                    avg_time = pptp_total_time / pptp_connections
+                    return {
+                        "success": True,
+                        "avg_time": round(avg_time, 1),
+                        "packet_loss": 0,
+                        "message": f"PPTP server active - {avg_time:.1f}ms response"
+                    }
+                else:
+                    return {
+                        "success": False,
+                        "avg_time": 0,
+                        "packet_loss": 100,
+                        "message": f"Host unreachable - no response on common ports or PPTP port 1723"
+                    }
+            else:
+                # Host is reachable, now check if PPTP service is available
                 try:
                     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                     sock.settimeout(timeout)
                     
                     start_time = time.time()
-                    result = sock.connect_ex((ip, 1723))  # PPTP port
+                    result = sock.connect_ex((ip, 1723))
                     end_time = time.time()
                     sock.close()
                     
                     if result == 0:
-                        successful_connections += 1
-                        connection_time = (end_time - start_time) * 1000  # Convert to ms
-                        total_time += connection_time
+                        pptp_time = (end_time - start_time) * 1000
+                        return {
+                            "success": True,
+                            "avg_time": round(pptp_time, 1),
+                            "packet_loss": 0,
+                            "message": f"PPTP server ready - {pptp_time:.1f}ms response on port 1723"
+                        }
+                    else:
+                        return {
+                            "success": False,
+                            "avg_time": round(host_response_time, 1),
+                            "packet_loss": 50,
+                            "message": f"Host reachable ({host_response_time:.1f}ms) but PPTP port 1723 closed"
+                        }
                         
                 except Exception:
-                    pass  # Connection failed, continue to next attempt
-                
-                # Small delay between attempts
-                await asyncio.sleep(0.1)
-            
-            if successful_connections > 0:
-                avg_time = total_time / successful_connections
-                packet_loss = ((attempts - successful_connections) / attempts) * 100
-                
-                return {
-                    "success": True,
-                    "avg_time": round(avg_time, 1),
-                    "packet_loss": packet_loss,
-                    "message": f"PPTP server reachable - {avg_time:.1f}ms avg, {packet_loss:.0f}% loss"
-                }
-            else:
-                return {
-                    "success": False,
-                    "avg_time": 0,
-                    "packet_loss": 100,
-                    "message": f"PPTP server unreachable - port 1723 closed or filtered"
-                }
+                    return {
+                        "success": False,
+                        "avg_time": round(host_response_time, 1),
+                        "packet_loss": 50,
+                        "message": f"Host reachable ({host_response_time:.1f}ms) but PPTP port 1723 inaccessible"
+                    }
                 
         except Exception as e:
             return {
