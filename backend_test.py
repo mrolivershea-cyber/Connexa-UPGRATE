@@ -1744,6 +1744,98 @@ City: Austin""",
                          f"❌ Failed to create test node: {create_response}")
             return False
 
+    def test_timestamp_update_fix_manual_ping_test(self):
+        """TIMESTAMP FIX TEST 4: POST /api/manual/ping-test - Check that last_update updates after status changes"""
+        # First, create a test node with 'not_tested' status
+        import time
+        timestamp = str(int(time.time()))
+        
+        test_node = {
+            "ip": f"203.0.114.{timestamp[-2:]}",
+            "login": f"ping_test_user_{timestamp}",
+            "password": "PingTest123!",
+            "protocol": "pptp",
+            "status": "not_tested",
+            "comment": "Manual ping test node"
+        }
+        
+        create_success, create_response = self.make_request('POST', 'nodes', test_node, 200)
+        
+        if create_success and 'id' in create_response:
+            node_id = create_response['id']
+            
+            # Get initial timestamp
+            initial_success, initial_response = self.make_request('GET', f'nodes?ip={test_node["ip"]}')
+            
+            if initial_success and 'nodes' in initial_response and initial_response['nodes']:
+                initial_node = initial_response['nodes'][0]
+                initial_timestamp_str = initial_node.get('last_update')
+                
+                # Wait a moment to ensure timestamp difference
+                time.sleep(2)
+                
+                # Perform manual ping test
+                ping_data = {
+                    "node_ids": [node_id]
+                }
+                
+                ping_success, ping_response = self.make_request('POST', 'manual/ping-test', ping_data)
+                
+                if ping_success:
+                    # Get updated node to check timestamp
+                    updated_success, updated_response = self.make_request('GET', f'nodes?ip={test_node["ip"]}')
+                    
+                    if updated_success and 'nodes' in updated_response and updated_response['nodes']:
+                        updated_node = updated_response['nodes'][0]
+                        updated_timestamp_str = updated_node.get('last_update')
+                        updated_status = updated_node.get('status')
+                        
+                        if initial_timestamp_str and updated_timestamp_str:
+                            try:
+                                initial_time = datetime.fromisoformat(initial_timestamp_str.replace('Z', '+00:00'))
+                                updated_time = datetime.fromisoformat(updated_timestamp_str.replace('Z', '+00:00'))
+                                
+                                # Updated timestamp should be more recent than initial
+                                if updated_time > initial_time:
+                                    time_diff = abs((datetime.now() - updated_time).total_seconds())
+                                    
+                                    if time_diff <= 10:  # Should be very recent
+                                        self.log_test("TIMESTAMP FIX - Manual Ping Test", True, 
+                                                     f"✅ MANUAL PING TIMESTAMP UPDATE: Status changed to '{updated_status}', last_update updated to {time_diff:.1f}s ago")
+                                        return True
+                                    else:
+                                        self.log_test("TIMESTAMP FIX - Manual Ping Test", False, 
+                                                     f"❌ TIMESTAMP NOT CURRENT: Updated timestamp is {time_diff:.1f}s ago, expected within 10s")
+                                        return False
+                                else:
+                                    self.log_test("TIMESTAMP FIX - Manual Ping Test", False, 
+                                                 f"❌ TIMESTAMP NOT UPDATED: Initial={initial_timestamp_str}, Updated={updated_timestamp_str}")
+                                    return False
+                            except Exception as e:
+                                self.log_test("TIMESTAMP FIX - Manual Ping Test", False, 
+                                             f"❌ TIMESTAMP PARSE ERROR: {e}")
+                                return False
+                        else:
+                            self.log_test("TIMESTAMP FIX - Manual Ping Test", False, 
+                                         f"❌ MISSING TIMESTAMPS: Initial={initial_timestamp_str}, Updated={updated_timestamp_str}")
+                            return False
+                    else:
+                        self.log_test("TIMESTAMP FIX - Manual Ping Test", False, 
+                                     f"❌ Could not retrieve updated node")
+                        return False
+                else:
+                    self.log_test("TIMESTAMP FIX - Manual Ping Test", False, 
+                                 f"❌ Manual ping test failed: {ping_response}")
+                    return False
+            else:
+                self.log_test("TIMESTAMP FIX - Manual Ping Test", False, 
+                             f"❌ Could not retrieve initial node")
+                return False
+        else:
+            self.log_test("TIMESTAMP FIX - Manual Ping Test", False, 
+                         f"❌ Failed to create test node: {create_response}")
+            return False
+
     def run_timestamp_tests(self):
         """Run all timestamp-related tests as requested in the review"""
         print("\n" + "="*80)
