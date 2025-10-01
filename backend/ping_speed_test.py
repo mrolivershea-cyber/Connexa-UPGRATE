@@ -23,9 +23,9 @@ class PPTPTester:
         Returns: {"success": bool, "avg_time": float, "packet_loss": float, "message": str}
         """
         
-        # Set aggressive timeouts for container environment
-        max_timeout = 2 if fast_mode else 5  # Very short timeouts
-        attempts = 1 if fast_mode else 2      # Fewer attempts
+        # Set balanced timeouts for better accuracy
+        max_timeout = 5 if fast_mode else 10   # More reasonable timeouts 
+        attempts = 2 if fast_mode else 3       # More attempts for accuracy
         actual_timeout = min(timeout, max_timeout)
         
         try:
