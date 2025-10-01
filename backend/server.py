@@ -2155,19 +2155,15 @@ async def manual_speed_test(
             node.last_update = datetime.utcnow()  # Update time when status changes
             db.commit()
             
-            # Perform speed test (simplified version without requiring active connection)
-            speed_result = await network_tester.speed_test()
+            # Perform real speed test
+            from ping_speed_test import test_node_speed
+            speed_result = await test_node_speed(node.ip)
             
-            if speed_result['success'] and speed_result.get('download_speed'):
-                node.speed = f"{speed_result['download_speed']:.1f}"
-                
-                # Set status based on speed: >1 Mbps = speed_ok, ≤1 Mbps = ping_failed  
-                if speed_result['download_speed'] > 1.0:
-                    node.status = "speed_ok"
-                else:
-                    node.status = "ping_failed"
+            if speed_result['success'] and speed_result.get('download'):
+                node.speed = f"{speed_result['download']:.1f}"
+                node.status = "speed_ok"  # Any successful speed test = speed_ok
             else:
-                # Speed test failed - set to ping_failed to retry ping
+                # Speed test failed - set to ping_failed according to requirements
                 node.status = "ping_failed"
                 node.speed = None
             
