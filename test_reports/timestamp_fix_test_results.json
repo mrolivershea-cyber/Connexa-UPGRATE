@@ -1,5 +1,5 @@
 {
-  "timestamp": "2025-10-01T08:00:53.797236",
+  "timestamp": "2025-10-01T08:02:59.233110",
   "total_tests": 8,
   "passed_tests": 5,
   "success_rate": 62.5,
@@ -19,7 +19,7 @@
     {
       "test": "Timestamp Fix - Create Node",
       "success": true,
-      "details": "\u2705 NEW NODE TIMESTAMP CORRECT: last_update=2025-10-01T08:00:41.932103, time_diff=0.0s",
+      "details": "\u2705 NEW NODE TIMESTAMP CORRECT: last_update=2025-10-01T08:02:47.330382, time_diff=0.0s",
       "response_data": null
     },
     {
@@ -31,7 +31,7 @@
     {
       "test": "Timestamp Fix - Manual Ping Test",
       "success": false,
-      "details": "\u274c PING TEST TIMESTAMPS NOT UPDATED: Node2365: \u274c Not updated, Node2366: \u274c Not updated",
+      "details": "\u274c PING TEST TIMESTAMPS NOT UPDATED: Node2368: \u274c Not updated (initial: 2025-10-01T07:12:04, new: 2025-10-01T07:12:04), Node2369: \u274c Not updated (initial: 2025-10-01T07:12:04, new: 2025-10-01T07:12:04)",
       "response_data": null
     },
     {
@@ -49,7 +49,7 @@
     {
       "test": "Timestamp Fix - Format Verification",
       "success": true,
-      "details": "\u2705 TIMESTAMP FORMAT CORRECT: 2025-10-01T07:12:04 (ISO format, 2929.8s ago)",
+      "details": "\u2705 TIMESTAMP FORMAT CORRECT: 2025-10-01T07:12:04 (ISO format, 3055.2s ago)",
       "response_data": null
     }
   ],
