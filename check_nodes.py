@@ -4,7 +4,7 @@ import requests
 import json
 
 def check_nodes():
-    base_url = "https://server-status-fix.preview.emergentagent.com"
+    base_url = "https://flextest.preview.emergentagent.com"
     api_url = f"{base_url}/api"
     
     # Login

@@ -6,7 +6,7 @@ from datetime import datetime
 import time
 
 # Test import with correct format
-BASE_URL = "https://server-status-fix.preview.emergentagent.com"
+BASE_URL = "https://flextest.preview.emergentagent.com"
 API_URL = f"{BASE_URL}/api"
 
 def login():
