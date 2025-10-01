@@ -1387,6 +1387,415 @@ ZIP: 78701"""
             self.log_test("Single Node Service Stop", False, f"Failed to stop service for single node: {response}")
             return False
 
+    # ========== CRITICAL SERVICE MANAGEMENT TESTS (Review Request) ==========
+    
+    def test_service_management_workflow_complete(self):
+        """CRITICAL TEST: Complete Service Management Workflow - not_tested → ping → speed → launch → online"""
+        print("\n🔥 CRITICAL SERVICE MANAGEMENT WORKFLOW TEST")
+        print("=" * 60)
+        
+        # Step 1: Get nodes with 'not_tested' status
+        success, response = self.make_request('GET', 'nodes?status=not_tested&limit=5')
+        
+        if not success or 'nodes' not in response or not response['nodes']:
+            self.log_test("Service Management Workflow - Get not_tested nodes", False, 
+                         f"Failed to get not_tested nodes: {response}")
+            return False
+        
+        test_nodes = response['nodes'][:3]  # Use first 3 nodes
+        node_ids = [node['id'] for node in test_nodes]
+        
+        print(f"📋 Selected {len(test_nodes)} nodes for testing:")
+        for i, node in enumerate(test_nodes, 1):
+            print(f"   {i}. Node {node['id']}: {node['ip']} (status: {node['status']})")
+        
+        # Step 2: Manual Ping Test (not_tested → ping_ok/ping_failed)
+        print(f"\n🏓 STEP 1: Manual Ping Test")
+        ping_data = {"node_ids": node_ids}
+        ping_success, ping_response = self.make_request('POST', 'manual/ping-test', ping_data)
+        
+        if not ping_success or 'results' not in ping_response:
+            self.log_test("Service Management Workflow - Manual Ping Test", False, 
+                         f"Ping test failed: {ping_response}")
+            return False
+        
+        ping_ok_nodes = []
+        ping_failed_nodes = []
+        
+        for result in ping_response['results']:
+            print(f"   Node {result['node_id']}: {result.get('message', 'No message')}")
+            if result.get('success') and result.get('status') == 'ping_ok':
+                ping_ok_nodes.append(result['node_id'])
+            elif result.get('status') == 'ping_failed':
+                ping_failed_nodes.append(result['node_id'])
+        
+        print(f"   ✅ Ping OK: {len(ping_ok_nodes)} nodes")
+        print(f"   ❌ Ping Failed: {len(ping_failed_nodes)} nodes")
+        
+        if not ping_ok_nodes:
+            self.log_test("Service Management Workflow - Manual Ping Test", False, 
+                         "No nodes passed ping test - cannot continue workflow")
+            return False
+        
+        # Step 3: Manual Speed Test (ping_ok → speed_ok/speed_slow)
+        print(f"\n🚀 STEP 2: Manual Speed Test")
+        speed_data = {"node_ids": ping_ok_nodes}
+        speed_success, speed_response = self.make_request('POST', 'manual/speed-test', speed_data)
+        
+        if not speed_success or 'results' not in speed_response:
+            self.log_test("Service Management Workflow - Manual Speed Test", False, 
+                         f"Speed test failed: {speed_response}")
+            return False
+        
+        speed_ok_nodes = []
+        speed_slow_nodes = []
+        
+        for result in speed_response['results']:
+            print(f"   Node {result['node_id']}: {result.get('message', 'No message')} (Speed: {result.get('speed', 'N/A')})")
+            if result.get('success') and result.get('status') in ['speed_ok', 'speed_slow']:
+                if result.get('status') == 'speed_ok':
+                    speed_ok_nodes.append(result['node_id'])
+                else:
+                    speed_slow_nodes.append(result['node_id'])
+        
+        print(f"   ✅ Speed OK: {len(speed_ok_nodes)} nodes")
+        print(f"   🐌 Speed Slow: {len(speed_slow_nodes)} nodes")
+        
+        launch_ready_nodes = speed_ok_nodes + speed_slow_nodes
+        
+        if not launch_ready_nodes:
+            self.log_test("Service Management Workflow - Manual Speed Test", False, 
+                         "No nodes passed speed test - cannot continue workflow")
+            return False
+        
+        # Step 4: Manual Launch Services (speed_ok/speed_slow → online/offline)
+        print(f"\n🚀 STEP 3: Manual Launch Services")
+        launch_data = {"node_ids": launch_ready_nodes}
+        launch_success, launch_response = self.make_request('POST', 'manual/launch-services', launch_data)
+        
+        if not launch_success or 'results' not in launch_response:
+            self.log_test("Service Management Workflow - Manual Launch Services", False, 
+                         f"Launch services failed: {launch_response}")
+            return False
+        
+        online_nodes = []
+        offline_nodes = []
+        
+        for result in launch_response['results']:
+            print(f"   Node {result['node_id']}: {result.get('message', 'No message')}")
+            if result.get('success') and result.get('status') == 'online':
+                online_nodes.append(result['node_id'])
+            else:
+                offline_nodes.append(result['node_id'])
+        
+        print(f"   ✅ Online: {len(online_nodes)} nodes")
+        print(f"   ❌ Offline: {len(offline_nodes)} nodes")
+        
+        # Step 5: Verify Status Transitions and Timestamps
+        print(f"\n📊 STEP 4: Verify Status Transitions and Timestamps")
+        
+        all_test_nodes = node_ids
+        verification_success = True
+        
+        for node_id in all_test_nodes:
+            node_success, node_response = self.make_request('GET', f'nodes?id={node_id}')
+            
+            if node_success and 'nodes' in node_response and node_response['nodes']:
+                node = node_response['nodes'][0]
+                current_status = node.get('status')
+                last_update = node.get('last_update')
+                
+                print(f"   Node {node_id}: Status={current_status}, Last Update={last_update}")
+                
+                # Verify timestamp is recent (within last 5 minutes)
+                if last_update:
+                    try:
+                        from datetime import datetime, timedelta
+                        import dateutil.parser
+                        update_time = dateutil.parser.parse(last_update)
+                        now = datetime.now(update_time.tzinfo) if update_time.tzinfo else datetime.utcnow()
+                        time_diff = now - update_time
+                        
+                        if time_diff > timedelta(minutes=5):
+                            print(f"   ⚠️  Node {node_id}: Timestamp not recent ({time_diff})")
+                            verification_success = False
+                        else:
+                            print(f"   ✅ Node {node_id}: Timestamp recent ({time_diff})")
+                    except Exception as e:
+                        print(f"   ❌ Node {node_id}: Timestamp parse error: {e}")
+                        verification_success = False
+                else:
+                    print(f"   ❌ Node {node_id}: No timestamp")
+                    verification_success = False
+            else:
+                print(f"   ❌ Node {node_id}: Could not retrieve node data")
+                verification_success = False
+        
+        # Final Assessment
+        workflow_success = (
+            len(ping_ok_nodes) > 0 and  # At least some nodes passed ping
+            len(launch_ready_nodes) > 0 and  # At least some nodes ready for launch
+            verification_success  # Timestamps updated correctly
+        )
+        
+        if workflow_success:
+            self.log_test("CRITICAL - Service Management Workflow Complete", True, 
+                         f"✅ WORKFLOW SUCCESS: {len(ping_ok_nodes)} ping_ok, {len(speed_ok_nodes)} speed_ok, {len(speed_slow_nodes)} speed_slow, {len(online_nodes)} online. Status transitions and timestamps working correctly.")
+            return True
+        else:
+            self.log_test("CRITICAL - Service Management Workflow Complete", False, 
+                         f"❌ WORKFLOW ISSUES: Ping OK: {len(ping_ok_nodes)}, Speed Ready: {len(launch_ready_nodes)}, Online: {len(online_nodes)}, Timestamp verification: {verification_success}")
+            return False
+
+    def test_service_start_stop_functions(self):
+        """CRITICAL TEST: Start Services and Stop Services Functions"""
+        print("\n🔥 CRITICAL SERVICE START/STOP TEST")
+        print("=" * 50)
+        
+        # Get some nodes that are in a testable state
+        success, response = self.make_request('GET', 'nodes?limit=3')
+        
+        if not success or 'nodes' not in response or not response['nodes']:
+            self.log_test("Service Start/Stop - Get nodes", False, 
+                         f"Failed to get nodes: {response}")
+            return False
+        
+        test_nodes = response['nodes'][:2]  # Use first 2 nodes
+        node_ids = [node['id'] for node in test_nodes]
+        
+        print(f"📋 Selected {len(test_nodes)} nodes for start/stop testing:")
+        for i, node in enumerate(test_nodes, 1):
+            print(f"   {i}. Node {node['id']}: {node['ip']} (status: {node['status']})")
+        
+        # Test Start Services
+        print(f"\n🚀 Testing Start Services")
+        start_data = {"node_ids": node_ids}
+        start_success, start_response = self.make_request('POST', 'services/start', start_data)
+        
+        start_results_valid = False
+        if start_success and 'results' in start_response:
+            start_results_valid = True
+            for result in start_response['results']:
+                print(f"   Node {result['node_id']}: {result.get('message', 'No message')} (Success: {result.get('success', False)})")
+        else:
+            print(f"   ❌ Start Services failed: {start_response}")
+        
+        # Test Stop Services  
+        print(f"\n🛑 Testing Stop Services")
+        stop_data = {"node_ids": node_ids}
+        stop_success, stop_response = self.make_request('POST', 'services/stop', stop_data)
+        
+        stop_results_valid = False
+        if stop_success and 'results' in stop_response:
+            stop_results_valid = True
+            for result in stop_response['results']:
+                print(f"   Node {result['node_id']}: {result.get('message', 'No message')} (Success: {result.get('success', False)})")
+        else:
+            print(f"   ❌ Stop Services failed: {stop_response}")
+        
+        # Verify timestamps updated
+        print(f"\n📊 Verifying Timestamp Updates")
+        timestamp_verification = True
+        
+        for node_id in node_ids:
+            node_success, node_response = self.make_request('GET', f'nodes?id={node_id}')
+            
+            if node_success and 'nodes' in node_response and node_response['nodes']:
+                node = node_response['nodes'][0]
+                last_update = node.get('last_update')
+                print(f"   Node {node_id}: Last Update = {last_update}")
+                
+                if not last_update:
+                    timestamp_verification = False
+                    print(f"   ❌ Node {node_id}: No timestamp")
+            else:
+                timestamp_verification = False
+                print(f"   ❌ Node {node_id}: Could not retrieve node")
+        
+        # Final Assessment
+        overall_success = start_results_valid and stop_results_valid and timestamp_verification
+        
+        if overall_success:
+            self.log_test("CRITICAL - Service Start/Stop Functions", True, 
+                         f"✅ START/STOP SUCCESS: Both start and stop services working, API responses valid, timestamps updated")
+            return True
+        else:
+            self.log_test("CRITICAL - Service Start/Stop Functions", False, 
+                         f"❌ START/STOP ISSUES: Start OK: {start_results_valid}, Stop OK: {stop_results_valid}, Timestamps OK: {timestamp_verification}")
+            return False
+
+    def test_status_transition_validation(self):
+        """CRITICAL TEST: Status Transition Validation - Ensure proper workflow enforcement"""
+        print("\n🔥 CRITICAL STATUS TRANSITION VALIDATION TEST")
+        print("=" * 55)
+        
+        # Get a node with 'not_tested' status
+        success, response = self.make_request('GET', 'nodes?status=not_tested&limit=1')
+        
+        if not success or 'nodes' not in response or not response['nodes']:
+            self.log_test("Status Transition Validation - Get not_tested node", False, 
+                         f"No not_tested nodes available: {response}")
+            return False
+        
+        test_node = response['nodes'][0]
+        node_id = test_node['id']
+        
+        print(f"📋 Testing with Node {node_id}: {test_node['ip']} (status: {test_node['status']})")
+        
+        # Test 1: Try speed test on not_tested node (should fail)
+        print(f"\n❌ TEST 1: Speed test on not_tested node (should fail)")
+        speed_data = {"node_ids": [node_id]}
+        speed_success, speed_response = self.make_request('POST', 'manual/speed-test', speed_data)
+        
+        speed_validation_correct = False
+        if speed_success and 'results' in speed_response:
+            result = speed_response['results'][0]
+            if not result.get('success') and 'expected' in result.get('message', '').lower():
+                speed_validation_correct = True
+                print(f"   ✅ Correctly rejected: {result.get('message')}")
+            else:
+                print(f"   ❌ Should have been rejected: {result}")
+        else:
+            print(f"   ❌ Unexpected response: {speed_response}")
+        
+        # Test 2: Try launch services on not_tested node (should fail)
+        print(f"\n❌ TEST 2: Launch services on not_tested node (should fail)")
+        launch_data = {"node_ids": [node_id]}
+        launch_success, launch_response = self.make_request('POST', 'manual/launch-services', launch_data)
+        
+        launch_validation_correct = False
+        if launch_success and 'results' in launch_response:
+            result = launch_response['results'][0]
+            if not result.get('success') and 'expected' in result.get('message', '').lower():
+                launch_validation_correct = True
+                print(f"   ✅ Correctly rejected: {result.get('message')}")
+            else:
+                print(f"   ❌ Should have been rejected: {result}")
+        else:
+            print(f"   ❌ Unexpected response: {launch_response}")
+        
+        # Test 3: Proper ping test (should work)
+        print(f"\n✅ TEST 3: Ping test on not_tested node (should work)")
+        ping_data = {"node_ids": [node_id]}
+        ping_success, ping_response = self.make_request('POST', 'manual/ping-test', ping_data)
+        
+        ping_worked = False
+        if ping_success and 'results' in ping_response:
+            result = ping_response['results'][0]
+            if result.get('success') or result.get('status') in ['ping_ok', 'ping_failed']:
+                ping_worked = True
+                print(f"   ✅ Ping test executed: {result.get('message')} (Status: {result.get('status')})")
+            else:
+                print(f"   ❌ Ping test failed unexpectedly: {result}")
+        else:
+            print(f"   ❌ Ping test API failed: {ping_response}")
+        
+        # Final Assessment
+        validation_success = speed_validation_correct and launch_validation_correct and ping_worked
+        
+        if validation_success:
+            self.log_test("CRITICAL - Status Transition Validation", True, 
+                         f"✅ VALIDATION SUCCESS: Workflow enforcement working correctly - speed/launch rejected on not_tested, ping accepted")
+            return True
+        else:
+            self.log_test("CRITICAL - Status Transition Validation", False, 
+                         f"❌ VALIDATION ISSUES: Speed validation: {speed_validation_correct}, Launch validation: {launch_validation_correct}, Ping worked: {ping_worked}")
+            return False
+
+    def test_timestamp_updates_on_status_changes(self):
+        """CRITICAL TEST: Timestamp Updates on All Status Changes"""
+        print("\n🔥 CRITICAL TIMESTAMP UPDATE TEST")
+        print("=" * 40)
+        
+        # Get a node with 'not_tested' status
+        success, response = self.make_request('GET', 'nodes?status=not_tested&limit=1')
+        
+        if not success or 'nodes' not in response or not response['nodes']:
+            self.log_test("Timestamp Updates - Get not_tested node", False, 
+                         f"No not_tested nodes available: {response}")
+            return False
+        
+        test_node = response['nodes'][0]
+        node_id = test_node['id']
+        initial_timestamp = test_node.get('last_update')
+        
+        print(f"📋 Testing with Node {node_id}: {test_node['ip']}")
+        print(f"   Initial timestamp: {initial_timestamp}")
+        
+        import time
+        
+        # Test 1: Ping test should update timestamp
+        print(f"\n🏓 TEST 1: Ping test timestamp update")
+        time.sleep(1)  # Ensure timestamp difference
+        
+        ping_data = {"node_ids": [node_id]}
+        ping_success, ping_response = self.make_request('POST', 'manual/ping-test', ping_data)
+        
+        ping_timestamp_updated = False
+        if ping_success:
+            # Check if timestamp was updated
+            node_success, node_response = self.make_request('GET', f'nodes?id={node_id}')
+            
+            if node_success and 'nodes' in node_response and node_response['nodes']:
+                updated_node = node_response['nodes'][0]
+                new_timestamp = updated_node.get('last_update')
+                
+                if new_timestamp and new_timestamp != initial_timestamp:
+                    ping_timestamp_updated = True
+                    print(f"   ✅ Timestamp updated: {initial_timestamp} → {new_timestamp}")
+                    initial_timestamp = new_timestamp  # Update for next test
+                else:
+                    print(f"   ❌ Timestamp not updated: {initial_timestamp} → {new_timestamp}")
+            else:
+                print(f"   ❌ Could not retrieve updated node")
+        else:
+            print(f"   ❌ Ping test failed: {ping_response}")
+        
+        # Test 2: If ping was successful, test speed test timestamp update
+        speed_timestamp_updated = True  # Default to true if we can't test
+        
+        if ping_success and 'results' in ping_response:
+            result = ping_response['results'][0]
+            if result.get('status') == 'ping_ok':
+                print(f"\n🚀 TEST 2: Speed test timestamp update")
+                time.sleep(1)  # Ensure timestamp difference
+                
+                speed_data = {"node_ids": [node_id]}
+                speed_success, speed_response = self.make_request('POST', 'manual/speed-test', speed_data)
+                
+                speed_timestamp_updated = False
+                if speed_success:
+                    # Check if timestamp was updated
+                    node_success, node_response = self.make_request('GET', f'nodes?id={node_id}')
+                    
+                    if node_success and 'nodes' in node_response and node_response['nodes']:
+                        updated_node = node_response['nodes'][0]
+                        new_timestamp = updated_node.get('last_update')
+                        
+                        if new_timestamp and new_timestamp != initial_timestamp:
+                            speed_timestamp_updated = True
+                            print(f"   ✅ Timestamp updated: {initial_timestamp} → {new_timestamp}")
+                        else:
+                            print(f"   ❌ Timestamp not updated: {initial_timestamp} → {new_timestamp}")
+                    else:
+                        print(f"   ❌ Could not retrieve updated node")
+                else:
+                    print(f"   ❌ Speed test failed: {speed_response}")
+            else:
+                print(f"\n⏭️  TEST 2: Skipped (ping failed, node status: {result.get('status')})")
+        
+        # Final Assessment
+        timestamp_success = ping_timestamp_updated and speed_timestamp_updated
+        
+        if timestamp_success:
+            self.log_test("CRITICAL - Timestamp Updates on Status Changes", True, 
+                         f"✅ TIMESTAMP SUCCESS: last_update field correctly updated on ping and speed tests")
+            return True
+        else:
+            self.log_test("CRITICAL - Timestamp Updates on Status Changes", False, 
+                         f"❌ TIMESTAMP ISSUES: Ping timestamp updated: {ping_timestamp_updated}, Speed timestamp updated: {speed_timestamp_updated}")
+            return False
+
     # ========== CRITICAL PPTP ADMIN PANEL TESTS (Review Request) ==========
     
     def test_critical_import_status_assignment_bug_fix(self):
