@@ -53,7 +53,7 @@ def test_timestamp_update():
     
     print(f"Current Python time after ping test: {datetime.utcnow().isoformat()}")
     
-    # Check node status after ping test
+    # Check node status after ping test via API
     response = requests.get(f"{api_url}/nodes?id={node_id}", headers=headers)
     if response.status_code == 200:
         nodes = response.json()['nodes']
@@ -62,7 +62,7 @@ def test_timestamp_update():
             new_timestamp = node.get('last_update')
             new_status = node.get('status')
             
-            print(f"After ping test:")
+            print(f"After ping test (via API):")
             print(f"  Status: {new_status}")
             print(f"  Timestamp: {new_timestamp}")
             print(f"  Timestamp changed: {new_timestamp != initial_timestamp}")
@@ -86,6 +86,23 @@ def test_timestamp_update():
             print("❌ Node not found after ping test")
     else:
         print(f"❌ Failed to get node after ping test: {response.text}")
+    
+    # Also check database directly
+    import sqlite3
+    try:
+        conn = sqlite3.connect('/app/backend/connexa.db')
+        cursor = conn.cursor()
+        cursor.execute("SELECT id, ip, status, last_update, created_at FROM nodes WHERE id = ?", (node_id,))
+        db_node = cursor.fetchone()
+        if db_node:
+            print(f"After ping test (direct DB query):")
+            print(f"  ID: {db_node[0]}, IP: {db_node[1]}, Status: {db_node[2]}")
+            print(f"  Last Update: {db_node[3]}, Created: {db_node[4]}")
+        else:
+            print("❌ Node not found in database")
+        conn.close()
+    except Exception as e:
+        print(f"Error querying database: {e}")
     
     # Clean up - delete the test node
     requests.delete(f"{api_url}/nodes/{node_id}", headers=headers)
