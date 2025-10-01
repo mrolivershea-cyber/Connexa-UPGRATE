@@ -35,8 +35,8 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], onTestComplete })
     setProgress(0);
     
     try {
-      let endpoint = 'test/ping';
-      if (testType === 'speed') endpoint = 'test/speed';
+      let endpoint = 'manual/ping-test';
+      if (testType === 'speed') endpoint = 'manual/speed-test';
       if (testType === 'both') endpoint = 'test/combined';
       
       // Simulate progress
