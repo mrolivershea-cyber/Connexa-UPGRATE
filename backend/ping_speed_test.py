@@ -224,9 +224,9 @@ class PPTPTester:
             }
 
 # Async helper functions for server integration
-async def test_node_ping(ip: str) -> Dict:
+async def test_node_ping(ip: str, fast_mode: bool = False) -> Dict:
     """Test ping for a single node"""
-    return await PPTPTester.ping_test(ip)
+    return await PPTPTester.ping_test(ip, fast_mode=fast_mode)
 
 async def test_node_speed(ip: str) -> Dict:
     """Test speed for a single node"""  
