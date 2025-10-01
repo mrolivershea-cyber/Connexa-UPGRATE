@@ -227,15 +227,18 @@ backend:
 
   - task: "Remove ping test status restriction"
     implemented: true
-    working: "NA"
+    working: true
     file: "server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "USER REQUEST: Ping test should work for manual or automatic testing regardless of current node status. ISSUE FIXED: Removed status restriction in /api/manual/ping-test that only allowed 'not_tested' nodes. CHANGES: 1) Removed lines 2070-2076 status validation check, 2) Added original_status tracking, 3) Updated response messages to show status transitions. Now ping test works for any node status as requested."
+      - working: true
+        agent: "testing"
+        comment: "✅ PING TEST STATUS RESTRICTION REMOVAL VERIFIED: Comprehensive testing completed successfully. TESTED SCENARIOS: 1) Node with 'not_tested' status (ID 11, IP: 78.82.65.151) - accepted and processed ✅ 2) Node with 'ping_failed' status (ID 1, IP: 50.48.85.55) - accepted and processed ✅ 3) Node with 'ping_ok' status (ID 2337, IP: 72.197.30.147) - accepted and processed ✅. VERIFIED FEATURES: ✅ Status restriction completely removed - all nodes accepted regardless of current status ✅ Original status tracking working correctly (original_status field present in all responses) ✅ Status transition messages showing correctly (format: 'original_status -> new_status') ✅ Real ping testing performed with proper results (ping_ok node showed 81.2ms response time, ping_failed nodes showed proper error messages). All requirements from review request fully satisfied."
 
   - task: "PPTP Testing and Service Launch System"
     implemented: true
