@@ -2520,8 +2520,8 @@ async def manual_launch_services(
             from ovpn_generator import ovpn_generator
             from ping_speed_test import test_pptp_connection
             
-            # Test PPTP connection
-            pptp_result = await test_pptp_connection(node.ip, node.login, node.password)
+            # Test PPTP connection - skip ping check since node already passed speed_ok
+            pptp_result = await test_pptp_connection(node.ip, node.login, node.password, skip_ping_check=True)
             
             if pptp_result['success']:
                 # Generate SOCKS credentials
