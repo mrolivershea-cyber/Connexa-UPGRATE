@@ -34,6 +34,9 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], onTestComplete })
     setLoading(true);
     setProgress(0);
     
+    // Declare progressInterval in the function scope so it's accessible in catch/finally blocks
+    let progressInterval = null;
+    
     try {
       // Use batch endpoint for multiple nodes, single endpoint for one node
       let endpoint = selectedNodeIds.length > 1 ? 'manual/ping-test-batch' : 'manual/ping-test';
@@ -42,12 +45,12 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], onTestComplete })
       
       // Improved progress simulation based on node count
       const expectedDuration = selectedNodeIds.length > 1 ? 
-        Math.min(selectedNodeIds.length * 1000, 30000) : // Batch: ~1s per node, max 30s
-        12000; // Single: ~12s
-      const progressStep = 85 / (expectedDuration / 1000); // Reach 85% by expected time
+        Math.min(selectedNodeIds.length * 2000, 60000) : // Batch: ~2s per node, max 60s
+        15000; // Single: ~15s
+      const progressStep = 90 / (expectedDuration / 1000); // Reach 90% by expected time
       
-      const progressInterval = setInterval(() => {
-        setProgress(prev => prev < 85 ? prev + progressStep : prev);
+      progressInterval = setInterval(() => {
+        setProgress(prev => prev < 90 ? prev + progressStep : prev);
       }, 1000);
       
       console.log(`Starting ${testType} test for ${selectedNodeIds.length} nodes using ${endpoint}`);
@@ -56,10 +59,14 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], onTestComplete })
         node_ids: selectedNodeIds,
         test_type: testType
       }, {
-        timeout: 120000 // 2 minutes timeout
+        timeout: 180000 // 3 minutes timeout
       });
       
-      clearInterval(progressInterval);
+      // Clear interval and set progress to 100% on success
+      if (progressInterval) {
+        clearInterval(progressInterval);
+        progressInterval = null;
+      }
       setProgress(100);
       
       setResults(response.data.results);
@@ -79,11 +86,15 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], onTestComplete })
       }
       
     } catch (error) {
-      clearInterval(progressInterval);
-      setProgress(100);
       console.error('Testing error:', error);
       toast.error('Ошибка тестирования: ' + (error.response?.data?.detail || error.message));
     } finally {
+      // Always clear the interval and reset loading state
+      if (progressInterval) {
+        clearInterval(progressInterval);
+        progressInterval = null;
+      }
+      setProgress(100);
       setLoading(false);
     }
   };
