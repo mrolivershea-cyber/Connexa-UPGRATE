@@ -17,3 +17,7 @@ Location: New York (Bellerose Terrace)
 ZIP: 11418
 > PPTP_SVOIM_VPN:
 🚨 PPTP 
+
+
+=== Format Errors - 2025-10-01 08:21:38 ===
+1. Missing credentials in block 1: testuser1759306897:testpass@10.10.10.97:1723
