@@ -16,7 +16,7 @@ class PPTPTester:
     """Handles real PPTP ping and speed testing"""
     
     @staticmethod
-    async def ping_test(ip: str, timeout: int = 10) -> Dict:
+    async def ping_test(ip: str, timeout: int = 10, fast_mode: bool = False) -> Dict:
         """
         Perform comprehensive connectivity test for PPTP server
         Tests both general reachability and PPTP port 1723 specifically
