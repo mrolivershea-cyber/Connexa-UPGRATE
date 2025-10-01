@@ -403,6 +403,9 @@ test_plan:
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
+  completed_testing:
+    - "Testing Modal Improvements for Russian User Issues"
+    - "Manual testing workflow admin buttons"
 
 agent_communication:
   - agent: "main"
