@@ -2148,10 +2148,10 @@ async def manual_ping_test_batch(
         original_status = node.status if hasattr(node, 'original_status') else "not_tested"
         
         try:
-            # Add timeout protection for individual ping tests
+            # Add timeout protection for individual ping tests with more generous timeout
             ping_result = await asyncio.wait_for(
                 test_node_ping(node.ip, fast_mode=True), 
-                timeout=8.0  # 8 second timeout per node
+                timeout=12.0  # 12 second timeout per node for better accuracy
             )
             
             # Update status based on result - ENSURE node never stays in 'checking'
