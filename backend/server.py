@@ -1957,6 +1957,7 @@ async def test_single_node(
         
     except Exception as e:
         node.status = "offline"
+        node.last_update = datetime.utcnow()  # Update time on error
         db.commit()
         return {"success": False, "message": str(e)}
 
