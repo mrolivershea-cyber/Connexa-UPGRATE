@@ -807,7 +807,7 @@ const AdminPanel = () => {
       <ExportModal 
         isOpen={showExportModal}
         onClose={() => setShowExportModal(false)}
-        selectedNodeIds={selectedNodes}
+        selectedNodeIds={selectAllMode ? allSelectedIds : selectedNodes}
       />
       
       <OptionsModal 
