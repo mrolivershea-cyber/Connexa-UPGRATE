@@ -2053,7 +2053,7 @@ async def manual_ping_test(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Manual ping test - only for not_tested nodes"""
+    """Manual ping test - works for any node status"""
     results = []
     
     for node_id in test_request.node_ids:
@@ -2066,14 +2066,8 @@ async def manual_ping_test(
             })
             continue
         
-        # Check if node is in correct status for ping test
-        if node.status != "not_tested":
-            results.append({
-                "node_id": node_id,
-                "success": False,
-                "message": f"Node status is '{node.status}', expected 'not_tested'"
-            })
-            continue
+        # Store original status for logging
+        original_status = node.status
         
         try:
             # Set status to checking during test
