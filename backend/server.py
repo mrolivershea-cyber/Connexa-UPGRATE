@@ -1353,6 +1353,7 @@ def process_parsed_nodes(db: Session, parsed_data: dict, testing_mode: str = "no
                     node_data_with_defaults['status'] = 'not_tested'
                 
                 new_node = Node(**node_data_with_defaults)
+                new_node.last_update = datetime.utcnow()  # Set current time on creation
                 db.add(new_node)
                 db.flush()
                 results["replaced"].append({
