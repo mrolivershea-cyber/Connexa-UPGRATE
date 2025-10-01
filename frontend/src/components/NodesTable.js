@@ -48,7 +48,6 @@ const NodesTable = ({ nodes, selectedNodes, onSelectNode, onNodeUpdated, loading
       not_tested: { emoji: '⚫', class: 'bg-gray-100 text-gray-800', label: 'Not Tested' },
       ping_failed: { emoji: '🔴', class: 'bg-red-100 text-red-800', label: 'PING Failed' },
       ping_ok: { emoji: '🟠', class: 'bg-orange-100 text-orange-800', label: 'PING OK' },
-      speed_slow: { emoji: '🟡', class: 'bg-yellow-100 text-yellow-800', label: 'Speed Slow' },
       speed_ok: { emoji: '🔵', class: 'bg-blue-100 text-blue-800', label: 'Speed OK' },
       offline: { emoji: '🔴', class: 'bg-red-100 text-red-800', label: 'Offline' },
       online: { emoji: '🟢', class: 'bg-green-100 text-green-800', label: 'Online' }
