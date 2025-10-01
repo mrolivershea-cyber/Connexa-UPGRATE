@@ -6106,6 +6106,245 @@ State: California""",
                          f"Too slow: {duration:.2f}s for {len(test_node_ids)} nodes")
             return False
 
+    def test_batch_ping_functionality(self):
+        """Test the new batch ping endpoint with performance comparison"""
+        print("\n🔥 BATCH PING FUNCTIONALITY TEST (Review Request)")
+        print("=" * 60)
+        
+        # First, create test nodes with known working and non-working IPs
+        working_ips = ["72.197.30.147", "100.11.102.204", "100.16.39.213"]
+        non_working_ips = ["192.0.2.1", "192.0.2.2", "192.0.2.3", "192.0.2.4", "192.0.2.5"]
+        
+        test_nodes = []
+        created_node_ids = []
+        
+        # Create test nodes
+        for i, ip in enumerate(working_ips + non_working_ips):
+            node_data = {
+                "ip": ip,
+                "login": "admin",
+                "password": "admin",
+                "protocol": "pptp",
+                "provider": "TestProvider",
+                "country": "United States",
+                "state": "California",
+                "city": "Los Angeles",
+                "comment": f"Batch ping test node {i+1}"
+            }
+            
+            success, response = self.make_request('POST', 'nodes', node_data)
+            if success and 'id' in response:
+                created_node_ids.append(response['id'])
+                test_nodes.append(response)
+        
+        if len(created_node_ids) < 8:
+            self.log_test("Batch Ping - Node Creation", False, 
+                         f"Failed to create enough test nodes. Created: {len(created_node_ids)}")
+            return False
+        
+        print(f"📋 Created {len(created_node_ids)} test nodes for batch ping testing")
+        
+        # Test 1: Single node ping performance
+        print(f"\n🏓 TEST 1: Single Node Ping Performance")
+        single_node_times = []
+        
+        for i in range(3):  # Test 3 nodes individually
+            node_id = created_node_ids[i]
+            start_time = time.time()
+            
+            success, response = self.make_request('POST', 'manual/ping-test', {"node_ids": [node_id]})
+            
+            end_time = time.time()
+            duration = end_time - start_time
+            single_node_times.append(duration)
+            
+            if success and 'results' in response:
+                result = response['results'][0]
+                print(f"   Node {node_id}: {duration:.2f}s - {result.get('message', 'No message')}")
+            else:
+                print(f"   Node {node_id}: {duration:.2f}s - FAILED")
+        
+        avg_single_time = sum(single_node_times) / len(single_node_times)
+        print(f"   Average single node time: {avg_single_time:.2f}s")
+        
+        # Test 2: Batch ping performance (10 nodes)
+        print(f"\n🚀 TEST 2: Batch Ping Performance (10 nodes)")
+        batch_node_ids = created_node_ids[:10] if len(created_node_ids) >= 10 else created_node_ids
+        
+        start_time = time.time()
+        success, response = self.make_request('POST', 'manual/ping-test-batch', {"node_ids": batch_node_ids})
+        end_time = time.time()
+        
+        batch_duration = end_time - start_time
+        
+        if success and 'results' in response:
+            results = response['results']
+            successful_pings = sum(1 for r in results if r.get('success'))
+            failed_pings = len(results) - successful_pings
+            
+            print(f"   Batch test duration: {batch_duration:.2f}s")
+            print(f"   Nodes tested: {len(results)}")
+            print(f"   Successful pings: {successful_pings}")
+            print(f"   Failed pings: {failed_pings}")
+            
+            # Performance comparison
+            estimated_sequential_time = avg_single_time * len(batch_node_ids)
+            performance_improvement = ((estimated_sequential_time - batch_duration) / estimated_sequential_time) * 100
+            
+            print(f"   Estimated sequential time: {estimated_sequential_time:.2f}s")
+            print(f"   Performance improvement: {performance_improvement:.1f}%")
+            
+            # Test 3: Verify fast_mode is working (shorter timeouts)
+            print(f"\n⚡ TEST 3: Fast Mode Verification")
+            fast_mode_indicators = []
+            
+            for result in results:
+                if 'ping_result' in result and result['ping_result']:
+                    ping_result = result['ping_result']
+                    avg_time = ping_result.get('avg_time', 0)
+                    
+                    # Fast mode should have quicker response times or timeouts
+                    if avg_time > 0 and avg_time < 3000:  # Less than 3 seconds
+                        fast_mode_indicators.append(True)
+                    elif avg_time == 0:  # Quick timeout
+                        fast_mode_indicators.append(True)
+                    else:
+                        fast_mode_indicators.append(False)
+            
+            fast_mode_working = len([x for x in fast_mode_indicators if x]) > len(fast_mode_indicators) * 0.7
+            
+            print(f"   Fast mode indicators: {len([x for x in fast_mode_indicators if x])}/{len(fast_mode_indicators)}")
+            print(f"   Fast mode working: {'✅ YES' if fast_mode_working else '❌ NO'}")
+            
+            # Test 4: Verify no database conflicts (all results should have node_ids)
+            print(f"\n🔒 TEST 4: Database Conflict Check")
+            all_node_ids_present = all('node_id' in result for result in results)
+            unique_node_ids = len(set(result['node_id'] for result in results if 'node_id' in result))
+            
+            print(f"   All node IDs present: {'✅ YES' if all_node_ids_present else '❌ NO'}")
+            print(f"   Unique node IDs: {unique_node_ids}/{len(batch_node_ids)}")
+            
+            no_database_conflicts = all_node_ids_present and unique_node_ids == len(batch_node_ids)
+            
+            # Test 5: Verify working vs non-working IP detection
+            print(f"\n🎯 TEST 5: Working vs Non-Working IP Detection")
+            working_detected = 0
+            non_working_detected = 0
+            
+            for result in results:
+                node_id = result.get('node_id')
+                if node_id:
+                    # Find the corresponding test node
+                    test_node = next((n for n in test_nodes if n['id'] == node_id), None)
+                    if test_node:
+                        ip = test_node['ip']
+                        status = result.get('status')
+                        
+                        if ip in working_ips and status == 'ping_ok':
+                            working_detected += 1
+                        elif ip in non_working_ips and status == 'ping_failed':
+                            non_working_detected += 1
+            
+            print(f"   Working IPs correctly detected: {working_detected}/{len(working_ips)}")
+            print(f"   Non-working IPs correctly detected: {non_working_detected}/{len(non_working_ips)}")
+            
+            # Overall assessment
+            performance_good = performance_improvement > 50  # At least 50% improvement
+            no_hanging = batch_duration < 60  # Should complete within 60 seconds
+            
+            success_criteria = [
+                performance_good,
+                fast_mode_working,
+                no_database_conflicts,
+                no_hanging,
+                successful_pings > 0  # At least some pings should work
+            ]
+            
+            overall_success = all(success_criteria)
+            
+            print(f"\n📊 BATCH PING TEST RESULTS:")
+            print(f"   Performance improvement: {'✅' if performance_good else '❌'} {performance_improvement:.1f}%")
+            print(f"   Fast mode working: {'✅' if fast_mode_working else '❌'}")
+            print(f"   No database conflicts: {'✅' if no_database_conflicts else '❌'}")
+            print(f"   No hanging/freezing: {'✅' if no_hanging else '❌'} ({batch_duration:.1f}s)")
+            print(f"   Some successful pings: {'✅' if successful_pings > 0 else '❌'} ({successful_pings})")
+            
+            self.log_test("Batch Ping Functionality", overall_success,
+                         f"Performance: {performance_improvement:.1f}% improvement, Duration: {batch_duration:.1f}s, Success: {successful_pings}/{len(results)}")
+            
+            # Cleanup: Delete test nodes
+            if created_node_ids:
+                self.make_request('DELETE', 'nodes', {"node_ids": created_node_ids})
+                print(f"🧹 Cleaned up {len(created_node_ids)} test nodes")
+            
+            return overall_success
+            
+        else:
+            self.log_test("Batch Ping Functionality", False, f"Batch ping request failed: {response}")
+            
+            # Cleanup: Delete test nodes
+            if created_node_ids:
+                self.make_request('DELETE', 'nodes', {"node_ids": created_node_ids})
+            
+            return False
+
+    def test_batch_ping_edge_cases(self):
+        """Test batch ping with edge cases and error conditions"""
+        print("\n🔍 BATCH PING EDGE CASES TEST")
+        print("=" * 50)
+        
+        # Test 1: Empty node list
+        success, response = self.make_request('POST', 'manual/ping-test-batch', {"node_ids": []})
+        empty_list_handled = success and 'results' in response and len(response['results']) == 0
+        
+        # Test 2: Invalid node IDs
+        success, response = self.make_request('POST', 'manual/ping-test-batch', {"node_ids": [99999, 99998]})
+        invalid_ids_handled = success and 'results' in response and len(response['results']) == 0
+        
+        # Test 3: Large batch (15+ nodes) - create temporary nodes
+        large_batch_ids = []
+        for i in range(15):
+            node_data = {
+                "ip": f"203.0.113.{i+10}",  # RFC 5737 test IPs
+                "login": "test",
+                "password": "test",
+                "protocol": "pptp",
+                "comment": f"Large batch test node {i+1}"
+            }
+            success, response = self.make_request('POST', 'nodes', node_data)
+            if success and 'id' in response:
+                large_batch_ids.append(response['id'])
+        
+        if len(large_batch_ids) >= 15:
+            start_time = time.time()
+            success, response = self.make_request('POST', 'manual/ping-test-batch', {"node_ids": large_batch_ids})
+            end_time = time.time()
+            
+            large_batch_duration = end_time - start_time
+            large_batch_handled = success and 'results' in response and len(response['results']) == len(large_batch_ids)
+            large_batch_no_timeout = large_batch_duration < 120  # Should complete within 2 minutes
+            
+            print(f"   Large batch (15 nodes): {large_batch_duration:.1f}s")
+        else:
+            large_batch_handled = False
+            large_batch_no_timeout = False
+        
+        # Cleanup large batch nodes
+        if large_batch_ids:
+            self.make_request('DELETE', 'nodes', {"node_ids": large_batch_ids})
+        
+        edge_cases_passed = empty_list_handled and invalid_ids_handled and large_batch_handled and large_batch_no_timeout
+        
+        print(f"   Empty list handled: {'✅' if empty_list_handled else '❌'}")
+        print(f"   Invalid IDs handled: {'✅' if invalid_ids_handled else '❌'}")
+        print(f"   Large batch handled: {'✅' if large_batch_handled else '❌'}")
+        print(f"   No timeout on large batch: {'✅' if large_batch_no_timeout else '❌'}")
+        
+        self.log_test("Batch Ping Edge Cases", edge_cases_passed,
+                     f"Empty: {empty_list_handled}, Invalid: {invalid_ids_handled}, Large: {large_batch_handled}")
+        
+        return edge_cases_passed
+
     def run_all_tests(self):
         """Run all backend tests"""
         print("🚀 Starting Connexa Backend API Tests")
