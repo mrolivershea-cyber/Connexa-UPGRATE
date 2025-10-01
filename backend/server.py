@@ -418,7 +418,7 @@ async def import_nodes(
                                         if speed_result['download_speed'] > 1.0:
                                             node.status = "speed_ok"
                                         else:
-                                            node.status = "speed_slow"
+                                            node.status = "ping_failed"
                                         node.last_update = datetime.utcnow()  # Update time after test
                                 
                             node.last_check = datetime.utcnow()
