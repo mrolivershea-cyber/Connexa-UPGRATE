@@ -78,9 +78,9 @@ class PPTPTester:
                 except Exception as e:
                     last_error = f"Socket error: {str(e)}"
                 
-                # Very short delay between attempts in fast mode
-                if attempt < attempts - 1 and not fast_mode:
-                    await asyncio.sleep(0.1)
+                # Small delay between attempts for better reliability
+                if attempt < attempts - 1:
+                    await asyncio.sleep(0.2 if fast_mode else 0.5)
             
             # Calculate results
             if successful_connections > 0:
