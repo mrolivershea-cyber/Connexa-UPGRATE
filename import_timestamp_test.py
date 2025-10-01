@@ -6,7 +6,7 @@ from datetime import datetime
 import time
 
 # Test import with correct format
-BASE_URL = "https://network-ping-dash.preview.emergentagent.com"
+BASE_URL = "https://node-status-fix.preview.emergentagent.com"
 API_URL = f"{BASE_URL}/api"
 
 def login():

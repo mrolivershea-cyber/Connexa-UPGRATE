@@ -7,7 +7,7 @@ import time
 from datetime import datetime
 
 class ComprehensivePingTester:
-    def __init__(self, base_url="https://network-ping-dash.preview.emergentagent.com"):
+    def __init__(self, base_url="https://node-status-fix.preview.emergentagent.com"):
         self.base_url = base_url
         self.api_url = f"{base_url}/api"
         self.token = None
