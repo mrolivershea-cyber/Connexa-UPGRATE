@@ -137,6 +137,9 @@ backend:
       - working: true
         agent: "testing"
         comment: "✅ TIMESTAMP FIX VERIFIED WORKING: All 4 test scenarios passed. 1) Import nodes: timestamps current (0.1s ago), NOT '8h ago' ✅ 2) Create single node: timestamp current (0.0s ago) immediately ✅ 3) Query nodes: all recent timestamps with proper ISO format ✅ 4) Manual ping test: last_update changes to more recent time after test ✅. User issue 'nodes added just now still show 8h ago timestamp' is RESOLVED. All backend timestamp functionality working as expected."
+      - working: true
+        agent: "testing"
+        comment: "✅ TIMESTAMP FIX RE-VERIFIED (Review Request): Comprehensive testing completed successfully with 100% pass rate (5/5 tests). VERIFIED SCENARIOS: 1) POST /api/nodes - new nodes get current timestamps (NOT '8h ago') ✅ 2) POST /api/nodes/import - imported nodes get current timestamps ✅ 3) GET /api/nodes - existing nodes have valid timestamps after migration (within 1 hour) ✅ 4) POST /api/manual/ping-test - last_update updates correctly after status changes ✅. All timestamp functionality working as designed. User reported issue is fully RESOLVED."
 
   - task: "Manual testing workflow API endpoints"
     implemented: true
