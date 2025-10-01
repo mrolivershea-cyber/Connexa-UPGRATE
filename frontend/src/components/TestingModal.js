@@ -75,6 +75,8 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], onTestComplete })
       }
       
     } catch (error) {
+      clearInterval(progressInterval);
+      setProgress(100);
       console.error('Testing error:', error);
       toast.error('Ошибка тестирования: ' + (error.response?.data?.detail || error.message));
     } finally {
