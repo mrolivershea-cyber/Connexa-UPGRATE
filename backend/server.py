@@ -254,6 +254,57 @@ async def get_nodes(
         "total_pages": (total_count + limit - 1) // limit
     }
 
+@api_router.get("/nodes/all-ids")
+async def get_all_node_ids(
+    ip: Optional[str] = None,
+    provider: Optional[str] = None,
+    country: Optional[str] = None,
+    state: Optional[str] = None,
+    city: Optional[str] = None,
+    zipcode: Optional[str] = None,
+    login: Optional[str] = None,
+    comment: Optional[str] = None,
+    status: Optional[str] = None,
+    protocol: Optional[str] = None,
+    only_online: Optional[bool] = False,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get all node IDs that match the filters (for Select All functionality)"""
+    query = db.query(Node.id)
+    
+    # Apply same filters as /nodes endpoint
+    if ip:
+        query = query.filter(Node.ip.ilike(f"%{ip}%"))
+    if provider:
+        query = query.filter(Node.provider.ilike(f"%{provider}%"))
+    if country:
+        query = query.filter(Node.country.ilike(f"%{country}%"))
+    if state:
+        query = query.filter(Node.state.ilike(f"%{state}%"))
+    if city:
+        query = query.filter(Node.city.ilike(f"%{city}%"))
+    if zipcode:
+        query = query.filter(Node.zipcode.ilike(f"%{zipcode}%"))
+    if login:
+        query = query.filter(Node.login.ilike(f"%{login}%"))
+    if comment:
+        query = query.filter(Node.comment.ilike(f"%{comment}%"))
+    if status:
+        query = query.filter(Node.status == status)
+    if protocol:
+        query = query.filter(Node.protocol == protocol)
+    if only_online:
+        query = query.filter(Node.status == "online")
+    
+    # Get all IDs (no pagination)
+    node_ids = [row[0] for row in query.all()]
+    
+    return {
+        "node_ids": node_ids,
+        "total_count": len(node_ids)
+    }
+
 @api_router.post("/nodes")
 async def create_node(
     node: NodeCreate,
