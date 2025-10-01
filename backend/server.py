@@ -1913,6 +1913,7 @@ async def test_single_node(
         # Set status to checking
         node.status = "checking"
         node.last_check = datetime.utcnow()
+        node.last_update = datetime.utcnow()  # Update time when status changes
         db.commit()
         
         if test_type == "ping":
@@ -1943,6 +1944,7 @@ async def test_single_node(
             result = await network_tester.combined_test(node.ip, interface, "both")
             node.status = result['overall']
         
+        node.last_update = datetime.utcnow()  # Update time after test
         db.commit()
         
         return {
