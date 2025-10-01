@@ -7646,7 +7646,8 @@ State: California""",
         test_nodes = response['nodes'][:2]
         node_ids = [node['id'] for node in test_nodes]
         
-        print(f"   📋 Testing status persistence with nodes: {[f'{n[\"id\"]}({n[\"ip\"]})' for n in test_nodes]}")
+        node_info = [f"{n['id']}({n['ip']})" for n in test_nodes]
+        print(f"   📋 Testing status persistence with nodes: {node_info}")
         
         # Record initial status
         initial_statuses = {}
