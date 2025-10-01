@@ -5540,6 +5540,428 @@ def run_service_management_tests():
         print("❌ Some service management tests failed!")
         return 1
 
+    def test_pptp_manual_ping_test(self):
+        """Test Manual Ping Test API - Core PPTP Testing Workflow Step 1"""
+        print("\n🏓 TESTING MANUAL PING TEST API")
+        print("=" * 50)
+        
+        # Get nodes with 'not_tested' status
+        success, response = self.make_request('GET', 'nodes?status=not_tested&limit=3')
+        
+        if not success or 'nodes' not in response or not response['nodes']:
+            self.log_test("Manual Ping Test - Get not_tested nodes", False, 
+                         f"No not_tested nodes found: {response}")
+            return False
+        
+        test_nodes = response['nodes'][:3]
+        node_ids = [node['id'] for node in test_nodes]
+        
+        print(f"📋 Testing with {len(test_nodes)} not_tested nodes:")
+        for i, node in enumerate(test_nodes, 1):
+            print(f"   {i}. Node {node['id']}: {node['ip']} (status: {node['status']})")
+        
+        # Test 1: Valid ping test with not_tested nodes
+        ping_data = {"node_ids": node_ids}
+        success, response = self.make_request('POST', 'manual/ping-test', ping_data)
+        
+        if success and 'results' in response:
+            ping_ok_count = 0
+            ping_failed_count = 0
+            
+            for result in response['results']:
+                print(f"   Node {result['node_id']}: {result.get('message', 'No message')}")
+                if result.get('success') and result.get('status') == 'ping_ok':
+                    ping_ok_count += 1
+                elif result.get('status') == 'ping_failed':
+                    ping_failed_count += 1
+            
+            self.log_test("Manual Ping Test - Valid Request", True, 
+                         f"Ping OK: {ping_ok_count}, Ping Failed: {ping_failed_count}")
+            
+            # Test 2: Try to ping test nodes that are no longer 'not_tested'
+            if ping_ok_count > 0:
+                # Get a node that should now be 'ping_ok'
+                ping_ok_nodes = [r['node_id'] for r in response['results'] if r.get('status') == 'ping_ok']
+                if ping_ok_nodes:
+                    wrong_status_data = {"node_ids": [ping_ok_nodes[0]]}
+                    success2, response2 = self.make_request('POST', 'manual/ping-test', wrong_status_data)
+                    
+                    if success2 and 'results' in response2:
+                        result = response2['results'][0]
+                        if not result.get('success') and 'expected \'not_tested\'' in result.get('message', ''):
+                            self.log_test("Manual Ping Test - Wrong Status Rejection", True, 
+                                         f"Correctly rejected ping_ok node: {result['message']}")
+                        else:
+                            self.log_test("Manual Ping Test - Wrong Status Rejection", False, 
+                                         f"Should reject non-not_tested nodes: {result}")
+                    else:
+                        self.log_test("Manual Ping Test - Wrong Status Rejection", False, 
+                                     f"Failed to test wrong status: {response2}")
+            
+            return True
+        else:
+            self.log_test("Manual Ping Test - Valid Request", False, f"Ping test failed: {response}")
+            return False
+
+    def test_pptp_manual_speed_test(self):
+        """Test Manual Speed Test API - Core PPTP Testing Workflow Step 2"""
+        print("\n🚀 TESTING MANUAL SPEED TEST API")
+        print("=" * 50)
+        
+        # Get nodes with 'ping_ok' status
+        success, response = self.make_request('GET', 'nodes?status=ping_ok&limit=3')
+        
+        if not success or 'nodes' not in response or not response['nodes']:
+            self.log_test("Manual Speed Test - Get ping_ok nodes", False, 
+                         f"No ping_ok nodes found: {response}")
+            return False
+        
+        test_nodes = response['nodes'][:3]
+        node_ids = [node['id'] for node in test_nodes]
+        
+        print(f"📋 Testing with {len(test_nodes)} ping_ok nodes:")
+        for i, node in enumerate(test_nodes, 1):
+            print(f"   {i}. Node {node['id']}: {node['ip']} (status: {node['status']})")
+        
+        # Test 1: Valid speed test with ping_ok nodes
+        speed_data = {"node_ids": node_ids}
+        success, response = self.make_request('POST', 'manual/speed-test', speed_data)
+        
+        if success and 'results' in response:
+            speed_ok_count = 0
+            speed_failed_count = 0
+            
+            for result in response['results']:
+                print(f"   Node {result['node_id']}: {result.get('message', 'No message')} (Speed: {result.get('speed', 'N/A')})")
+                if result.get('success') and result.get('status') == 'speed_ok':
+                    speed_ok_count += 1
+                elif result.get('status') == 'ping_failed':  # Failed speed tests go to ping_failed
+                    speed_failed_count += 1
+            
+            self.log_test("Manual Speed Test - Valid Request", True, 
+                         f"Speed OK: {speed_ok_count}, Speed Failed (→ping_failed): {speed_failed_count}")
+            
+            # Test 2: Try to speed test nodes with wrong status
+            # Get a not_tested node to test wrong status rejection
+            wrong_success, wrong_response = self.make_request('GET', 'nodes?status=not_tested&limit=1')
+            if wrong_success and 'nodes' in wrong_response and wrong_response['nodes']:
+                wrong_node_id = wrong_response['nodes'][0]['id']
+                wrong_status_data = {"node_ids": [wrong_node_id]}
+                success2, response2 = self.make_request('POST', 'manual/speed-test', wrong_status_data)
+                
+                if success2 and 'results' in response2:
+                    result = response2['results'][0]
+                    if not result.get('success') and 'expected \'ping_ok\'' in result.get('message', ''):
+                        self.log_test("Manual Speed Test - Wrong Status Rejection", True, 
+                                     f"Correctly rejected not_tested node: {result['message']}")
+                    else:
+                        self.log_test("Manual Speed Test - Wrong Status Rejection", False, 
+                                     f"Should reject non-ping_ok nodes: {result}")
+                else:
+                    self.log_test("Manual Speed Test - Wrong Status Rejection", False, 
+                                 f"Failed to test wrong status: {response2}")
+            
+            return True
+        else:
+            self.log_test("Manual Speed Test - Valid Request", False, f"Speed test failed: {response}")
+            return False
+
+    def test_pptp_manual_launch_services(self):
+        """Test Manual Launch Services API - Core PPTP Testing Workflow Step 3"""
+        print("\n🚀 TESTING MANUAL LAUNCH SERVICES API")
+        print("=" * 50)
+        
+        # Get nodes with 'speed_ok' status
+        success, response = self.make_request('GET', 'nodes?status=speed_ok&limit=3')
+        
+        if not success or 'nodes' not in response or not response['nodes']:
+            self.log_test("Manual Launch Services - Get speed_ok nodes", False, 
+                         f"No speed_ok nodes found: {response}")
+            return False
+        
+        test_nodes = response['nodes'][:3]
+        node_ids = [node['id'] for node in test_nodes]
+        
+        print(f"📋 Testing with {len(test_nodes)} speed_ok nodes:")
+        for i, node in enumerate(test_nodes, 1):
+            print(f"   {i}. Node {node['id']}: {node['ip']} (status: {node['status']})")
+        
+        # Test 1: Valid service launch with speed_ok nodes
+        launch_data = {"node_ids": node_ids}
+        success, response = self.make_request('POST', 'manual/launch-services', launch_data)
+        
+        if success and 'results' in response:
+            online_count = 0
+            offline_count = 0
+            
+            for result in response['results']:
+                print(f"   Node {result['node_id']}: {result.get('message', 'No message')}")
+                if result.get('success') and result.get('status') == 'online':
+                    online_count += 1
+                    # Verify SOCKS credentials were generated
+                    if 'socks' in result and result['socks']:
+                        socks = result['socks']
+                        print(f"      SOCKS: {socks.get('ip', 'N/A')}:{socks.get('port', 'N/A')} ({socks.get('login', 'N/A')}/{socks.get('password', 'N/A')})")
+                elif result.get('status') == 'offline' or not result.get('success'):
+                    offline_count += 1
+            
+            self.log_test("Manual Launch Services - Valid Request", True, 
+                         f"Online: {online_count}, Offline: {offline_count}")
+            
+            # Test 2: Try to launch services on nodes with wrong status
+            # Get a not_tested node to test wrong status rejection
+            wrong_success, wrong_response = self.make_request('GET', 'nodes?status=not_tested&limit=1')
+            if wrong_success and 'nodes' in wrong_response and wrong_response['nodes']:
+                wrong_node_id = wrong_response['nodes'][0]['id']
+                wrong_status_data = {"node_ids": [wrong_node_id]}
+                success2, response2 = self.make_request('POST', 'manual/launch-services', wrong_status_data)
+                
+                if success2 and 'results' in response2:
+                    result = response2['results'][0]
+                    if not result.get('success') and 'expected \'speed_ok\'' in result.get('message', ''):
+                        self.log_test("Manual Launch Services - Wrong Status Rejection", True, 
+                                     f"Correctly rejected not_tested node: {result['message']}")
+                    else:
+                        self.log_test("Manual Launch Services - Wrong Status Rejection", False, 
+                                     f"Should reject non-speed_ok nodes: {result}")
+                else:
+                    self.log_test("Manual Launch Services - Wrong Status Rejection", False, 
+                                 f"Failed to test wrong status: {response2}")
+            
+            return True
+        else:
+            self.log_test("Manual Launch Services - Valid Request", False, f"Service launch failed: {response}")
+            return False
+
+    def test_pptp_database_verification(self):
+        """Test Database Field Verification - SOCKS and OVPN data storage"""
+        print("\n💾 TESTING DATABASE FIELD VERIFICATION")
+        print("=" * 50)
+        
+        # Get nodes that should have SOCKS and OVPN data (online status)
+        success, response = self.make_request('GET', 'nodes?status=online&limit=3')
+        
+        if not success or 'nodes' not in response or not response['nodes']:
+            self.log_test("Database Verification - Get online nodes", False, 
+                         f"No online nodes found for verification: {response}")
+            return False
+        
+        online_nodes = response['nodes'][:3]
+        
+        print(f"📋 Verifying database fields for {len(online_nodes)} online nodes:")
+        
+        verified_count = 0
+        for i, node in enumerate(online_nodes, 1):
+            print(f"   {i}. Node {node['id']}: {node['ip']}")
+            
+            # Check for required SOCKS fields
+            socks_fields = ['socks_ip', 'socks_port', 'socks_login', 'socks_password']
+            socks_complete = all(node.get(field) is not None for field in socks_fields)
+            
+            # Check for OVPN config field
+            ovpn_complete = node.get('ovpn_config') is not None
+            
+            if socks_complete and ovpn_complete:
+                verified_count += 1
+                print(f"      ✅ SOCKS: {node.get('socks_ip')}:{node.get('socks_port')} ({node.get('socks_login')}/***)")
+                print(f"      ✅ OVPN: {len(node.get('ovpn_config', ''))} characters")
+            else:
+                print(f"      ❌ Missing fields - SOCKS: {socks_complete}, OVPN: {ovpn_complete}")
+        
+        if verified_count > 0:
+            self.log_test("Database Verification - SOCKS/OVPN Fields", True, 
+                         f"{verified_count}/{len(online_nodes)} nodes have complete SOCKS and OVPN data")
+            return True
+        else:
+            self.log_test("Database Verification - SOCKS/OVPN Fields", False, 
+                         f"No nodes have complete SOCKS and OVPN data")
+            return False
+
+    def test_pptp_error_handling(self):
+        """Test Error Handling - Invalid node IDs and empty requests"""
+        print("\n🚨 TESTING ERROR HANDLING")
+        print("=" * 50)
+        
+        # Test 1: Invalid node IDs
+        invalid_data = {"node_ids": [99999, 99998]}  # Non-existent node IDs
+        
+        endpoints = [
+            ('manual/ping-test', 'Ping Test'),
+            ('manual/speed-test', 'Speed Test'), 
+            ('manual/launch-services', 'Launch Services')
+        ]
+        
+        error_handling_passed = 0
+        
+        for endpoint, name in endpoints:
+            success, response = self.make_request('POST', endpoint, invalid_data)
+            
+            if success and 'results' in response:
+                # Check if all results show "Node not found"
+                all_not_found = all(
+                    not result.get('success') and 'not found' in result.get('message', '').lower()
+                    for result in response['results']
+                )
+                
+                if all_not_found:
+                    self.log_test(f"Error Handling - {name} Invalid IDs", True, 
+                                 f"Correctly handled invalid node IDs")
+                    error_handling_passed += 1
+                else:
+                    self.log_test(f"Error Handling - {name} Invalid IDs", False, 
+                                 f"Did not properly handle invalid node IDs: {response}")
+            else:
+                self.log_test(f"Error Handling - {name} Invalid IDs", False, 
+                             f"Request failed: {response}")
+        
+        # Test 2: Empty request bodies
+        empty_data = {"node_ids": []}
+        
+        for endpoint, name in endpoints:
+            success, response = self.make_request('POST', endpoint, empty_data)
+            
+            if success and 'results' in response and len(response['results']) == 0:
+                self.log_test(f"Error Handling - {name} Empty Request", True, 
+                             f"Correctly handled empty node_ids")
+                error_handling_passed += 1
+            else:
+                self.log_test(f"Error Handling - {name} Empty Request", False, 
+                             f"Did not properly handle empty request: {response}")
+        
+        return error_handling_passed >= 4  # At least 4 out of 6 tests should pass
+
+    def test_pptp_complete_workflow(self):
+        """Test Complete PPTP Workflow - not_tested → ping → speed → launch → online"""
+        print("\n🔄 TESTING COMPLETE PPTP WORKFLOW")
+        print("=" * 50)
+        
+        # Get a few not_tested nodes for complete workflow test
+        success, response = self.make_request('GET', 'nodes?status=not_tested&limit=2')
+        
+        if not success or 'nodes' not in response or not response['nodes']:
+            self.log_test("Complete Workflow - Get not_tested nodes", False, 
+                         f"No not_tested nodes available: {response}")
+            return False
+        
+        test_nodes = response['nodes'][:2]
+        node_ids = [node['id'] for node in test_nodes]
+        
+        print(f"📋 Testing complete workflow with {len(test_nodes)} nodes:")
+        for i, node in enumerate(test_nodes, 1):
+            print(f"   {i}. Node {node['id']}: {node['ip']} (status: {node['status']})")
+        
+        workflow_success = True
+        
+        # Step 1: Ping Test (not_tested → ping_ok/ping_failed)
+        print(f"\n🏓 Step 1: Ping Test")
+        ping_data = {"node_ids": node_ids}
+        success, response = self.make_request('POST', 'manual/ping-test', ping_data)
+        
+        if not success or 'results' not in response:
+            self.log_test("Complete Workflow - Step 1 Ping", False, f"Ping test failed: {response}")
+            return False
+        
+        ping_ok_nodes = [r['node_id'] for r in response['results'] if r.get('status') == 'ping_ok']
+        print(f"   ✅ Ping OK nodes: {len(ping_ok_nodes)}")
+        
+        if not ping_ok_nodes:
+            self.log_test("Complete Workflow - Step 1 Ping", False, "No nodes passed ping test")
+            return False
+        
+        # Step 2: Speed Test (ping_ok → speed_ok/ping_failed)
+        print(f"\n🚀 Step 2: Speed Test")
+        speed_data = {"node_ids": ping_ok_nodes}
+        success, response = self.make_request('POST', 'manual/speed-test', speed_data)
+        
+        if not success or 'results' not in response:
+            self.log_test("Complete Workflow - Step 2 Speed", False, f"Speed test failed: {response}")
+            return False
+        
+        speed_ok_nodes = [r['node_id'] for r in response['results'] if r.get('status') == 'speed_ok']
+        print(f"   ✅ Speed OK nodes: {len(speed_ok_nodes)}")
+        
+        if not speed_ok_nodes:
+            self.log_test("Complete Workflow - Step 2 Speed", False, "No nodes passed speed test")
+            return False
+        
+        # Step 3: Launch Services (speed_ok → online/offline)
+        print(f"\n🚀 Step 3: Launch Services")
+        launch_data = {"node_ids": speed_ok_nodes}
+        success, response = self.make_request('POST', 'manual/launch-services', launch_data)
+        
+        if not success or 'results' not in response:
+            self.log_test("Complete Workflow - Step 3 Launch", False, f"Service launch failed: {response}")
+            return False
+        
+        online_nodes = [r['node_id'] for r in response['results'] if r.get('status') == 'online']
+        print(f"   ✅ Online nodes: {len(online_nodes)}")
+        
+        # Verify final status
+        if online_nodes:
+            # Check that online nodes have SOCKS and OVPN data
+            final_success, final_response = self.make_request('GET', f'nodes?id={online_nodes[0]}')
+            if final_success and 'nodes' in final_response and final_response['nodes']:
+                node = final_response['nodes'][0]
+                has_socks = all(node.get(f) is not None for f in ['socks_ip', 'socks_port', 'socks_login', 'socks_password'])
+                has_ovpn = node.get('ovpn_config') is not None
+                
+                if has_socks and has_ovpn:
+                    self.log_test("Complete Workflow - Full Pipeline", True, 
+                                 f"Successfully completed workflow: {len(test_nodes)} → {len(ping_ok_nodes)} → {len(speed_ok_nodes)} → {len(online_nodes)} with SOCKS/OVPN data")
+                    return True
+                else:
+                    self.log_test("Complete Workflow - Full Pipeline", False, 
+                                 f"Workflow completed but missing SOCKS/OVPN data")
+                    return False
+        
+        self.log_test("Complete Workflow - Full Pipeline", False, 
+                     f"No nodes reached online status")
+        return False
+
+    def run_pptp_tests(self):
+        """Run all PPTP-specific tests as requested in review"""
+        print(f"\n🔥 STARTING PPTP TESTING AND SERVICE LAUNCH TESTS")
+        print(f"🌐 Base URL: {self.base_url}")
+        print("=" * 80)
+        
+        # Authentication first
+        if not self.test_login():
+            print("❌ Login failed - cannot continue with PPTP tests")
+            return False
+        
+        # Core PPTP Testing APIs
+        self.test_pptp_manual_ping_test()
+        self.test_pptp_manual_speed_test() 
+        self.test_pptp_manual_launch_services()
+        
+        # Database and Error Handling
+        self.test_pptp_database_verification()
+        self.test_pptp_error_handling()
+        
+        # Complete Workflow Test
+        self.test_pptp_complete_workflow()
+        
+        # Final summary
+        print("\n" + "=" * 80)
+        print(f"🏁 PPTP TEST SUMMARY")
+        print(f"   Tests Run: {self.tests_run}")
+        print(f"   Tests Passed: {self.tests_passed}")
+        print(f"   Tests Failed: {self.tests_run - self.tests_passed}")
+        print(f"   Success Rate: {(self.tests_passed/self.tests_run*100):.1f}%")
+        
+        if self.tests_passed == self.tests_run:
+            print("🎉 ALL PPTP TESTS PASSED!")
+            return True
+        else:
+            print("❌ SOME PPTP TESTS FAILED")
+            return False
+
+def run_pptp_tests():
+    """Run PPTP-specific tests as requested in the review"""
+    tester = ConnexaAPITester()
+    success = tester.run_pptp_tests()
+    return 0 if success else 1
+
 if __name__ == "__main__":
-    # Run service management tests specifically for the review request
-    sys.exit(run_service_management_tests())
+    # Run PPTP-specific tests as requested in the review
+    sys.exit(run_pptp_tests())
