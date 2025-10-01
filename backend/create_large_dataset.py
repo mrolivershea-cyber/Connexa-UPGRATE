@@ -111,8 +111,9 @@ def create_large_dataset():
         print(f"✅ Успешно создано {created_count} PPTP узлов")
         
         # Verify creation
+        from sqlalchemy import func
         total_count = db.query(Node).count()
-        status_counts = db.query(Node.status, db.func.count(Node.id)).group_by(Node.status).all()
+        status_counts = db.query(Node.status, func.count(Node.id)).group_by(Node.status).all()
         
         print(f"✅ Всего узлов в базе данных: {total_count}")
         print("✅ Распределение по статусам:")
