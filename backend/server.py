@@ -2213,10 +2213,11 @@ async def manual_ping_test_batch(
             return await test_single_node(node)
     
     try:
-        # Execute all tests in parallel with timeout for entire batch
+        # Execute all tests in parallel with more generous timeout for entire batch
+        batch_timeout = max(90.0, len(nodes) * 2.0)  # Dynamic timeout: 90s minimum or 2s per node
         results = await asyncio.wait_for(
             asyncio.gather(*[limited_test(node) for node in nodes]),
-            timeout=60.0  # 60 second timeout for entire batch
+            timeout=batch_timeout
         )
         
     except asyncio.TimeoutError:
