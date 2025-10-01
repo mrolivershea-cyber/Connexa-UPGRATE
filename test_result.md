@@ -299,12 +299,6 @@ metadata:
   test_sequence: 1
   run_ui: false
 
-test_plan:
-  current_focus: []
-  stuck_tasks: []
-  test_all: false
-  test_priority: "high_first"
-
   - task: "Speed_slow status removal verification"
     implemented: true
     working: true
@@ -316,6 +310,18 @@ test_plan:
       - working: true
         agent: "testing"
         comment: "✅ SPEED_SLOW REMOVAL VERIFIED COMPLETE: Comprehensive testing completed with 100% pass rate (7/7 tests). VERIFIED CHANGES: 1) GET /api/stats NO longer returns speed_slow field ✅ 2) POST /api/manual/speed-test now sets ping_failed instead of speed_slow for failed speed tests ✅ 3) POST /api/manual/launch-services only accepts speed_ok nodes (rejects ping_failed) ✅ 4) Status transition workflow updated: not_tested → ping_ok/ping_failed → speed_ok/ping_failed → online/offline ✅ 5) Database contains NO speed_slow nodes ✅ 6) All expected workflow states present, speed_slow completely removed ✅. DATABASE STATE: 2351 total nodes, 2329 not_tested, 20 ping_failed, 0 ping_ok, 0 speed_ok, 2 offline, 0 online. New logic working correctly: when speed test fails, nodes go to ping_failed instead of speed_slow. All user requirements from review request fully satisfied."
+
+metadata:
+  created_by: "main_agent"
+  version: "1.0"
+  test_sequence: 1
+  run_ui: false
+
+test_plan:
+  current_focus: []
+  stuck_tasks: []
+  test_all: false
+  test_priority: "high_first"
 
 agent_communication:
   - agent: "main"
