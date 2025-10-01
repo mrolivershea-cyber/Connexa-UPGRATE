@@ -2247,6 +2247,165 @@ async def manual_ping_test_batch(
     
     return {"results": results}
 
+@api_router.post("/manual/ping-speed-test-batch")
+async def manual_ping_speed_test_batch(
+    test_request: TestRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Optimized batch ping + speed test with sequential execution"""
+    import asyncio
+    from ping_speed_test import test_node_ping, test_node_speed
+    
+    # Get all nodes first
+    nodes = []
+    for node_id in test_request.node_ids:
+        node = db.query(Node).filter(Node.id == node_id).first()
+        if node:
+            nodes.append(node)
+    
+    if not nodes:
+        return {"results": []}
+    
+    # Sequential execution: ping first, then speed only for successful pings
+    async def test_single_node_combined(node):
+        original_status = getattr(node, 'original_status', 'not_tested')
+        
+        try:
+            # Step 1: Ping test
+            node.status = "checking"
+            node.last_check = datetime.utcnow()
+            node.last_update = datetime.utcnow()
+            db.commit()
+            
+            ping_result = await asyncio.wait_for(
+                test_node_ping(node.ip, fast_mode=True),
+                timeout=12.0
+            )
+            
+            if not ping_result or not ping_result.get('success', False):
+                # Ping failed - set to ping_failed and stop
+                node.status = "ping_failed"
+                node.last_check = datetime.utcnow()
+                node.last_update = datetime.utcnow()
+                db.commit()
+                
+                return {
+                    "node_id": node.id,
+                    "ip": node.ip,
+                    "success": False,
+                    "status": node.status,
+                    "original_status": original_status,
+                    "ping_result": ping_result,
+                    "message": f"Ping failed: {original_status} -> {node.status}"
+                }
+            
+            # Step 2: Ping successful, now test speed
+            node.status = "ping_ok"
+            node.last_update = datetime.utcnow()
+            db.commit()
+            
+            # Small delay before speed test
+            await asyncio.sleep(0.5)
+            
+            speed_result = await asyncio.wait_for(
+                test_node_speed(node.ip),
+                timeout=15.0
+            )
+            
+            # Update final status based on speed result
+            if speed_result and speed_result.get('success', False):
+                node.status = "speed_ok"
+                node.speed = f"{speed_result.get('download', 0)} Mbps"
+            else:
+                node.status = "ping_failed"  # Speed failed goes to ping_failed as per requirements
+            
+            node.last_check = datetime.utcnow()
+            node.last_update = datetime.utcnow()
+            db.commit()
+            
+            return {
+                "node_id": node.id,
+                "ip": node.ip,
+                "success": True,
+                "status": node.status,
+                "original_status": original_status,
+                "ping_result": ping_result,
+                "speed_result": speed_result,
+                "message": f"Combined test: {original_status} -> {node.status}"
+            }
+            
+        except asyncio.TimeoutError:
+            node.status = "ping_failed"
+            node.last_check = datetime.utcnow()
+            node.last_update = datetime.utcnow()
+            db.commit()
+            
+            return {
+                "node_id": node.id,
+                "ip": node.ip,
+                "success": False,
+                "status": node.status,
+                "original_status": original_status,
+                "message": f"Combined test timeout: {original_status} -> {node.status}"
+            }
+            
+        except Exception as e:
+            node.status = "ping_failed"
+            node.last_check = datetime.utcnow()
+            node.last_update = datetime.utcnow()
+            db.commit()
+            
+            return {
+                "node_id": node.id,
+                "ip": node.ip,
+                "success": False,
+                "status": node.status,
+                "original_status": original_status,
+                "message": f"Combined test error: {str(e)}"
+            }
+    
+    # Run tests with limited concurrency for stability
+    semaphore = asyncio.Semaphore(4)  # Only 4 concurrent combined tests
+    
+    async def limited_combined_test(node):
+        async with semaphore:
+            return await test_single_node_combined(node)
+    
+    try:
+        # Execute all tests with dynamic timeout
+        batch_timeout = max(120.0, len(nodes) * 5.0)  # 120s minimum or 5s per node for combined tests
+        results = await asyncio.wait_for(
+            asyncio.gather(*[limited_combined_test(node) for node in nodes]),
+            timeout=batch_timeout
+        )
+        
+    except asyncio.TimeoutError:
+        # If entire batch times out, ensure no nodes remain in 'checking' status
+        results = []
+        for node in nodes:
+            if node.status == "checking":
+                node.status = "ping_failed"
+                node.last_check = datetime.utcnow()
+                node.last_update = datetime.utcnow()
+                
+            results.append({
+                "node_id": node.id,
+                "ip": node.ip,
+                "success": False,
+                "status": node.status,
+                "message": "Batch operation timed out"
+            })
+    
+    # Ensure all database changes are committed
+    try:
+        db.commit()
+    except Exception as e:
+        print(f"Database commit error in combined test: {e}")
+        db.rollback()
+    
+    return {"results": results}
+
 @api_router.post("/manual/speed-test")
 async def manual_speed_test(
     test_request: TestRequest,
