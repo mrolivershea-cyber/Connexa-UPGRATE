@@ -25,7 +25,9 @@ class PPTPTester:
         
         try:
             # Test PPTP port 1723 directly - this is what we really need
-            attempts = 3
+            # Use fewer attempts and shorter timeout for fast mode (mass testing)
+            attempts = 1 if fast_mode else 3
+            timeout = min(timeout, 3 if fast_mode else 10)
             successful_connections = 0
             total_time = 0
             connection_times = []
