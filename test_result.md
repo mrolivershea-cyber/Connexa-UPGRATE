@@ -122,15 +122,18 @@ backend:
 
   - task: "Fix timestamp update issue for all status changes"
     implemented: true
-    working: false
+    working: true
     file: "server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "USER ISSUE: When adding new nodes, timestamp shows '8h ago' instead of current time. When status changes (ping test, start/stop services), timestamp should update to current time. PROBLEM: last_update field only updates automatically on SQLAlchemy UPDATE, not INSERT. Need explicit last_update=datetime.utcnow() everywhere. FIXED: Added explicit timestamp updates to: 1) POST /api/nodes (line 315), 2) process_parsed_nodes for add/replace (lines 1332, 1355), 3) Import testing (lines 398-421), 4) Manual ping test (lines 2061, 2075, 2090), 5) Manual speed test (lines 2131, 2151, 2167), 6) Manual launch services (lines 2218, 2239, 2254, 2264, 2277), 7) /test/ping (lines 1675, 1684, 1698), 8) /test/combined (lines 1793, 1807, 1820), 9) /nodes/auto-test (lines 1844, 1880, 1891), 10) /nodes/{id}/test (lines 1915, 1946, 1963), 11) /nodes/{id}/services/start (line 1992), 12) /nodes/{id}/services/stop (line 2035), 13) /services/start bulk (lines 1564, 1576, 1587), 14) /services/stop bulk (line 1622). Background monitoring already had timestamps. Now ALL status changes explicitly set last_update=datetime.utcnow()."
+      - working: true
+        agent: "testing"
+        comment: "✅ TIMESTAMP FIX VERIFIED WORKING: Comprehensive testing completed successfully. CRITICAL CHANGES VERIFIED: 1) Removed server_default=func.now() and onupdate=func.now() from database.py, 2) All new nodes get current timestamp via explicit Python code last_update=datetime.utcnow(), 3) Migration script updated all 2,383 existing nodes with current timestamp, 4) Backend restarted successfully. TEST SCENARIOS PASSED: 1) Import new nodes via POST /api/nodes/import - timestamps are current (0.1s ago), 2) Create single node via POST /api/nodes - timestamps are current (0.0s ago), 3) Query nodes via GET /api/nodes - all nodes show recent timestamps (within minutes), 4) Manual ping test updates timestamps correctly. RESULT: All new nodes now have last_update set to current UTC time, timestamps show as 'just now' instead of '8h ago', every status change updates last_update to current time. User reported issue is RESOLVED."
 
   - task: "Manual testing workflow API endpoints"
     implemented: true
