@@ -59,8 +59,8 @@ class PPTPTester:
                     # Other connection errors
                     pass
                 
-                # Small delay between attempts
-                if attempt < attempts - 1:
+                # Small delay between attempts (skip in fast mode)
+                if attempt < attempts - 1 and not fast_mode:
                     await asyncio.sleep(0.2)
             
             # Calculate results
