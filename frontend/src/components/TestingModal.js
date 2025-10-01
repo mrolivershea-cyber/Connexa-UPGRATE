@@ -156,6 +156,38 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], onTestComplete })
       );
     }
 
+    // Handle manual speed test results (new format)
+    if (result.speed_result) {
+      const speedResult = result.speed_result;
+      const isSuccess = speedResult.success;
+      
+      return (
+        <div className={`p-3 rounded ${
+          isSuccess ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+        }`}>
+          <div className="flex justify-between items-start">
+            <div>
+              <div className="font-medium">Node {result.node_id} - {result.ip}</div>
+              {isSuccess ? (
+                <div className="text-sm">
+                  ⬇️ {speedResult.download} Mbps • ⬆️ {speedResult.upload} Mbps • Ping: {speedResult.ping}ms
+                </div>
+              ) : (
+                <div className="text-sm">❌ Ошибка: {speedResult.message}</div>
+              )}
+              <div className="text-xs text-gray-600">
+                Статус: {result.status} • Скорость: {result.speed || 'N/A'}
+              </div>
+            </div>
+            <Badge variant={isSuccess ? 'default' : 'secondary'}>
+              {result.status}
+            </Badge>
+          </div>
+        </div>
+      );
+    }
+
+    // Handle legacy speed test results (old format)
     if (result.speed) {
       const speed = result.speed;
       return (
