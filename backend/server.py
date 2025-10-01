@@ -312,6 +312,7 @@ async def create_node(
     db: Session = Depends(get_db)
 ):
     db_node = Node(**node.dict())
+    db_node.last_update = datetime.utcnow()  # Set current time on creation
     db.add(db_node)
     db.commit()
     db.refresh(db_node)
