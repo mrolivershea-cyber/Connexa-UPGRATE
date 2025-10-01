@@ -2214,6 +2214,7 @@ async def manual_launch_services(
         try:
             # Set status to checking during service launch
             node.status = "checking"
+            node.last_update = datetime.utcnow()  # Update time when status changes
             db.commit()
             
             # Launch SOCKS + OVPN services simultaneously
@@ -2234,6 +2235,7 @@ async def manual_launch_services(
                     # Service launch successful - set to online
                     node.status = "online"
                     node.last_check = datetime.utcnow()
+                    node.last_update = datetime.utcnow()  # Update time when online
                     db.commit()
                     
                     results.append({
@@ -2249,6 +2251,7 @@ async def manual_launch_services(
                     # SOCKS failed - set to offline
                     node.status = "offline"
                     node.last_check = datetime.utcnow()
+                    node.last_update = datetime.utcnow()  # Update time when offline
                     db.commit()
                     
                     results.append({
@@ -2260,6 +2263,7 @@ async def manual_launch_services(
                 # PPTP failed - set to offline
                 node.status = "offline" 
                 node.last_check = datetime.utcnow()
+                node.last_update = datetime.utcnow()  # Update time when offline
                 db.commit()
                 
                 results.append({
@@ -2272,6 +2276,7 @@ async def manual_launch_services(
             # On error, set to offline
             node.status = "offline"
             node.last_check = datetime.utcnow()
+            node.last_update = datetime.utcnow()  # Update time on error
             db.commit()
             
             results.append({
