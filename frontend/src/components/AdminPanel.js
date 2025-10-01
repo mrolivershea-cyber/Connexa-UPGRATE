@@ -702,11 +702,14 @@ const AdminPanel = () => {
         <div className="flex flex-wrap gap-3 mb-4">
           <div className="flex items-center space-x-2">
             <Checkbox 
-              checked={selectedNodes.length === nodes.length && nodes.length > 0}
+              checked={selectAllMode || (selectedNodes.length === nodes.length && nodes.length > 0)}
               onCheckedChange={handleSelectAll}
               data-testid="select-all-checkbox"
             />
-            <span className="text-sm">Select All ({selectedNodes.length} selected)</span>
+            <span className="text-sm">
+              Select All ({selectAllMode ? allSelectedIds.length : selectedNodes.length} selected
+              {selectAllMode && ` total, ${selectedNodes.length} visible`})
+            </span>
           </div>
           
           {selectedNodes.length > 0 && (
