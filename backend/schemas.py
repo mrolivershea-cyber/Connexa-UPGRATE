@@ -76,6 +76,15 @@ class Node(NodeBase):
     last_update: datetime
     created_at: datetime
     
+    # SOCKS Proxy data
+    socks_ip: Optional[str] = None
+    socks_port: Optional[int] = None
+    socks_login: Optional[str] = None
+    socks_password: Optional[str] = None
+    
+    # OVPN Configuration
+    ovpn_config: Optional[str] = None
+    
     class Config:
         from_attributes = True
 
