@@ -1503,7 +1503,6 @@ async def get_stats(
     not_tested_nodes = db.query(Node).filter(Node.status == "not_tested").count()
     ping_failed_nodes = db.query(Node).filter(Node.status == "ping_failed").count()
     ping_ok_nodes = db.query(Node).filter(Node.status == "ping_ok").count()
-    speed_slow_nodes = db.query(Node).filter(Node.status == "speed_slow").count()
     speed_ok_nodes = db.query(Node).filter(Node.status == "speed_ok").count()
     offline_nodes = db.query(Node).filter(Node.status == "offline").count()
     online_nodes = db.query(Node).filter(Node.status == "online").count()
