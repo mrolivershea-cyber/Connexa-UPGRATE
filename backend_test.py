@@ -6864,6 +6864,339 @@ State: California""",
                          f"Unexpected status after launch: {new_status}")
             return False
 
+    def test_batch_ping_basic_functionality(self):
+        """Test basic batch ping endpoint functionality"""
+        print("Testing basic batch ping endpoint...")
+        
+        # Get some existing nodes for testing
+        success, response = self.make_request('GET', 'nodes?limit=5')
+        if not success or 'nodes' not in response or not response['nodes']:
+            self.log_test("Batch Ping Basic - Get Nodes", False, "No nodes available for testing")
+            return False
+        
+        nodes = response['nodes']
+        node_ids = [node['id'] for node in nodes[:3]]  # Test with 3 nodes
+        
+        print(f"   Testing with {len(node_ids)} nodes: {node_ids}")
+        
+        # Test batch ping endpoint
+        start_time = time.time()
+        success, response = self.make_request('POST', 'manual/ping-test-batch', {"node_ids": node_ids})
+        end_time = time.time()
+        
+        duration = end_time - start_time
+        
+        if success and 'results' in response:
+            results = response['results']
+            
+            # Verify response structure
+            all_have_required_fields = all(
+                'node_id' in result and 'success' in result and 'status' in result 
+                for result in results
+            )
+            
+            # Verify no JavaScript errors (should complete without hanging)
+            no_hanging = duration < 30  # Should complete within 30 seconds
+            
+            # Verify all node IDs are present
+            returned_node_ids = [r['node_id'] for r in results if 'node_id' in r]
+            all_nodes_processed = len(returned_node_ids) == len(node_ids)
+            
+            success_criteria = all_have_required_fields and no_hanging and all_nodes_processed
+            
+            self.log_test("Batch Ping Basic Functionality", success_criteria,
+                         f"Duration: {duration:.1f}s, Nodes: {len(results)}/{len(node_ids)}, Structure: {all_have_required_fields}")
+            
+            return success_criteria
+        else:
+            self.log_test("Batch Ping Basic Functionality", False, f"API call failed: {response}")
+            return False
+
+    def test_batch_ping_mass_performance(self):
+        """Test batch ping with 20+ nodes to verify no freezing at 90%"""
+        print("Testing mass batch ping performance (20+ nodes)...")
+        
+        # Create 25 test nodes for mass testing
+        test_node_ids = []
+        working_ips = ["72.197.30.147", "100.11.102.204", "100.16.39.213"]
+        non_working_ips = [f"192.0.2.{i}" for i in range(1, 23)]  # RFC 5737 test IPs
+        
+        all_test_ips = working_ips + non_working_ips
+        
+        print(f"   Creating {len(all_test_ips)} test nodes...")
+        
+        for i, ip in enumerate(all_test_ips):
+            node_data = {
+                "ip": ip,
+                "login": "admin",
+                "password": "admin",
+                "protocol": "pptp",
+                "provider": "MassTestProvider",
+                "comment": f"Mass test node {i+1}"
+            }
+            
+            success, response = self.make_request('POST', 'nodes', node_data)
+            if success and 'id' in response:
+                test_node_ids.append(response['id'])
+        
+        if len(test_node_ids) < 20:
+            self.log_test("Batch Ping Mass Performance - Node Creation", False, 
+                         f"Failed to create enough test nodes. Created: {len(test_node_ids)}")
+            return False
+        
+        print(f"   Created {len(test_node_ids)} test nodes")
+        print(f"   Starting mass batch ping test...")
+        
+        # Test mass batch ping
+        start_time = time.time()
+        success, response = self.make_request('POST', 'manual/ping-test-batch', 
+                                            {"node_ids": test_node_ids}, expected_status=200)
+        end_time = time.time()
+        
+        duration = end_time - start_time
+        
+        # Cleanup test nodes
+        if test_node_ids:
+            self.make_request('DELETE', 'nodes', {"node_ids": test_node_ids})
+            print(f"   Cleaned up {len(test_node_ids)} test nodes")
+        
+        if success and 'results' in response:
+            results = response['results']
+            
+            # Critical success criteria for mass testing
+            no_freezing = duration < 120  # Should complete within 2 minutes
+            all_nodes_processed = len(results) == len(test_node_ids)
+            working_nodes_detected = sum(1 for r in results if r.get('status') == 'ping_ok')
+            failed_nodes_detected = sum(1 for r in results if r.get('status') == 'ping_failed')
+            
+            # Verify proper status distribution
+            proper_status_distribution = working_nodes_detected > 0 and failed_nodes_detected > 0
+            
+            success_criteria = no_freezing and all_nodes_processed and proper_status_distribution
+            
+            print(f"   Duration: {duration:.1f}s")
+            print(f"   Nodes processed: {len(results)}/{len(test_node_ids)}")
+            print(f"   Working nodes detected: {working_nodes_detected}")
+            print(f"   Failed nodes detected: {failed_nodes_detected}")
+            print(f"   No freezing: {'✅' if no_freezing else '❌'}")
+            
+            self.log_test("Batch Ping Mass Performance", success_criteria,
+                         f"Duration: {duration:.1f}s, Processed: {len(results)}/{len(test_node_ids)}, Working: {working_nodes_detected}, Failed: {failed_nodes_detected}")
+            
+            return success_criteria
+        else:
+            self.log_test("Batch Ping Mass Performance", False, f"Mass batch ping failed: {response}")
+            return False
+
+    def test_batch_ping_fast_mode(self):
+        """Test fast mode implementation (reduced timeouts)"""
+        print("Testing fast mode implementation...")
+        
+        # Get some nodes for testing
+        success, response = self.make_request('GET', 'nodes?limit=5')
+        if not success or 'nodes' not in response or not response['nodes']:
+            self.log_test("Batch Ping Fast Mode", False, "No nodes available for testing")
+            return False
+        
+        nodes = response['nodes']
+        node_ids = [node['id'] for node in nodes[:3]]
+        
+        # Test batch ping (should use fast mode automatically)
+        start_time = time.time()
+        success, response = self.make_request('POST', 'manual/ping-test-batch', {"node_ids": node_ids})
+        end_time = time.time()
+        
+        batch_duration = end_time - start_time
+        
+        if success and 'results' in response:
+            results = response['results']
+            
+            # Fast mode indicators:
+            # 1. Shorter overall duration
+            # 2. Response times under 3 seconds for successful pings
+            # 3. Quick timeouts for failed pings
+            
+            fast_response_times = 0
+            for result in results:
+                if 'ping_result' in result and result['ping_result']:
+                    avg_time = result['ping_result'].get('avg_time', 0)
+                    if avg_time > 0 and avg_time < 3000:  # Less than 3 seconds
+                        fast_response_times += 1
+            
+            # Fast mode criteria
+            reasonable_duration = batch_duration < 20  # Should be fast for small batch
+            has_fast_responses = fast_response_times > 0 or len(results) > 0  # Either fast responses or quick processing
+            
+            success_criteria = reasonable_duration and has_fast_responses
+            
+            print(f"   Batch duration: {batch_duration:.1f}s")
+            print(f"   Fast response times: {fast_response_times}/{len(results)}")
+            print(f"   Reasonable duration: {'✅' if reasonable_duration else '❌'}")
+            
+            self.log_test("Batch Ping Fast Mode", success_criteria,
+                         f"Duration: {batch_duration:.1f}s, Fast responses: {fast_response_times}/{len(results)}")
+            
+            return success_criteria
+        else:
+            self.log_test("Batch Ping Fast Mode", False, f"Fast mode test failed: {response}")
+            return False
+
+    def test_individual_vs_batch_consistency(self):
+        """Test consistency between individual and batch ping testing"""
+        print("Testing individual vs batch consistency...")
+        
+        # Create test nodes with known IPs
+        test_ips = ["72.197.30.147", "100.11.102.204", "192.0.2.1"]  # Mix of working and non-working
+        test_node_ids = []
+        
+        for i, ip in enumerate(test_ips):
+            node_data = {
+                "ip": ip,
+                "login": "admin",
+                "password": "admin",
+                "protocol": "pptp",
+                "comment": f"Consistency test node {i+1}"
+            }
+            
+            success, response = self.make_request('POST', 'nodes', node_data)
+            if success and 'id' in response:
+                test_node_ids.append(response['id'])
+        
+        if len(test_node_ids) < 3:
+            self.log_test("Individual vs Batch Consistency", False, "Failed to create test nodes")
+            return False
+        
+        # Test individual ping for each node
+        individual_results = {}
+        for node_id in test_node_ids:
+            success, response = self.make_request('POST', 'manual/ping-test', {"node_ids": [node_id]})
+            if success and 'results' in response and response['results']:
+                result = response['results'][0]
+                individual_results[node_id] = result.get('status')
+        
+        # Test batch ping for all nodes
+        success, response = self.make_request('POST', 'manual/ping-test-batch', {"node_ids": test_node_ids})
+        
+        # Cleanup test nodes
+        if test_node_ids:
+            self.make_request('DELETE', 'nodes', {"node_ids": test_node_ids})
+        
+        if success and 'results' in response:
+            batch_results = {}
+            for result in response['results']:
+                if 'node_id' in result:
+                    batch_results[result['node_id']] = result.get('status')
+            
+            # Compare individual vs batch results
+            consistent_results = 0
+            total_comparisons = 0
+            
+            for node_id in test_node_ids:
+                if node_id in individual_results and node_id in batch_results:
+                    total_comparisons += 1
+                    if individual_results[node_id] == batch_results[node_id]:
+                        consistent_results += 1
+                    else:
+                        print(f"   Inconsistency for node {node_id}: Individual={individual_results[node_id]}, Batch={batch_results[node_id]}")
+            
+            consistency_rate = (consistent_results / total_comparisons) * 100 if total_comparisons > 0 else 0
+            success_criteria = consistency_rate >= 80  # Allow for some network variability
+            
+            print(f"   Consistent results: {consistent_results}/{total_comparisons}")
+            print(f"   Consistency rate: {consistency_rate:.1f}%")
+            
+            self.log_test("Individual vs Batch Consistency", success_criteria,
+                         f"Consistency: {consistent_results}/{total_comparisons} ({consistency_rate:.1f}%)")
+            
+            return success_criteria
+        else:
+            self.log_test("Individual vs Batch Consistency", False, f"Batch test failed: {response}")
+            return False
+
+    def test_batch_ping_database_consistency(self):
+        """Test database consistency after batch operations"""
+        print("Testing database consistency after batch operations...")
+        
+        # Get some nodes for testing
+        success, response = self.make_request('GET', 'nodes?limit=5')
+        if not success or 'nodes' not in response or not response['nodes']:
+            self.log_test("Batch Ping Database Consistency", False, "No nodes available for testing")
+            return False
+        
+        nodes = response['nodes']
+        node_ids = [node['id'] for node in nodes[:3]]
+        
+        # Record original statuses
+        original_statuses = {}
+        for node in nodes[:3]:
+            original_statuses[node['id']] = node['status']
+        
+        # Perform batch ping
+        success, response = self.make_request('POST', 'manual/ping-test-batch', {"node_ids": node_ids})
+        
+        if not success or 'results' not in response:
+            self.log_test("Batch Ping Database Consistency", False, f"Batch ping failed: {response}")
+            return False
+        
+        batch_results = response['results']
+        
+        # Verify database was updated correctly
+        success, response = self.make_request('GET', 'nodes')
+        if not success or 'nodes' not in response:
+            self.log_test("Batch Ping Database Consistency", False, "Failed to retrieve updated nodes")
+            return False
+        
+        updated_nodes = {node['id']: node for node in response['nodes']}
+        
+        # Check consistency between batch results and database
+        consistent_updates = 0
+        total_checks = 0
+        
+        for batch_result in batch_results:
+            node_id = batch_result.get('node_id')
+            if node_id and node_id in updated_nodes:
+                total_checks += 1
+                batch_status = batch_result.get('status')
+                db_status = updated_nodes[node_id]['status']
+                
+                if batch_status == db_status:
+                    consistent_updates += 1
+                else:
+                    print(f"   Inconsistency for node {node_id}: Batch={batch_status}, DB={db_status}")
+        
+        # Check that last_update timestamps were updated
+        timestamps_updated = 0
+        for batch_result in batch_results:
+            node_id = batch_result.get('node_id')
+            if node_id and node_id in updated_nodes:
+                last_update = updated_nodes[node_id].get('last_update')
+                if last_update:
+                    # Parse timestamp and check if it's recent (within last 5 minutes)
+                    try:
+                        from datetime import datetime, timedelta
+                        if 'T' in last_update:
+                            update_time = datetime.fromisoformat(last_update.replace('Z', '+00:00'))
+                        else:
+                            update_time = datetime.strptime(last_update, '%Y-%m-%d %H:%M:%S')
+                        
+                        if datetime.utcnow() - update_time.replace(tzinfo=None) < timedelta(minutes=5):
+                            timestamps_updated += 1
+                    except:
+                        pass  # Skip timestamp parsing errors
+        
+        consistency_rate = (consistent_updates / total_checks) * 100 if total_checks > 0 else 0
+        timestamp_rate = (timestamps_updated / total_checks) * 100 if total_checks > 0 else 0
+        
+        success_criteria = consistency_rate >= 90 and timestamp_rate >= 50  # Allow some flexibility for timestamps
+        
+        print(f"   Status consistency: {consistent_updates}/{total_checks} ({consistency_rate:.1f}%)")
+        print(f"   Timestamps updated: {timestamps_updated}/{total_checks} ({timestamp_rate:.1f}%)")
+        
+        self.log_test("Batch Ping Database Consistency", success_criteria,
+                     f"Status: {consistency_rate:.1f}%, Timestamps: {timestamp_rate:.1f}%")
+        
+        return success_criteria
+
     def run_all_tests(self):
         """Run all backend tests"""
         print("🚀 Starting Connexa Backend API Tests")
