@@ -43,10 +43,19 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], onTestComplete })
       if (testType === 'speed') endpoint = 'manual/speed-test';
       if (testType === 'both') endpoint = selectedNodeIds.length > 1 ? 'manual/ping-speed-test-batch' : 'manual/ping-test';
       
-      // Improved progress simulation based on node count
-      const expectedDuration = selectedNodeIds.length > 1 ? 
-        Math.min(selectedNodeIds.length * 2000, 60000) : // Batch: ~2s per node, max 60s
-        15000; // Single: ~15s
+      // Improved progress simulation based on node count and test type
+      let expectedDuration;
+      if (selectedNodeIds.length > 1) {
+        // Batch operations
+        if (testType === 'both') {
+          expectedDuration = Math.min(selectedNodeIds.length * 8000, 150000); // Combined: ~8s per node, max 150s
+        } else {
+          expectedDuration = Math.min(selectedNodeIds.length * 3000, 90000); // Regular batch: ~3s per node, max 90s
+        }
+      } else {
+        // Single node operations
+        expectedDuration = testType === 'both' ? 25000 : 15000; // Single: 25s for combined, 15s for single test
+      }
       const progressStep = 90 / (expectedDuration / 1000); // Reach 90% by expected time
       
       progressInterval = setInterval(() => {
