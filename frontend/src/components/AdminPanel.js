@@ -653,7 +653,7 @@ const AdminPanel = () => {
                 {/* Manual Testing Workflow Buttons */}
                 <Button 
                   onClick={handleManualPingTest}
-                  disabled={selectedNodes.length === 0}
+                  disabled={!selectAllMode && selectedNodes.length === 0}
                   className="bg-blue-600 hover:bg-blue-700"
                   data-testid="manual-ping-btn"
                 >
@@ -662,7 +662,7 @@ const AdminPanel = () => {
                 </Button>
                 <Button 
                   onClick={handleManualSpeedTest}
-                  disabled={selectedNodes.length === 0}
+                  disabled={!selectAllMode && selectedNodes.length === 0}
                   className="bg-orange-600 hover:bg-orange-700"
                   data-testid="manual-speed-btn"
                 >
@@ -671,7 +671,7 @@ const AdminPanel = () => {
                 </Button>
                 <Button 
                   onClick={handleManualLaunchServices}
-                  disabled={selectedNodes.length === 0}
+                  disabled={!selectAllMode && selectedNodes.length === 0}
                   className="bg-purple-600 hover:bg-purple-700"
                   data-testid="manual-launch-btn"
                 >
