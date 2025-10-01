@@ -2223,7 +2223,7 @@ async def manual_launch_services(
             results.append({
                 "node_id": node_id,
                 "success": False,
-                "message": f"Node status is '{node.status}', expected 'speed_ok' or 'speed_slow'"
+                "message": f"Node status is '{node.status}', expected 'speed_ok'"
             })
             continue
         
