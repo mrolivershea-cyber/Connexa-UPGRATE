@@ -520,12 +520,6 @@ const AdminPanel = () => {
           </Card>
           <Card>
             <CardContent className="pt-6">
-              <div className="text-2xl font-bold text-yellow-600">{stats.speed_slow || 0}</div>
-              <p className="text-xs text-muted-foreground">🟡 Speed Slow</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-6">
               <div className="text-2xl font-bold text-blue-600">{stats.speed_ok || 0}</div>
               <p className="text-xs text-muted-foreground">🔵 Speed OK</p>
             </CardContent>
