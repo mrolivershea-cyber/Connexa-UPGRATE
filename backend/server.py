@@ -2082,11 +2082,12 @@ async def manual_ping_test(
             node.last_update = datetime.utcnow()  # Update time when status changes
             db.commit()
             
-            # Perform ping test
-            ping_result = await network_tester.ping_test(node.ip)
+            # Perform real ping test
+            from ping_speed_test import test_node_ping
+            ping_result = await test_node_ping(node.ip)
             
             # Update status based on result
-            if ping_result['reachable']:
+            if ping_result['success']:
                 node.status = "ping_ok"
             else:
                 node.status = "ping_failed"
