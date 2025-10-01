@@ -2116,6 +2116,84 @@ async def manual_ping_test(
     
     return {"results": results}
 
+@api_router.post("/manual/ping-test-batch")
+async def manual_ping_test_batch(
+    test_request: TestRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Optimized batch ping test with parallel execution"""
+    import asyncio
+    from ping_speed_test import test_node_ping
+    
+    # Get all nodes first
+    nodes = []
+    for node_id in test_request.node_ids:
+        node = db.query(Node).filter(Node.id == node_id).first()
+        if node:
+            nodes.append(node)
+    
+    if not nodes:
+        return {"results": []}
+    
+    # Set all nodes to checking status
+    for node in nodes:
+        node.status = "checking"
+        node.last_check = datetime.utcnow()
+        node.last_update = datetime.utcnow()
+    db.commit()
+    
+    # Perform parallel ping tests
+    async def test_single_node(node):
+        original_status = "ping_failed"  # Assume they were failed before
+        try:
+            ping_result = await test_node_ping(node.ip, fast_mode=True)
+            
+            # Update status based on result
+            if ping_result['success']:
+                node.status = "ping_ok"
+            else:
+                node.status = "ping_failed"
+            
+            node.last_check = datetime.utcnow()
+            node.last_update = datetime.utcnow()
+            
+            return {
+                "node_id": node.id,
+                "ip": node.ip,
+                "success": True,
+                "status": node.status,
+                "original_status": original_status,
+                "ping_result": ping_result,
+                "message": f"Ping test completed: {original_status} -> {node.status}"
+            }
+            
+        except Exception as e:
+            node.status = "offline"
+            node.last_check = datetime.utcnow()
+            node.last_update = datetime.utcnow()
+            
+            return {
+                "node_id": node.id,
+                "success": False,
+                "message": f"Ping test error: {str(e)}"
+            }
+    
+    # Run tests in parallel (limit concurrency to avoid overload)
+    semaphore = asyncio.Semaphore(10)  # Max 10 concurrent tests
+    
+    async def limited_test(node):
+        async with semaphore:
+            return await test_single_node(node)
+    
+    # Execute all tests in parallel
+    results = await asyncio.gather(*[limited_test(node) for node in nodes])
+    
+    # Commit all database changes
+    db.commit()
+    
+    return {"results": results}
+
 @api_router.post("/manual/speed-test")
 async def manual_speed_test(
     test_request: TestRequest,
