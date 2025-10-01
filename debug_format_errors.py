@@ -5,7 +5,7 @@ import json
 
 def debug_format_errors():
     """Debug format error detection"""
-    base_url = "https://netmonitor-13.preview.emergentagent.com"
+    base_url = "https://node-select-all.preview.emergentagent.com"
     api_url = f"{base_url}/api"
     
     # Login first
