@@ -4,7 +4,7 @@ import requests
 import json
 
 def check_nodes():
-    base_url = "https://node-status-fix.preview.emergentagent.com"
+    base_url = "https://pptp-dashboard.preview.emergentagent.com"
     api_url = f"{base_url}/api"
     
     # Login
