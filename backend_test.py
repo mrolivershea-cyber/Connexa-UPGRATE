@@ -4948,6 +4948,13 @@ State: California""",
         # Test user info
         self.test_get_current_user()
         
+        # 🔥 CRITICAL: SPEED_SLOW REMOVAL TESTING (Review Request Focus)
+        print("\n" + "="*80)
+        print("🔥 SPEED_SLOW REMOVAL VERIFICATION - REVIEW REQUEST PRIORITY")
+        print("="*80)
+        self.test_speed_slow_removal_verification()
+        self.test_status_transition_workflow_new_logic()
+        
         # 🕒 PRIORITY: TIMESTAMP FIX TESTING (Review Request Focus)
         print("\n" + "="*80)
         print("🕒 TIMESTAMP UPDATE FIX TESTING - REVIEW REQUEST PRIORITY")
