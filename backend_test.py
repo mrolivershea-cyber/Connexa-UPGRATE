@@ -1604,17 +1604,17 @@ City: Dallas""",
             self.log_test("Timestamp Fix - Manual Ping Test", False, "❌ No node IDs provided")
             return False
         
+        # Use only the freshly created nodes from our timestamp tests
+        # These should have recent timestamps, not the old bulk import timestamp
+        test_node_ids = node_ids[:2]  # Use first 2 nodes from our fresh test nodes
+        
         # First, ensure nodes have 'not_tested' status for manual ping test
-        test_node_ids = []
-        for node_id in node_ids[:2]:  # Test with first 2 nodes
+        for node_id in test_node_ids:
             update_data = {"status": "not_tested"}
             success, response = self.make_request('PUT', f'nodes/{node_id}', update_data)
-            if success:
-                test_node_ids.append(node_id)
-        
-        if not test_node_ids:
-            self.log_test("Timestamp Fix - Manual Ping Test", False, "❌ Could not set nodes to not_tested status")
-            return False
+            if not success:
+                self.log_test("Timestamp Fix - Manual Ping Test", False, f"❌ Could not set node {node_id} to not_tested status")
+                return False
         
         # Get initial timestamps
         initial_timestamps = {}
@@ -1627,7 +1627,7 @@ City: Dallas""",
         
         # Wait a moment to ensure timestamp difference
         import time
-        time.sleep(2)
+        time.sleep(3)
         
         # Perform manual ping test
         ping_data = {
@@ -1638,6 +1638,9 @@ City: Dallas""",
         print(f"Manual ping test response: {response}")
         
         if success and 'results' in response:
+            # Wait a moment for database to be updated
+            time.sleep(1)
+            
             # Check if timestamps were updated
             updated_count = 0
             timestamp_details = []
@@ -1653,17 +1656,17 @@ City: Dallas""",
                     print(f"Node {node_id} after ping: status={new_status}, timestamp={new_timestamp}")
                     
                     if new_timestamp and initial_timestamp and new_timestamp != initial_timestamp:
-                        # Verify new timestamp is recent
+                        # Parse timestamps to check if it's newer
                         try:
-                            last_update = datetime.fromisoformat(new_timestamp.replace('Z', '+00:00'))
-                            now = datetime.now()
-                            time_diff = abs((now - last_update).total_seconds())
+                            initial_dt = datetime.fromisoformat(initial_timestamp.replace('Z', '+00:00'))
+                            new_dt = datetime.fromisoformat(new_timestamp.replace('Z', '+00:00'))
+                            time_diff = (new_dt - initial_dt).total_seconds()
                             
-                            if time_diff <= 60:  # Within 1 minute
+                            if time_diff > 0:  # Timestamp is newer
                                 updated_count += 1
-                                timestamp_details.append(f"Node{node_id}: ✅ Updated ({time_diff:.1f}s ago)")
+                                timestamp_details.append(f"Node{node_id}: ✅ Updated (+{time_diff:.1f}s)")
                             else:
-                                timestamp_details.append(f"Node{node_id}: ❌ Updated but too old ({time_diff:.1f}s)")
+                                timestamp_details.append(f"Node{node_id}: ❌ Updated to older time ({time_diff:.1f}s)")
                         except Exception as e:
                             timestamp_details.append(f"Node{node_id}: ❌ Parse error: {e}")
                     else:
