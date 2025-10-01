@@ -7129,25 +7129,52 @@ State: California""",
         
         return self.tests_passed == self.tests_run
 
-def main():
+def run_batch_ping_tests():
+    """Run comprehensive batch ping tests as requested in the review"""
     tester = ConnexaAPITester()
     
-    print("🔧 Connexa Backend API Tester - TIMESTAMP FIX FOCUS")
-    print("=" * 60)
+    print("🔥 BATCH PING OPTIMIZATION TESTS (Russian User Review Request)")
+    print("="*80)
+    print("Testing the batch ping functionality with focus on:")
+    print("1. progressInterval JavaScript Error resolution")
+    print("2. Mass testing performance (20-30 configurations)")
+    print("3. Optimized logic for failed ping nodes")
+    print("4. Individual vs Batch testing consistency")
+    print("5. No freezing at 90% during mass testing")
+    print("="*80)
     
-    # Run only authentication and timestamp tests for this review request
+    # Authentication
     if not tester.test_login():
-        print("❌ Login failed - stopping tests")
+        print("❌ Login failed - cannot continue tests")
         return 1
     
-    tester.test_get_current_user()
+    # Test 1: Basic batch ping endpoint functionality
+    print("\n🔥 TEST 1: Basic Batch Ping Endpoint Functionality")
+    tester.test_batch_ping_basic_functionality()
     
-    # Run timestamp fix tests
-    tester.run_timestamp_tests()
+    # Test 2: Mass testing performance (20+ nodes)
+    print("\n🔥 TEST 2: Mass Testing Performance (20+ nodes)")
+    tester.test_batch_ping_mass_performance()
+    
+    # Test 3: Fast mode verification
+    print("\n🔥 TEST 3: Fast Mode Implementation")
+    tester.test_batch_ping_fast_mode()
+    
+    # Test 4: Individual vs Batch consistency
+    print("\n🔥 TEST 4: Individual vs Batch Testing Consistency")
+    tester.test_individual_vs_batch_consistency()
+    
+    # Test 5: Edge cases and error handling
+    print("\n🔥 TEST 5: Edge Cases and Error Handling")
+    tester.test_batch_ping_edge_cases()
+    
+    # Test 6: Database consistency after batch operations
+    print("\n🔥 TEST 6: Database Consistency After Batch Operations")
+    tester.test_batch_ping_database_consistency()
     
     # Print summary
     print("\n" + "=" * 80)
-    print("📊 TIMESTAMP FIX TEST SUMMARY")
+    print("📊 BATCH PING TEST SUMMARY")
     print("=" * 80)
     print(f"Total tests run: {tester.tests_run}")
     print(f"Tests passed: {tester.tests_passed}")
@@ -7161,22 +7188,26 @@ def main():
         "passed_tests": tester.tests_passed,
         "success_rate": (tester.tests_passed/tester.tests_run)*100 if tester.tests_run > 0 else 0,
         "test_details": tester.test_results,
-        "focus": "timestamp_fix_testing"
+        "focus": "batch_ping_optimization_testing"
     }
     
     # Create test_reports directory if it doesn't exist
     import os
     os.makedirs('/app/test_reports', exist_ok=True)
     
-    with open('/app/test_reports/timestamp_fix_test_results.json', 'w') as f:
+    with open('/app/test_reports/batch_ping_test_results.json', 'w') as f:
         json.dump(results, f, indent=2)
     
     if tester.tests_passed == tester.tests_run:
-        print("🎉 All timestamp fix tests passed!")
+        print("🎉 All batch ping tests passed!")
         return 0
     else:
-        print("❌ Some timestamp fix tests failed!")
+        print("❌ Some batch ping tests failed!")
         return 1
+
+def main():
+    """Main function - run batch ping tests for Russian user review request"""
+    return run_batch_ping_tests()
 
 def run_service_management_tests():
     """Run critical service management tests as requested in the review"""
