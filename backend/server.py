@@ -2231,35 +2231,43 @@ async def manual_launch_services(
             db.commit()
             
             # Launch SOCKS + OVPN services simultaneously
-            # Use existing service launch logic
-            pptp_result = await service_manager.start_pptp_connection(
-                node.ip, node.login, node.password
-            )
+            from ovpn_generator import ovpn_generator
+            from ping_speed_test import test_pptp_connection
+            
+            # Test PPTP connection
+            pptp_result = await test_pptp_connection(node.ip, node.login, node.password)
             
             if pptp_result['success']:
-                interface = pptp_result['interface']
+                # Generate SOCKS credentials
+                socks_data = ovpn_generator.generate_socks_credentials(node.ip, node.login)
                 
-                # Start SOCKS server
-                socks_result = await service_manager.start_socks_server(
-                    node_id, interface
-                )
+                # Generate OVPN configuration
+                client_name = f"{node.login}_{node.ip.replace('.', '_')}"
+                ovpn_config = ovpn_generator.generate_ovpn_config(node.ip, client_name, node.login)
                 
-                if socks_result['success']:
-                    # Service launch successful - set to online
-                    node.status = "online"
-                    node.last_check = datetime.utcnow()
-                    node.last_update = datetime.utcnow()  # Update time when online
-                    db.commit()
-                    
-                    results.append({
-                        "node_id": node_id,
-                        "ip": node.ip,
-                        "success": True,
-                        "status": "online",
-                        "pptp": pptp_result,
-                        "socks": socks_result,
-                        "message": f"Services launched successfully on {interface}:{socks_result['port']}"
-                    })
+                # Save SOCKS and OVPN data to database
+                node.socks_ip = socks_data['ip']
+                node.socks_port = socks_data['port']
+                node.socks_login = socks_data['login'] 
+                node.socks_password = socks_data['password']
+                node.ovpn_config = ovpn_config
+                
+                # Service launch successful - set to online
+                node.status = "online"
+                node.last_check = datetime.utcnow()
+                node.last_update = datetime.utcnow()  # Update time when online
+                db.commit()
+                
+                results.append({
+                    "node_id": node_id,
+                    "ip": node.ip,
+                    "success": True,
+                    "status": "online",
+                    "pptp": pptp_result,
+                    "socks": socks_data,
+                    "ovpn_ready": True,
+                    "message": f"Services launched successfully - SOCKS: {socks_data['ip']}:{socks_data['port']}"
+                })
                 else:
                     # SOCKS failed - set to offline
                     node.status = "offline"
