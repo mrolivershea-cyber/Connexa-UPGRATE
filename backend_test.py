@@ -6120,6 +6120,12 @@ State: California""",
             print("❌ Login failed - stopping tests")
             return False
         
+        # 🔥 CRITICAL: PING FUNCTIONALITY WITH MIXED DATABASE (Review Request Focus)
+        print("\n" + "="*80)
+        print("🔥 PING FUNCTIONALITY WITH MIXED DATABASE - REVIEW REQUEST PRIORITY")
+        print("="*80)
+        self.test_ping_functionality_with_mixed_database()
+        
         # 🔥 CRITICAL: PING FUNCTIONALITY COMPREHENSIVE TEST (Review Request Focus)
         print("\n" + "="*80)
         print("🔥 PING FUNCTIONALITY COMPREHENSIVE TEST - REVIEW REQUEST PRIORITY")
