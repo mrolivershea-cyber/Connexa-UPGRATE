@@ -2063,6 +2063,7 @@ async def manual_ping_test(
             # Set status to checking during test
             node.status = "checking"
             node.last_check = datetime.utcnow()
+            node.last_update = datetime.utcnow()  # Update time when status changes
             db.commit()
             
             # Perform ping test
@@ -2075,6 +2076,7 @@ async def manual_ping_test(
                 node.status = "ping_failed"
             
             node.last_check = datetime.utcnow()
+            node.last_update = datetime.utcnow()  # Update time after test
             db.commit()
             
             results.append({
@@ -2090,6 +2092,7 @@ async def manual_ping_test(
             # On error, set to offline
             node.status = "offline"
             node.last_check = datetime.utcnow()
+            node.last_update = datetime.utcnow()  # Update time on error
             db.commit()
             
             results.append({
