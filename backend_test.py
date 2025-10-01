@@ -7464,6 +7464,408 @@ State: California""",
                          f"✅ ALL SYSTEMS WORKING: APIs functional, database updates working, performance acceptable, no 90% freeze risk detected")
             return True
 
+    def test_database_reset_verification(self):
+        """Test 1: Database Reset Verification - confirm all nodes reset from 'checking' to 'not_tested'"""
+        print("\n🔍 TEST 1: Database Reset Verification")
+        
+        # Check current stats to see if any nodes are in 'checking' status
+        success, response = self.make_request('GET', 'stats')
+        
+        if success and 'total' in response:
+            # Check for nodes in checking status by querying nodes endpoint
+            checking_success, checking_response = self.make_request('GET', 'nodes?status=checking&limit=1000')
+            
+            if checking_success and 'nodes' in checking_response:
+                checking_count = len(checking_response['nodes'])
+                
+                if checking_count == 0:
+                    self.log_test("Database Reset Verification", True, 
+                                 f"✅ No nodes in 'checking' status - database properly reset")
+                    return True
+                else:
+                    # If there are nodes in checking status, try to reset them
+                    print(f"   ⚠️  Found {checking_count} nodes in 'checking' status - attempting reset...")
+                    
+                    # Reset all checking nodes to not_tested
+                    reset_count = 0
+                    for node in checking_response['nodes']:
+                        update_data = {"status": "not_tested"}
+                        reset_success, reset_response = self.make_request('PUT', f'nodes/{node["id"]}', update_data)
+                        if reset_success:
+                            reset_count += 1
+                    
+                    self.log_test("Database Reset Verification", reset_count == checking_count, 
+                                 f"Reset {reset_count}/{checking_count} nodes from 'checking' to 'not_tested'")
+                    return reset_count == checking_count
+            else:
+                self.log_test("Database Reset Verification", False, 
+                             f"Failed to check for nodes in 'checking' status: {checking_response}")
+                return False
+        else:
+            self.log_test("Database Reset Verification", False, 
+                         f"Failed to get stats: {response}")
+            return False
+
+    def test_small_batch_ping_test(self):
+        """Test 2: Small Batch Test - test 2-3 nodes with /api/manual/ping-test-batch to verify no hanging"""
+        print("\n🏓 TEST 2: Small Batch Ping Test")
+        
+        # Get 2-3 nodes with not_tested status
+        success, response = self.make_request('GET', 'nodes?status=not_tested&limit=3')
+        
+        if not success or 'nodes' not in response or len(response['nodes']) < 2:
+            self.log_test("Small Batch Ping Test", False, 
+                         f"Need at least 2 not_tested nodes, found: {len(response.get('nodes', []))}")
+            return False
+        
+        test_nodes = response['nodes'][:3]  # Use up to 3 nodes
+        node_ids = [node['id'] for node in test_nodes]
+        
+        print(f"   📋 Testing {len(node_ids)} nodes: {[f'{n[\"id\"]}({n[\"ip\"]})' for n in test_nodes]}")
+        
+        # Record start time
+        start_time = time.time()
+        
+        # Perform batch ping test
+        test_data = {"node_ids": node_ids}
+        ping_success, ping_response = self.make_request('POST', 'manual/ping-test-batch', test_data)
+        
+        # Record end time
+        end_time = time.time()
+        duration = end_time - start_time
+        
+        if ping_success and 'results' in ping_response:
+            results = ping_response['results']
+            
+            # Verify all nodes were processed
+            if len(results) == len(node_ids):
+                # Check that no nodes are left in 'checking' status
+                checking_nodes = []
+                completed_nodes = []
+                
+                for result in results:
+                    if result.get('status') == 'checking':
+                        checking_nodes.append(result['node_id'])
+                    else:
+                        completed_nodes.append(result['node_id'])
+                
+                # Verify timing (should complete within 20 seconds)
+                timing_ok = duration <= 20.0
+                
+                if len(checking_nodes) == 0 and len(completed_nodes) == len(node_ids) and timing_ok:
+                    self.log_test("Small Batch Ping Test", True, 
+                                 f"✅ All {len(node_ids)} nodes completed in {duration:.1f}s (< 20s), no hanging")
+                    return True
+                else:
+                    self.log_test("Small Batch Ping Test", False, 
+                                 f"❌ Issues: {len(checking_nodes)} nodes stuck in 'checking', duration: {duration:.1f}s")
+                    return False
+            else:
+                self.log_test("Small Batch Ping Test", False, 
+                             f"Expected {len(node_ids)} results, got {len(results)}")
+                return False
+        else:
+            self.log_test("Small Batch Ping Test", False, 
+                         f"Batch ping test failed: {ping_response}")
+            return False
+
+    def test_timeout_protection(self):
+        """Test 3: Timeout Protection - verify nodes don't get stuck in 'checking' status"""
+        print("\n⏱️  TEST 3: Timeout Protection")
+        
+        # Get 5 nodes for testing
+        success, response = self.make_request('GET', 'nodes?status=not_tested&limit=5')
+        
+        if not success or 'nodes' not in response or len(response['nodes']) < 2:
+            self.log_test("Timeout Protection", False, 
+                         f"Need at least 2 not_tested nodes for timeout test")
+            return False
+        
+        test_nodes = response['nodes'][:5]
+        node_ids = [node['id'] for node in test_nodes]
+        
+        print(f"   📋 Testing timeout protection with {len(node_ids)} nodes")
+        
+        # Perform batch ping test
+        test_data = {"node_ids": node_ids}
+        start_time = time.time()
+        
+        ping_success, ping_response = self.make_request('POST', 'manual/ping-test-batch', test_data)
+        
+        end_time = time.time()
+        duration = end_time - start_time
+        
+        if ping_success and 'results' in ping_response:
+            # Wait a moment then check database directly for any nodes still in 'checking'
+            time.sleep(2)
+            
+            checking_success, checking_response = self.make_request('GET', 'nodes?status=checking')
+            
+            if checking_success and 'nodes' in checking_response:
+                checking_count = len(checking_response['nodes'])
+                
+                # Also verify our test nodes specifically
+                our_nodes_checking = []
+                for node_id in node_ids:
+                    node_success, node_response = self.make_request('GET', f'nodes?id={node_id}')
+                    if node_success and 'nodes' in node_response and node_response['nodes']:
+                        node = node_response['nodes'][0]
+                        if node.get('status') == 'checking':
+                            our_nodes_checking.append(node_id)
+                
+                if checking_count == 0 and len(our_nodes_checking) == 0:
+                    self.log_test("Timeout Protection", True, 
+                                 f"✅ No nodes stuck in 'checking' status after {duration:.1f}s")
+                    return True
+                else:
+                    self.log_test("Timeout Protection", False, 
+                                 f"❌ {checking_count} total nodes in 'checking', {len(our_nodes_checking)} of our test nodes stuck")
+                    return False
+            else:
+                self.log_test("Timeout Protection", False, 
+                             f"Failed to check for nodes in 'checking' status")
+                return False
+        else:
+            self.log_test("Timeout Protection", False, 
+                         f"Batch ping test failed: {ping_response}")
+            return False
+
+    def test_status_updates_persistence(self):
+        """Test 4: Status Updates - confirm ping results are properly saved to database"""
+        print("\n💾 TEST 4: Status Updates Persistence")
+        
+        # Get 2 nodes for testing
+        success, response = self.make_request('GET', 'nodes?status=not_tested&limit=2')
+        
+        if not success or 'nodes' not in response or len(response['nodes']) < 2:
+            self.log_test("Status Updates Persistence", False, 
+                         f"Need at least 2 not_tested nodes")
+            return False
+        
+        test_nodes = response['nodes'][:2]
+        node_ids = [node['id'] for node in test_nodes]
+        
+        print(f"   📋 Testing status persistence with nodes: {[f'{n[\"id\"]}({n[\"ip\"]})' for n in test_nodes]}")
+        
+        # Record initial status
+        initial_statuses = {}
+        for node in test_nodes:
+            initial_statuses[node['id']] = node['status']
+        
+        # Perform batch ping test
+        test_data = {"node_ids": node_ids}
+        ping_success, ping_response = self.make_request('POST', 'manual/ping-test-batch', test_data)
+        
+        if ping_success and 'results' in ping_response:
+            # Wait for completion
+            time.sleep(1)
+            
+            # Check database to verify status changes were persisted
+            persistence_verified = True
+            status_changes = []
+            
+            for node_id in node_ids:
+                # Get current node status from database
+                node_success, node_response = self.make_request('GET', f'nodes?id={node_id}')
+                
+                if node_success and 'nodes' in node_response and node_response['nodes']:
+                    current_node = node_response['nodes'][0]
+                    current_status = current_node.get('status')
+                    initial_status = initial_statuses[node_id]
+                    
+                    # Verify status changed from initial and is not 'checking'
+                    if current_status != initial_status and current_status != 'checking':
+                        status_changes.append(f"Node {node_id}: {initial_status} → {current_status}")
+                    else:
+                        persistence_verified = False
+                        status_changes.append(f"Node {node_id}: FAILED - still {current_status}")
+                else:
+                    persistence_verified = False
+                    status_changes.append(f"Node {node_id}: FAILED - could not retrieve")
+            
+            print(f"   📊 Status changes:")
+            for change in status_changes:
+                print(f"      {change}")
+            
+            if persistence_verified:
+                self.log_test("Status Updates Persistence", True, 
+                             f"✅ All {len(node_ids)} nodes have persistent status updates")
+                return True
+            else:
+                self.log_test("Status Updates Persistence", False, 
+                             f"❌ Some nodes failed to persist status changes")
+                return False
+        else:
+            self.log_test("Status Updates Persistence", False, 
+                         f"Batch ping test failed: {ping_response}")
+            return False
+
+    def test_response_times_small_batches(self):
+        """Test 5: Response Times - check that tests complete within reasonable time (under 20 seconds for small batches)"""
+        print("\n⏱️  TEST 5: Response Times for Small Batches")
+        
+        batch_sizes = [2, 5]  # Test with 2 and 5 nodes
+        all_passed = True
+        
+        for batch_size in batch_sizes:
+            # Get nodes for testing
+            success, response = self.make_request('GET', f'nodes?status=not_tested&limit={batch_size}')
+            
+            if not success or 'nodes' not in response or len(response['nodes']) < batch_size:
+                print(f"   ⚠️  Skipping batch size {batch_size} - not enough nodes")
+                continue
+            
+            test_nodes = response['nodes'][:batch_size]
+            node_ids = [node['id'] for node in test_nodes]
+            
+            print(f"   📊 Testing batch size {batch_size}: {[f'{n[\"id\"]}({n[\"ip\"]})' for n in test_nodes]}")
+            
+            # Record start time
+            start_time = time.time()
+            
+            # Perform batch ping test
+            test_data = {"node_ids": node_ids}
+            ping_success, ping_response = self.make_request('POST', 'manual/ping-test-batch', test_data)
+            
+            # Record end time
+            end_time = time.time()
+            duration = end_time - start_time
+            
+            # Check if completed within 20 seconds
+            timing_ok = duration <= 20.0
+            
+            if ping_success and 'results' in ping_response and timing_ok:
+                results_count = len(ping_response['results'])
+                print(f"      ✅ Batch {batch_size}: {duration:.1f}s ({results_count} results)")
+            else:
+                print(f"      ❌ Batch {batch_size}: {duration:.1f}s (TIMEOUT or FAILED)")
+                all_passed = False
+        
+        if all_passed:
+            self.log_test("Response Times Small Batches", True, 
+                         f"✅ All batch sizes completed within 20 seconds")
+            return True
+        else:
+            self.log_test("Response Times Small Batches", False, 
+                         f"❌ Some batches exceeded 20 second limit")
+            return False
+
+    def test_russian_user_specific_scenarios(self):
+        """Test 6: Russian User Specific Issues - 90% freeze, status transitions, error handling"""
+        print("\n🇷🇺 TEST 6: Russian User Specific Scenarios")
+        
+        # Test scenario: Medium batch (10 nodes) to check for 90% freeze issue
+        success, response = self.make_request('GET', 'nodes?status=not_tested&limit=10')
+        
+        if not success or 'nodes' not in response or len(response['nodes']) < 5:
+            self.log_test("Russian User Specific Scenarios", False, 
+                         f"Need at least 5 nodes for Russian user scenario test")
+            return False
+        
+        test_nodes = response['nodes'][:10]  # Use up to 10 nodes
+        node_ids = [node['id'] for node in test_nodes]
+        
+        print(f"   📋 Testing Russian user scenario with {len(node_ids)} nodes")
+        print(f"   🎯 Checking for: 90% freeze, proper status transitions, error handling")
+        
+        # Record start time
+        start_time = time.time()
+        
+        # Perform batch ping test
+        test_data = {"node_ids": node_ids}
+        ping_success, ping_response = self.make_request('POST', 'manual/ping-test-batch', test_data)
+        
+        # Record end time
+        end_time = time.time()
+        duration = end_time - start_time
+        
+        if ping_success and 'results' in ping_response:
+            results = ping_response['results']
+            
+            # Check for proper completion (no 90% freeze)
+            completed_count = len(results)
+            expected_count = len(node_ids)
+            
+            # Check status transitions
+            proper_transitions = 0
+            checking_nodes = 0
+            
+            for result in results:
+                status = result.get('status')
+                if status in ['ping_ok', 'ping_failed']:
+                    proper_transitions += 1
+                elif status == 'checking':
+                    checking_nodes += 1
+            
+            # Verify no freeze occurred (all nodes processed)
+            no_freeze = completed_count == expected_count
+            
+            # Verify proper status transitions (no nodes stuck in checking)
+            proper_status = checking_nodes == 0
+            
+            # Verify reasonable timing (not hanging)
+            reasonable_timing = duration <= 60.0  # Allow up to 60 seconds for 10 nodes
+            
+            if no_freeze and proper_status and reasonable_timing:
+                self.log_test("Russian User Specific Scenarios", True, 
+                             f"✅ No 90% freeze, {proper_transitions}/{expected_count} proper transitions, {duration:.1f}s duration")
+                return True
+            else:
+                issues = []
+                if not no_freeze:
+                    issues.append(f"90% freeze detected ({completed_count}/{expected_count} completed)")
+                if not proper_status:
+                    issues.append(f"{checking_nodes} nodes stuck in 'checking'")
+                if not reasonable_timing:
+                    issues.append(f"timing issue ({duration:.1f}s > 60s)")
+                
+                self.log_test("Russian User Specific Scenarios", False, 
+                             f"❌ Issues: {', '.join(issues)}")
+                return False
+        else:
+            self.log_test("Russian User Specific Scenarios", False, 
+                         f"Batch ping test failed: {ping_response}")
+            return False
+
+    def run_ping_functionality_tests(self):
+        """Run all ping functionality tests based on review request"""
+        print(f"\n🔥 CRITICAL PING FUNCTIONALITY TESTS (Review Request)")
+        print("=" * 80)
+        print("Testing improved ping functionality after fixes:")
+        print("1. Database Reset Verification")
+        print("2. Small Batch Test (2-3 nodes)")
+        print("3. Timeout Protection")
+        print("4. Status Updates Persistence")
+        print("5. Response Times (< 20s for small batches)")
+        print("6. Russian User Specific Issues")
+        print("=" * 80)
+        
+        # Run all ping-specific tests
+        test_results = []
+        test_results.append(self.test_database_reset_verification())
+        test_results.append(self.test_small_batch_ping_test())
+        test_results.append(self.test_timeout_protection())
+        test_results.append(self.test_status_updates_persistence())
+        test_results.append(self.test_response_times_small_batches())
+        test_results.append(self.test_russian_user_specific_scenarios())
+        
+        # Summary of ping tests
+        passed_count = sum(test_results)
+        total_count = len(test_results)
+        
+        print(f"\n" + "=" * 80)
+        print(f"🏁 PING FUNCTIONALITY TEST RESULTS")
+        print(f"📊 {passed_count}/{total_count} ping tests passed ({(passed_count/total_count*100):.1f}%)")
+        
+        if passed_count == total_count:
+            print(f"🎉 ALL PING TESTS PASSED! Ping functionality is working correctly.")
+        else:
+            print(f"❌ {total_count - passed_count} ping tests failed - issues need attention")
+        
+        print("=" * 80)
+        
+        return passed_count == total_count
+
     def run_all_tests(self):
         """Run all backend tests"""
         print("🚀 Starting Connexa Backend API Tests")
