@@ -5540,6 +5540,9 @@ def run_service_management_tests():
         print("❌ Some service management tests failed!")
         return 1
 
+class PPTPTester(ConnexaAPITester):
+    """Extended tester for PPTP-specific functionality"""
+    
     def test_pptp_manual_ping_test(self):
         """Test Manual Ping Test API - Core PPTP Testing Workflow Step 1"""
         print("\n🏓 TESTING MANUAL PING TEST API")
