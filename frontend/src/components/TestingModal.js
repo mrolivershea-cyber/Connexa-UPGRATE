@@ -68,7 +68,7 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], onTestComplete })
         node_ids: selectedNodeIds,
         test_type: testType
       }, {
-        timeout: 180000 // 3 minutes timeout
+        timeout: testType === 'both' ? 300000 : 180000 // 5 minutes for combined, 3 minutes for single tests
       });
       
       // Clear interval and set progress to 100% on success
