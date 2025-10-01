@@ -2102,8 +2102,8 @@ async def manual_ping_test(
             })
             
         except Exception as e:
-            # On error, set to offline
-            node.status = "offline"
+            # On error, set to ping_failed (not offline)
+            node.status = "ping_failed"
             node.last_check = datetime.utcnow()
             node.last_update = datetime.utcnow()  # Update time on error
             db.commit()
@@ -2568,8 +2568,8 @@ async def manual_launch_services(
                 })
         
         except Exception as e:
-            # On error, set to offline
-            node.status = "offline"
+            # On error, set to ping_failed (not offline)
+            node.status = "ping_failed"
             node.last_check = datetime.utcnow()
             node.last_update = datetime.utcnow()  # Update time on error
             db.commit()
