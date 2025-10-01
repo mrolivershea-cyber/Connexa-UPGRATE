@@ -15,63 +15,65 @@ class PPTPTester:
     """Handles real PPTP ping and speed testing"""
     
     @staticmethod
-    async def ping_test(ip: str, timeout: int = 10) -> Dict:
+    async def ping_test(ip: str, timeout: int = 5) -> Dict:
         """
-        Perform real ping test to PPTP server
+        Perform TCP connection test to PPTP server (port 1723)
+        More reliable than ICMP ping in container environments
         Returns: {"success": bool, "avg_time": float, "packet_loss": float, "message": str}
         """
+        import socket
+        
         try:
-            # Use ping command with timeout
-            cmd = ["ping", "-c", "4", "-W", str(timeout), ip]
+            # Test multiple connection attempts to get average time
+            attempts = 3
+            successful_connections = 0
+            total_time = 0
             
-            process = await asyncio.create_subprocess_exec(
-                *cmd,
-                stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE
-            )
+            for _ in range(attempts):
+                try:
+                    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                    sock.settimeout(timeout)
+                    
+                    start_time = time.time()
+                    result = sock.connect_ex((ip, 1723))  # PPTP port
+                    end_time = time.time()
+                    sock.close()
+                    
+                    if result == 0:
+                        successful_connections += 1
+                        connection_time = (end_time - start_time) * 1000  # Convert to ms
+                        total_time += connection_time
+                        
+                except Exception:
+                    pass  # Connection failed, continue to next attempt
+                
+                # Small delay between attempts
+                await asyncio.sleep(0.1)
             
-            stdout, stderr = await process.communicate()
-            
-            if process.returncode != 0:
+            if successful_connections > 0:
+                avg_time = total_time / successful_connections
+                packet_loss = ((attempts - successful_connections) / attempts) * 100
+                
+                return {
+                    "success": True,
+                    "avg_time": round(avg_time, 1),
+                    "packet_loss": packet_loss,
+                    "message": f"PPTP server reachable - {avg_time:.1f}ms avg, {packet_loss:.0f}% loss"
+                }
+            else:
                 return {
                     "success": False,
                     "avg_time": 0,
                     "packet_loss": 100,
-                    "message": f"Ping failed: {stderr.decode().strip()}"
+                    "message": f"PPTP server unreachable - port 1723 closed or filtered"
                 }
-            
-            # Parse ping output
-            output = stdout.decode()
-            
-            # Extract average time and packet loss
-            avg_time = 0
-            packet_loss = 100
-            
-            # Look for packet loss percentage
-            loss_match = re.search(r'(\d+)% packet loss', output)
-            if loss_match:
-                packet_loss = float(loss_match.group(1))
-            
-            # Look for average time
-            time_match = re.search(r'rtt min/avg/max/mdev = [\d.]+/([\d.]+)/[\d.]+/[\d.]+ ms', output)
-            if time_match:
-                avg_time = float(time_match.group(1))
-            
-            success = packet_loss < 100 and avg_time > 0
-            
-            return {
-                "success": success,
-                "avg_time": avg_time,
-                "packet_loss": packet_loss,
-                "message": f"Ping OK - {avg_time}ms avg, {packet_loss}% loss" if success else "Ping failed - no response"
-            }
-            
+                
         except Exception as e:
             return {
                 "success": False,
                 "avg_time": 0,
                 "packet_loss": 100,
-                "message": f"Ping test error: {str(e)}"
+                "message": f"Connection test error: {str(e)}"
             }
     
     @staticmethod
