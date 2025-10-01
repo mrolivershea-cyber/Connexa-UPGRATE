@@ -1676,6 +1676,7 @@ async def test_ping(
             # Set status to checking
             node.status = "checking"
             node.last_check = datetime.utcnow()
+            node.last_update = datetime.utcnow()  # Update time when status changes
             db.commit()
             
             ping_result = await network_tester.ping_test(node.ip)
@@ -1686,6 +1687,7 @@ async def test_ping(
             else:
                 node.status = "ping_failed"
             
+            node.last_update = datetime.utcnow()  # Update time after test
             db.commit()
             
             results.append({
@@ -1698,6 +1700,7 @@ async def test_ping(
         except Exception as e:
             # Reset status on error
             node.status = "offline"
+            node.last_update = datetime.utcnow()  # Update time on error
             db.commit()
             
             results.append({
