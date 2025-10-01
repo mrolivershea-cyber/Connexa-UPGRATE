@@ -2135,6 +2135,7 @@ async def manual_speed_test(
             # Set status to checking during test
             node.status = "checking"
             node.last_check = datetime.utcnow()
+            node.last_update = datetime.utcnow()  # Update time when status changes
             db.commit()
             
             # Perform speed test (simplified version without requiring active connection)
@@ -2154,6 +2155,7 @@ async def manual_speed_test(
                 node.speed = None
             
             node.last_check = datetime.utcnow()
+            node.last_update = datetime.utcnow()  # Update time after test
             db.commit()
             
             results.append({
@@ -2170,6 +2172,7 @@ async def manual_speed_test(
             # On error, set back to ping_failed to retry ping
             node.status = "ping_failed"
             node.last_check = datetime.utcnow()
+            node.last_update = datetime.utcnow()  # Update time on error
             db.commit()
             
             results.append({
