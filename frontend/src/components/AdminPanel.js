@@ -192,21 +192,25 @@ const AdminPanel = () => {
   };
 
   const handleDeleteSelected = async () => {
-    if (!selectedNodes.length) {
+    const targetIds = selectAllMode ? allSelectedIds : selectedNodes;
+    
+    if (!targetIds.length) {
       toast.error('No nodes selected');
       return;
     }
 
-    if (!window.confirm(`Delete ${selectedNodes.length} selected nodes?`)) {
+    if (!window.confirm(`Delete ${targetIds.length} selected nodes?`)) {
       return;
     }
 
     try {
       const response = await axios.delete(`${API}/nodes`, {
-        data: { node_ids: selectedNodes }
+        data: { node_ids: targetIds }
       });
-      toast.success(`Deleted ${selectedNodes.length} nodes`);
+      toast.success(`Deleted ${targetIds.length} nodes`);
       setSelectedNodes([]);
+      setAllSelectedIds([]);
+      setSelectAllMode(false);
       loadNodes(currentPage);
       loadStats();
     } catch (error) {
