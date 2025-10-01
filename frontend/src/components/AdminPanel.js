@@ -105,6 +105,10 @@ const AdminPanel = () => {
   useEffect(() => {
     loadNodes();
     loadStats();
+    // Clear selection when filters change
+    setSelectedNodes([]);
+    setAllSelectedIds([]);
+    setSelectAllMode(false);
   }, [filters]);
 
   const handleFilterChange = (key, value) => {
