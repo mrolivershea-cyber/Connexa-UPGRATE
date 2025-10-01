@@ -252,6 +252,6 @@ async def test_node_speed(ip: str) -> Dict:
     """Test speed for a single node"""  
     return await PPTPTester.speed_test_simulation(ip)
 
-async def test_pptp_connection(ip: str, login: str, password: str) -> Dict:
+async def test_pptp_connection(ip: str, login: str, password: str, skip_ping_check: bool = False) -> Dict:
     """Test PPTP connection for a single node"""
-    return await PPTPTester.pptp_connection_test(ip, login, password)
+    return await PPTPTester.pptp_connection_test(ip, login, password, skip_ping_check)
