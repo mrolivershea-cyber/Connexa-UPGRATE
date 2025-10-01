@@ -23,9 +23,9 @@ class PPTPTester:
         Returns: {"success": bool, "avg_time": float, "packet_loss": float, "message": str}
         """
         
-        # Set balanced timeouts for better accuracy
-        max_timeout = 5 if fast_mode else 10   # More reasonable timeouts 
-        attempts = 2 if fast_mode else 3       # More attempts for accuracy
+        # More lenient timeouts for better accuracy with slow servers
+        max_timeout = 8 if fast_mode else 15   # Increased timeouts for better accuracy
+        attempts = 3 if fast_mode else 4       # More attempts for reliability
         actual_timeout = min(timeout, max_timeout)
         
         try:
