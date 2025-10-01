@@ -2143,14 +2143,19 @@ async def manual_ping_test_batch(
         node.last_update = datetime.utcnow()
     db.commit()
     
-    # Perform parallel ping tests
+    # Perform parallel ping tests with timeout protection
     async def test_single_node(node):
-        original_status = "ping_failed"  # Assume they were failed before
+        original_status = node.status if hasattr(node, 'original_status') else "not_tested"
+        
         try:
-            ping_result = await test_node_ping(node.ip, fast_mode=True)
+            # Add timeout protection for individual ping tests
+            ping_result = await asyncio.wait_for(
+                test_node_ping(node.ip, fast_mode=True), 
+                timeout=8.0  # 8 second timeout per node
+            )
             
-            # Update status based on result
-            if ping_result['success']:
+            # Update status based on result - ENSURE node never stays in 'checking'
+            if ping_result and ping_result.get('success', False):
                 node.status = "ping_ok"
             else:
                 node.status = "ping_failed"
@@ -2164,33 +2169,80 @@ async def manual_ping_test_batch(
                 "success": True,
                 "status": node.status,
                 "original_status": original_status,
-                "ping_result": ping_result,
+                "ping_result": ping_result or {"success": False, "message": "No result"},
                 "message": f"Ping test completed: {original_status} -> {node.status}"
             }
             
-        except Exception as e:
-            node.status = "offline"
+        except asyncio.TimeoutError:
+            # Timeout - set to ping_failed and never leave in checking
+            node.status = "ping_failed"
             node.last_check = datetime.utcnow()
             node.last_update = datetime.utcnow()
             
             return {
                 "node_id": node.id,
+                "ip": node.ip,
                 "success": False,
+                "status": node.status,
+                "original_status": original_status,
+                "ping_result": {"success": False, "message": "Timeout after 8 seconds"},
+                "message": f"Ping test timeout: {original_status} -> {node.status}"
+            }
+            
+        except Exception as e:
+            # Any other error - set to ping_failed and never leave in checking
+            node.status = "ping_failed"
+            node.last_check = datetime.utcnow()
+            node.last_update = datetime.utcnow()
+            
+            return {
+                "node_id": node.id,
+                "ip": node.ip,
+                "success": False,
+                "status": node.status,
+                "original_status": original_status,
+                "ping_result": {"success": False, "message": f"Error: {str(e)}"},
                 "message": f"Ping test error: {str(e)}"
             }
     
-    # Run tests in parallel (limit concurrency to avoid overload)
-    semaphore = asyncio.Semaphore(10)  # Max 10 concurrent tests
+    # Run tests in parallel with reduced concurrency for stability
+    semaphore = asyncio.Semaphore(5)  # Reduce to max 5 concurrent tests
     
     async def limited_test(node):
         async with semaphore:
             return await test_single_node(node)
     
-    # Execute all tests in parallel
-    results = await asyncio.gather(*[limited_test(node) for node in nodes])
+    try:
+        # Execute all tests in parallel with timeout for entire batch
+        results = await asyncio.wait_for(
+            asyncio.gather(*[limited_test(node) for node in nodes]),
+            timeout=60.0  # 60 second timeout for entire batch
+        )
+        
+    except asyncio.TimeoutError:
+        # If entire batch times out, ensure no nodes remain in 'checking' status
+        results = []
+        for node in nodes:
+            if node.status == "checking":
+                node.status = "ping_failed"
+                node.last_check = datetime.utcnow()
+                node.last_update = datetime.utcnow()
+                
+            results.append({
+                "node_id": node.id,
+                "ip": node.ip,
+                "success": False,
+                "status": node.status,
+                "message": "Batch operation timed out"
+            })
     
-    # Commit all database changes
-    db.commit()
+    # CRITICAL: Commit all database changes to ensure no nodes stay in 'checking'
+    try:
+        db.commit()
+    except Exception as e:
+        print(f"Database commit error: {e}")
+        # Even if commit fails, try to rollback to clean state
+        db.rollback()
     
     return {"results": results}
 
