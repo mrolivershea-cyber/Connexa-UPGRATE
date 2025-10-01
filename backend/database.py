@@ -51,7 +51,7 @@ class Node(Base):
     zipcode = Column(String(20), default="")
     comment = Column(Text, default="")
     protocol = Column(String(10), default="pptp")  # pptp, ssh, socks, server
-    status = Column(String(20), default="not_tested")  # Unified status: not_tested, ping_failed, ping_ok, speed_slow, speed_ok, offline, online
+    status = Column(String(20), default="not_tested")  # Unified status: not_tested, ping_failed, ping_ok, speed_ok, offline, online
     speed = Column(String(20), nullable=True)  # Connection speed in Mbps
     last_check = Column(DateTime, nullable=True)
     last_update = Column(DateTime, nullable=True)  # Explicitly set in Python code, not by DB
