@@ -1604,12 +1604,26 @@ City: Dallas""",
             self.log_test("Timestamp Fix - Manual Ping Test", False, "❌ No node IDs provided")
             return False
         
+        # First, ensure nodes have 'not_tested' status for manual ping test
+        test_node_ids = []
+        for node_id in node_ids[:2]:  # Test with first 2 nodes
+            update_data = {"status": "not_tested"}
+            success, response = self.make_request('PUT', f'nodes/{node_id}', update_data)
+            if success:
+                test_node_ids.append(node_id)
+        
+        if not test_node_ids:
+            self.log_test("Timestamp Fix - Manual Ping Test", False, "❌ Could not set nodes to not_tested status")
+            return False
+        
         # Get initial timestamps
         initial_timestamps = {}
-        for node_id in node_ids[:2]:  # Test with first 2 nodes
+        for node_id in test_node_ids:
             success, response = self.make_request('GET', f'nodes?id={node_id}')
             if success and 'nodes' in response and response['nodes']:
-                initial_timestamps[node_id] = response['nodes'][0].get('last_update')
+                node = response['nodes'][0]
+                initial_timestamps[node_id] = node.get('last_update')
+                print(f"Node {node_id} initial status: {node.get('status')}, timestamp: {node.get('last_update')}")
         
         # Wait a moment to ensure timestamp difference
         import time
@@ -1617,22 +1631,26 @@ City: Dallas""",
         
         # Perform manual ping test
         ping_data = {
-            "node_ids": list(node_ids[:2])
+            "node_ids": test_node_ids
         }
         
         success, response = self.make_request('POST', 'manual/ping-test', ping_data)
+        print(f"Manual ping test response: {response}")
         
         if success and 'results' in response:
             # Check if timestamps were updated
             updated_count = 0
             timestamp_details = []
             
-            for node_id in node_ids[:2]:
+            for node_id in test_node_ids:
                 success, response = self.make_request('GET', f'nodes?id={node_id}')
                 if success and 'nodes' in response and response['nodes']:
                     node = response['nodes'][0]
                     new_timestamp = node.get('last_update')
+                    new_status = node.get('status')
                     initial_timestamp = initial_timestamps.get(node_id)
+                    
+                    print(f"Node {node_id} after ping: status={new_status}, timestamp={new_timestamp}")
                     
                     if new_timestamp and initial_timestamp and new_timestamp != initial_timestamp:
                         # Verify new timestamp is recent
@@ -1649,7 +1667,7 @@ City: Dallas""",
                         except Exception as e:
                             timestamp_details.append(f"Node{node_id}: ❌ Parse error: {e}")
                     else:
-                        timestamp_details.append(f"Node{node_id}: ❌ Not updated")
+                        timestamp_details.append(f"Node{node_id}: ❌ Not updated (initial: {initial_timestamp}, new: {new_timestamp})")
             
             if updated_count >= 1:  # At least one node should have updated timestamp
                 self.log_test("Timestamp Fix - Manual Ping Test", True, 
