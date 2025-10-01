@@ -178,16 +178,19 @@ backend:
         comment: "✅ STATUS TRANSITION WORKFLOW VERIFIED: Complete chain working correctly: not_tested → (manual ping test) → ping_ok/ping_failed → (manual speed test) → speed_ok/speed_slow → (manual launch services) → online/offline. Each step validates previous status and rejects nodes in wrong status. Workflow stops appropriately when tests fail (e.g., ping_failed nodes cannot proceed to speed test)."
 
   - task: "Add API endpoint for getting all node IDs by filters"
-    implemented: false
-    working: false
+    implemented: true
+    working: true
     file: "server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "REQUIREMENT: Add /api/nodes/all-ids endpoint that accepts same filters as /api/nodes but returns only list of node IDs matching filters. Needed for Select All functionality to work with all records in database, not just visible 200."
+      - working: true
+        agent: "testing"
+        comment: "✅ NEW ENDPOINT VERIFIED: /api/nodes/all-ids endpoint working correctly. Tested all filter parameters (ip, provider, country, state, city, zipcode, login, comment, status, protocol, only_online). Response structure correct: {'node_ids': [list], 'total_count': number}. Count consistency verified with /api/nodes endpoint. Authentication required. Tested with 4,723 nodes in database - all filter combinations work correctly. Ready for Select All functionality implementation."
 
 frontend:
   - task: "Manual testing workflow admin buttons"
