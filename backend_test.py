@@ -5577,6 +5577,10 @@ State: California""",
             print("❌ Login failed - stopping tests")
             return False
         
+        # PRIORITY: Run the comprehensive ping validation test first (Russian review request)
+        print("\n🎯 ПРИОРИТЕТ: Запуск комплексного тестирования пинга базы данных")
+        self.test_comprehensive_ping_validation_database()
+        
         # Test user info
         self.test_get_current_user()
         
