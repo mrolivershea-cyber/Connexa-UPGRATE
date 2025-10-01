@@ -2031,6 +2031,7 @@ async def stop_single_node_services(
         
         if result['success']:
             node.status = "offline"
+            node.last_update = datetime.utcnow()  # Update time when stopped
             db.commit()
         
         return {
