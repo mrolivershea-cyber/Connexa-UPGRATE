@@ -213,6 +213,18 @@ backend:
         agent: "testing"
         comment: "✅ NEW ENDPOINT VERIFIED: /api/nodes/all-ids endpoint working correctly. Tested all filter parameters (ip, provider, country, state, city, zipcode, login, comment, status, protocol, only_online). Response structure correct: {'node_ids': [list], 'total_count': number}. Count consistency verified with /api/nodes endpoint. Authentication required. Tested with 4,723 nodes in database - all filter combinations work correctly. Ready for Select All functionality implementation."
 
+  - task: "Service Management Functions Verification"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "testing"
+        comment: "COMPREHENSIVE SERVICE MANAGEMENT TESTING: All critical service management functions verified and working correctly. TESTED ENDPOINTS: 1) POST /api/manual/ping-test - correctly validates not_tested status and transitions to ping_ok/ping_failed with timestamp updates, 2) POST /api/manual/speed-test - correctly validates ping_ok status and transitions to speed_ok/speed_slow, 3) POST /api/manual/launch-services - correctly validates speed_ok/speed_slow status and attempts service launch (SOCKS+OVPN), 4) POST /api/services/start - API working with correct request format {node_ids, action}, 5) POST /api/services/stop - API working correctly. STATUS TRANSITION WORKFLOW: ✅ not_tested → (ping test) → ping_ok/ping_failed ✅ ping_ok → (speed test) → speed_ok/speed_slow ✅ speed_ok/speed_slow → (launch services) → online/offline. VALIDATION: Proper status validation enforced - endpoints reject nodes in wrong status. TIMESTAMPS: last_update field correctly updated on all status changes. DATABASE STATE: 2349 total nodes, 2341 not_tested, 8 ping_failed. All service management functionality working as designed."
+
 frontend:
   - task: "Manual testing workflow admin buttons"
     implemented: true
