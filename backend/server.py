@@ -2555,8 +2555,8 @@ async def manual_launch_services(
                     "message": f"Services launched successfully - SOCKS: {socks_data['ip']}:{socks_data['port']}"
                 })
             else:
-                # PPTP failed - set to offline
-                node.status = "offline" 
+                # PPTP failed - set to ping_failed (not offline)
+                node.status = "ping_failed" 
                 node.last_check = datetime.utcnow()
                 node.last_update = datetime.utcnow()  # Update time when offline
                 db.commit()
