@@ -161,11 +161,34 @@ const AdminPanel = () => {
   };
 
   const handleSelectNode = (nodeId) => {
-    setSelectedNodes(prev => 
-      prev.includes(nodeId) 
-        ? prev.filter(id => id !== nodeId)
-        : [...prev, nodeId]
-    );
+    setSelectedNodes(prev => {
+      const isCurrentlySelected = prev.includes(nodeId);
+      if (isCurrentlySelected) {
+        // Deselecting node
+        const newSelected = prev.filter(id => id !== nodeId);
+        
+        // If we're in select all mode, remove from allSelectedIds too
+        if (selectAllMode) {
+          setAllSelectedIds(allIds => allIds.filter(id => id !== nodeId));
+          // Check if we should exit select all mode
+          if (allSelectedIds.length <= 1) {
+            setSelectAllMode(false);
+          }
+        }
+        
+        return newSelected;
+      } else {
+        // Selecting node
+        const newSelected = [...prev, nodeId];
+        
+        // If we're in select all mode, add to allSelectedIds too
+        if (selectAllMode) {
+          setAllSelectedIds(allIds => allIds.includes(nodeId) ? allIds : [...allIds, nodeId]);
+        }
+        
+        return newSelected;
+      }
+    });
   };
 
   const handleDeleteSelected = async () => {
