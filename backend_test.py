@@ -7884,6 +7884,15 @@ State: California""",
             print("❌ Login failed - stopping tests")
             return False
         
+        # ========== CRITICAL PING IMPROVEMENTS TESTS (Review Request) ==========
+        print("\n" + "🔥" * 20 + " CRITICAL REVIEW REQUEST TESTS " + "🔥" * 20)
+        self.test_improved_ping_accuracy()
+        self.test_enhanced_batch_ping_performance()
+        self.test_new_combined_ping_speed_endpoint()
+        self.test_fixed_service_launch_logic()
+        self.test_specific_scenarios_from_review()
+        print("🔥" * 70)
+        
         # 🔥 CRITICAL REVIEW REQUEST TEST (Highest Priority)
         print("\n" + "="*80)
         print("🔥 CRITICAL DATABASE PING FUNCTIONALITY TEST - REVIEW REQUEST PRIORITY")
