@@ -5961,7 +5961,7 @@ class PPTPTester(ConnexaAPITester):
 
 def run_pptp_tests():
     """Run PPTP-specific tests as requested in the review"""
-    tester = ConnexaAPITester()
+    tester = PPTPTester()
     success = tester.run_pptp_tests()
     return 0 if success else 1
 
