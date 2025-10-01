@@ -3500,6 +3500,170 @@ State: California""",
         
         return self.tests_passed == self.tests_run
 
+    def test_nodes_all_ids_endpoint(self):
+        """Test the new /api/nodes/all-ids endpoint for Select All functionality"""
+        print("\n🔍 TESTING NEW /api/nodes/all-ids ENDPOINT")
+        
+        # Test 1: Basic functionality without filters
+        success1, response1 = self.make_request('GET', 'nodes/all-ids')
+        
+        if not success1:
+            self.log_test("Nodes All IDs - Basic", False, f"❌ Basic request failed: {response1}")
+            return False
+        
+        # Verify response structure
+        if not ('node_ids' in response1 and 'total_count' in response1):
+            self.log_test("Nodes All IDs - Basic", False, f"❌ Response missing required fields. Got: {list(response1.keys())}")
+            return False
+        
+        node_ids = response1['node_ids']
+        total_count = response1['total_count']
+        
+        if not isinstance(node_ids, list):
+            self.log_test("Nodes All IDs - Basic", False, f"❌ node_ids should be a list, got: {type(node_ids)}")
+            return False
+        
+        if len(node_ids) != total_count:
+            self.log_test("Nodes All IDs - Basic", False, f"❌ node_ids length ({len(node_ids)}) != total_count ({total_count})")
+            return False
+        
+        self.log_test("Nodes All IDs - Basic", True, f"✅ Basic functionality works: {total_count} node IDs returned")
+        
+        # Test 2: Compare with /api/nodes endpoint counts
+        success2, response2 = self.make_request('GET', 'nodes')
+        
+        if success2 and 'total' in response2:
+            nodes_total = response2['total']
+            if total_count == nodes_total:
+                self.log_test("Nodes All IDs - Count Consistency", True, f"✅ Counts match: /api/nodes total={nodes_total}, /api/nodes/all-ids total_count={total_count}")
+            else:
+                self.log_test("Nodes All IDs - Count Consistency", False, f"❌ Count mismatch: /api/nodes total={nodes_total}, /api/nodes/all-ids total_count={total_count}")
+                return False
+        else:
+            self.log_test("Nodes All IDs - Count Consistency", False, f"❌ Could not get /api/nodes for comparison: {response2}")
+            return False
+        
+        # Test 3: Test with filters - status filter
+        success3, response3 = self.make_request('GET', 'nodes/all-ids', {'status': 'not_tested'})
+        
+        if success3 and 'node_ids' in response3 and 'total_count' in response3:
+            filtered_count = response3['total_count']
+            
+            # Compare with filtered /api/nodes
+            success4, response4 = self.make_request('GET', 'nodes', {'status': 'not_tested'})
+            
+            if success4 and 'total' in response4:
+                nodes_filtered_total = response4['total']
+                if filtered_count == nodes_filtered_total:
+                    self.log_test("Nodes All IDs - Status Filter", True, f"✅ Status filter works: not_tested nodes = {filtered_count}")
+                else:
+                    self.log_test("Nodes All IDs - Status Filter", False, f"❌ Status filter count mismatch: all-ids={filtered_count}, nodes={nodes_filtered_total}")
+                    return False
+            else:
+                self.log_test("Nodes All IDs - Status Filter", False, f"❌ Could not get filtered /api/nodes for comparison")
+                return False
+        else:
+            self.log_test("Nodes All IDs - Status Filter", False, f"❌ Status filter request failed: {response3}")
+            return False
+        
+        # Test 4: Test with multiple filters
+        success5, response5 = self.make_request('GET', 'nodes/all-ids', {'protocol': 'pptp', 'status': 'not_tested'})
+        
+        if success5 and 'node_ids' in response5 and 'total_count' in response5:
+            multi_filtered_count = response5['total_count']
+            
+            # Compare with multi-filtered /api/nodes
+            success6, response6 = self.make_request('GET', 'nodes', {'protocol': 'pptp', 'status': 'not_tested'})
+            
+            if success6 and 'total' in response6:
+                nodes_multi_filtered_total = response6['total']
+                if multi_filtered_count == nodes_multi_filtered_total:
+                    self.log_test("Nodes All IDs - Multiple Filters", True, f"✅ Multiple filters work: pptp+not_tested nodes = {multi_filtered_count}")
+                else:
+                    self.log_test("Nodes All IDs - Multiple Filters", False, f"❌ Multiple filters count mismatch: all-ids={multi_filtered_count}, nodes={nodes_multi_filtered_total}")
+                    return False
+            else:
+                self.log_test("Nodes All IDs - Multiple Filters", False, f"❌ Could not get multi-filtered /api/nodes for comparison")
+                return False
+        else:
+            self.log_test("Nodes All IDs - Multiple Filters", False, f"❌ Multiple filters request failed: {response5}")
+            return False
+        
+        # Test 5: Test with only_online filter
+        success7, response7 = self.make_request('GET', 'nodes/all-ids', {'only_online': True})
+        
+        if success7 and 'node_ids' in response7 and 'total_count' in response7:
+            online_count = response7['total_count']
+            
+            # Compare with only_online /api/nodes
+            success8, response8 = self.make_request('GET', 'nodes', {'only_online': True})
+            
+            if success8 and 'total' in response8:
+                nodes_online_total = response8['total']
+                if online_count == nodes_online_total:
+                    self.log_test("Nodes All IDs - Only Online Filter", True, f"✅ only_online filter works: online nodes = {online_count}")
+                else:
+                    self.log_test("Nodes All IDs - Only Online Filter", False, f"❌ only_online filter count mismatch: all-ids={online_count}, nodes={nodes_online_total}")
+                    return False
+            else:
+                self.log_test("Nodes All IDs - Only Online Filter", False, f"❌ Could not get only_online /api/nodes for comparison")
+                return False
+        else:
+            self.log_test("Nodes All IDs - Only Online Filter", False, f"❌ only_online filter request failed: {response7}")
+            return False
+        
+        # Test 6: Test with text filters (ip, provider, country, state, city, zipcode, login, comment)
+        success9, response9 = self.make_request('GET', 'nodes/all-ids', {'country': 'United States'})
+        
+        if success9 and 'node_ids' in response9 and 'total_count' in response9:
+            country_count = response9['total_count']
+            
+            # Compare with country filtered /api/nodes
+            success10, response10 = self.make_request('GET', 'nodes', {'country': 'United States'})
+            
+            if success10 and 'total' in response10:
+                nodes_country_total = response10['total']
+                if country_count == nodes_country_total:
+                    self.log_test("Nodes All IDs - Text Filters", True, f"✅ Text filters work: United States nodes = {country_count}")
+                else:
+                    self.log_test("Nodes All IDs - Text Filters", False, f"❌ Text filter count mismatch: all-ids={country_count}, nodes={nodes_country_total}")
+                    return False
+            else:
+                self.log_test("Nodes All IDs - Text Filters", False, f"❌ Could not get country filtered /api/nodes for comparison")
+                return False
+        else:
+            self.log_test("Nodes All IDs - Text Filters", False, f"❌ Text filter request failed: {response9}")
+            return False
+        
+        print(f"📊 ALL-IDS ENDPOINT TEST SUMMARY:")
+        print(f"   Total nodes in database: {total_count}")
+        print(f"   not_tested nodes: {filtered_count}")
+        print(f"   pptp+not_tested nodes: {multi_filtered_count}")
+        print(f"   online nodes: {online_count}")
+        print(f"   United States nodes: {country_count}")
+        
+        return True
+
+    def test_nodes_all_ids_authentication(self):
+        """Test that /api/nodes/all-ids requires authentication"""
+        # Save current token
+        original_token = self.token
+        
+        # Clear token to test unauthenticated access
+        self.token = None
+        
+        success, response = self.make_request('GET', 'nodes/all-ids', expected_status=401)
+        
+        # Restore token
+        self.token = original_token
+        
+        if success:
+            self.log_test("Nodes All IDs - Authentication Required", True, "✅ Endpoint correctly requires authentication (401 returned)")
+            return True
+        else:
+            self.log_test("Nodes All IDs - Authentication Required", False, f"❌ Expected 401 for unauthenticated request, got: {response}")
+            return False
+
     def run_all_tests(self):
         """Run all backend tests"""
         print("🚀 Starting Connexa Backend API Tests")
