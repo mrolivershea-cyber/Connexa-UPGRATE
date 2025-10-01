@@ -120,6 +120,18 @@ backend:
         agent: "testing"
         comment: "✅ CRITICAL BUG VERIFIED FIXED: Testing confirmed that new imported nodes correctly receive 'not_tested' status instead of 'online' or 'offline'. Fixed schemas.py default testing_mode from 'ping_only' to 'no_test' to prevent automatic testing during import. Import status assignment bug is fully resolved."
 
+  - task: "Fix timestamp update issue for all status changes"
+    implemented: true
+    working: false
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "USER ISSUE: When adding new nodes, timestamp shows '8h ago' instead of current time. When status changes (ping test, start/stop services), timestamp should update to current time. PROBLEM: last_update field only updates automatically on SQLAlchemy UPDATE, not INSERT. Need explicit last_update=datetime.utcnow() everywhere. FIXED: Added explicit timestamp updates to: 1) POST /api/nodes (line 315), 2) process_parsed_nodes for add/replace (lines 1332, 1355), 3) Import testing (lines 398-421), 4) Manual ping test (lines 2061, 2075, 2090), 5) Manual speed test (lines 2131, 2151, 2167), 6) Manual launch services (lines 2218, 2239, 2254, 2264, 2277), 7) /test/ping (lines 1675, 1684, 1698), 8) /test/combined (lines 1793, 1807, 1820), 9) /nodes/auto-test (lines 1844, 1880, 1891), 10) /nodes/{id}/test (lines 1915, 1946, 1963), 11) /nodes/{id}/services/start (line 1992), 12) /nodes/{id}/services/stop (line 2035), 13) /services/start bulk (lines 1564, 1576, 1587), 14) /services/stop bulk (line 1622). Background monitoring already had timestamps. Now ALL status changes explicitly set last_update=datetime.utcnow()."
+
   - task: "Manual testing workflow API endpoints"
     implemented: true
     working: true
