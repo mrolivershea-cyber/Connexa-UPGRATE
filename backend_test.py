@@ -1469,6 +1469,407 @@ City: Houston""",
             self.log_test("CRITICAL - Stats API Accuracy", False, f"❌ Failed to get stats: {response}")
             return False
 
+    def test_timestamp_update_fix_create_node(self):
+        """TIMESTAMP FIX TEST 1: Create new node - verify last_update is current time"""
+        import time
+        timestamp = str(int(time.time()))
+        
+        # Record time before creating node
+        before_time = datetime.now()
+        
+        test_node = {
+            "ip": f"10.0.0.{timestamp[-2:]}",
+            "login": f"timestamp_user_{timestamp}",
+            "password": "TimestampPass123!",
+            "protocol": "pptp",
+            "provider": "TimestampTest Provider",
+            "country": "United States",
+            "state": "California",
+            "city": "Los Angeles",
+            "zipcode": "90210",
+            "comment": "Test node for timestamp verification"
+        }
+        
+        success, response = self.make_request('POST', 'nodes', test_node, 200)
+        
+        if success and 'id' in response:
+            node_id = response['id']
+            last_update_str = response.get('last_update')
+            
+            if last_update_str:
+                try:
+                    # Parse the timestamp
+                    last_update = datetime.fromisoformat(last_update_str.replace('Z', '+00:00'))
+                    after_time = datetime.now()
+                    
+                    # Check if timestamp is within reasonable range (within 1 minute)
+                    time_diff = abs((after_time - last_update).total_seconds())
+                    
+                    if time_diff <= 60:  # Within 1 minute
+                        self.log_test("Timestamp Fix - Create Node", True, 
+                                     f"✅ NEW NODE TIMESTAMP CORRECT: last_update={last_update_str}, time_diff={time_diff:.1f}s")
+                        return node_id
+                    else:
+                        self.log_test("Timestamp Fix - Create Node", False, 
+                                     f"❌ TIMESTAMP TOO OLD: last_update={last_update_str}, time_diff={time_diff:.1f}s (should be <60s)")
+                        return None
+                except Exception as e:
+                    self.log_test("Timestamp Fix - Create Node", False, 
+                                 f"❌ TIMESTAMP PARSE ERROR: {last_update_str}, error: {e}")
+                    return None
+            else:
+                self.log_test("Timestamp Fix - Create Node", False, 
+                             f"❌ NO TIMESTAMP RETURNED: {response}")
+                return None
+        else:
+            self.log_test("Timestamp Fix - Create Node", False, f"❌ Failed to create node: {response}")
+            return None
+
+    def test_timestamp_update_fix_import_nodes(self):
+        """TIMESTAMP FIX TEST 2: Import nodes - verify all new nodes have current last_update"""
+        import time
+        timestamp = str(int(time.time()))
+        
+        # Record time before import
+        before_time = datetime.now()
+        
+        import_data = {
+            "data": f"""Ip: 192.168.200.{timestamp[-2:]}
+Login: import_user1_{timestamp}
+Pass: import_pass1
+State: California
+City: San Francisco
+
+Ip: 192.168.201.{timestamp[-2:]}
+Login: import_user2_{timestamp}
+Pass: import_pass2
+State: Texas
+City: Dallas""",
+            "protocol": "pptp",
+            "testing_mode": "no_test"
+        }
+        
+        success, response = self.make_request('POST', 'nodes/import', import_data)
+        
+        if success and 'report' in response:
+            report = response['report']
+            if report.get('added', 0) >= 2:
+                # Check timestamps of both imported nodes
+                nodes_success1, nodes_response1 = self.make_request('GET', f'nodes?ip=192.168.200.{timestamp[-2:]}')
+                nodes_success2, nodes_response2 = self.make_request('GET', f'nodes?ip=192.168.201.{timestamp[-2:]}')
+                
+                timestamps_correct = 0
+                timestamp_details = []
+                
+                for i, (nodes_success, nodes_response) in enumerate([(nodes_success1, nodes_response1), (nodes_success2, nodes_response2)], 1):
+                    if nodes_success and 'nodes' in nodes_response and nodes_response['nodes']:
+                        node = nodes_response['nodes'][0]
+                        last_update_str = node.get('last_update')
+                        
+                        if last_update_str:
+                            try:
+                                last_update = datetime.fromisoformat(last_update_str.replace('Z', '+00:00'))
+                                after_time = datetime.now()
+                                time_diff = abs((after_time - last_update).total_seconds())
+                                
+                                if time_diff <= 60:  # Within 1 minute
+                                    timestamps_correct += 1
+                                    timestamp_details.append(f"Node{i}: ✅ {time_diff:.1f}s")
+                                else:
+                                    timestamp_details.append(f"Node{i}: ❌ {time_diff:.1f}s (too old)")
+                            except Exception as e:
+                                timestamp_details.append(f"Node{i}: ❌ Parse error: {e}")
+                        else:
+                            timestamp_details.append(f"Node{i}: ❌ No timestamp")
+                
+                if timestamps_correct == 2:
+                    self.log_test("Timestamp Fix - Import Nodes", True, 
+                                 f"✅ IMPORT TIMESTAMPS CORRECT: {', '.join(timestamp_details)}")
+                    return [nodes_response1['nodes'][0]['id'], nodes_response2['nodes'][0]['id']]
+                else:
+                    self.log_test("Timestamp Fix - Import Nodes", False, 
+                                 f"❌ IMPORT TIMESTAMPS INCORRECT: {', '.join(timestamp_details)}")
+                    return []
+            else:
+                self.log_test("Timestamp Fix - Import Nodes", False, 
+                             f"❌ Expected 2 nodes imported, got {report.get('added', 0)}")
+                return []
+        else:
+            self.log_test("Timestamp Fix - Import Nodes", False, f"❌ Import failed: {response}")
+            return []
+
+    def test_timestamp_update_fix_manual_ping_test(self, node_ids):
+        """TIMESTAMP FIX TEST 3: Manual ping test - verify last_update changes"""
+        if not node_ids:
+            self.log_test("Timestamp Fix - Manual Ping Test", False, "❌ No node IDs provided")
+            return False
+        
+        # Get initial timestamps
+        initial_timestamps = {}
+        for node_id in node_ids[:2]:  # Test with first 2 nodes
+            success, response = self.make_request('GET', f'nodes?id={node_id}')
+            if success and 'nodes' in response and response['nodes']:
+                initial_timestamps[node_id] = response['nodes'][0].get('last_update')
+        
+        # Wait a moment to ensure timestamp difference
+        import time
+        time.sleep(2)
+        
+        # Perform manual ping test
+        ping_data = {
+            "node_ids": list(node_ids[:2])
+        }
+        
+        success, response = self.make_request('POST', 'manual/ping-test', ping_data)
+        
+        if success and 'results' in response:
+            # Check if timestamps were updated
+            updated_count = 0
+            timestamp_details = []
+            
+            for node_id in node_ids[:2]:
+                success, response = self.make_request('GET', f'nodes?id={node_id}')
+                if success and 'nodes' in response and response['nodes']:
+                    node = response['nodes'][0]
+                    new_timestamp = node.get('last_update')
+                    initial_timestamp = initial_timestamps.get(node_id)
+                    
+                    if new_timestamp and initial_timestamp and new_timestamp != initial_timestamp:
+                        # Verify new timestamp is recent
+                        try:
+                            last_update = datetime.fromisoformat(new_timestamp.replace('Z', '+00:00'))
+                            now = datetime.now()
+                            time_diff = abs((now - last_update).total_seconds())
+                            
+                            if time_diff <= 60:  # Within 1 minute
+                                updated_count += 1
+                                timestamp_details.append(f"Node{node_id}: ✅ Updated ({time_diff:.1f}s ago)")
+                            else:
+                                timestamp_details.append(f"Node{node_id}: ❌ Updated but too old ({time_diff:.1f}s)")
+                        except Exception as e:
+                            timestamp_details.append(f"Node{node_id}: ❌ Parse error: {e}")
+                    else:
+                        timestamp_details.append(f"Node{node_id}: ❌ Not updated")
+            
+            if updated_count >= 1:  # At least one node should have updated timestamp
+                self.log_test("Timestamp Fix - Manual Ping Test", True, 
+                             f"✅ PING TEST TIMESTAMPS UPDATED: {', '.join(timestamp_details)}")
+                return True
+            else:
+                self.log_test("Timestamp Fix - Manual Ping Test", False, 
+                             f"❌ PING TEST TIMESTAMPS NOT UPDATED: {', '.join(timestamp_details)}")
+                return False
+        else:
+            self.log_test("Timestamp Fix - Manual Ping Test", False, f"❌ Manual ping test failed: {response}")
+            return False
+
+    def test_timestamp_update_fix_manual_speed_test(self, node_ids):
+        """TIMESTAMP FIX TEST 4: Manual speed test - verify last_update changes"""
+        if not node_ids:
+            self.log_test("Timestamp Fix - Manual Speed Test", False, "❌ No node IDs provided")
+            return False
+        
+        # First, ensure nodes have ping_ok status for speed test
+        # Update node status to ping_ok manually
+        for node_id in node_ids[:1]:  # Test with 1 node
+            update_data = {"status": "ping_ok"}
+            self.make_request('PUT', f'nodes/{node_id}', update_data)
+        
+        # Get initial timestamp
+        initial_timestamp = None
+        node_id = node_ids[0]
+        success, response = self.make_request('GET', f'nodes?id={node_id}')
+        if success and 'nodes' in response and response['nodes']:
+            initial_timestamp = response['nodes'][0].get('last_update')
+        
+        # Wait a moment
+        import time
+        time.sleep(2)
+        
+        # Perform manual speed test
+        speed_data = {
+            "node_ids": [node_id]
+        }
+        
+        success, response = self.make_request('POST', 'manual/speed-test', speed_data)
+        
+        if success and 'results' in response:
+            # Check if timestamp was updated
+            success, response = self.make_request('GET', f'nodes?id={node_id}')
+            if success and 'nodes' in response and response['nodes']:
+                node = response['nodes'][0]
+                new_timestamp = node.get('last_update')
+                
+                if new_timestamp and initial_timestamp and new_timestamp != initial_timestamp:
+                    # Verify new timestamp is recent
+                    try:
+                        last_update = datetime.fromisoformat(new_timestamp.replace('Z', '+00:00'))
+                        now = datetime.now()
+                        time_diff = abs((now - last_update).total_seconds())
+                        
+                        if time_diff <= 60:  # Within 1 minute
+                            self.log_test("Timestamp Fix - Manual Speed Test", True, 
+                                         f"✅ SPEED TEST TIMESTAMP UPDATED: Node{node_id} updated {time_diff:.1f}s ago")
+                            return True
+                        else:
+                            self.log_test("Timestamp Fix - Manual Speed Test", False, 
+                                         f"❌ SPEED TEST TIMESTAMP TOO OLD: {time_diff:.1f}s")
+                            return False
+                    except Exception as e:
+                        self.log_test("Timestamp Fix - Manual Speed Test", False, 
+                                     f"❌ TIMESTAMP PARSE ERROR: {e}")
+                        return False
+                else:
+                    self.log_test("Timestamp Fix - Manual Speed Test", False, 
+                                 f"❌ SPEED TEST TIMESTAMP NOT UPDATED: initial={initial_timestamp}, new={new_timestamp}")
+                    return False
+            else:
+                self.log_test("Timestamp Fix - Manual Speed Test", False, "❌ Could not retrieve node after speed test")
+                return False
+        else:
+            self.log_test("Timestamp Fix - Manual Speed Test", False, f"❌ Manual speed test failed: {response}")
+            return False
+
+    def test_timestamp_update_fix_service_start_stop(self, node_ids):
+        """TIMESTAMP FIX TEST 5: Start/Stop services - verify last_update changes for both operations"""
+        if not node_ids:
+            self.log_test("Timestamp Fix - Service Start/Stop", False, "❌ No node IDs provided")
+            return False
+        
+        node_id = node_ids[0]
+        
+        # First, ensure node has appropriate status for service operations
+        update_data = {"status": "speed_ok"}
+        self.make_request('PUT', f'nodes/{node_id}', update_data)
+        
+        # Test START services
+        import time
+        time.sleep(1)
+        
+        # Get initial timestamp
+        success, response = self.make_request('GET', f'nodes?id={node_id}')
+        initial_timestamp = None
+        if success and 'nodes' in response and response['nodes']:
+            initial_timestamp = response['nodes'][0].get('last_update')
+        
+        time.sleep(2)
+        
+        # Start services
+        start_data = {"node_ids": [node_id]}
+        success, response = self.make_request('POST', 'services/start', start_data)
+        
+        start_timestamp_updated = False
+        if success:
+            # Check if timestamp was updated after START
+            success, response = self.make_request('GET', f'nodes?id={node_id}')
+            if success and 'nodes' in response and response['nodes']:
+                node = response['nodes'][0]
+                start_timestamp = node.get('last_update')
+                
+                if start_timestamp and initial_timestamp and start_timestamp != initial_timestamp:
+                    try:
+                        last_update = datetime.fromisoformat(start_timestamp.replace('Z', '+00:00'))
+                        now = datetime.now()
+                        time_diff = abs((now - last_update).total_seconds())
+                        
+                        if time_diff <= 60:
+                            start_timestamp_updated = True
+                    except:
+                        pass
+        
+        # Test STOP services
+        time.sleep(2)
+        
+        # Get timestamp before stop
+        success, response = self.make_request('GET', f'nodes?id={node_id}')
+        before_stop_timestamp = None
+        if success and 'nodes' in response and response['nodes']:
+            before_stop_timestamp = response['nodes'][0].get('last_update')
+        
+        time.sleep(2)
+        
+        # Stop services
+        stop_data = {"node_ids": [node_id]}
+        success, response = self.make_request('POST', 'services/stop', stop_data)
+        
+        stop_timestamp_updated = False
+        if success:
+            # Check if timestamp was updated after STOP
+            success, response = self.make_request('GET', f'nodes?id={node_id}')
+            if success and 'nodes' in response and response['nodes']:
+                node = response['nodes'][0]
+                stop_timestamp = node.get('last_update')
+                
+                if stop_timestamp and before_stop_timestamp and stop_timestamp != before_stop_timestamp:
+                    try:
+                        last_update = datetime.fromisoformat(stop_timestamp.replace('Z', '+00:00'))
+                        now = datetime.now()
+                        time_diff = abs((now - last_update).total_seconds())
+                        
+                        if time_diff <= 60:
+                            stop_timestamp_updated = True
+                    except:
+                        pass
+        
+        # Evaluate results
+        if start_timestamp_updated and stop_timestamp_updated:
+            self.log_test("Timestamp Fix - Service Start/Stop", True, 
+                         f"✅ BOTH START AND STOP TIMESTAMPS UPDATED: Node{node_id}")
+            return True
+        elif start_timestamp_updated or stop_timestamp_updated:
+            self.log_test("Timestamp Fix - Service Start/Stop", False, 
+                         f"❌ PARTIAL SUCCESS: Start updated: {start_timestamp_updated}, Stop updated: {stop_timestamp_updated}")
+            return False
+        else:
+            self.log_test("Timestamp Fix - Service Start/Stop", False, 
+                         f"❌ NEITHER START NOR STOP TIMESTAMPS UPDATED")
+            return False
+
+    def test_timestamp_format_verification(self, node_ids):
+        """TIMESTAMP FIX TEST 6: Check timestamp format - verify ISO format and recent time"""
+        if not node_ids:
+            self.log_test("Timestamp Fix - Format Verification", False, "❌ No node IDs provided")
+            return False
+        
+        node_id = node_ids[0]
+        success, response = self.make_request('GET', f'nodes?id={node_id}')
+        
+        if success and 'nodes' in response and response['nodes']:
+            node = response['nodes'][0]
+            last_update_str = node.get('last_update')
+            
+            if last_update_str:
+                try:
+                    # Test ISO format parsing
+                    last_update = datetime.fromisoformat(last_update_str.replace('Z', '+00:00'))
+                    now = datetime.now()
+                    time_diff = abs((now - last_update).total_seconds())
+                    
+                    # Check format patterns
+                    iso_format_valid = ('T' in last_update_str and 
+                                      (':' in last_update_str) and 
+                                      (len(last_update_str) >= 19))  # YYYY-MM-DDTHH:MM:SS
+                    
+                    if iso_format_valid and time_diff <= 3600:  # Within 1 hour is reasonable
+                        self.log_test("Timestamp Fix - Format Verification", True, 
+                                     f"✅ TIMESTAMP FORMAT CORRECT: {last_update_str} (ISO format, {time_diff:.1f}s ago)")
+                        return True
+                    else:
+                        self.log_test("Timestamp Fix - Format Verification", False, 
+                                     f"❌ TIMESTAMP FORMAT/AGE ISSUE: {last_update_str}, ISO valid: {iso_format_valid}, age: {time_diff:.1f}s")
+                        return False
+                except Exception as e:
+                    self.log_test("Timestamp Fix - Format Verification", False, 
+                                 f"❌ TIMESTAMP PARSE ERROR: {last_update_str}, error: {e}")
+                    return False
+            else:
+                self.log_test("Timestamp Fix - Format Verification", False, 
+                             f"❌ NO TIMESTAMP FIELD: {node}")
+                return False
+        else:
+            self.log_test("Timestamp Fix - Format Verification", False, f"❌ Could not retrieve node: {response}")
+            return False
+
     def test_critical_manual_ping_test_workflow(self):
         """CRITICAL TEST 3: Manual ping test workflow - Should only work on 'not_tested' nodes"""
         # First, create test nodes with 'not_tested' status
