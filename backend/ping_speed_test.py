@@ -9,6 +9,7 @@ import time
 import json
 import random
 import re
+import socket
 from typing import Dict, Optional, Tuple
 
 class PPTPTester:
