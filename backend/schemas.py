@@ -33,6 +33,15 @@ class NodeBase(BaseModel):
     protocol: Optional[str] = "pptp"
     status: Optional[str] = "not_tested"
     speed: Optional[str] = None
+    
+    # SOCKS Proxy data
+    socks_ip: Optional[str] = None
+    socks_port: Optional[int] = None
+    socks_login: Optional[str] = None
+    socks_password: Optional[str] = None
+    
+    # OVPN Configuration  
+    ovpn_config: Optional[str] = None
 
 class NodeCreate(NodeBase):
     pass
