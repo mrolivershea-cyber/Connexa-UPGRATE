@@ -2160,11 +2160,11 @@ async def manual_speed_test(
             if speed_result['success'] and speed_result.get('download_speed'):
                 node.speed = f"{speed_result['download_speed']:.1f}"
                 
-                # Set status based on speed: >1 Mbps = speed_ok, ≤1 Mbps = speed_slow  
+                # Set status based on speed: >1 Mbps = speed_ok, ≤1 Mbps = ping_failed  
                 if speed_result['download_speed'] > 1.0:
                     node.status = "speed_ok"
                 else:
-                    node.status = "speed_slow"
+                    node.status = "ping_failed"
             else:
                 # Speed test failed - set to ping_failed to retry ping
                 node.status = "ping_failed"
