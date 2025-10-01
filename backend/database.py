@@ -53,6 +53,16 @@ class Node(Base):
     protocol = Column(String(10), default="pptp")  # pptp, ssh, socks, server
     status = Column(String(20), default="not_tested")  # Unified status: not_tested, ping_failed, ping_ok, speed_ok, offline, online
     speed = Column(String(20), nullable=True)  # Connection speed in Mbps
+    
+    # SOCKS Proxy data (populated when services are launched)
+    socks_ip = Column(String(45), nullable=True)  # SOCKS proxy IP
+    socks_port = Column(Integer, nullable=True)   # SOCKS proxy port  
+    socks_login = Column(String(100), nullable=True)  # SOCKS proxy login
+    socks_password = Column(String(255), nullable=True)  # SOCKS proxy password
+    
+    # OVPN Configuration (populated when services are launched)
+    ovpn_config = Column(Text, nullable=True)  # Complete OVPN configuration
+    
     last_check = Column(DateTime, nullable=True)
     last_update = Column(DateTime, nullable=True)  # Explicitly set in Python code, not by DB
     created_at = Column(DateTime, server_default=func.now())
