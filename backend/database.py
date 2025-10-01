@@ -54,7 +54,7 @@ class Node(Base):
     status = Column(String(20), default="not_tested")  # Unified status: not_tested, ping_failed, ping_ok, speed_slow, speed_ok, offline, online
     speed = Column(String(20), nullable=True)  # Connection speed in Mbps
     last_check = Column(DateTime, nullable=True)
-    last_update = Column(DateTime, server_default=func.now(), onupdate=func.now())
+    last_update = Column(DateTime, nullable=True)  # Explicitly set in Python code, not by DB
     created_at = Column(DateTime, server_default=func.now())
 
 def create_tables():
