@@ -60,6 +60,15 @@ class NodeUpdate(BaseModel):
     protocol: Optional[str] = None
     status: Optional[str] = None
     speed: Optional[str] = None
+    
+    # SOCKS Proxy data
+    socks_ip: Optional[str] = None
+    socks_port: Optional[int] = None
+    socks_login: Optional[str] = None
+    socks_password: Optional[str] = None
+    
+    # OVPN Configuration
+    ovpn_config: Optional[str] = None
 
 class Node(NodeBase):
     id: int
