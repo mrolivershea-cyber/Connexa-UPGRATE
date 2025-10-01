@@ -293,14 +293,16 @@ const AdminPanel = () => {
   // ===== MANUAL TESTING WORKFLOW FUNCTIONS =====
   
   const handleManualPingTest = async () => {
-    if (!selectedNodes.length) {
+    const targetIds = selectAllMode ? allSelectedIds : selectedNodes;
+    
+    if (!targetIds.length) {
       toast.error('No nodes selected');
       return;
     }
 
     try {
       const response = await axios.post(`${API}/manual/ping-test`, {
-        node_ids: selectedNodes
+        node_ids: targetIds
       });
 
       const results = response.data.results;
@@ -317,6 +319,8 @@ const AdminPanel = () => {
       loadNodes(currentPage);
       loadStats();
       setSelectedNodes([]);
+      setAllSelectedIds([]);
+      setSelectAllMode(false);
     } catch (error) {
       console.error('Error running ping test:', error);
       toast.error('Failed to run ping test: ' + (error.response?.data?.detail || error.message));
