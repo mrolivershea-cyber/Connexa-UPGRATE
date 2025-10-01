@@ -1839,6 +1839,7 @@ async def create_node_with_test(
     # Create node first
     db_node = Node(**node.dict())
     db_node.status = "checking"
+    db_node.last_update = datetime.utcnow()  # Set time on creation
     db.add(db_node)
     db.commit()
     db.refresh(db_node)
@@ -1874,6 +1875,7 @@ async def create_node_with_test(
             test_result = {"combined": combined_result}
         
         db_node.last_check = datetime.utcnow()
+        db_node.last_update = datetime.utcnow()  # Update time after test
         db.commit()
         
         return {
@@ -1885,6 +1887,7 @@ async def create_node_with_test(
     except Exception as e:
         # Fallback to offline if test fails
         db_node.status = "offline"
+        db_node.last_update = datetime.utcnow()  # Update time on error
         db.commit()
         
         return {
