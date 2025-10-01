@@ -7521,7 +7521,8 @@ State: California""",
         test_nodes = response['nodes'][:3]  # Use up to 3 nodes
         node_ids = [node['id'] for node in test_nodes]
         
-        print(f"   📋 Testing {len(node_ids)} nodes: {[f'{n[\"id\"]}({n[\"ip\"]})' for n in test_nodes]}")
+        node_info = [f"{n['id']}({n['ip']})" for n in test_nodes]
+        print(f"   📋 Testing {len(node_ids)} nodes: {node_info}")
         
         # Record start time
         start_time = time.time()
