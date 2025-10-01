@@ -6360,6 +6360,13 @@ State: California""",
             print("❌ Login failed - stopping tests")
             return False
         
+        # 🔥 BATCH PING OPTIMIZATION TESTS (Review Request Priority)
+        print("\n" + "="*80)
+        print("🔥 BATCH PING OPTIMIZATION TESTS - REVIEW REQUEST PRIORITY")
+        print("="*80)
+        self.test_batch_ping_functionality()
+        self.test_batch_ping_edge_cases()
+        
         # 🔥 CRITICAL: PING FUNCTIONALITY WITH MIXED DATABASE (Review Request Focus)
         print("\n" + "="*80)
         print("🔥 PING FUNCTIONALITY WITH MIXED DATABASE - REVIEW REQUEST PRIORITY")
