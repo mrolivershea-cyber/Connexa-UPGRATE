@@ -206,7 +206,7 @@ frontend:
         comment: "IMPLEMENTED: Added 3 manual testing buttons to AdminPanel: Ping Test (blue), Speed Test (orange), Launch Services (purple). Each button calls respective API endpoint with selectedNodes. Added proper error handling and success notifications. Buttons positioned after existing Start/Stop Services buttons."
   
   - task: "Fix Select All functionality for all records"
-    implemented: false
+    implemented: true
     working: false
     file: "AdminPanel.js"
     stuck_count: 0
@@ -216,6 +216,9 @@ frontend:
       - working: "NA"
         agent: "main"
         comment: "USER ISSUE: Select All only works with visible 200 records, not all 4688 in database. Need to implement: 1) Backend API for getting all IDs by filters, 2) Modified Select All logic, 3) Update all action buttons to work with complete selection, 4) Proper UI indication of total vs visible selection count."
+      - working: false
+        agent: "main"
+        comment: "IMPLEMENTED: Added new state variables allSelectedIds and selectAllMode. Created getAllNodeIds() function to call /api/nodes/all-ids. Modified handleSelectAll() to work with backend API. Updated ALL 7 action button handlers (Start/Stop Services, Ping/Speed/Launch Tests, Delete, Export) to use selectAllMode ? allSelectedIds : selectedNodes. Updated UI to show total selected vs visible. Updated TestingModal and ExportModal to receive correct node list. Ready for testing."
 
   - task: "Remove duplicate Total nodes display"
     implemented: true
