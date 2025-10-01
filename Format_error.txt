@@ -29,3 +29,7 @@ Login: testuser7006
 Pass: testpass
 State: California
 City: Los Angeles
+
+
+=== Format Errors - 2025-10-01 08:54:01 ===
+1. Missing credentials in block 1: testuser1759308841:testpass@10.10.10.41:1723
