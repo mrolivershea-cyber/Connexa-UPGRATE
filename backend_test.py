@@ -4083,6 +4083,12 @@ State: California""",
         # Test user info
         self.test_get_current_user()
         
+        # 🕒 PRIORITY: TIMESTAMP FIX TESTING (Review Request Focus)
+        print("\n" + "="*80)
+        print("🕒 TIMESTAMP UPDATE FIX TESTING - REVIEW REQUEST PRIORITY")
+        print("="*80)
+        self.run_timestamp_fix_tests()
+        
         # Test basic CRUD operations
         nodes = self.test_get_nodes()
         self.test_get_stats()
