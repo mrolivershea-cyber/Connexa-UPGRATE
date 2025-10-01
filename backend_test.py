@@ -5837,6 +5837,12 @@ State: California""",
             print("❌ Login failed - stopping tests")
             return False
         
+        # 🔥 CRITICAL: PING FUNCTIONALITY COMPREHENSIVE TEST (Review Request Focus)
+        print("\n" + "="*80)
+        print("🔥 PING FUNCTIONALITY COMPREHENSIVE TEST - REVIEW REQUEST PRIORITY")
+        print("="*80)
+        self.test_ping_functionality_comprehensive()
+        
         # PRIORITY: Run the comprehensive ping validation test first (Russian review request)
         print("\n🎯 ПРИОРИТЕТ: Запуск комплексного тестирования пинга базы данных")
         self.test_comprehensive_ping_validation_database()
