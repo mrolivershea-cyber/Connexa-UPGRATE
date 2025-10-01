@@ -2044,8 +2044,8 @@ async def stop_single_node_services(
 # ===== MANUAL TESTING WORKFLOW API ENDPOINTS =====
 # These endpoints implement the user's required manual testing workflow:
 # not_tested → ping_test → ping_ok/ping_failed  
-# ping_ok → speed_test → speed_ok/speed_slow
-# speed_ok/speed_slow → launch_services → online
+# ping_ok → speed_test → speed_ok/ping_failed
+# speed_ok → launch_services → online
 
 @api_router.post("/manual/ping-test")
 async def manual_ping_test(
