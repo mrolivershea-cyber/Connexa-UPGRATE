@@ -1687,18 +1687,21 @@ City: Dallas""",
             self.log_test("Timestamp Fix - Manual Speed Test", False, "❌ No node IDs provided")
             return False
         
-        # First, ensure nodes have ping_ok status for speed test
-        # Update node status to ping_ok manually
-        for node_id in node_ids[:1]:  # Test with 1 node
-            update_data = {"status": "ping_ok"}
-            self.make_request('PUT', f'nodes/{node_id}', update_data)
+        # First, ensure node has ping_ok status for speed test
+        node_id = node_ids[0]
+        update_data = {"status": "ping_ok"}
+        success, response = self.make_request('PUT', f'nodes/{node_id}', update_data)
+        if not success:
+            self.log_test("Timestamp Fix - Manual Speed Test", False, "❌ Could not set node to ping_ok status")
+            return False
         
         # Get initial timestamp
         initial_timestamp = None
-        node_id = node_ids[0]
         success, response = self.make_request('GET', f'nodes?id={node_id}')
         if success and 'nodes' in response and response['nodes']:
-            initial_timestamp = response['nodes'][0].get('last_update')
+            node = response['nodes'][0]
+            initial_timestamp = node.get('last_update')
+            print(f"Node {node_id} initial status: {node.get('status')}, timestamp: {initial_timestamp}")
         
         # Wait a moment
         import time
@@ -1710,6 +1713,7 @@ City: Dallas""",
         }
         
         success, response = self.make_request('POST', 'manual/speed-test', speed_data)
+        print(f"Manual speed test response: {response}")
         
         if success and 'results' in response:
             # Check if timestamp was updated
@@ -1717,6 +1721,9 @@ City: Dallas""",
             if success and 'nodes' in response and response['nodes']:
                 node = response['nodes'][0]
                 new_timestamp = node.get('last_update')
+                new_status = node.get('status')
+                
+                print(f"Node {node_id} after speed test: status={new_status}, timestamp={new_timestamp}")
                 
                 if new_timestamp and initial_timestamp and new_timestamp != initial_timestamp:
                     # Verify new timestamp is recent
