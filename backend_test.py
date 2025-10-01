@@ -4331,7 +4331,28 @@ State: California""",
 
 def main():
     tester = ConnexaAPITester()
-    success = tester.run_all_tests()
+    
+    print("🔧 Connexa Backend API Tester - TIMESTAMP FIX FOCUS")
+    print("=" * 60)
+    
+    # Run only authentication and timestamp tests for this review request
+    if not tester.test_login():
+        print("❌ Login failed - stopping tests")
+        return 1
+    
+    tester.test_get_current_user()
+    
+    # Run timestamp fix tests
+    timestamp_test_node_ids = tester.run_timestamp_fix_tests()
+    
+    # Print summary
+    print("\n" + "=" * 80)
+    print("📊 TIMESTAMP FIX TEST SUMMARY")
+    print("=" * 80)
+    print(f"Total tests run: {tester.tests_run}")
+    print(f"Tests passed: {tester.tests_passed}")
+    print(f"Tests failed: {tester.tests_run - tester.tests_passed}")
+    print(f"Success rate: {(tester.tests_passed / tester.tests_run * 100):.1f}%" if tester.tests_run > 0 else "No tests run")
     
     # Save detailed results
     results = {
@@ -4339,13 +4360,23 @@ def main():
         "total_tests": tester.tests_run,
         "passed_tests": tester.tests_passed,
         "success_rate": (tester.tests_passed/tester.tests_run)*100 if tester.tests_run > 0 else 0,
-        "test_details": tester.test_results
+        "test_details": tester.test_results,
+        "focus": "timestamp_fix_testing"
     }
     
-    with open('/app/test_reports/backend_test_results.json', 'w') as f:
+    # Create test_reports directory if it doesn't exist
+    import os
+    os.makedirs('/app/test_reports', exist_ok=True)
+    
+    with open('/app/test_reports/timestamp_fix_test_results.json', 'w') as f:
         json.dump(results, f, indent=2)
     
-    return 0 if success else 1
+    if tester.tests_passed == tester.tests_run:
+        print("🎉 All timestamp fix tests passed!")
+        return 0
+    else:
+        print("❌ Some timestamp fix tests failed!")
+        return 1
 
 if __name__ == "__main__":
     sys.exit(main())
