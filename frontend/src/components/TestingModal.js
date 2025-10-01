@@ -35,7 +35,8 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], onTestComplete })
     setProgress(0);
     
     try {
-      let endpoint = 'manual/ping-test';
+      // Use batch endpoint for multiple nodes, single endpoint for one node
+      let endpoint = selectedNodeIds.length > 1 ? 'manual/ping-test-batch' : 'manual/ping-test';
       if (testType === 'speed') endpoint = 'manual/speed-test';
       if (testType === 'both') endpoint = 'test/combined';
       
