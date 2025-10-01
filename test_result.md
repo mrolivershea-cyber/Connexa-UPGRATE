@@ -225,6 +225,18 @@ backend:
         agent: "testing"
         comment: "COMPREHENSIVE SERVICE MANAGEMENT TESTING: All critical service management functions verified and working correctly. TESTED ENDPOINTS: 1) POST /api/manual/ping-test - correctly validates not_tested status and transitions to ping_ok/ping_failed with timestamp updates, 2) POST /api/manual/speed-test - correctly validates ping_ok status and transitions to speed_ok/speed_slow, 3) POST /api/manual/launch-services - correctly validates speed_ok/speed_slow status and attempts service launch (SOCKS+OVPN), 4) POST /api/services/start - API working with correct request format {node_ids, action}, 5) POST /api/services/stop - API working correctly. STATUS TRANSITION WORKFLOW: ✅ not_tested → (ping test) → ping_ok/ping_failed ✅ ping_ok → (speed test) → speed_ok/speed_slow ✅ speed_ok/speed_slow → (launch services) → online/offline. VALIDATION: Proper status validation enforced - endpoints reject nodes in wrong status. TIMESTAMPS: last_update field correctly updated on all status changes. DATABASE STATE: 2349 total nodes, 2341 not_tested, 8 ping_failed. All service management functionality working as designed."
 
+  - task: "Remove ping test status restriction"
+    implemented: true
+    working: "NA"
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "USER REQUEST: Ping test should work for manual or automatic testing regardless of current node status. ISSUE FIXED: Removed status restriction in /api/manual/ping-test that only allowed 'not_tested' nodes. CHANGES: 1) Removed lines 2070-2076 status validation check, 2) Added original_status tracking, 3) Updated response messages to show status transitions. Now ping test works for any node status as requested."
+
   - task: "PPTP Testing and Service Launch System"
     implemented: true
     working: true
