@@ -70,7 +70,8 @@ class FinalReviewTester:
         test_nodes = response['nodes'][:3]
         node_ids = [node['id'] for node in test_nodes]
         
-        print(f"Testing with nodes: {[f'{n[\"id\"]}({n[\"ip\"]})' for n in test_nodes]}")
+        node_info = [f"{n['id']}({n['ip']})" for n in test_nodes]
+        print(f"Testing with nodes: {node_info}")
         
         start_time = time.time()
         success, response = self.make_request('POST', 'manual/ping-test', {"node_ids": node_ids}, timeout=60)
