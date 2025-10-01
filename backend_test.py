@@ -6345,6 +6345,525 @@ State: California""",
         
         return edge_cases_passed
 
+    # ========== CRITICAL WORKFLOW TESTS (Review Request) ==========
+    
+    def test_complete_workflow_with_known_ips(self):
+        """Test complete workflow with known working IPs: 72.197.30.147, 100.11.102.204, 100.16.39.213"""
+        print("\n🔥 TESTING COMPLETE WORKFLOW WITH KNOWN WORKING IPs")
+        print("=" * 60)
+        
+        # Known working IPs from review request
+        known_ips = ["72.197.30.147", "100.11.102.204", "100.16.39.213"]
+        
+        # First, ensure these IPs exist in database with not_tested status
+        for ip in known_ips:
+            # Check if node exists
+            success, response = self.make_request('GET', f'nodes?ip={ip}')
+            
+            if not success or 'nodes' not in response or not response['nodes']:
+                # Create the node if it doesn't exist
+                node_data = {
+                    "ip": ip,
+                    "login": "admin",
+                    "password": "admin",
+                    "protocol": "pptp",
+                    "status": "not_tested",
+                    "provider": "Test Provider",
+                    "country": "United States",
+                    "state": "California",
+                    "city": "Test City"
+                }
+                create_success, create_response = self.make_request('POST', 'nodes', node_data)
+                if not create_success:
+                    self.log_test(f"Create Test Node {ip}", False, f"Failed to create: {create_response}")
+                    continue
+                print(f"   ✅ Created test node: {ip}")
+            else:
+                # Update existing node to not_tested status
+                node = response['nodes'][0]
+                update_data = {"status": "not_tested"}
+                update_success, update_response = self.make_request('PUT', f'nodes/{node["id"]}', update_data)
+                if update_success:
+                    print(f"   ✅ Reset node {ip} to not_tested status")
+        
+        # Get the node IDs for our test IPs
+        test_node_ids = []
+        for ip in known_ips:
+            success, response = self.make_request('GET', f'nodes?ip={ip}')
+            if success and 'nodes' in response and response['nodes']:
+                test_node_ids.append(response['nodes'][0]['id'])
+        
+        if not test_node_ids:
+            self.log_test("Complete Workflow - Setup Test Nodes", False, "No test nodes available")
+            return False
+        
+        print(f"📋 Testing workflow with {len(test_node_ids)} known working IPs")
+        
+        # Step 1: Manual Ping Test (not_tested → ping_ok)
+        print(f"\n🏓 STEP 1: Manual Ping Test")
+        ping_data = {"node_ids": test_node_ids}
+        ping_success, ping_response = self.make_request('POST', 'manual/ping-test', ping_data)
+        
+        if not ping_success or 'results' not in ping_response:
+            self.log_test("Complete Workflow - Step 1 Ping", False, f"Ping test failed: {ping_response}")
+            return False
+        
+        ping_ok_nodes = []
+        for result in ping_response['results']:
+            print(f"   Node {result['node_id']}: {result.get('message', 'No message')}")
+            if result.get('success') and result.get('status') == 'ping_ok':
+                ping_ok_nodes.append(result['node_id'])
+        
+        print(f"   ✅ Ping OK: {len(ping_ok_nodes)} nodes")
+        
+        if not ping_ok_nodes:
+            self.log_test("Complete Workflow - Step 1 Ping", False, "No nodes passed ping test")
+            return False
+        
+        # Step 2: Manual Speed Test (ping_ok → speed_ok)
+        print(f"\n🚀 STEP 2: Manual Speed Test")
+        speed_data = {"node_ids": ping_ok_nodes}
+        speed_success, speed_response = self.make_request('POST', 'manual/speed-test', speed_data)
+        
+        if not speed_success or 'results' not in speed_response:
+            self.log_test("Complete Workflow - Step 2 Speed", False, f"Speed test failed: {speed_response}")
+            return False
+        
+        speed_ok_nodes = []
+        for result in speed_response['results']:
+            print(f"   Node {result['node_id']}: {result.get('message', 'No message')} (Speed: {result.get('speed', 'N/A')})")
+            if result.get('success') and result.get('status') == 'speed_ok':
+                speed_ok_nodes.append(result['node_id'])
+        
+        print(f"   ✅ Speed OK: {len(speed_ok_nodes)} nodes")
+        
+        if not speed_ok_nodes:
+            self.log_test("Complete Workflow - Step 2 Speed", False, "No nodes passed speed test")
+            return False
+        
+        # Step 3: Manual Launch Services (speed_ok → online)
+        print(f"\n🚀 STEP 3: Manual Launch Services")
+        launch_data = {"node_ids": speed_ok_nodes}
+        launch_success, launch_response = self.make_request('POST', 'manual/launch-services', launch_data)
+        
+        if not launch_success or 'results' not in launch_response:
+            self.log_test("Complete Workflow - Step 3 Launch", False, f"Service launch failed: {launch_response}")
+            return False
+        
+        online_nodes = []
+        for result in launch_response['results']:
+            print(f"   Node {result['node_id']}: {result.get('message', 'No message')}")
+            if result.get('success') and result.get('status') == 'online':
+                online_nodes.append(result['node_id'])
+        
+        print(f"   ✅ Online: {len(online_nodes)} nodes")
+        
+        if online_nodes:
+            self.log_test("Complete Workflow with Known IPs", True, 
+                         f"Successfully completed workflow: {len(test_node_ids)} → {len(ping_ok_nodes)} → {len(speed_ok_nodes)} → {len(online_nodes)}")
+            return True
+        else:
+            self.log_test("Complete Workflow with Known IPs", False, "No nodes reached online status")
+            return False
+
+    def test_status_transitions_verification(self):
+        """Verify status transitions work correctly"""
+        print("\n🔄 TESTING STATUS TRANSITIONS VERIFICATION")
+        print("=" * 60)
+        
+        # Get a not_tested node
+        success, response = self.make_request('GET', 'nodes?status=not_tested&limit=1')
+        
+        if not success or 'nodes' not in response or not response['nodes']:
+            self.log_test("Status Transitions - Get not_tested node", False, "No not_tested nodes available")
+            return False
+        
+        test_node = response['nodes'][0]
+        node_id = test_node['id']
+        
+        print(f"📋 Testing status transitions with Node {node_id}: {test_node['ip']}")
+        
+        # Verify initial status
+        if test_node['status'] != 'not_tested':
+            self.log_test("Status Transitions - Initial Status", False, f"Expected not_tested, got {test_node['status']}")
+            return False
+        
+        print(f"   ✅ Initial status: {test_node['status']}")
+        
+        # Step 1: Ping test (not_tested → ping_ok/ping_failed)
+        ping_data = {"node_ids": [node_id]}
+        ping_success, ping_response = self.make_request('POST', 'manual/ping-test', ping_data)
+        
+        if ping_success and 'results' in ping_response and ping_response['results']:
+            result = ping_response['results'][0]
+            new_status = result.get('status')
+            print(f"   ✅ After ping test: {new_status}")
+            
+            if new_status in ['ping_ok', 'ping_failed']:
+                # Verify database was updated
+                verify_success, verify_response = self.make_request('GET', f'nodes?id={node_id}')
+                if verify_success and 'nodes' in verify_response and verify_response['nodes']:
+                    db_status = verify_response['nodes'][0]['status']
+                    if db_status == new_status:
+                        self.log_test("Status Transitions - Ping Test", True, f"not_tested → {new_status}")
+                        return True
+                    else:
+                        self.log_test("Status Transitions - Ping Test", False, f"Database not updated: API says {new_status}, DB says {db_status}")
+                        return False
+                else:
+                    self.log_test("Status Transitions - Ping Test", False, "Failed to verify database update")
+                    return False
+            else:
+                self.log_test("Status Transitions - Ping Test", False, f"Invalid status transition: {new_status}")
+                return False
+        else:
+            self.log_test("Status Transitions - Ping Test", False, f"Ping test failed: {ping_response}")
+            return False
+
+    def test_database_updates_verification(self):
+        """Verify database updates properly"""
+        print("\n💾 TESTING DATABASE UPDATES VERIFICATION")
+        print("=" * 60)
+        
+        # Get current timestamp
+        import time
+        before_timestamp = time.time()
+        
+        # Get a not_tested node
+        success, response = self.make_request('GET', 'nodes?status=not_tested&limit=1')
+        
+        if not success or 'nodes' not in response or not response['nodes']:
+            self.log_test("Database Updates - Get test node", False, "No not_tested nodes available")
+            return False
+        
+        test_node = response['nodes'][0]
+        node_id = test_node['id']
+        original_last_update = test_node.get('last_update')
+        
+        print(f"📋 Testing database updates with Node {node_id}: {test_node['ip']}")
+        print(f"   Original last_update: {original_last_update}")
+        
+        # Perform ping test to trigger database update
+        ping_data = {"node_ids": [node_id]}
+        ping_success, ping_response = self.make_request('POST', 'manual/ping-test', ping_data)
+        
+        if not ping_success or 'results' not in ping_response:
+            self.log_test("Database Updates - Ping test", False, f"Ping test failed: {ping_response}")
+            return False
+        
+        # Wait a moment for database update
+        time.sleep(1)
+        
+        # Verify database was updated
+        verify_success, verify_response = self.make_request('GET', f'nodes?id={node_id}')
+        
+        if not verify_success or 'nodes' not in verify_response or not verify_response['nodes']:
+            self.log_test("Database Updates - Verify update", False, "Failed to retrieve updated node")
+            return False
+        
+        updated_node = verify_response['nodes'][0]
+        new_last_update = updated_node.get('last_update')
+        new_status = updated_node.get('status')
+        
+        print(f"   New status: {new_status}")
+        print(f"   New last_update: {new_last_update}")
+        
+        # Verify status changed
+        if new_status == test_node['status']:
+            self.log_test("Database Updates - Status Change", False, f"Status not updated: still {new_status}")
+            return False
+        
+        # Verify timestamp updated
+        if new_last_update == original_last_update:
+            self.log_test("Database Updates - Timestamp Update", False, "Timestamp not updated")
+            return False
+        
+        self.log_test("Database Updates Verification", True, 
+                     f"Status: {test_node['status']} → {new_status}, Timestamp updated")
+        return True
+
+    def test_socks_credentials_generation(self):
+        """Verify SOCKS credentials are generated"""
+        print("\n🔌 TESTING SOCKS CREDENTIALS GENERATION")
+        print("=" * 60)
+        
+        # Get a speed_ok node or create workflow to get one
+        success, response = self.make_request('GET', 'nodes?status=speed_ok&limit=1')
+        
+        if not success or 'nodes' not in response or not response['nodes']:
+            # Try to create a speed_ok node through workflow
+            print("   No speed_ok nodes found, attempting to create one...")
+            
+            # Get not_tested node
+            nt_success, nt_response = self.make_request('GET', 'nodes?status=not_tested&limit=1')
+            if not nt_success or 'nodes' not in nt_response or not nt_response['nodes']:
+                self.log_test("SOCKS Generation - Setup", False, "No nodes available for testing")
+                return False
+            
+            node_id = nt_response['nodes'][0]['id']
+            
+            # Run ping test
+            ping_data = {"node_ids": [node_id]}
+            ping_success, ping_response = self.make_request('POST', 'manual/ping-test', ping_data)
+            
+            if ping_success and 'results' in ping_response and ping_response['results']:
+                result = ping_response['results'][0]
+                if result.get('status') == 'ping_ok':
+                    # Run speed test
+                    speed_data = {"node_ids": [node_id]}
+                    speed_success, speed_response = self.make_request('POST', 'manual/speed-test', speed_data)
+                    
+                    if not (speed_success and 'results' in speed_response and 
+                           speed_response['results'] and speed_response['results'][0].get('status') == 'speed_ok'):
+                        self.log_test("SOCKS Generation - Setup", False, "Could not create speed_ok node")
+                        return False
+                else:
+                    self.log_test("SOCKS Generation - Setup", False, "Ping test did not result in ping_ok")
+                    return False
+            else:
+                self.log_test("SOCKS Generation - Setup", False, "Ping test failed")
+                return False
+        else:
+            node_id = response['nodes'][0]['id']
+        
+        print(f"📋 Testing SOCKS generation with Node {node_id}")
+        
+        # Launch services to generate SOCKS credentials
+        launch_data = {"node_ids": [node_id]}
+        launch_success, launch_response = self.make_request('POST', 'manual/launch-services', launch_data)
+        
+        if not launch_success or 'results' not in launch_response:
+            self.log_test("SOCKS Generation - Launch Services", False, f"Service launch failed: {launch_response}")
+            return False
+        
+        result = launch_response['results'][0]
+        
+        # Check if SOCKS credentials were generated in response
+        if 'socks' in result and result['socks']:
+            socks = result['socks']
+            required_fields = ['ip', 'port', 'login', 'password']
+            
+            if all(socks.get(field) is not None for field in required_fields):
+                print(f"   ✅ SOCKS credentials generated:")
+                print(f"      IP: {socks.get('ip')}")
+                print(f"      Port: {socks.get('port')}")
+                print(f"      Login: {socks.get('login')}")
+                print(f"      Password: {socks.get('password')}")
+                
+                # Verify in database
+                verify_success, verify_response = self.make_request('GET', f'nodes?id={node_id}')
+                if verify_success and 'nodes' in verify_response and verify_response['nodes']:
+                    node = verify_response['nodes'][0]
+                    db_socks_fields = ['socks_ip', 'socks_port', 'socks_login', 'socks_password']
+                    
+                    if all(node.get(field) is not None for field in db_socks_fields):
+                        self.log_test("SOCKS Credentials Generation", True, 
+                                     f"SOCKS credentials generated and stored in database")
+                        return True
+                    else:
+                        self.log_test("SOCKS Credentials Generation", False, 
+                                     "SOCKS credentials not stored in database")
+                        return False
+                else:
+                    self.log_test("SOCKS Credentials Generation", False, 
+                                 "Failed to verify database storage")
+                    return False
+            else:
+                self.log_test("SOCKS Credentials Generation", False, 
+                             f"Incomplete SOCKS credentials: {socks}")
+                return False
+        else:
+            self.log_test("SOCKS Credentials Generation", False, 
+                         f"No SOCKS credentials in response: {result}")
+            return False
+
+    def test_ovpn_configurations_creation(self):
+        """Verify OVPN configurations are created"""
+        print("\n🔐 TESTING OVPN CONFIGURATIONS CREATION")
+        print("=" * 60)
+        
+        # Get an online node (should have OVPN config)
+        success, response = self.make_request('GET', 'nodes?status=online&limit=1')
+        
+        if not success or 'nodes' not in response or not response['nodes']:
+            self.log_test("OVPN Creation - Get online node", False, "No online nodes available")
+            return False
+        
+        node = response['nodes'][0]
+        node_id = node['id']
+        
+        print(f"📋 Testing OVPN config for Node {node_id}: {node['ip']}")
+        
+        # Check if OVPN config exists
+        ovpn_config = node.get('ovpn_config')
+        
+        if ovpn_config:
+            print(f"   ✅ OVPN config found: {len(ovpn_config)} characters")
+            
+            # Basic validation of OVPN config content
+            required_ovpn_elements = ['client', 'dev tun', 'proto udp', 'remote', 'ca', 'cert', 'key']
+            
+            valid_elements = 0
+            for element in required_ovpn_elements:
+                if element in ovpn_config:
+                    valid_elements += 1
+            
+            if valid_elements >= len(required_ovpn_elements) - 1:  # Allow for some flexibility
+                self.log_test("OVPN Configurations Creation", True, 
+                             f"Valid OVPN config with {valid_elements}/{len(required_ovpn_elements)} required elements")
+                return True
+            else:
+                self.log_test("OVPN Configurations Creation", False, 
+                             f"Invalid OVPN config: only {valid_elements}/{len(required_ovpn_elements)} required elements found")
+                return False
+        else:
+            self.log_test("OVPN Configurations Creation", False, "No OVPN config found")
+            return False
+
+    def test_error_handling_workflow(self):
+        """Test error handling: speed test on ping_failed node should be rejected"""
+        print("\n🚨 TESTING ERROR HANDLING WORKFLOW")
+        print("=" * 60)
+        
+        # Get a ping_failed node or create one
+        success, response = self.make_request('GET', 'nodes?status=ping_failed&limit=1')
+        
+        if not success or 'nodes' not in response or not response['nodes']:
+            # Create a ping_failed node by running ping test on a non-working IP
+            print("   No ping_failed nodes found, creating one...")
+            
+            # Create a test node with a non-working IP
+            test_node_data = {
+                "ip": "192.0.2.1",  # RFC 5737 test IP that should not respond
+                "login": "test",
+                "password": "test",
+                "protocol": "pptp",
+                "status": "not_tested"
+            }
+            
+            create_success, create_response = self.make_request('POST', 'nodes', test_node_data)
+            if not create_success:
+                self.log_test("Error Handling - Create test node", False, f"Failed to create test node: {create_response}")
+                return False
+            
+            node_id = create_response['id']
+            
+            # Run ping test to make it ping_failed
+            ping_data = {"node_ids": [node_id]}
+            ping_success, ping_response = self.make_request('POST', 'manual/ping-test', ping_data)
+            
+            if not (ping_success and 'results' in ping_response and 
+                   ping_response['results'] and ping_response['results'][0].get('status') == 'ping_failed'):
+                self.log_test("Error Handling - Create ping_failed node", False, "Could not create ping_failed node")
+                return False
+        else:
+            node_id = response['nodes'][0]['id']
+        
+        print(f"📋 Testing error handling with ping_failed Node {node_id}")
+        
+        # Try to run speed test on ping_failed node (should be rejected)
+        speed_data = {"node_ids": [node_id]}
+        speed_success, speed_response = self.make_request('POST', 'manual/speed-test', speed_data)
+        
+        if speed_success and 'results' in speed_response and speed_response['results']:
+            result = speed_response['results'][0]
+            
+            # Should fail with appropriate error message
+            if not result.get('success') and 'ping_ok' in result.get('message', '').lower():
+                self.log_test("Error Handling - Speed test on ping_failed", True, 
+                             f"Correctly rejected ping_failed node: {result['message']}")
+                
+                # Also test launch services on ping_failed node (should be rejected)
+                launch_data = {"node_ids": [node_id]}
+                launch_success, launch_response = self.make_request('POST', 'manual/launch-services', launch_data)
+                
+                if launch_success and 'results' in launch_response and launch_response['results']:
+                    launch_result = launch_response['results'][0]
+                    
+                    if not launch_result.get('success') and 'speed_ok' in launch_result.get('message', '').lower():
+                        self.log_test("Error Handling - Launch services on ping_failed", True, 
+                                     f"Correctly rejected ping_failed node: {launch_result['message']}")
+                        return True
+                    else:
+                        self.log_test("Error Handling - Launch services on ping_failed", False, 
+                                     f"Should reject ping_failed node: {launch_result}")
+                        return False
+                else:
+                    self.log_test("Error Handling - Launch services on ping_failed", False, 
+                                 f"Launch services test failed: {launch_response}")
+                    return False
+            else:
+                self.log_test("Error Handling - Speed test on ping_failed", False, 
+                             f"Should reject ping_failed node: {result}")
+                return False
+        else:
+            self.log_test("Error Handling - Speed test on ping_failed", False, 
+                         f"Speed test failed: {speed_response}")
+            return False
+
+    def test_service_launch_status_preservation(self):
+        """Verify service launch doesn't cause nodes to revert to ping_failed"""
+        print("\n🛡️ TESTING SERVICE LAUNCH STATUS PRESERVATION")
+        print("=" * 60)
+        
+        # This tests the specific issue mentioned: 72.197.30.147 went from Speed OK back to PING Failed
+        
+        # Get or create a speed_ok node
+        success, response = self.make_request('GET', 'nodes?status=speed_ok&limit=1')
+        
+        if not success or 'nodes' not in response or not response['nodes']:
+            self.log_test("Status Preservation - Get speed_ok node", False, "No speed_ok nodes available")
+            return False
+        
+        node = response['nodes'][0]
+        node_id = node['id']
+        original_status = node['status']
+        
+        print(f"📋 Testing status preservation with Node {node_id}: {node['ip']}")
+        print(f"   Original status: {original_status}")
+        
+        # Launch services
+        launch_data = {"node_ids": [node_id]}
+        launch_success, launch_response = self.make_request('POST', 'manual/launch-services', launch_data)
+        
+        if not launch_success or 'results' not in launch_response:
+            self.log_test("Status Preservation - Launch services", False, f"Service launch failed: {launch_response}")
+            return False
+        
+        result = launch_response['results'][0]
+        new_status = result.get('status')
+        
+        print(f"   Status after launch: {new_status}")
+        
+        # Verify status didn't revert to ping_failed
+        if new_status == 'ping_failed':
+            self.log_test("Service Launch Status Preservation", False, 
+                         f"CRITICAL BUG: Node reverted from {original_status} to ping_failed after service launch")
+            return False
+        
+        # Status should be either 'online' (success) or 'offline' (failure), but not ping_failed
+        if new_status in ['online', 'offline']:
+            # Double-check database
+            verify_success, verify_response = self.make_request('GET', f'nodes?id={node_id}')
+            if verify_success and 'nodes' in verify_response and verify_response['nodes']:
+                db_status = verify_response['nodes'][0]['status']
+                
+                if db_status == 'ping_failed':
+                    self.log_test("Service Launch Status Preservation", False, 
+                                 f"CRITICAL BUG: Database shows ping_failed after service launch")
+                    return False
+                else:
+                    self.log_test("Service Launch Status Preservation", True, 
+                                 f"Status correctly preserved: {original_status} → {new_status} (DB: {db_status})")
+                    return True
+            else:
+                self.log_test("Service Launch Status Preservation", False, "Failed to verify database status")
+                return False
+        else:
+            self.log_test("Service Launch Status Preservation", False, 
+                         f"Unexpected status after launch: {new_status}")
+            return False
+
     def run_all_tests(self):
         """Run all backend tests"""
         print("🚀 Starting Connexa Backend API Tests")
