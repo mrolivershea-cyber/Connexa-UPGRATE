@@ -5822,6 +5822,289 @@ State: California""",
                          f"❌ ISSUES FOUND: Only {tests_passed}/{total_tests} tests passed ({success_rate:.1f}%). Ping testing functionality has problems.")
             return False
 
+    # ========== PING FUNCTIONALITY TESTS (Review Request) ==========
+    
+    def test_ping_functionality_with_mixed_database(self):
+        """COMPREHENSIVE PING FUNCTIONALITY TEST - Mixed Working/Non-Working PPTP Servers"""
+        print("\n🏓 COMPREHENSIVE PING FUNCTIONALITY TEST")
+        print("=" * 80)
+        print("Testing ping functionality with mixed working/non-working PPTP servers")
+        
+        # Test 1: Manual ping API with known working IPs
+        working_ips = [
+            {"ip": "72.197.30.147", "id": 2330},
+            {"ip": "100.11.102.204", "id": 1},
+            {"ip": "100.16.39.213", "id": 5}
+        ]
+        
+        # Test 2: Non-working IPs
+        non_working_ips = [
+            {"ip": "100.11.105.66", "id": 2},
+            {"ip": "100.16.16.128", "id": 3}
+        ]
+        
+        all_tests_passed = True
+        
+        # Test working IPs
+        print(f"\n🟢 TESTING KNOWN WORKING IPs:")
+        for ip_info in working_ips:
+            success = self.test_manual_ping_single_ip(ip_info["ip"], ip_info["id"], expected_result="ping_ok")
+            if not success:
+                all_tests_passed = False
+        
+        # Test non-working IPs
+        print(f"\n🔴 TESTING KNOWN NON-WORKING IPs:")
+        for ip_info in non_working_ips:
+            success = self.test_manual_ping_single_ip(ip_info["ip"], ip_info["id"], expected_result="ping_failed")
+            if not success:
+                all_tests_passed = False
+        
+        # Test batch ping with mixed servers
+        print(f"\n🔄 TESTING BATCH PING WITH MIXED SERVERS:")
+        mixed_node_ids = [1, 2, 3, 5, 2330]  # Mix of working and non-working
+        batch_success = self.test_batch_ping_mixed_servers(mixed_node_ids)
+        if not batch_success:
+            all_tests_passed = False
+        
+        # Test response format and status transitions
+        print(f"\n📋 TESTING RESPONSE FORMAT AND STATUS TRANSITIONS:")
+        format_success = self.test_ping_response_format_validation()
+        if not format_success:
+            all_tests_passed = False
+        
+        # Test timeout and performance
+        print(f"\n⏱️ TESTING TIMEOUT AND PERFORMANCE:")
+        performance_success = self.test_ping_timeout_performance()
+        if not performance_success:
+            all_tests_passed = False
+        
+        if all_tests_passed:
+            self.log_test("COMPREHENSIVE PING FUNCTIONALITY", True, 
+                         "✅ ALL PING TESTS PASSED: Working IPs detected correctly, non-working IPs failed as expected, batch processing works, response format correct, performance acceptable")
+        else:
+            self.log_test("COMPREHENSIVE PING FUNCTIONALITY", False, 
+                         "❌ SOME PING TESTS FAILED: Check individual test results above")
+        
+        return all_tests_passed
+    
+    def test_manual_ping_single_ip(self, ip: str, node_id: int, expected_result: str):
+        """Test manual ping for a single IP address"""
+        print(f"   Testing IP {ip} (ID: {node_id}) - Expected: {expected_result}")
+        
+        # First, check if node exists in database
+        success, response = self.make_request('GET', f'nodes?ip={ip}')
+        
+        if not success or 'nodes' not in response or not response['nodes']:
+            print(f"   ❌ Node with IP {ip} not found in database")
+            self.log_test(f"Manual Ping {ip}", False, f"Node not found in database")
+            return False
+        
+        actual_node_id = response['nodes'][0]['id']
+        
+        # Perform manual ping test
+        ping_data = {"node_ids": [actual_node_id]}
+        ping_success, ping_response = self.make_request('POST', 'manual/ping-test', ping_data)
+        
+        if not ping_success or 'results' not in ping_response:
+            print(f"   ❌ Ping test API call failed: {ping_response}")
+            self.log_test(f"Manual Ping {ip}", False, f"API call failed: {ping_response}")
+            return False
+        
+        if not ping_response['results']:
+            print(f"   ❌ No results returned from ping test")
+            self.log_test(f"Manual Ping {ip}", False, "No results returned")
+            return False
+        
+        result = ping_response['results'][0]
+        actual_status = result.get('status', 'unknown')
+        
+        # Validate response structure
+        required_fields = ['node_id', 'success', 'status', 'message']
+        missing_fields = [field for field in required_fields if field not in result]
+        
+        if missing_fields:
+            print(f"   ❌ Missing required fields in response: {missing_fields}")
+            self.log_test(f"Manual Ping {ip}", False, f"Missing fields: {missing_fields}")
+            return False
+        
+        # Check if result matches expectation
+        if actual_status == expected_result:
+            ping_result = result.get('ping_result', {})
+            response_time = ping_result.get('avg_time', 'N/A')
+            packet_loss = ping_result.get('packet_loss', 'N/A')
+            
+            print(f"   ✅ {ip}: {actual_status} (Response: {response_time}ms, Loss: {packet_loss}%)")
+            self.log_test(f"Manual Ping {ip}", True, 
+                         f"Status: {actual_status}, Response: {response_time}ms, Loss: {packet_loss}%")
+            return True
+        else:
+            print(f"   ❌ {ip}: Expected {expected_result}, got {actual_status}")
+            self.log_test(f"Manual Ping {ip}", False, 
+                         f"Expected {expected_result}, got {actual_status}")
+            return False
+    
+    def test_batch_ping_mixed_servers(self, node_ids: List[int]):
+        """Test batch ping with mixed working/non-working servers"""
+        print(f"   Testing batch ping with {len(node_ids)} mixed servers")
+        
+        ping_data = {"node_ids": node_ids}
+        ping_success, ping_response = self.make_request('POST', 'manual/ping-test', ping_data)
+        
+        if not ping_success or 'results' not in ping_response:
+            print(f"   ❌ Batch ping test failed: {ping_response}")
+            self.log_test("Batch Ping Mixed Servers", False, f"API call failed: {ping_response}")
+            return False
+        
+        results = ping_response['results']
+        
+        if len(results) != len(node_ids):
+            print(f"   ❌ Expected {len(node_ids)} results, got {len(results)}")
+            self.log_test("Batch Ping Mixed Servers", False, 
+                         f"Result count mismatch: expected {len(node_ids)}, got {len(results)}")
+            return False
+        
+        ping_ok_count = 0
+        ping_failed_count = 0
+        
+        for result in results:
+            status = result.get('status', 'unknown')
+            node_id = result.get('node_id', 'unknown')
+            
+            if status == 'ping_ok':
+                ping_ok_count += 1
+            elif status == 'ping_failed':
+                ping_failed_count += 1
+            
+            print(f"   Node {node_id}: {status}")
+        
+        print(f"   Results: {ping_ok_count} ping_ok, {ping_failed_count} ping_failed")
+        
+        # Validate that we have mixed results (both working and non-working)
+        if ping_ok_count > 0 and ping_failed_count > 0:
+            self.log_test("Batch Ping Mixed Servers", True, 
+                         f"Mixed results as expected: {ping_ok_count} working, {ping_failed_count} failed")
+            return True
+        else:
+            self.log_test("Batch Ping Mixed Servers", False, 
+                         f"Expected mixed results, got {ping_ok_count} working, {ping_failed_count} failed")
+            return False
+    
+    def test_ping_response_format_validation(self):
+        """Test ping response format and status transitions"""
+        print("   Validating ping response format and status transitions")
+        
+        # Get a few nodes for testing
+        success, response = self.make_request('GET', 'nodes?limit=3')
+        
+        if not success or 'nodes' not in response or not response['nodes']:
+            print("   ❌ Could not get nodes for format validation")
+            self.log_test("Ping Response Format", False, "Could not get test nodes")
+            return False
+        
+        test_node_ids = [node['id'] for node in response['nodes'][:2]]
+        
+        # Perform ping test
+        ping_data = {"node_ids": test_node_ids}
+        ping_success, ping_response = self.make_request('POST', 'manual/ping-test', ping_data)
+        
+        if not ping_success or 'results' not in ping_response:
+            print("   ❌ Ping test failed for format validation")
+            self.log_test("Ping Response Format", False, "Ping test failed")
+            return False
+        
+        # Validate response structure
+        required_top_level = ['results', 'total_processed', 'successful', 'failed']
+        for field in required_top_level:
+            if field not in ping_response:
+                print(f"   ❌ Missing top-level field: {field}")
+                self.log_test("Ping Response Format", False, f"Missing field: {field}")
+                return False
+        
+        # Validate individual result structure
+        for result in ping_response['results']:
+            required_result_fields = ['node_id', 'success', 'status', 'message', 'original_status']
+            for field in required_result_fields:
+                if field not in result:
+                    print(f"   ❌ Missing result field: {field}")
+                    self.log_test("Ping Response Format", False, f"Missing result field: {field}")
+                    return False
+            
+            # Validate status values
+            status = result.get('status')
+            if status not in ['ping_ok', 'ping_failed']:
+                print(f"   ❌ Invalid status value: {status}")
+                self.log_test("Ping Response Format", False, f"Invalid status: {status}")
+                return False
+            
+            # If ping was successful, check for ping_result details
+            if result.get('success') and 'ping_result' in result:
+                ping_result = result['ping_result']
+                ping_fields = ['success', 'avg_time', 'packet_loss']
+                for field in ping_fields:
+                    if field not in ping_result:
+                        print(f"   ❌ Missing ping_result field: {field}")
+                        self.log_test("Ping Response Format", False, f"Missing ping_result field: {field}")
+                        return False
+        
+        print("   ✅ Response format validation passed")
+        self.log_test("Ping Response Format", True, "All required fields present, status values valid")
+        return True
+    
+    def test_ping_timeout_performance(self):
+        """Test ping timeout and performance with larger dataset"""
+        print("   Testing ping timeout and performance")
+        
+        # Get up to 10 nodes for performance testing
+        success, response = self.make_request('GET', 'nodes?limit=10')
+        
+        if not success or 'nodes' not in response or not response['nodes']:
+            print("   ❌ Could not get nodes for performance testing")
+            self.log_test("Ping Timeout Performance", False, "Could not get test nodes")
+            return False
+        
+        test_node_ids = [node['id'] for node in response['nodes']]
+        
+        print(f"   Testing performance with {len(test_node_ids)} nodes")
+        
+        # Measure time for batch ping
+        import time
+        start_time = time.time()
+        
+        ping_data = {"node_ids": test_node_ids}
+        ping_success, ping_response = self.make_request('POST', 'manual/ping-test', ping_data)
+        
+        end_time = time.time()
+        duration = end_time - start_time
+        
+        if not ping_success:
+            print(f"   ❌ Performance test failed: {ping_response}")
+            self.log_test("Ping Timeout Performance", False, f"Ping test failed: {ping_response}")
+            return False
+        
+        # Check if all nodes were processed
+        if 'results' not in ping_response or len(ping_response['results']) != len(test_node_ids):
+            print(f"   ❌ Not all nodes processed: expected {len(test_node_ids)}, got {len(ping_response.get('results', []))}")
+            self.log_test("Ping Timeout Performance", False, "Not all nodes processed")
+            return False
+        
+        # Performance thresholds
+        max_duration = 60  # 60 seconds max for 10 nodes
+        avg_time_per_node = duration / len(test_node_ids)
+        
+        print(f"   Total time: {duration:.2f}s")
+        print(f"   Average per node: {avg_time_per_node:.2f}s")
+        
+        if duration <= max_duration:
+            print("   ✅ Performance acceptable")
+            self.log_test("Ping Timeout Performance", True, 
+                         f"Processed {len(test_node_ids)} nodes in {duration:.2f}s (avg: {avg_time_per_node:.2f}s/node)")
+            return True
+        else:
+            print(f"   ❌ Performance too slow: {duration:.2f}s > {max_duration}s")
+            self.log_test("Ping Timeout Performance", False, 
+                         f"Too slow: {duration:.2f}s for {len(test_node_ids)} nodes")
+            return False
+
     def run_all_tests(self):
         """Run all backend tests"""
         print("🚀 Starting Connexa Backend API Tests")
