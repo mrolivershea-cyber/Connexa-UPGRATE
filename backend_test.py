@@ -5342,6 +5342,12 @@ State: California""",
         # Test user info
         self.test_get_current_user()
         
+        # 🔥 CRITICAL: PING TEST STATUS RESTRICTION REMOVAL (Review Request Focus)
+        print("\n" + "="*80)
+        print("🔥 PING TEST STATUS RESTRICTION REMOVAL - REVIEW REQUEST PRIORITY")
+        print("="*80)
+        self.test_ping_test_status_restriction_removal()
+        
         # 🔥 CRITICAL: SPEED_SLOW REMOVAL TESTING (Review Request Focus)
         print("\n" + "="*80)
         print("🔥 SPEED_SLOW REMOVAL VERIFICATION - REVIEW REQUEST PRIORITY")
