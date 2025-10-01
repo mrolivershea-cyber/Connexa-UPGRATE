@@ -1565,6 +1565,7 @@ async def start_services(
                     # Update node status to online only if all previous steps passed
                     if node.status in ["ping_ok", "speed_ok", "speed_slow"]:
                         node.status = "online"
+                        node.last_update = datetime.utcnow()  # Update time when online
                     db.commit()
                     
                     results.append({
@@ -1577,6 +1578,7 @@ async def start_services(
                 else:
                     # Service failed to start properly
                     node.status = "offline"
+                    node.last_update = datetime.utcnow()  # Update time when offline
                     db.commit()
                     results.append({
                         "node_id": node_id,
@@ -1588,6 +1590,7 @@ async def start_services(
             else:
                 # PPTP connection failed
                 node.status = "offline"
+                node.last_update = datetime.utcnow()  # Update time when offline
                 db.commit()
                 results.append({
                     "node_id": node_id,
