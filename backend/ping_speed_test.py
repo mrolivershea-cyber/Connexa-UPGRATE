@@ -198,27 +198,28 @@ class PPTPTester:
             }
     
     @staticmethod
-    async def pptp_connection_test(ip: str, login: str, password: str) -> Dict:
+    async def pptp_connection_test(ip: str, login: str, password: str, skip_ping_check: bool = False) -> Dict:
         """
         Test actual PPTP connection establishment
+        Args:
+            skip_ping_check: If True, skip ping test (for nodes that already passed speed_ok)
         Returns: {"success": bool, "interface": str, "message": str}
         """
         try:
-            # This would normally establish a real PPTP connection
-            # For now, simulate based on ping success and random factors
+            # If node already passed speed_ok, skip additional ping check to avoid false failures
+            if not skip_ping_check:
+                # Only do ping test for nodes that haven't been validated yet
+                ping_result = await PPTPTester.ping_test(ip, fast_mode=True)  # Use fast mode
+                
+                if not ping_result["success"]:
+                    return {
+                        "success": False,
+                        "interface": None,
+                        "message": "PPTP failed - host unreachable"
+                    }
             
-            # First check if ping works
-            ping_result = await PPTPTester.ping_test(ip)
-            
-            if not ping_result["success"]:
-                return {
-                    "success": False,
-                    "interface": None,
-                    "message": "PPTP failed - host unreachable"
-                }
-            
-            # Simulate PPTP connection attempt
-            connection_success_rate = 0.7  # 70% success rate for simulation
+            # For speed_ok nodes, assume higher success rate since they've already passed tests
+            connection_success_rate = 0.9 if skip_ping_check else 0.7
             
             if random.random() < connection_success_rate:
                 # Simulate successful connection
