@@ -2076,9 +2076,10 @@ async def manual_ping_test(
             node.last_update = datetime.utcnow()  # Update time when status changes
             db.commit()
             
-            # Perform real ping test
+            # Perform real ping test (use fast mode for batch requests)
             from ping_speed_test import test_node_ping
-            ping_result = await test_node_ping(node.ip)
+            fast_mode = len(test_request.node_ids) > 1  # Use fast mode for multiple nodes
+            ping_result = await test_node_ping(node.ip, fast_mode=fast_mode)
             
             # Update status based on result
             if ping_result['success']:
