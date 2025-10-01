@@ -2268,18 +2268,6 @@ async def manual_launch_services(
                     "ovpn_ready": True,
                     "message": f"Services launched successfully - SOCKS: {socks_data['ip']}:{socks_data['port']}"
                 })
-                else:
-                    # SOCKS failed - set to offline
-                    node.status = "offline"
-                    node.last_check = datetime.utcnow()
-                    node.last_update = datetime.utcnow()  # Update time when offline
-                    db.commit()
-                    
-                    results.append({
-                        "node_id": node_id,
-                        "success": False,
-                        "message": f"SOCKS launch failed: {socks_result.get('message', 'Unknown error')}"
-                    })
             else:
                 # PPTP failed - set to offline
                 node.status = "offline" 
