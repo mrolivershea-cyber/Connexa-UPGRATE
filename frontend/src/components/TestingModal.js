@@ -93,12 +93,44 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], onTestComplete })
     if (!result.success) {
       return (
         <div className="p-3 bg-red-100 text-red-800 rounded">
-          <div className="font-medium">Node {result.node_id} - {result.ip}</div>
+          <div className="font-medium">Node {result.node_id} - {result.ip || 'N/A'}</div>
           <div className="text-sm">{result.message}</div>
         </div>
       );
     }
 
+    // Handle manual ping test results (new format)
+    if (result.ping_result) {
+      const pingResult = result.ping_result;
+      const isSuccess = pingResult.success;
+      
+      return (
+        <div className={`p-3 rounded ${
+          isSuccess ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+        }`}>
+          <div className="flex justify-between items-start">
+            <div>
+              <div className="font-medium">Node {result.node_id} - {result.ip}</div>
+              <div className="text-sm">
+                {isSuccess ? (
+                  <span>✅ PPTP Порт Доступен • {pingResult.avg_time}ms • Потери: {pingResult.packet_loss}%</span>
+                ) : (
+                  <span>❌ PPTP Недоступен • {pingResult.message}</span>
+                )}
+              </div>
+              <div className="text-xs text-gray-600">
+                Статус: {result.original_status} → {result.status}
+              </div>
+            </div>
+            <Badge variant={isSuccess ? 'default' : 'destructive'}>
+              {result.status}
+            </Badge>
+          </div>
+        </div>
+      );
+    }
+
+    // Handle legacy ping test results (old format)
     if (result.ping) {
       const ping = result.ping;
       return (
