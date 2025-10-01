@@ -712,7 +712,7 @@ const AdminPanel = () => {
             </span>
           </div>
           
-          {selectedNodes.length > 0 && (
+          {(selectedNodes.length > 0 || selectAllMode) && (
             <>
               <Button 
                 variant="destructive" 
