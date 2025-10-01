@@ -4065,6 +4065,41 @@ State: California""",
             self.log_test("Nodes All IDs - Authentication Required", False, f"❌ Expected 401 for unauthenticated request, got: {response}")
             return False
 
+    def run_timestamp_fix_tests(self):
+        """Run comprehensive timestamp fix tests (Review Request Focus)"""
+        print(f"\n🕒 TIMESTAMP FIX TESTING - Review Request Focus")
+        print("=" * 60)
+        
+        # Test 1: Create new node timestamp
+        created_node_id = self.test_timestamp_update_fix_create_node()
+        
+        # Test 2: Import nodes timestamp
+        imported_node_ids = self.test_timestamp_update_fix_import_nodes()
+        
+        # Combine node IDs for further testing
+        all_test_node_ids = []
+        if created_node_id:
+            all_test_node_ids.append(created_node_id)
+        if imported_node_ids:
+            all_test_node_ids.extend(imported_node_ids)
+        
+        if all_test_node_ids:
+            # Test 3: Manual ping test timestamp
+            self.test_timestamp_update_fix_manual_ping_test(all_test_node_ids)
+            
+            # Test 4: Manual speed test timestamp
+            self.test_timestamp_update_fix_manual_speed_test(all_test_node_ids)
+            
+            # Test 5: Service start/stop timestamp
+            self.test_timestamp_update_fix_service_start_stop(all_test_node_ids)
+            
+            # Test 6: Timestamp format verification
+            self.test_timestamp_format_verification(all_test_node_ids)
+        else:
+            print("❌ No test nodes available for timestamp testing")
+        
+        return all_test_node_ids
+
     def run_all_tests(self):
         """Run all backend tests"""
         print("🚀 Starting Connexa Backend API Tests")
