@@ -7720,7 +7720,8 @@ State: California""",
             test_nodes = response['nodes'][:batch_size]
             node_ids = [node['id'] for node in test_nodes]
             
-            print(f"   📊 Testing batch size {batch_size}: {[f'{n[\"id\"]}({n[\"ip\"]})' for n in test_nodes]}")
+            node_info = [f"{n['id']}({n['ip']})" for n in test_nodes]
+            print(f"   📊 Testing batch size {batch_size}: {node_info}")
             
             # Record start time
             start_time = time.time()
