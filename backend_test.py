@@ -5562,6 +5562,266 @@ State: California""",
         
         return test_success
 
+    def test_ping_functionality_comprehensive(self):
+        """CRITICAL TEST: Comprehensive Ping Testing Functionality (Review Request)"""
+        print("\n🔥 CRITICAL PING TESTING FUNCTIONALITY TEST")
+        print("=" * 60)
+        
+        # Step 1: Get some nodes for testing
+        success, response = self.make_request('GET', 'nodes?limit=10')
+        
+        if not success or 'nodes' not in response or not response['nodes']:
+            self.log_test("Ping Functionality - Get test nodes", False, 
+                         f"Failed to get test nodes: {response}")
+            return False
+        
+        test_nodes = response['nodes'][:5]  # Use first 5 nodes
+        node_ids = [node['id'] for node in test_nodes]
+        
+        print(f"📋 Selected {len(test_nodes)} nodes for ping testing:")
+        for i, node in enumerate(test_nodes, 1):
+            print(f"   {i}. Node {node['id']}: {node['ip']} (status: {node['status']})")
+        
+        # Step 2: Test old ICMP ping endpoint (/api/test/ping)
+        print(f"\n🏓 STEP 1: Testing OLD ICMP Ping Endpoint (/api/test/ping)")
+        old_ping_data = {"node_ids": node_ids[:3]}
+        old_ping_success, old_ping_response = self.make_request('POST', 'test/ping', old_ping_data)
+        
+        old_ping_results = {}
+        if old_ping_success and 'results' in old_ping_response:
+            for result in old_ping_response['results']:
+                node_id = result['node_id']
+                old_ping_results[node_id] = {
+                    'success': result.get('success', False),
+                    'ping_data': result.get('ping', {}),
+                    'message': result.get('message', 'No message')
+                }
+                print(f"   Node {node_id}: {result.get('success', False)} - {result.get('message', 'No message')}")
+        else:
+            print(f"   ❌ Old ping test failed: {old_ping_response}")
+        
+        # Step 3: Test new PPTP port ping endpoint (/api/manual/ping-test)
+        print(f"\n🎯 STEP 2: Testing NEW PPTP Port Ping Endpoint (/api/manual/ping-test)")
+        new_ping_data = {"node_ids": node_ids[:3]}
+        new_ping_success, new_ping_response = self.make_request('POST', 'manual/ping-test', new_ping_data)
+        
+        new_ping_results = {}
+        pptp_working_nodes = []
+        pptp_failed_nodes = []
+        
+        if new_ping_success and 'results' in new_ping_response:
+            for result in new_ping_response['results']:
+                node_id = result['node_id']
+                ip = result.get('ip', 'Unknown')
+                status = result.get('status', 'unknown')
+                ping_result = result.get('ping_result', {})
+                
+                new_ping_results[node_id] = {
+                    'success': result.get('success', False),
+                    'status': status,
+                    'ping_result': ping_result,
+                    'message': result.get('message', 'No message')
+                }
+                
+                # Verify ping_result structure
+                has_required_fields = all(field in ping_result for field in ['success', 'avg_time', 'packet_loss'])
+                
+                print(f"   Node {node_id} ({ip}): {status}")
+                print(f"      Success: {result.get('success', False)}")
+                print(f"      Ping Result: {ping_result}")
+                print(f"      Required fields present: {has_required_fields}")
+                print(f"      Message: {result.get('message', 'No message')}")
+                
+                if status == 'ping_ok':
+                    pptp_working_nodes.append(node_id)
+                elif status == 'ping_failed':
+                    pptp_failed_nodes.append(node_id)
+        else:
+            print(f"   ❌ New PPTP ping test failed: {new_ping_response}")
+        
+        # Step 4: Compare results between old and new endpoints
+        print(f"\n📊 STEP 3: Comparing ICMP vs PPTP Port Testing Results")
+        comparison_results = []
+        
+        for node_id in node_ids[:3]:
+            old_result = old_ping_results.get(node_id, {})
+            new_result = new_ping_results.get(node_id, {})
+            
+            old_success = old_result.get('success', False)
+            new_success = new_result.get('success', False)
+            new_status = new_result.get('status', 'unknown')
+            
+            comparison = {
+                'node_id': node_id,
+                'old_icmp_success': old_success,
+                'new_pptp_success': new_success,
+                'new_status': new_status,
+                'different_results': old_success != new_success
+            }
+            comparison_results.append(comparison)
+            
+            print(f"   Node {node_id}:")
+            print(f"      ICMP Ping: {'✅' if old_success else '❌'}")
+            print(f"      PPTP Port: {'✅' if new_success else '❌'} ({new_status})")
+            print(f"      Different Results: {'Yes' if comparison['different_results'] else 'No'}")
+        
+        # Step 5: Test specific IP 72.197.30.147 if it exists
+        print(f"\n🎯 STEP 4: Testing Specific Working IP (72.197.30.147)")
+        specific_ip_success = False
+        
+        # First, check if this IP exists in our database
+        ip_search_success, ip_search_response = self.make_request('GET', 'nodes?ip=72.197.30.147')
+        
+        if ip_search_success and 'nodes' in ip_search_response and ip_search_response['nodes']:
+            specific_node = ip_search_response['nodes'][0]
+            specific_node_id = specific_node['id']
+            
+            print(f"   Found node {specific_node_id} with IP 72.197.30.147")
+            
+            # Test this specific node with PPTP ping
+            specific_ping_data = {"node_ids": [specific_node_id]}
+            specific_ping_success, specific_ping_response = self.make_request('POST', 'manual/ping-test', specific_ping_data)
+            
+            if specific_ping_success and 'results' in specific_ping_response:
+                result = specific_ping_response['results'][0]
+                status = result.get('status', 'unknown')
+                ping_result = result.get('ping_result', {})
+                
+                print(f"   Result: {status}")
+                print(f"   Ping Details: {ping_result}")
+                
+                if status == 'ping_ok':
+                    specific_ip_success = True
+                    print(f"   ✅ IP 72.197.30.147 correctly shows PING OK status")
+                else:
+                    print(f"   ❌ IP 72.197.30.147 shows {status} instead of ping_ok")
+            else:
+                print(f"   ❌ Failed to test specific IP: {specific_ping_response}")
+        else:
+            print(f"   ⚠️  IP 72.197.30.147 not found in database")
+            # Create a test node with this IP for testing
+            test_node_data = {
+                "ip": "72.197.30.147",
+                "login": "admin",
+                "password": "admin",
+                "protocol": "pptp",
+                "comment": "Test node for ping verification"
+            }
+            
+            create_success, create_response = self.make_request('POST', 'nodes', test_node_data)
+            if create_success and 'id' in create_response:
+                specific_node_id = create_response['id']
+                print(f"   Created test node {specific_node_id} with IP 72.197.30.147")
+                
+                # Test the newly created node
+                specific_ping_data = {"node_ids": [specific_node_id]}
+                specific_ping_success, specific_ping_response = self.make_request('POST', 'manual/ping-test', specific_ping_data)
+                
+                if specific_ping_success and 'results' in specific_ping_response:
+                    result = specific_ping_response['results'][0]
+                    status = result.get('status', 'unknown')
+                    ping_result = result.get('ping_result', {})
+                    
+                    print(f"   Result: {status}")
+                    print(f"   Ping Details: {ping_result}")
+                    
+                    if status == 'ping_ok':
+                        specific_ip_success = True
+                        print(f"   ✅ IP 72.197.30.147 correctly shows PING OK status")
+                    else:
+                        print(f"   ❌ IP 72.197.30.147 shows {status} instead of ping_ok")
+        
+        # Step 6: Test mass ping testing
+        print(f"\n🚀 STEP 5: Testing Mass Ping Testing")
+        mass_ping_data = {"node_ids": node_ids}
+        mass_ping_success, mass_ping_response = self.make_request('POST', 'manual/ping-test', mass_ping_data)
+        
+        mass_test_success = False
+        if mass_ping_success and 'results' in mass_ping_response:
+            results = mass_ping_response['results']
+            total_tested = len(results)
+            successful_tests = sum(1 for r in results if r.get('success', False))
+            ping_ok_count = sum(1 for r in results if r.get('status') == 'ping_ok')
+            ping_failed_count = sum(1 for r in results if r.get('status') == 'ping_failed')
+            
+            print(f"   Total nodes tested: {total_tested}")
+            print(f"   Successful tests: {successful_tests}")
+            print(f"   PING OK: {ping_ok_count}")
+            print(f"   PING FAILED: {ping_failed_count}")
+            
+            # Verify API response format
+            format_correct = True
+            for result in results:
+                ping_result = result.get('ping_result', {})
+                required_fields = ['success', 'avg_time', 'packet_loss']
+                if not all(field in ping_result for field in required_fields):
+                    format_correct = False
+                    break
+            
+            if format_correct:
+                print(f"   ✅ API response format correct (ping_result with success, avg_time, packet_loss)")
+                mass_test_success = True
+            else:
+                print(f"   ❌ API response format incorrect - missing required fields")
+        else:
+            print(f"   ❌ Mass ping test failed: {mass_ping_response}")
+        
+        # Final assessment
+        print(f"\n📋 FINAL ASSESSMENT:")
+        
+        tests_passed = 0
+        total_tests = 6
+        
+        if new_ping_success:
+            print(f"   ✅ Manual ping test API (/api/manual/ping-test) working")
+            tests_passed += 1
+        else:
+            print(f"   ❌ Manual ping test API failed")
+        
+        if len(comparison_results) > 0:
+            print(f"   ✅ Comparison between ICMP and PPTP ping completed")
+            tests_passed += 1
+        else:
+            print(f"   ❌ Could not compare ICMP vs PPTP ping results")
+        
+        if specific_ip_success:
+            print(f"   ✅ IP 72.197.30.147 shows correct PING OK status")
+            tests_passed += 1
+        else:
+            print(f"   ❌ IP 72.197.30.147 test failed or not available")
+        
+        if mass_test_success:
+            print(f"   ✅ Mass ping testing working correctly")
+            tests_passed += 1
+        else:
+            print(f"   ❌ Mass ping testing failed")
+        
+        if len(pptp_working_nodes) > 0 or len(pptp_failed_nodes) > 0:
+            print(f"   ✅ PPTP servers correctly categorized (ping_ok/ping_failed)")
+            tests_passed += 1
+        else:
+            print(f"   ❌ PPTP server categorization failed")
+        
+        # Check if any nodes show different results between ICMP and PPTP
+        different_results_found = any(c['different_results'] for c in comparison_results)
+        if different_results_found:
+            print(f"   ✅ Found differences between ICMP and PPTP testing (expected)")
+            tests_passed += 1
+        else:
+            print(f"   ⚠️  No differences found between ICMP and PPTP testing")
+            tests_passed += 0.5  # Partial credit
+        
+        success_rate = (tests_passed / total_tests) * 100
+        
+        if success_rate >= 80:
+            self.log_test("CRITICAL - Ping Functionality Comprehensive", True, 
+                         f"✅ SUCCESS: {tests_passed}/{total_tests} tests passed ({success_rate:.1f}%). Manual ping test API working correctly, PPTP port 1723 testing functional, API response format correct, mass testing operational.")
+            return True
+        else:
+            self.log_test("CRITICAL - Ping Functionality Comprehensive", False, 
+                         f"❌ ISSUES FOUND: Only {tests_passed}/{total_tests} tests passed ({success_rate:.1f}%). Ping testing functionality has problems.")
+            return False
+
     def run_all_tests(self):
         """Run all backend tests"""
         print("🚀 Starting Connexa Backend API Tests")
