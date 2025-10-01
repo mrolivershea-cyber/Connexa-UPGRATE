@@ -50,9 +50,13 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], onTestComplete })
         setProgress(prev => prev < 85 ? prev + progressStep : prev);
       }, 1000);
       
+      console.log(`Starting ${testType} test for ${selectedNodeIds.length} nodes using ${endpoint}`);
+      
       const response = await axios.post(`${API}/${endpoint}`, {
         node_ids: selectedNodeIds,
         test_type: testType
+      }, {
+        timeout: 120000 // 2 minutes timeout
       });
       
       clearInterval(progressInterval);
