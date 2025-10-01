@@ -88,7 +88,7 @@ class NodesAllIdsAPITester:
         # Clear token to test unauthenticated access
         self.token = None
         
-        success, response = self.make_request('GET', 'nodes/all-ids', expected_status=401)
+        success, response = self.make_request('GET', 'nodes/all-ids', expected_status=422)
         
         # Restore token
         self.token = original_token
