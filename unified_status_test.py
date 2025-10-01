@@ -7,7 +7,7 @@ from datetime import datetime
 from typing import Dict, Any, List
 
 class UnifiedStatusTester:
-    def __init__(self, base_url="https://node-time-repair.preview.emergentagent.com"):
+    def __init__(self, base_url="https://update-clock-fix.preview.emergentagent.com"):
         self.base_url = base_url
         self.api_url = f"{base_url}/api"
         self.token = None
