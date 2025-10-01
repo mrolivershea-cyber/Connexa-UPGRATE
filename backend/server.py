@@ -397,6 +397,7 @@ async def import_nodes(
                         node = db.query(Node).filter(Node.id == node_id).first()
                         if node:
                             node.status = "checking"
+                            node.last_update = datetime.utcnow()  # Update time when status changes
                             
                             if data.testing_mode in ["ping_only", "ping_speed"]:
                                 # Perform ping test
@@ -405,6 +406,7 @@ async def import_nodes(
                                     node.status = "ping_ok"
                                 else:
                                     node.status = "ping_failed"
+                                node.last_update = datetime.utcnow()  # Update time after test
                             
                             if data.testing_mode in ["speed_only", "ping_speed"]:
                                 # Perform speed test only if ping is OK
@@ -417,6 +419,7 @@ async def import_nodes(
                                             node.status = "speed_ok"
                                         else:
                                             node.status = "speed_slow"
+                                        node.last_update = datetime.utcnow()  # Update time after test
                                 
                             node.last_check = datetime.utcnow()
                     
