@@ -9872,7 +9872,7 @@ State: California""",
         
         # Step 1: Create test nodes with speed_ok status
         print("\n🔧 ПОДГОТОВКА: Создание тестовых узлов со статусом speed_ok")
-        test_nodes = self.create_speed_ok_test_nodes()
+        test_nodes = self.create_speed_ok_test_nodes_critical()
         
         if not test_nodes:
             print("❌ Не удалось создать тестовые узлы - остановка тестов")
