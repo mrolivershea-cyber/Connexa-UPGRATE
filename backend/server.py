@@ -2600,9 +2600,11 @@ async def manual_launch_services(
         
         except Exception as e:
             # CRITICAL FIX: On error, keep speed_ok status for nodes that passed tests
+            logger.info(f"Exception in service launch for node {node_id}, preserving speed_ok status: {str(e)}")
             node.status = "speed_ok"  # Maintain speed_ok instead of ping_failed
             node.last_check = datetime.utcnow()
             node.last_update = datetime.utcnow()  # Update time on error
+            logger.info(f"Node {node_id} status set to: {node.status}")
             # Note: Database will auto-commit via get_db() dependency
             
             results.append({
