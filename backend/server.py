@@ -2310,7 +2310,12 @@ async def manual_ping_speed_test_batch(
             # Step 2: Ping successful, now test speed
             node.status = "ping_ok"
             node.last_update = datetime.utcnow()
-            db.commit()
+            
+            # CRITICAL: Save ping success immediately
+            try:
+                db.commit()
+            except Exception as ping_commit_error:
+                print(f"Ping commit error in combined test for node {node.id}: {ping_commit_error}")
             
             # Small delay before speed test
             await asyncio.sleep(0.5)
@@ -2329,7 +2334,12 @@ async def manual_ping_speed_test_batch(
             
             node.last_check = datetime.utcnow()
             node.last_update = datetime.utcnow()
-            db.commit()
+            
+            # CRITICAL: Save final result immediately
+            try:
+                db.commit()
+            except Exception as speed_commit_error:
+                print(f"Speed commit error in combined test for node {node.id}: {speed_commit_error}")
             
             return {
                 "node_id": node.id,
