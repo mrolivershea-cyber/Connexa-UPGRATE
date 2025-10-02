@@ -2148,10 +2148,10 @@ async def manual_ping_test_batch(
         original_status = node.status if hasattr(node, 'original_status') else "not_tested"
         
         try:
-            # Add timeout protection for individual ping tests with more generous timeout
+            # Reduced timeout for better user experience
             ping_result = await asyncio.wait_for(
                 test_node_ping(node.ip, fast_mode=True), 
-                timeout=12.0  # 12 second timeout per node for better accuracy
+                timeout=8.0  # 8 second timeout per node - balance between accuracy and speed
             )
             
             # Update status based on result - ENSURE node never stays in 'checking'
@@ -2162,6 +2162,13 @@ async def manual_ping_test_batch(
             
             node.last_check = datetime.utcnow()
             node.last_update = datetime.utcnow()
+            
+            # CRITICAL: Immediate database save after each successful test
+            try:
+                db.commit()
+            except Exception as commit_error:
+                print(f"Individual commit error for node {node.id}: {commit_error}")
+                # Continue processing even if commit fails
             
             return {
                 "node_id": node.id,
