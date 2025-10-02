@@ -2273,7 +2273,7 @@ async def manual_ping_test_batch(
         results = []
         for node in nodes:
             # Don't downgrade from any successful status to ping_failed
-            if node.status == "checking":
+            if node.status not in ["speed_ok", "ping_ok", "online"]:
                 node.status = "ping_failed"
                 node.last_check = datetime.utcnow()
                 node.last_update = datetime.utcnow()
@@ -2443,7 +2443,7 @@ async def manual_ping_speed_test_batch(
         results = []
         for node in nodes:
             # Don't downgrade from any successful status to ping_failed
-            if node.status == "checking":
+            if node.status not in ["speed_ok", "ping_ok", "online"]:
                 node.status = "ping_failed"
                 node.last_check = datetime.utcnow()
                 node.last_update = datetime.utcnow()
