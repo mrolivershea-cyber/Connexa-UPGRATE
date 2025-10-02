@@ -8921,6 +8921,415 @@ State: California""",
         
         return self.tests_passed == self.tests_run
 
+    # ========== CRITICAL SERVICE STATUS PRESERVATION TESTS (Review Request - 2025-01-08) ==========
+    
+    def test_service_status_preservation_start_services(self):
+        """CRITICAL TEST: Service Status Preservation for /api/services/start (Green Button)"""
+        print("\n🔥 CRITICAL TEST: Service Status Preservation - /api/services/start")
+        print("=" * 70)
+        
+        # Step 1: Get or create nodes with speed_ok status
+        speed_ok_nodes = self.get_or_create_speed_ok_nodes(2)
+        
+        if not speed_ok_nodes:
+            self.log_test("Service Status Preservation - Start Services", False, 
+                         "No speed_ok nodes available for testing")
+            return False
+        
+        node_ids = [node['id'] for node in speed_ok_nodes]
+        
+        print(f"📋 Testing with {len(speed_ok_nodes)} speed_ok nodes:")
+        for i, node in enumerate(speed_ok_nodes, 1):
+            print(f"   {i}. Node {node['id']}: {node['ip']} (status: {node['status']})")
+        
+        # Step 2: Record initial status
+        initial_statuses = {}
+        for node in speed_ok_nodes:
+            initial_statuses[node['id']] = node['status']
+        
+        # Step 3: Call /api/services/start (the green button endpoint)
+        service_data = {
+            "node_ids": node_ids,
+            "action": "start"
+        }
+        
+        success, response = self.make_request('POST', 'services/start', service_data)
+        
+        if not success or 'results' not in response:
+            self.log_test("Service Status Preservation - Start Services", False, 
+                         f"Service start request failed: {response}")
+            return False
+        
+        # Step 4: Analyze results and verify status preservation
+        preserved_count = 0
+        downgraded_count = 0
+        successful_launches = 0
+        
+        for result in response['results']:
+            node_id = result['node_id']
+            initial_status = initial_statuses.get(node_id)
+            final_status = result.get('status')
+            success_flag = result.get('success', False)
+            
+            print(f"   Node {node_id}: {initial_status} → {final_status} (Success: {success_flag})")
+            print(f"      Message: {result.get('message', 'No message')}")
+            
+            if success_flag:
+                successful_launches += 1
+            else:
+                # This is the critical test - failed service launches should preserve speed_ok status
+                if initial_status == 'speed_ok' and final_status == 'speed_ok':
+                    preserved_count += 1
+                    print(f"      ✅ PRESERVED: speed_ok status maintained after service failure")
+                elif initial_status == 'speed_ok' and final_status in ['ping_failed', 'offline']:
+                    downgraded_count += 1
+                    print(f"      ❌ DOWNGRADED: speed_ok → {final_status} (BUG!)")
+        
+        # Step 5: Verify nodes in database
+        print(f"\n🔍 Database Verification:")
+        db_preserved_count = 0
+        db_downgraded_count = 0
+        
+        for node_id in node_ids:
+            db_success, db_response = self.make_request('GET', f'nodes?id={node_id}')
+            if db_success and 'nodes' in db_response and db_response['nodes']:
+                db_node = db_response['nodes'][0]
+                db_status = db_node.get('status')
+                initial_status = initial_statuses.get(node_id)
+                
+                print(f"   Node {node_id}: DB status = {db_status}")
+                
+                if initial_status == 'speed_ok' and db_status == 'speed_ok':
+                    db_preserved_count += 1
+                elif initial_status == 'speed_ok' and db_status in ['ping_failed', 'offline']:
+                    db_downgraded_count += 1
+        
+        # Step 6: Final assessment
+        total_nodes = len(node_ids)
+        
+        print(f"\n📊 RESULTS SUMMARY:")
+        print(f"   Total nodes tested: {total_nodes}")
+        print(f"   Successful service launches: {successful_launches}")
+        print(f"   Failed launches with preserved status: {preserved_count}")
+        print(f"   Failed launches with downgraded status: {downgraded_count}")
+        print(f"   Database preserved count: {db_preserved_count}")
+        print(f"   Database downgraded count: {db_downgraded_count}")
+        
+        # CRITICAL: The fix should ensure NO speed_ok nodes are downgraded on service failure
+        if db_downgraded_count == 0 and (preserved_count > 0 or successful_launches > 0):
+            self.log_test("Service Status Preservation - Start Services", True, 
+                         f"✅ CRITICAL FIX VERIFIED: No speed_ok nodes downgraded. Preserved: {db_preserved_count}, Successful: {successful_launches}")
+            return True
+        else:
+            self.log_test("Service Status Preservation - Start Services", False, 
+                         f"❌ CRITICAL BUG: {db_downgraded_count} speed_ok nodes were downgraded to ping_failed/offline")
+            return False
+    
+    def test_service_status_preservation_launch_services(self):
+        """CRITICAL TEST: Service Status Preservation for /api/manual/launch-services (Purple Button)"""
+        print("\n🔥 CRITICAL TEST: Service Status Preservation - /api/manual/launch-services")
+        print("=" * 70)
+        
+        # Step 1: Get or create nodes with speed_ok status
+        speed_ok_nodes = self.get_or_create_speed_ok_nodes(2)
+        
+        if not speed_ok_nodes:
+            self.log_test("Service Status Preservation - Launch Services", False, 
+                         "No speed_ok nodes available for testing")
+            return False
+        
+        node_ids = [node['id'] for node in speed_ok_nodes]
+        
+        print(f"📋 Testing with {len(speed_ok_nodes)} speed_ok nodes:")
+        for i, node in enumerate(speed_ok_nodes, 1):
+            print(f"   {i}. Node {node['id']}: {node['ip']} (status: {node['status']})")
+        
+        # Step 2: Record initial status
+        initial_statuses = {}
+        for node in speed_ok_nodes:
+            initial_statuses[node['id']] = node['status']
+        
+        # Step 3: Call /api/manual/launch-services (the purple button endpoint)
+        service_data = {
+            "node_ids": node_ids
+        }
+        
+        success, response = self.make_request('POST', 'manual/launch-services', service_data)
+        
+        if not success or 'results' not in response:
+            self.log_test("Service Status Preservation - Launch Services", False, 
+                         f"Service launch request failed: {response}")
+            return False
+        
+        # Step 4: Analyze results and verify status preservation
+        preserved_count = 0
+        downgraded_count = 0
+        successful_launches = 0
+        
+        for result in response['results']:
+            node_id = result['node_id']
+            initial_status = initial_statuses.get(node_id)
+            final_status = result.get('status')
+            success_flag = result.get('success', False)
+            
+            print(f"   Node {node_id}: {initial_status} → {final_status} (Success: {success_flag})")
+            print(f"      Message: {result.get('message', 'No message')}")
+            
+            if success_flag and final_status == 'online':
+                successful_launches += 1
+            else:
+                # This is the critical test - failed service launches should preserve speed_ok status
+                if initial_status == 'speed_ok' and final_status == 'speed_ok':
+                    preserved_count += 1
+                    print(f"      ✅ PRESERVED: speed_ok status maintained after service failure")
+                elif initial_status == 'speed_ok' and final_status in ['ping_failed', 'offline']:
+                    downgraded_count += 1
+                    print(f"      ❌ DOWNGRADED: speed_ok → {final_status} (BUG!)")
+        
+        # Step 5: Verify nodes in database
+        print(f"\n🔍 Database Verification:")
+        db_preserved_count = 0
+        db_downgraded_count = 0
+        
+        for node_id in node_ids:
+            db_success, db_response = self.make_request('GET', f'nodes?id={node_id}')
+            if db_success and 'nodes' in db_response and db_response['nodes']:
+                db_node = db_response['nodes'][0]
+                db_status = db_node.get('status')
+                initial_status = initial_statuses.get(node_id)
+                
+                print(f"   Node {node_id}: DB status = {db_status}")
+                
+                if initial_status == 'speed_ok' and db_status == 'speed_ok':
+                    db_preserved_count += 1
+                elif initial_status == 'speed_ok' and db_status in ['ping_failed', 'offline']:
+                    db_downgraded_count += 1
+        
+        # Step 6: Final assessment
+        total_nodes = len(node_ids)
+        
+        print(f"\n📊 RESULTS SUMMARY:")
+        print(f"   Total nodes tested: {total_nodes}")
+        print(f"   Successful service launches: {successful_launches}")
+        print(f"   Failed launches with preserved status: {preserved_count}")
+        print(f"   Failed launches with downgraded status: {downgraded_count}")
+        print(f"   Database preserved count: {db_preserved_count}")
+        print(f"   Database downgraded count: {db_downgraded_count}")
+        
+        # CRITICAL: The fix should ensure NO speed_ok nodes are downgraded on service failure
+        if db_downgraded_count == 0 and (preserved_count > 0 or successful_launches > 0):
+            self.log_test("Service Status Preservation - Launch Services", True, 
+                         f"✅ CRITICAL FIX VERIFIED: No speed_ok nodes downgraded. Preserved: {db_preserved_count}, Successful: {successful_launches}")
+            return True
+        else:
+            self.log_test("Service Status Preservation - Launch Services", False, 
+                         f"❌ CRITICAL BUG: {db_downgraded_count} speed_ok nodes were downgraded to ping_failed/offline")
+            return False
+    
+    def test_both_service_endpoints_comparison(self):
+        """CRITICAL TEST: Compare both service endpoints behavior"""
+        print("\n🔥 CRITICAL TEST: Both Service Endpoints Comparison")
+        print("=" * 70)
+        
+        # Get nodes for testing both endpoints
+        speed_ok_nodes = self.get_or_create_speed_ok_nodes(4)
+        
+        if len(speed_ok_nodes) < 4:
+            self.log_test("Both Service Endpoints Comparison", False, 
+                         "Need at least 4 speed_ok nodes for comparison test")
+            return False
+        
+        # Split nodes for testing both endpoints
+        start_services_nodes = speed_ok_nodes[:2]
+        launch_services_nodes = speed_ok_nodes[2:4]
+        
+        print(f"📋 Testing /api/services/start with nodes: {[n['id'] for n in start_services_nodes]}")
+        print(f"📋 Testing /api/manual/launch-services with nodes: {[n['id'] for n in launch_services_nodes]}")
+        
+        # Test /api/services/start
+        start_data = {
+            "node_ids": [n['id'] for n in start_services_nodes],
+            "action": "start"
+        }
+        
+        start_success, start_response = self.make_request('POST', 'services/start', start_data)
+        
+        # Test /api/manual/launch-services
+        launch_data = {
+            "node_ids": [n['id'] for n in launch_services_nodes]
+        }
+        
+        launch_success, launch_response = self.make_request('POST', 'manual/launch-services', launch_data)
+        
+        if not start_success or not launch_success:
+            self.log_test("Both Service Endpoints Comparison", False, 
+                         f"One or both endpoints failed. Start: {start_success}, Launch: {launch_success}")
+            return False
+        
+        # Analyze both responses for status preservation
+        start_preserved = 0
+        start_downgraded = 0
+        launch_preserved = 0
+        launch_downgraded = 0
+        
+        # Check /api/services/start results
+        if 'results' in start_response:
+            for result in start_response['results']:
+                if result.get('status') == 'speed_ok':
+                    start_preserved += 1
+                elif result.get('status') in ['ping_failed', 'offline']:
+                    start_downgraded += 1
+        
+        # Check /api/manual/launch-services results
+        if 'results' in launch_response:
+            for result in launch_response['results']:
+                if result.get('status') == 'speed_ok':
+                    launch_preserved += 1
+                elif result.get('status') in ['ping_failed', 'offline']:
+                    launch_downgraded += 1
+        
+        print(f"\n📊 COMPARISON RESULTS:")
+        print(f"   /api/services/start - Preserved: {start_preserved}, Downgraded: {start_downgraded}")
+        print(f"   /api/manual/launch-services - Preserved: {launch_preserved}, Downgraded: {launch_downgraded}")
+        
+        # Both endpoints should preserve speed_ok status on failure
+        if start_downgraded == 0 and launch_downgraded == 0:
+            self.log_test("Both Service Endpoints Comparison", True, 
+                         f"✅ BOTH ENDPOINTS PRESERVE STATUS: No downgrades detected")
+            return True
+        else:
+            self.log_test("Both Service Endpoints Comparison", False, 
+                         f"❌ STATUS PRESERVATION FAILED: Start downgrades: {start_downgraded}, Launch downgrades: {launch_downgraded}")
+            return False
+    
+    def test_status_validation_before_after(self):
+        """CRITICAL TEST: Status validation before and after service operations"""
+        print("\n🔥 CRITICAL TEST: Status Validation Before/After Service Operations")
+        print("=" * 70)
+        
+        # Get current speed_ok count
+        before_success, before_response = self.make_request('GET', 'stats')
+        
+        if not before_success or 'speed_ok' not in before_response:
+            self.log_test("Status Validation Before/After", False, 
+                         f"Failed to get initial stats: {before_response}")
+            return False
+        
+        initial_speed_ok_count = before_response['speed_ok']
+        print(f"📊 Initial speed_ok count: {initial_speed_ok_count}")
+        
+        # Get some speed_ok nodes for testing
+        speed_ok_nodes = self.get_or_create_speed_ok_nodes(3)
+        
+        if not speed_ok_nodes:
+            self.log_test("Status Validation Before/After", False, 
+                         "No speed_ok nodes available for testing")
+            return False
+        
+        node_ids = [node['id'] for node in speed_ok_nodes]
+        
+        # Test both service endpoints
+        print(f"\n🔄 Testing service operations with {len(node_ids)} nodes...")
+        
+        # Test /api/services/start
+        start_data = {"node_ids": node_ids[:2], "action": "start"}
+        start_success, start_response = self.make_request('POST', 'services/start', start_data)
+        
+        # Test /api/manual/launch-services
+        launch_data = {"node_ids": node_ids[2:3]}
+        launch_success, launch_response = self.make_request('POST', 'manual/launch-services', launch_data)
+        
+        # Get final speed_ok count
+        after_success, after_response = self.make_request('GET', 'stats')
+        
+        if not after_success or 'speed_ok' not in after_response:
+            self.log_test("Status Validation Before/After", False, 
+                         f"Failed to get final stats: {after_response}")
+            return False
+        
+        final_speed_ok_count = after_response['speed_ok']
+        print(f"📊 Final speed_ok count: {final_speed_ok_count}")
+        
+        # Calculate the change
+        speed_ok_change = final_speed_ok_count - initial_speed_ok_count
+        
+        print(f"\n📊 STATUS COUNT ANALYSIS:")
+        print(f"   Initial speed_ok: {initial_speed_ok_count}")
+        print(f"   Final speed_ok: {final_speed_ok_count}")
+        print(f"   Change: {speed_ok_change:+d}")
+        
+        # The speed_ok count should not decrease (nodes should not be downgraded)
+        # It can stay the same (if services fail but status is preserved) or increase (if new nodes reach speed_ok)
+        if speed_ok_change >= 0:
+            self.log_test("Status Validation Before/After", True, 
+                         f"✅ SPEED_OK COUNT PRESERVED OR INCREASED: {speed_ok_change:+d}")
+            return True
+        else:
+            self.log_test("Status Validation Before/After", False, 
+                         f"❌ SPEED_OK COUNT DECREASED: {speed_ok_change} (indicates status downgrade bug)")
+            return False
+    
+    def get_or_create_speed_ok_nodes(self, count: int):
+        """Helper method to get or create nodes with speed_ok status"""
+        # First, try to get existing speed_ok nodes
+        success, response = self.make_request('GET', f'nodes?status=speed_ok&limit={count}')
+        
+        if success and 'nodes' in response and len(response['nodes']) >= count:
+            return response['nodes'][:count]
+        
+        # If not enough speed_ok nodes, try to create some by running the workflow
+        print(f"🔄 Creating speed_ok nodes for testing...")
+        
+        # Get not_tested nodes
+        success, response = self.make_request('GET', f'nodes?status=not_tested&limit={count}')
+        
+        if not success or 'nodes' not in response or len(response['nodes']) < count:
+            print(f"❌ Not enough not_tested nodes to create speed_ok nodes")
+            return []
+        
+        not_tested_nodes = response['nodes'][:count]
+        node_ids = [node['id'] for node in not_tested_nodes]
+        
+        # Step 1: Ping test
+        ping_data = {"node_ids": node_ids}
+        ping_success, ping_response = self.make_request('POST', 'manual/ping-test', ping_data)
+        
+        if not ping_success or 'results' not in ping_response:
+            print(f"❌ Failed to ping test nodes for speed_ok creation")
+            return []
+        
+        # Get ping_ok nodes
+        ping_ok_nodes = [r['node_id'] for r in ping_response['results'] if r.get('status') == 'ping_ok']
+        
+        if not ping_ok_nodes:
+            print(f"❌ No nodes passed ping test")
+            return []
+        
+        # Step 2: Speed test
+        speed_data = {"node_ids": ping_ok_nodes}
+        speed_success, speed_response = self.make_request('POST', 'manual/speed-test', speed_data)
+        
+        if not speed_success or 'results' not in speed_response:
+            print(f"❌ Failed to speed test nodes for speed_ok creation")
+            return []
+        
+        # Get speed_ok nodes
+        speed_ok_node_ids = [r['node_id'] for r in speed_response['results'] if r.get('status') == 'speed_ok']
+        
+        if not speed_ok_node_ids:
+            print(f"❌ No nodes passed speed test")
+            return []
+        
+        # Get the actual node objects
+        speed_ok_nodes = []
+        for node_id in speed_ok_node_ids:
+            node_success, node_response = self.make_request('GET', f'nodes?id={node_id}')
+            if node_success and 'nodes' in node_response and node_response['nodes']:
+                speed_ok_nodes.append(node_response['nodes'][0])
+        
+        print(f"✅ Created {len(speed_ok_nodes)} speed_ok nodes for testing")
+        return speed_ok_nodes
+
 def run_batch_ping_tests():
     """Run comprehensive batch ping tests as requested in the review"""
     tester = ConnexaAPITester()
