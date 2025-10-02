@@ -8905,6 +8905,15 @@ State: California""",
         # Test logout
         self.test_logout()
         
+        # 🔥 CRITICAL SERVICE STATUS PRESERVATION TESTS (Review Request - 2025-01-08)
+        print("\n" + "="*80)
+        print("🔥 CRITICAL SERVICE STATUS PRESERVATION TESTS - REVIEW REQUEST PRIORITY")
+        print("="*80)
+        self.test_service_status_preservation_start_services()
+        self.test_service_status_preservation_launch_services()
+        self.test_both_service_endpoints_comparison()
+        self.test_status_validation_before_after()
+        
         # Print summary
         print("\n" + "=" * 50)
         print(f"📊 Test Summary: {self.tests_passed}/{self.tests_run} tests passed")
