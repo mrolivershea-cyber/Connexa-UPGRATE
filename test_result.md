@@ -317,6 +317,9 @@ backend:
       - working: false
         agent: "testing"
         comment: "❌ CRITICAL ISSUE: Service status preservation NOT working correctly. Testing showed 2/2 speed_ok nodes were incorrectly downgraded to ping_failed after service launch failure. The fix implemented by main agent is not functioning as intended. SPECIFIC FAILURE: Nodes with speed_ok status should remain speed_ok when PPTP service launch fails, but they are being downgraded to ping_failed. This is a HIGH PRIORITY issue that needs immediate attention from main agent."
+      - working: false
+        agent: "testing"
+        comment: "❌ CRITICAL BUG CONFIRMED (2025-01-08 Review Request Testing): Comprehensive testing of the service status preservation fix reveals a PARTIAL FIX with critical database inconsistency. DETAILED FINDINGS: 1) ✅ API Response Logic WORKING: Both /api/services/start and /api/manual/launch-services return correct status in API responses (speed_ok preserved, messages show 'status remains speed_ok') 2) ❌ DATABASE PERSISTENCE FAILING: Despite correct API responses, database verification shows nodes are still being downgraded to ping_failed status 3) SPECIFIC TEST RESULTS: /api/services/start tested 2 speed_ok nodes - API showed preservation but DB had ping_failed, /api/manual/launch-services tested 2 speed_ok nodes - API showed successful launches but DB had ping_failed 4) ROOT CAUSE: The fix addresses API response logic but NOT the actual database update logic. CRITICAL ISSUE: There's a disconnect between what the API returns and what gets saved to the database. The main agent's fix is INCOMPLETE - it fixed the response messages but not the actual status persistence. IMMEDIATE ACTION REQUIRED: Main agent must fix the database update logic in addition to the API response logic."
 
   - task: "Immediate Database Persistence"
     implemented: true  
