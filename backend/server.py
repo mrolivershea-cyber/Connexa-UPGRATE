@@ -2583,9 +2583,11 @@ async def manual_launch_services(
             else:
                 # CRITICAL FIX: Don't downgrade speed_ok nodes to ping_failed
                 # If service launch fails, keep them in speed_ok status for retry
+                logger.info(f"PPTP failed for node {node_id}, preserving speed_ok status")
                 node.status = "speed_ok"  # Maintain speed_ok status instead of ping_failed
                 node.last_check = datetime.utcnow()
                 node.last_update = datetime.utcnow()  # Update time
+                logger.info(f"Node {node_id} status set to: {node.status}")
                 # Note: Database will auto-commit via get_db() dependency
                 
                 results.append({
