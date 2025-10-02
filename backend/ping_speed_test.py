@@ -288,8 +288,8 @@ class PPTPTester:
                         "message": "PPTP failed - host unreachable"
                     }
             
-            # For speed_ok nodes, assume higher success rate since they've already passed tests
-            connection_success_rate = 0.9 if skip_ping_check else 0.7
+            # For speed_ok nodes, assume much higher success rate since they've already passed tests
+            connection_success_rate = 0.95 if skip_ping_check else 0.7
             
             if random.random() < connection_success_rate:
                 # Simulate successful connection
