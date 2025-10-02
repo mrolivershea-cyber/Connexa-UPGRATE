@@ -1580,7 +1580,7 @@ async def start_services(
                     else:
                         node.status = "offline"
                     node.last_update = datetime.utcnow()  # Update time
-                    db.commit()
+                    # Note: Database will auto-commit via get_db() dependency
                     results.append({
                         "node_id": node_id,
                         "success": False,
