@@ -22,6 +22,12 @@ def get_db():
     db = SessionLocal()
     try:
         yield db
+        # Automatically commit after successful operation
+        db.commit()
+    except Exception as e:
+        # Rollback on any error
+        db.rollback()
+        raise
     finally:
         db.close()
 
