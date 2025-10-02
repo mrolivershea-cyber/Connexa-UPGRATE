@@ -2462,7 +2462,13 @@ async def manual_speed_test(
             
             node.last_check = datetime.utcnow()
             node.last_update = datetime.utcnow()  # Update time after test
-            db.commit()
+            
+            # CRITICAL: Immediate database save after each test completion
+            try:
+                db.commit()
+            except Exception as commit_error:
+                print(f"Speed test commit error for node {node_id}: {commit_error}")
+                # Continue processing even if commit fails
             
             results.append({
                 "node_id": node_id,
