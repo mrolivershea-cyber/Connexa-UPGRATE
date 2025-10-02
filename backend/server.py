@@ -2323,11 +2323,7 @@ async def manual_ping_speed_test_batch(
             node.status = "ping_ok"
             node.last_update = datetime.utcnow()
             
-            # CRITICAL: Save ping success immediately
-            try:
-                db.commit()
-            except Exception as ping_commit_error:
-                print(f"Ping commit error in combined test for node {node.id}: {ping_commit_error}")
+            # Note: Database will auto-commit via get_db() dependency
             
             # Small delay before speed test
             await asyncio.sleep(0.5)
