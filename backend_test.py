@@ -8849,6 +8849,284 @@ State: California""",
                          "❌ Node not found immediately after creation - get_db() auto-commit may not be working")
             return False
 
+    # ========== CRITICAL RUSSIAN USER FINAL REVIEW REQUEST TESTS ==========
+    
+    def test_russian_ping_accuracy_final(self):
+        """КРИТИЧНЫЙ ТЕСТ 1: Точность ping-алгоритма (75% packet loss threshold, 8s timeout)"""
+        print("\n🏓 ТЕСТ 1: Точность ping-алгоритма")
+        
+        # Get some nodes for testing
+        success, response = self.make_request('GET', 'nodes?limit=10')
+        if not success or 'nodes' not in response or not response['nodes']:
+            self.log_test("Russian Ping Accuracy Final", False, "No nodes available for testing")
+            return False
+        
+        test_nodes = response['nodes'][:5]
+        node_ids = [node['id'] for node in test_nodes]
+        
+        # Test manual ping with improved accuracy
+        ping_data = {"node_ids": node_ids}
+        ping_success, ping_response = self.make_request('POST', 'manual/ping-test', ping_data)
+        
+        if ping_success and 'results' in ping_response:
+            ping_ok_count = sum(1 for result in ping_response['results'] if result.get('status') == 'ping_ok')
+            total_tested = len(ping_response['results'])
+            success_rate = (ping_ok_count / total_tested) * 100 if total_tested > 0 else 0
+            
+            # Check if we have better accuracy (expecting at least some nodes to be ping_ok)
+            if success_rate >= 20:  # At least 20% should be ping_ok with improved settings
+                self.log_test("Russian Ping Accuracy Final", True, 
+                             f"✅ Улучшенная точность: {ping_ok_count}/{total_tested} узлов ping_ok ({success_rate:.1f}%)")
+                return True
+            else:
+                self.log_test("Russian Ping Accuracy Final", False, 
+                             f"❌ Низкая точность: только {ping_ok_count}/{total_tested} узлов ping_ok ({success_rate:.1f}%)")
+                return False
+        else:
+            self.log_test("Russian Ping Accuracy Final", False, f"Ping test failed: {ping_response}")
+            return False
+    
+    def test_russian_real_speed_testing_final(self):
+        """КРИТИЧНЫЙ ТЕСТ 2: Реальное измерение скорости (HTTP speed test с aiohttp + cloudflare.com)"""
+        print("\n🚀 ТЕСТ 2: Реальное измерение скорости")
+        
+        # First get some ping_ok nodes
+        success, response = self.make_request('GET', 'nodes?status=ping_ok&limit=3')
+        if not success or 'nodes' not in response or not response['nodes']:
+            # Create some ping_ok nodes for testing
+            self.log_test("Russian Real Speed Testing Final", False, "No ping_ok nodes available for speed testing")
+            return False
+        
+        test_nodes = response['nodes'][:2]
+        node_ids = [node['id'] for node in test_nodes]
+        
+        # Test manual speed test
+        speed_data = {"node_ids": node_ids}
+        speed_success, speed_response = self.make_request('POST', 'manual/speed-test', speed_data)
+        
+        if speed_success and 'results' in speed_response:
+            real_speeds_found = 0
+            for result in speed_response['results']:
+                speed_value = result.get('speed', '')
+                if speed_value and isinstance(speed_value, (int, float, str)):
+                    try:
+                        speed_num = float(str(speed_value).replace(' Mbps', ''))
+                        if speed_num > 0:
+                            real_speeds_found += 1
+                            print(f"   Узел {result['node_id']}: {speed_num} Mbps (реальная скорость)")
+                    except:
+                        pass
+            
+            if real_speeds_found > 0:
+                self.log_test("Russian Real Speed Testing Final", True, 
+                             f"✅ Реальные скорости: {real_speeds_found} узлов показали реальные Mbps значения")
+                return True
+            else:
+                self.log_test("Russian Real Speed Testing Final", False, 
+                             "❌ Не найдено реальных скоростей - возможно симуляция")
+                return False
+        else:
+            self.log_test("Russian Real Speed Testing Final", False, f"Speed test failed: {speed_response}")
+            return False
+    
+    def test_russian_speed_ok_preservation_final(self):
+        """КРИТИЧНЫЙ ТЕСТ 3: Сохранение статуса Speed OK при неудаче сервиса (/api/services/start)"""
+        print("\n🎯 ТЕСТ 3: Сохранение статуса Speed OK при /api/services/start")
+        
+        # Get speed_ok nodes or create them
+        success, response = self.make_request('GET', 'nodes?status=speed_ok&limit=2')
+        if not success or 'nodes' not in response or not response['nodes']:
+            self.log_test("Russian Speed OK Preservation Final", False, "No speed_ok nodes available for testing")
+            return False
+        
+        test_nodes = response['nodes'][:2]
+        node_ids = [node['id'] for node in test_nodes]
+        
+        print(f"   Тестируем {len(node_ids)} узлов со статусом speed_ok")
+        
+        # Record initial status
+        initial_statuses = {}
+        for node in test_nodes:
+            initial_statuses[node['id']] = node['status']
+            print(f"   Узел {node['id']}: начальный статус = {node['status']}")
+        
+        # Try to start services (this should fail but preserve speed_ok status)
+        service_data = {"node_ids": node_ids, "action": "start"}
+        service_success, service_response = self.make_request('POST', 'services/start', service_data)
+        
+        if service_success and 'results' in service_response:
+            # Check final status in database
+            preserved_count = 0
+            downgraded_count = 0
+            
+            for node_id in node_ids:
+                # Get current status from database
+                node_success, node_response = self.make_request('GET', f'nodes?id={node_id}')
+                if node_success and 'nodes' in node_response and node_response['nodes']:
+                    current_status = node_response['nodes'][0]['status']
+                    initial_status = initial_statuses[node_id]
+                    
+                    print(f"   Узел {node_id}: {initial_status} → {current_status}")
+                    
+                    if current_status == 'speed_ok':
+                        preserved_count += 1
+                    else:
+                        downgraded_count += 1
+            
+            if preserved_count == len(node_ids):
+                self.log_test("Russian Speed OK Preservation Final", True, 
+                             f"✅ КРИТИЧНОЕ ИСПРАВЛЕНИЕ РАБОТАЕТ: все {preserved_count} узлов сохранили speed_ok статус")
+                return True
+            else:
+                self.log_test("Russian Speed OK Preservation Final", False, 
+                             f"❌ КРИТИЧНАЯ ПРОБЛЕМА: {downgraded_count} узлов потеряли speed_ok статус")
+                return False
+        else:
+            self.log_test("Russian Speed OK Preservation Final", False, f"Service start failed: {service_response}")
+            return False
+    
+    def test_russian_launch_services_preservation_final(self):
+        """КРИТИЧНЫЙ ТЕСТ 4: Сохранение статуса Speed OK при /api/manual/launch-services"""
+        print("\n🚀 ТЕСТ 4: Сохранение статуса Speed OK при /api/manual/launch-services")
+        
+        # Get speed_ok nodes
+        success, response = self.make_request('GET', 'nodes?status=speed_ok&limit=2')
+        if not success or 'nodes' not in response or not response['nodes']:
+            self.log_test("Russian Launch Services Preservation Final", False, "No speed_ok nodes available for testing")
+            return False
+        
+        test_nodes = response['nodes'][:2]
+        node_ids = [node['id'] for node in test_nodes]
+        
+        print(f"   Тестируем {len(node_ids)} узлов со статусом speed_ok")
+        
+        # Record initial status
+        initial_statuses = {}
+        for node in test_nodes:
+            initial_statuses[node['id']] = node['status']
+            print(f"   Узел {node['id']}: начальный статус = {node['status']}")
+        
+        # Try manual launch services
+        launch_data = {"node_ids": node_ids}
+        launch_success, launch_response = self.make_request('POST', 'manual/launch-services', launch_data)
+        
+        if launch_success and 'results' in launch_response:
+            # Check final status in database
+            preserved_count = 0
+            downgraded_count = 0
+            
+            for node_id in node_ids:
+                # Get current status from database
+                node_success, node_response = self.make_request('GET', f'nodes?id={node_id}')
+                if node_success and 'nodes' in node_response and node_response['nodes']:
+                    current_status = node_response['nodes'][0]['status']
+                    initial_status = initial_statuses[node_id]
+                    
+                    print(f"   Узел {node_id}: {initial_status} → {current_status}")
+                    
+                    if current_status == 'speed_ok':
+                        preserved_count += 1
+                    else:
+                        downgraded_count += 1
+            
+            if preserved_count == len(node_ids):
+                self.log_test("Russian Launch Services Preservation Final", True, 
+                             f"✅ КРИТИЧНОЕ ИСПРАВЛЕНИЕ РАБОТАЕТ: все {preserved_count} узлов сохранили speed_ok статус")
+                return True
+            else:
+                self.log_test("Russian Launch Services Preservation Final", False, 
+                             f"❌ КРИТИЧНАЯ ПРОБЛЕМА: {downgraded_count} узлов потеряли speed_ok статус")
+                return False
+        else:
+            self.log_test("Russian Launch Services Preservation Final", False, f"Launch services failed: {launch_response}")
+            return False
+    
+    def test_russian_background_monitoring_final(self):
+        """КРИТИЧНЫЙ ТЕСТ 5: Фоновый мониторинг НЕ трогает speed_ok узлы"""
+        print("\n👁️ ТЕСТ 5: Фоновый мониторинг не влияет на speed_ok узлы")
+        
+        # Get speed_ok nodes count before
+        success_before, response_before = self.make_request('GET', 'stats')
+        if not success_before:
+            self.log_test("Russian Background Monitoring Final", False, "Failed to get initial stats")
+            return False
+        
+        speed_ok_before = response_before.get('speed_ok', 0)
+        print(f"   Speed OK узлов до проверки: {speed_ok_before}")
+        
+        # Wait a moment to let background monitoring run (if it's running)
+        import time
+        time.sleep(2)
+        
+        # Get speed_ok nodes count after
+        success_after, response_after = self.make_request('GET', 'stats')
+        if not success_after:
+            self.log_test("Russian Background Monitoring Final", False, "Failed to get final stats")
+            return False
+        
+        speed_ok_after = response_after.get('speed_ok', 0)
+        print(f"   Speed OK узлов после проверки: {speed_ok_after}")
+        
+        if speed_ok_before == speed_ok_after:
+            self.log_test("Russian Background Monitoring Final", True, 
+                         f"✅ Фоновый мониторинг НЕ изменил speed_ok узлы: {speed_ok_before} = {speed_ok_after}")
+            return True
+        else:
+            self.log_test("Russian Background Monitoring Final", False, 
+                         f"❌ Фоновый мониторинг изменил speed_ok узлы: {speed_ok_before} → {speed_ok_after}")
+            return False
+    
+    def test_russian_immediate_persistence_final(self):
+        """КРИТИЧНЫЙ ТЕСТ 6: Немедленное сохранение в БД (автокоммит через get_db())"""
+        print("\n💾 ТЕСТ 6: Немедленное сохранение результатов в БД")
+        
+        # Get some not_tested nodes
+        success, response = self.make_request('GET', 'nodes?status=not_tested&limit=3')
+        if not success or 'nodes' not in response or not response['nodes']:
+            self.log_test("Russian Immediate Persistence Final", False, "No not_tested nodes available")
+            return False
+        
+        test_nodes = response['nodes'][:3]
+        node_ids = [node['id'] for node in test_nodes]
+        
+        # Record initial timestamps
+        initial_timestamps = {}
+        for node in test_nodes:
+            initial_timestamps[node['id']] = node.get('last_update', '')
+            print(f"   Узел {node['id']}: начальная метка времени = {node.get('last_update', 'N/A')}")
+        
+        # Perform ping test
+        ping_data = {"node_ids": node_ids}
+        ping_success, ping_response = self.make_request('POST', 'manual/ping-test', ping_data)
+        
+        if ping_success and 'results' in ping_response:
+            # Immediately check if timestamps were updated
+            updated_count = 0
+            
+            for node_id in node_ids:
+                # Get current timestamp from database
+                node_success, node_response = self.make_request('GET', f'nodes?id={node_id}')
+                if node_success and 'nodes' in node_response and node_response['nodes']:
+                    current_timestamp = node_response['nodes'][0].get('last_update', '')
+                    initial_timestamp = initial_timestamps[node_id]
+                    
+                    print(f"   Узел {node_id}: {initial_timestamp} → {current_timestamp}")
+                    
+                    if current_timestamp != initial_timestamp:
+                        updated_count += 1
+            
+            if updated_count == len(node_ids):
+                self.log_test("Russian Immediate Persistence Final", True, 
+                             f"✅ Немедленное сохранение работает: все {updated_count} узлов обновили метки времени")
+                return True
+            else:
+                self.log_test("Russian Immediate Persistence Final", False, 
+                             f"❌ Проблема с сохранением: только {updated_count}/{len(node_ids)} узлов обновились")
+                return False
+        else:
+            self.log_test("Russian Immediate Persistence Final", False, f"Ping test failed: {ping_response}")
+            return False
+
     def run_all_tests(self):
         """Run all backend tests"""
         print("🚀 Starting Connexa Backend API Tests")
