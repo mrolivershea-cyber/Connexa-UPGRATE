@@ -1593,9 +1593,11 @@ async def start_services(
                 # PPTP connection failed - preserve original status if it was speed_ok
                 if node.status == "speed_ok":
                     # Don't downgrade speed_ok nodes - keep for retry
+                    logger.info(f"PPTP failed for speed_ok node {node_id}, preserving status")
                     pass  # Keep current status
                 else:
                     node.status = "offline"
+                logger.info(f"Node {node_id} status after PPTP failure: {node.status}")
                 node.last_update = datetime.utcnow()  # Update time
                 db.commit()
                 results.append({
