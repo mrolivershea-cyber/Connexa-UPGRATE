@@ -8623,6 +8623,232 @@ State: California""",
                          f"❌ Batch operations issues - {checking_nodes} stuck in 'checking', {completed_nodes} completed")
             return False
 
+    def test_service_status_preservation_critical(self):
+        """CRITICAL TEST: Service Status Preservation - speed_ok nodes should remain speed_ok on service failure"""
+        print("\n🔥 CRITICAL SERVICE STATUS PRESERVATION TEST")
+        print("=" * 60)
+        
+        # Step 1: Get or create speed_ok nodes for testing
+        success, response = self.make_request('GET', 'nodes?status=speed_ok&limit=5')
+        
+        speed_ok_nodes = []
+        if success and 'nodes' in response and response['nodes']:
+            speed_ok_nodes = response['nodes'][:2]  # Use first 2 nodes
+            print(f"📋 Found {len(speed_ok_nodes)} existing speed_ok nodes")
+        else:
+            # Create test nodes with speed_ok status if none exist
+            print("📋 No speed_ok nodes found, creating test nodes...")
+            
+            # Create test nodes
+            test_nodes_data = [
+                {
+                    "ip": "192.168.100.1",
+                    "login": "testuser1",
+                    "password": "testpass1",
+                    "protocol": "pptp",
+                    "status": "speed_ok",
+                    "provider": "TestProvider1",
+                    "country": "United States",
+                    "state": "California"
+                },
+                {
+                    "ip": "192.168.100.2", 
+                    "login": "testuser2",
+                    "password": "testpass2",
+                    "protocol": "pptp",
+                    "status": "speed_ok",
+                    "provider": "TestProvider2",
+                    "country": "United States",
+                    "state": "Texas"
+                }
+            ]
+            
+            for node_data in test_nodes_data:
+                create_success, create_response = self.make_request('POST', 'nodes', node_data)
+                if create_success and 'id' in create_response:
+                    # Manually set status to speed_ok via update
+                    update_data = {"status": "speed_ok"}
+                    self.make_request('PUT', f'nodes/{create_response["id"]}', update_data)
+                    speed_ok_nodes.append(create_response)
+        
+        if len(speed_ok_nodes) < 2:
+            self.log_test("Service Status Preservation - Setup", False, 
+                         f"Could not get/create enough speed_ok nodes. Found: {len(speed_ok_nodes)}")
+            return False
+        
+        node_ids = [node['id'] for node in speed_ok_nodes]
+        print(f"📋 Testing with nodes: {node_ids}")
+        
+        # Step 2: Get initial speed_ok count
+        initial_stats_success, initial_stats = self.make_request('GET', 'stats')
+        initial_speed_ok_count = initial_stats.get('speed_ok', 0) if initial_stats_success else 0
+        print(f"📊 Initial speed_ok count: {initial_speed_ok_count}")
+        
+        # Step 3: Test /api/services/start endpoint
+        print(f"\n🚀 TESTING /api/services/start")
+        service_data = {"node_ids": node_ids, "action": "start"}
+        service_success, service_response = self.make_request('POST', 'services/start', service_data)
+        
+        if not service_success or 'results' not in service_response:
+            self.log_test("Service Status Preservation - /api/services/start", False, 
+                         f"Service start API failed: {service_response}")
+            return False
+        
+        # Check API response messages
+        api_preservation_working = True
+        for result in service_response['results']:
+            node_id = result['node_id']
+            message = result.get('message', '')
+            status = result.get('status', '')
+            
+            print(f"   Node {node_id}: {message} (Status: {status})")
+            
+            # Check if API response indicates status preservation
+            if 'status remains speed_ok' not in message and status != 'speed_ok':
+                api_preservation_working = False
+        
+        # Step 4: Verify database persistence
+        print(f"\n🔍 VERIFYING DATABASE PERSISTENCE")
+        database_preservation_working = True
+        
+        for node_id in node_ids:
+            node_success, node_response = self.make_request('GET', f'nodes?id={node_id}')
+            if node_success and 'nodes' in node_response and node_response['nodes']:
+                node = node_response['nodes'][0]
+                actual_status = node.get('status', '')
+                print(f"   Node {node_id}: Database status = {actual_status}")
+                
+                if actual_status != 'speed_ok':
+                    database_preservation_working = False
+                    print(f"   ❌ Node {node_id} was downgraded from speed_ok to {actual_status}")
+            else:
+                database_preservation_working = False
+                print(f"   ❌ Could not retrieve node {node_id}")
+        
+        # Step 5: Test /api/manual/launch-services endpoint
+        print(f"\n🚀 TESTING /api/manual/launch-services")
+        manual_data = {"node_ids": node_ids}
+        manual_success, manual_response = self.make_request('POST', 'manual/launch-services', manual_data)
+        
+        manual_api_preservation_working = True
+        manual_database_preservation_working = True
+        
+        if manual_success and 'results' in manual_response:
+            # Check API response messages
+            for result in manual_response['results']:
+                node_id = result['node_id']
+                message = result.get('message', '')
+                status = result.get('status', '')
+                
+                print(f"   Node {node_id}: {message} (Status: {status})")
+                
+                # Check if API response indicates status preservation
+                if 'remains speed_ok' not in message and status != 'speed_ok':
+                    manual_api_preservation_working = False
+            
+            # Verify database persistence again
+            print(f"\n🔍 VERIFYING DATABASE PERSISTENCE AFTER MANUAL LAUNCH")
+            for node_id in node_ids:
+                node_success, node_response = self.make_request('GET', f'nodes?id={node_id}')
+                if node_success and 'nodes' in node_response and node_response['nodes']:
+                    node = node_response['nodes'][0]
+                    actual_status = node.get('status', '')
+                    print(f"   Node {node_id}: Database status = {actual_status}")
+                    
+                    if actual_status != 'speed_ok':
+                        manual_database_preservation_working = False
+                        print(f"   ❌ Node {node_id} was downgraded from speed_ok to {actual_status}")
+                else:
+                    manual_database_preservation_working = False
+                    print(f"   ❌ Could not retrieve node {node_id}")
+        
+        # Step 6: Check final speed_ok count
+        final_stats_success, final_stats = self.make_request('GET', 'stats')
+        final_speed_ok_count = final_stats.get('speed_ok', 0) if final_stats_success else 0
+        print(f"📊 Final speed_ok count: {final_speed_ok_count}")
+        
+        count_preserved = final_speed_ok_count >= initial_speed_ok_count
+        
+        # Step 7: Overall assessment
+        print(f"\n📋 CRITICAL TEST RESULTS:")
+        print(f"   ✅ /api/services/start API responses: {'WORKING' if api_preservation_working else 'FAILED'}")
+        print(f"   ✅ /api/services/start DB persistence: {'WORKING' if database_preservation_working else 'FAILED'}")
+        print(f"   ✅ /api/manual/launch-services API responses: {'WORKING' if manual_api_preservation_working else 'FAILED'}")
+        print(f"   ✅ /api/manual/launch-services DB persistence: {'WORKING' if manual_database_preservation_working else 'FAILED'}")
+        print(f"   ✅ Speed_ok count preserved: {'WORKING' if count_preserved else 'FAILED'}")
+        
+        overall_success = (api_preservation_working and database_preservation_working and 
+                          manual_api_preservation_working and manual_database_preservation_working and 
+                          count_preserved)
+        
+        if overall_success:
+            self.log_test("CRITICAL - Service Status Preservation", True, 
+                         "✅ ALL TESTS PASSED: speed_ok nodes remain speed_ok in both API responses and database after service launch failures")
+            return True
+        else:
+            failure_details = []
+            if not api_preservation_working:
+                failure_details.append("/api/services/start API responses incorrect")
+            if not database_preservation_working:
+                failure_details.append("/api/services/start database persistence failed")
+            if not manual_api_preservation_working:
+                failure_details.append("/api/manual/launch-services API responses incorrect")
+            if not manual_database_preservation_working:
+                failure_details.append("/api/manual/launch-services database persistence failed")
+            if not count_preserved:
+                failure_details.append(f"speed_ok count decreased from {initial_speed_ok_count} to {final_speed_ok_count}")
+            
+            self.log_test("CRITICAL - Service Status Preservation", False, 
+                         f"❌ CRITICAL FAILURES: {'; '.join(failure_details)}")
+            return False
+
+    def test_get_db_commit_behavior(self):
+        """Test get_db() automatic commit behavior"""
+        print("\n🔍 TESTING get_db() COMMIT BEHAVIOR")
+        print("=" * 50)
+        
+        # Create a test node to verify commit behavior
+        test_node = {
+            "ip": "192.168.200.1",
+            "login": "committest",
+            "password": "testpass",
+            "protocol": "pptp",
+            "provider": "CommitTestProvider",
+            "country": "United States",
+            "state": "California"
+        }
+        
+        create_success, create_response = self.make_request('POST', 'nodes', test_node)
+        
+        if not create_success or 'id' not in create_response:
+            self.log_test("get_db() Commit Behavior - Node Creation", False, 
+                         f"Failed to create test node: {create_response}")
+            return False
+        
+        node_id = create_response['id']
+        print(f"📋 Created test node {node_id}")
+        
+        # Immediately try to retrieve the node to verify commit worked
+        retrieve_success, retrieve_response = self.make_request('GET', f'nodes?id={node_id}')
+        
+        if retrieve_success and 'nodes' in retrieve_response and retrieve_response['nodes']:
+            node = retrieve_response['nodes'][0]
+            if node.get('login') == 'committest':
+                self.log_test("get_db() Commit Behavior", True, 
+                             "✅ Node creation committed immediately - get_db() auto-commit working")
+                
+                # Clean up test node
+                self.make_request('DELETE', f'nodes/{node_id}')
+                return True
+            else:
+                self.log_test("get_db() Commit Behavior", False, 
+                             f"Node data mismatch: expected login='committest', got '{node.get('login')}'")
+                return False
+        else:
+            self.log_test("get_db() Commit Behavior", False, 
+                         "❌ Node not found immediately after creation - get_db() auto-commit may not be working")
+            return False
+
     def run_all_tests(self):
         """Run all backend tests"""
         print("🚀 Starting Connexa Backend API Tests")
