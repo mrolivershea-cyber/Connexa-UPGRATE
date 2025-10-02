@@ -111,8 +111,7 @@ async def monitor_online_nodes():
                         # On monitoring error, mark as offline to be safe
                         node.status = "offline"
                         node.last_update = datetime.utcnow()
-                
-                db.commit()
+                # Note: Database will auto-commit via get_db() dependency
             
             db.close()
             
