@@ -2499,8 +2499,9 @@ async def manual_speed_test(
                 node.speed = f"{speed_result['download']:.1f}"
                 node.status = "speed_ok"  # Any successful speed test = speed_ok
             else:
-                # Speed test failed - set to ping_failed according to requirements
-                node.status = "ping_failed"
+                # Speed test failed - preserve existing speed_ok status if node already has it
+                if node.status != "speed_ok":
+                    node.status = "ping_failed"
                 node.speed = None
             
             node.last_check = datetime.utcnow()
