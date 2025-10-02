@@ -2538,9 +2538,9 @@ async def manual_launch_services(
         
         try:
             # Set status to checking during service launch
-            node.status = "checking"
+            node.status = "checking" 
             node.last_update = datetime.utcnow()  # Update time when status changes
-            db.commit()
+            # Note: Database will auto-commit via get_db() dependency
             
             # Launch SOCKS + OVPN services simultaneously
             from ovpn_generator import ovpn_generator
