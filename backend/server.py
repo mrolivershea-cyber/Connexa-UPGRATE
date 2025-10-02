@@ -2332,8 +2332,9 @@ async def manual_ping_speed_test_batch(
             )
             
             if not ping_result or not ping_result.get('success', False):
-                # Ping failed - set to ping_failed and stop
-                node.status = "ping_failed"
+                # Ping failed - preserve speed_ok status
+                if node.status != "speed_ok":
+                    node.status = "ping_failed"
                 node.last_check = datetime.utcnow()
                 node.last_update = datetime.utcnow()
                 db.commit()
