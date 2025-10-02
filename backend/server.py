@@ -2237,8 +2237,9 @@ async def manual_ping_test_batch(
             }
             
         except Exception as e:
-            # Any other error - set to ping_failed and never leave in checking
-            node.status = "ping_failed"
+            # Any other error - preserve speed_ok status
+            if node.status != "speed_ok":
+                node.status = "ping_failed"
             node.last_check = datetime.utcnow()
             node.last_update = datetime.utcnow()
             
