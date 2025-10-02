@@ -74,14 +74,19 @@ async def startup_event():
 monitoring_active = False
 
 async def monitor_online_nodes():
-    """Background monitoring task for online nodes"""
+    """
+    Background monitoring task for online nodes
+    CRITICAL: Only monitors 'online' status - does NOT touch speed_ok or other statuses
+    """
     global monitoring_active
     
     while monitoring_active:
         try:
-            db = next(get_db())
+            # Create separate session to avoid transaction conflicts
+            db = SessionLocal()
             
-            # Get all online nodes
+            # CRITICAL: Only monitor nodes that are EXACTLY 'online' status
+            # Do NOT interfere with speed_ok, ping_ok, or other statuses
             online_nodes = db.query(Node).filter(Node.status == "online").all()
             
             if online_nodes:
@@ -89,16 +94,25 @@ async def monitor_online_nodes():
                 
                 for node in online_nodes:
                     try:
+                        # Double-check node is still online (avoid race conditions)
+                        current_node = db.query(Node).filter(Node.id == node.id).first()
+                        if not current_node or current_node.status != "online":
+                            logger.info(f"Skipping node {node.id} - status changed to {current_node.status if current_node else 'deleted'}")
+                            continue
+                            
                         # Check if services are still running
                         service_status = await service_manager.get_service_status(node.id)
                         
                         if not service_status.get('active', False):
-                            # Service is not active - mark as offline
-                            logger.warning(f"Node {node.id} ({node.ip}) services failed - marking offline")
-                            node.status = "offline"
-                            node.last_update = datetime.utcnow()
+                            # Service not active - BUT only change if node is still online
+                            if current_node.status == "online":
+                                logger.warning(f"Node {node.id} ({node.ip}) services failed - marking offline")
+                                current_node.status = "offline"
+                                current_node.last_update = datetime.utcnow()
+                            else:
+                                logger.info(f"Node {node.id} status already changed to {current_node.status}")
                             
-                            # Additional check: try ping test
+                            # Additional ping check for logging only
                             try:
                                 ping_result = await network_tester.ping_test(node.ip)
                                 if not ping_result.get('reachable', False):
@@ -108,15 +122,21 @@ async def monitor_online_nodes():
                         
                     except Exception as node_error:
                         logger.error(f"Error monitoring node {node.id}: {node_error}")
-                        # On monitoring error, mark as offline to be safe
-                        node.status = "offline"
-                        node.last_update = datetime.utcnow()
-                # Note: Database will auto-commit via get_db() dependency
+                        # CRITICAL FIX: Don't automatically mark as offline on monitoring errors
+                        # This could interfere with nodes that have speed_ok status
+                        logger.info(f"Node {node.id} monitoring error - NOT changing status to preserve current state")
             
+            # Explicit commit for background task
+            db.commit()
             db.close()
             
         except Exception as e:
             logger.error(f"Background monitoring error: {e}")
+            try:
+                db.rollback()
+                db.close()
+            except:
+                pass
         
         # Wait 5 minutes before next check
         await asyncio.sleep(300)  # 300 seconds = 5 minutes
