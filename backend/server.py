@@ -2555,29 +2555,34 @@ async def manual_launch_services(
                     "message": f"Services launched successfully - SOCKS: {socks_data['ip']}:{socks_data['port']}"
                 })
             else:
-                # PPTP failed - set to ping_failed (not offline)
-                node.status = "ping_failed" 
+                # CRITICAL FIX: Don't downgrade speed_ok nodes to ping_failed
+                # If service launch fails, keep them in speed_ok status for retry
+                node.status = "speed_ok"  # Maintain speed_ok status instead of ping_failed
                 node.last_check = datetime.utcnow()
-                node.last_update = datetime.utcnow()  # Update time when offline
+                node.last_update = datetime.utcnow()  # Update time
                 db.commit()
                 
                 results.append({
                     "node_id": node_id,
+                    "ip": node.ip,
                     "success": False,
-                    "message": f"PPTP connection failed: {pptp_result.get('message', 'Unknown error')}"
+                    "status": "speed_ok",  # Keep status as speed_ok for retry
+                    "message": f"Service launch failed but node remains speed_ok: {pptp_result.get('message', 'Unknown error')}"
                 })
         
         except Exception as e:
-            # On error, set to ping_failed (not offline)
-            node.status = "ping_failed"
+            # CRITICAL FIX: On error, keep speed_ok status for nodes that passed tests
+            node.status = "speed_ok"  # Maintain speed_ok instead of ping_failed
             node.last_check = datetime.utcnow()
             node.last_update = datetime.utcnow()  # Update time on error
             db.commit()
             
             results.append({
                 "node_id": node_id,
+                "ip": node.ip,
                 "success": False,
-                "message": f"Service launch error: {str(e)}"
+                "status": "speed_ok",  # Keep status for retry
+                "message": f"Service launch error but node remains speed_ok: {str(e)}"
             })
     
     return {"results": results}
