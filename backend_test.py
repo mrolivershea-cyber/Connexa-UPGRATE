@@ -8864,6 +8864,17 @@ State: California""",
             print("❌ Login failed - stopping tests")
             return False
         
+        # ========== CRITICAL RUSSIAN USER FINAL REVIEW REQUEST TESTS ==========
+        print("\n" + "🔥" * 20 + " ФИНАЛЬНЫЙ ТЕСТ РУССКОГО ПОЛЬЗОВАТЕЛЯ " + "🔥" * 20)
+        print("🎯 КРИТИЧНЫЕ ИСПРАВЛЕНИЯ: Тестирование всех исправлений для русского пользователя")
+        self.test_russian_ping_accuracy_final()
+        self.test_russian_real_speed_testing_final()
+        self.test_russian_speed_ok_preservation_final()
+        self.test_russian_launch_services_preservation_final()
+        self.test_russian_background_monitoring_final()
+        self.test_russian_immediate_persistence_final()
+        print("🔥" * 70)
+        
         # ========== CRITICAL SERVICE STATUS PRESERVATION TESTS (HIGHEST PRIORITY) ==========
         print("\n" + "🔥" * 20 + " CRITICAL SERVICE STATUS PRESERVATION TESTS " + "🔥" * 20)
         print("🎯 REVIEW REQUEST FOCUS: Testing service status preservation functionality")
