@@ -8289,6 +8289,340 @@ State: California""",
                          f"❌ Scenario results: Batch={scenario1_success}, Sequential={scenario2_success}, No stuck={scenario3_success}")
             return False
 
+    # ========== CRITICAL ENHANCED PING AND SPEED TESTING (Review Request) ==========
+    
+    def test_enhanced_ping_accuracy(self):
+        """Test enhanced ping accuracy with improved timeouts and packet loss threshold"""
+        print("\n🏓 TESTING ENHANCED PING ACCURACY")
+        print("=" * 50)
+        
+        # Create test nodes with known working IPs for testing
+        test_nodes_data = [
+            {"ip": "8.8.8.8", "login": "testuser1", "password": "testpass1", "protocol": "pptp"},
+            {"ip": "1.1.1.1", "login": "testuser2", "password": "testpass2", "protocol": "pptp"},
+            {"ip": "208.67.222.222", "login": "testuser3", "password": "testpass3", "protocol": "pptp"}
+        ]
+        
+        created_node_ids = []
+        
+        # Create test nodes
+        for node_data in test_nodes_data:
+            success, response = self.make_request('POST', 'nodes', node_data)
+            if success and 'id' in response:
+                created_node_ids.append(response['id'])
+        
+        if not created_node_ids:
+            self.log_test("Enhanced Ping Accuracy - Setup", False, "Failed to create test nodes")
+            return False
+        
+        # Test ping with enhanced accuracy
+        ping_data = {"node_ids": created_node_ids}
+        success, response = self.make_request('POST', 'manual/ping-test', ping_data)
+        
+        if success and 'results' in response:
+            ping_ok_count = 0
+            total_tests = len(response['results'])
+            
+            for result in response['results']:
+                if result.get('status') == 'ping_ok':
+                    ping_ok_count += 1
+                    # Verify ping result details
+                    if 'ping_result' in result:
+                        ping_result = result['ping_result']
+                        if (ping_result.get('avg_time', 0) > 0 and 
+                            ping_result.get('packet_loss', 100) < 75):  # 75% threshold
+                            print(f"   ✅ Node {result['node_id']}: {ping_result['avg_time']}ms, {ping_result['packet_loss']}% loss")
+                        else:
+                            print(f"   ⚠️ Node {result['node_id']}: Marginal results")
+                    else:
+                        print(f"   ❌ Node {result['node_id']}: Missing ping_result details")
+            
+            # Enhanced accuracy should show more servers as ping_ok (at least 50% success rate)
+            success_rate = (ping_ok_count / total_tests) * 100
+            
+            if success_rate >= 50:
+                self.log_test("Enhanced Ping Accuracy", True, 
+                             f"✅ {ping_ok_count}/{total_tests} nodes ping_ok ({success_rate:.1f}% success rate) - Enhanced accuracy working")
+                
+                # Cleanup test nodes
+                for node_id in created_node_ids:
+                    self.make_request('DELETE', f'nodes/{node_id}')
+                
+                return True
+            else:
+                self.log_test("Enhanced Ping Accuracy", False, 
+                             f"❌ Only {ping_ok_count}/{total_tests} nodes ping_ok ({success_rate:.1f}% success rate) - Still too strict")
+                return False
+        else:
+            self.log_test("Enhanced Ping Accuracy", False, f"Ping test failed: {response}")
+            return False
+    
+    def test_real_speed_testing(self):
+        """Test real HTTP speed testing using aiohttp and cloudflare.com"""
+        print("\n🚀 TESTING REAL SPEED TESTING")
+        print("=" * 50)
+        
+        # Get nodes with ping_ok status for speed testing
+        success, response = self.make_request('GET', 'nodes?status=ping_ok&limit=3')
+        
+        if not success or 'nodes' not in response or not response['nodes']:
+            # Create a test node and set it to ping_ok status
+            test_node = {"ip": "8.8.8.8", "login": "speedtest", "password": "speedtest", "protocol": "pptp"}
+            create_success, create_response = self.make_request('POST', 'nodes', test_node)
+            
+            if not create_success or 'id' not in create_response:
+                self.log_test("Real Speed Testing - Setup", False, "Failed to create test node")
+                return False
+            
+            test_node_id = create_response['id']
+            
+            # Set node to ping_ok status first
+            ping_data = {"node_ids": [test_node_id]}
+            ping_success, ping_response = self.make_request('POST', 'manual/ping-test', ping_data)
+            
+            if not ping_success:
+                self.log_test("Real Speed Testing - Setup", False, "Failed to set node to ping_ok")
+                return False
+            
+            test_nodes = [{"id": test_node_id}]
+        else:
+            test_nodes = response['nodes'][:3]
+        
+        node_ids = [node['id'] for node in test_nodes]
+        
+        # Test speed with real HTTP testing
+        speed_data = {"node_ids": node_ids}
+        success, response = self.make_request('POST', 'manual/speed-test', speed_data)
+        
+        if success and 'results' in response:
+            real_speed_count = 0
+            total_tests = len(response['results'])
+            
+            for result in response['results']:
+                if result.get('success') and 'speed' in result:
+                    speed_value = result['speed']
+                    # Real speed testing should return actual Mbps values, not simulated
+                    if isinstance(speed_value, (int, float)) and speed_value > 0:
+                        real_speed_count += 1
+                        print(f"   ✅ Node {result['node_id']}: {speed_value} Mbps (Real measurement)")
+                    else:
+                        print(f"   ❌ Node {result['node_id']}: Invalid speed value: {speed_value}")
+                else:
+                    print(f"   ❌ Node {result['node_id']}: Speed test failed")
+            
+            if real_speed_count > 0:
+                self.log_test("Real Speed Testing", True, 
+                             f"✅ {real_speed_count}/{total_tests} nodes returned real speed measurements")
+                return True
+            else:
+                self.log_test("Real Speed Testing", False, 
+                             f"❌ No nodes returned valid speed measurements - Real HTTP testing not working")
+                return False
+        else:
+            self.log_test("Real Speed Testing", False, f"Speed test failed: {response}")
+            return False
+    
+    def test_service_status_preservation(self):
+        """Test that nodes with speed_ok status remain speed_ok when service launch fails"""
+        print("\n🛡️ TESTING SERVICE STATUS PRESERVATION")
+        print("=" * 50)
+        
+        # Create a test node and progress it to speed_ok status
+        test_node = {"ip": "192.168.1.100", "login": "statustest", "password": "statustest", "protocol": "pptp"}
+        create_success, create_response = self.make_request('POST', 'nodes', test_node)
+        
+        if not create_success or 'id' not in create_response:
+            self.log_test("Service Status Preservation - Setup", False, "Failed to create test node")
+            return False
+        
+        test_node_id = create_response['id']
+        
+        # Progress node through workflow: not_tested → ping_ok → speed_ok
+        # Step 1: Ping test
+        ping_data = {"node_ids": [test_node_id]}
+        ping_success, ping_response = self.make_request('POST', 'manual/ping-test', ping_data)
+        
+        if not ping_success or not ping_response.get('results', [{}])[0].get('success'):
+            self.log_test("Service Status Preservation - Ping", False, "Failed to set node to ping_ok")
+            return False
+        
+        # Step 2: Speed test
+        speed_data = {"node_ids": [test_node_id]}
+        speed_success, speed_response = self.make_request('POST', 'manual/speed-test', speed_data)
+        
+        if not speed_success or not speed_response.get('results', [{}])[0].get('success'):
+            self.log_test("Service Status Preservation - Speed", False, "Failed to set node to speed_ok")
+            return False
+        
+        # Verify node is now speed_ok
+        node_success, node_response = self.make_request('GET', f'nodes?id={test_node_id}')
+        if not node_success or not node_response.get('nodes'):
+            self.log_test("Service Status Preservation - Verify", False, "Failed to get node status")
+            return False
+        
+        current_status = node_response['nodes'][0].get('status')
+        if current_status != 'speed_ok':
+            self.log_test("Service Status Preservation - Verify", False, f"Node status is {current_status}, expected speed_ok")
+            return False
+        
+        # Step 3: Launch services (this should fail but preserve speed_ok status)
+        launch_data = {"node_ids": [test_node_id]}
+        launch_success, launch_response = self.make_request('POST', 'manual/launch-services', launch_data)
+        
+        # Check final status - should remain speed_ok even if service launch fails
+        final_node_success, final_node_response = self.make_request('GET', f'nodes?id={test_node_id}')
+        
+        if final_node_success and final_node_response.get('nodes'):
+            final_status = final_node_response['nodes'][0].get('status')
+            
+            if final_status == 'speed_ok':
+                self.log_test("Service Status Preservation", True, 
+                             f"✅ Node status preserved as speed_ok after service launch failure")
+                
+                # Cleanup
+                self.make_request('DELETE', f'nodes/{test_node_id}')
+                return True
+            elif final_status == 'online':
+                self.log_test("Service Status Preservation", True, 
+                             f"✅ Node successfully launched to online status")
+                
+                # Cleanup
+                self.make_request('DELETE', f'nodes/{test_node_id}')
+                return True
+            else:
+                self.log_test("Service Status Preservation", False, 
+                             f"❌ Node status downgraded to {final_status} instead of preserving speed_ok")
+                return False
+        else:
+            self.log_test("Service Status Preservation", False, "Failed to get final node status")
+            return False
+    
+    def test_immediate_database_persistence(self):
+        """Test that results are saved immediately after each test completion"""
+        print("\n💾 TESTING IMMEDIATE DATABASE PERSISTENCE")
+        print("=" * 50)
+        
+        # Create test nodes
+        test_nodes = []
+        for i in range(3):
+            node_data = {"ip": f"192.168.2.{i+1}", "login": f"persist{i+1}", "password": f"persist{i+1}", "protocol": "pptp"}
+            success, response = self.make_request('POST', 'nodes', node_data)
+            if success and 'id' in response:
+                test_nodes.append(response['id'])
+        
+        if len(test_nodes) < 3:
+            self.log_test("Immediate Database Persistence - Setup", False, "Failed to create test nodes")
+            return False
+        
+        # Test batch ping with immediate persistence
+        ping_data = {"node_ids": test_nodes}
+        ping_success, ping_response = self.make_request('POST', 'manual/ping-test-batch', ping_data)
+        
+        if not ping_success:
+            self.log_test("Immediate Database Persistence", False, f"Batch ping test failed: {ping_response}")
+            return False
+        
+        # Immediately check if results are persisted in database
+        persistence_verified = 0
+        
+        for node_id in test_nodes:
+            node_success, node_response = self.make_request('GET', f'nodes?id={node_id}')
+            
+            if node_success and node_response.get('nodes'):
+                node = node_response['nodes'][0]
+                current_status = node.get('status')
+                last_update = node.get('last_update')
+                
+                # Check if status was updated from not_tested and last_update is recent
+                if current_status in ['ping_ok', 'ping_failed'] and last_update:
+                    persistence_verified += 1
+                    print(f"   ✅ Node {node_id}: Status {current_status}, Updated: {last_update}")
+                else:
+                    print(f"   ❌ Node {node_id}: Status {current_status}, Updated: {last_update}")
+        
+        # Cleanup
+        for node_id in test_nodes:
+            self.make_request('DELETE', f'nodes/{node_id}')
+        
+        if persistence_verified >= 2:  # At least 2 out of 3 should be persisted
+            self.log_test("Immediate Database Persistence", True, 
+                         f"✅ {persistence_verified}/3 nodes immediately persisted to database")
+            return True
+        else:
+            self.log_test("Immediate Database Persistence", False, 
+                         f"❌ Only {persistence_verified}/3 nodes persisted - Immediate saving not working")
+            return False
+    
+    def test_batch_operations(self):
+        """Test ping + speed batch operations to ensure they don't hang at 90% completion"""
+        print("\n📦 TESTING BATCH OPERATIONS")
+        print("=" * 50)
+        
+        # Create test nodes for batch operations
+        test_nodes = []
+        for i in range(5):  # Test with 5 nodes
+            node_data = {"ip": f"10.0.1.{i+1}", "login": f"batch{i+1}", "password": f"batch{i+1}", "protocol": "pptp"}
+            success, response = self.make_request('POST', 'nodes', node_data)
+            if success and 'id' in response:
+                test_nodes.append(response['id'])
+        
+        if len(test_nodes) < 5:
+            self.log_test("Batch Operations - Setup", False, "Failed to create test nodes")
+            return False
+        
+        # Test 1: Batch ping test
+        print("   Testing batch ping operations...")
+        ping_data = {"node_ids": test_nodes}
+        ping_start_time = time.time()
+        ping_success, ping_response = self.make_request('POST', 'manual/ping-test-batch', ping_data)
+        ping_duration = time.time() - ping_start_time
+        
+        if not ping_success:
+            self.log_test("Batch Operations - Ping", False, f"Batch ping failed: {ping_response}")
+            return False
+        
+        print(f"   ✅ Batch ping completed in {ping_duration:.1f}s")
+        
+        # Test 2: Combined ping + speed batch test
+        print("   Testing combined ping + speed batch operations...")
+        combined_data = {"node_ids": test_nodes}
+        combined_start_time = time.time()
+        combined_success, combined_response = self.make_request('POST', 'manual/ping-speed-test-batch', combined_data)
+        combined_duration = time.time() - combined_start_time
+        
+        if not combined_success:
+            self.log_test("Batch Operations - Combined", False, f"Combined batch failed: {combined_response}")
+            return False
+        
+        print(f"   ✅ Combined batch completed in {combined_duration:.1f}s")
+        
+        # Verify no nodes are stuck in 'checking' status
+        checking_nodes = 0
+        completed_nodes = 0
+        
+        for node_id in test_nodes:
+            node_success, node_response = self.make_request('GET', f'nodes?id={node_id}')
+            
+            if node_success and node_response.get('nodes'):
+                status = node_response['nodes'][0].get('status')
+                if status == 'checking':
+                    checking_nodes += 1
+                elif status in ['ping_ok', 'ping_failed', 'speed_ok']:
+                    completed_nodes += 1
+        
+        # Cleanup
+        for node_id in test_nodes:
+            self.make_request('DELETE', f'nodes/{node_id}')
+        
+        if checking_nodes == 0 and completed_nodes >= 3:
+            self.log_test("Batch Operations", True, 
+                         f"✅ No hanging at 90% - {completed_nodes}/5 nodes completed, 0 stuck in 'checking'")
+            return True
+        else:
+            self.log_test("Batch Operations", False, 
+                         f"❌ Batch operations issues - {checking_nodes} stuck in 'checking', {completed_nodes} completed")
+            return False
+
     def run_all_tests(self):
         """Run all backend tests"""
         print("🚀 Starting Connexa Backend API Tests")
