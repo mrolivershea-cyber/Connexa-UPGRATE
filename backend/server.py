@@ -2534,8 +2534,9 @@ async def manual_speed_test(
             })
             
         except Exception as e:
-            # On error, set back to ping_failed to retry ping
-            node.status = "ping_failed"
+            # On error, preserve speed_ok status
+            if node.status != "speed_ok":
+                node.status = "ping_failed"
             node.last_check = datetime.utcnow()
             node.last_update = datetime.utcnow()  # Update time on error
             db.commit()
