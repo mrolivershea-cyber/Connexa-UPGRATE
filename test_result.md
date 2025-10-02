@@ -444,13 +444,17 @@ metadata:
   run_ui: false
 
 test_plan:
-  current_focus: []
-  stuck_tasks: []
+  current_focus: 
+    - "Fixed Start Service Status Preservation"
+  stuck_tasks:
+    - "Fixed Start Service Status Preservation"
   test_all: false
   test_priority: "high_first"
   completed_testing:
     - "Testing Modal Improvements for Russian User Issues"
     - "Manual testing workflow admin buttons"
+    - "Enhanced Ping Accuracy and Real Speed Testing"
+    - "Immediate Database Persistence"
 
 agent_communication:
   - agent: "main"
