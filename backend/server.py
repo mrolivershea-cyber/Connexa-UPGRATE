@@ -1563,7 +1563,7 @@ async def start_services(
                     if node.status in ["ping_ok", "speed_ok"]:
                         node.status = "online"
                         node.last_update = datetime.utcnow()  # Update time when online
-                    db.commit()
+                    # Note: Database will auto-commit via get_db() dependency
                     
                     results.append({
                         "node_id": node_id,
