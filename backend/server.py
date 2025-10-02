@@ -2343,11 +2343,7 @@ async def manual_ping_speed_test_batch(
             node.last_check = datetime.utcnow()
             node.last_update = datetime.utcnow()
             
-            # CRITICAL: Save final result immediately
-            try:
-                db.commit()
-            except Exception as speed_commit_error:
-                print(f"Speed commit error in combined test for node {node.id}: {speed_commit_error}")
+            # Note: Database will auto-commit via get_db() dependency
             
             return {
                 "node_id": node.id,
