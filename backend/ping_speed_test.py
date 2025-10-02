@@ -319,8 +319,8 @@ async def test_node_ping(ip: str, fast_mode: bool = False) -> Dict:
     return await PPTPTester.ping_test(ip, fast_mode=fast_mode)
 
 async def test_node_speed(ip: str) -> Dict:
-    """Test speed for a single node"""  
-    return await PPTPTester.speed_test_simulation(ip)
+    """Test speed for a single node using real HTTP speed test"""  
+    return await PPTPTester.real_speed_test(ip)
 
 async def test_pptp_connection(ip: str, login: str, password: str, skip_ping_check: bool = False) -> Dict:
     """Test PPTP connection for a single node"""
