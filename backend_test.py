@@ -8864,6 +8864,13 @@ State: California""",
             print("❌ Login failed - stopping tests")
             return False
         
+        # ========== CRITICAL SERVICE STATUS PRESERVATION TESTS (HIGHEST PRIORITY) ==========
+        print("\n" + "🔥" * 20 + " CRITICAL SERVICE STATUS PRESERVATION TESTS " + "🔥" * 20)
+        print("🎯 REVIEW REQUEST FOCUS: Testing service status preservation functionality")
+        self.test_get_db_commit_behavior()
+        self.test_service_status_preservation_critical()
+        print("🔥" * 70)
+        
         # ========== CRITICAL ENHANCED PING AND SPEED TESTING (Review Request) ==========
         print("\n" + "🔥" * 20 + " CRITICAL ENHANCED PING AND SPEED TESTING " + "🔥" * 20)
         self.test_enhanced_ping_accuracy()
