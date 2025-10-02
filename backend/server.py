@@ -1608,10 +1608,12 @@ async def start_services(
                 })
                 
         except Exception as e:
+            # Don't change status on exception - preserve speed_ok if it exists
             results.append({
                 "node_id": node_id,
                 "success": False,
-                "message": f"Service start error: {str(e)}"
+                "status": node.status,
+                "message": f"Service start error: {str(e)} - status remains {node.status}"
             })
     
     return {"results": results}
