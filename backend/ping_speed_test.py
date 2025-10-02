@@ -87,8 +87,8 @@ class PPTPTester:
                 avg_time = total_time / successful_connections
                 packet_loss = ((attempts - successful_connections) / attempts) * 100
                 
-                # Determine success based on packet loss threshold - more lenient for better accuracy
-                if packet_loss <= 50:  # Allow up to 50% packet loss (was 33%)
+                # More lenient success criteria for better accuracy
+                if packet_loss <= 75:  # Even more lenient - allow up to 75% packet loss
                     return {
                         "success": True,
                         "avg_time": round(avg_time, 1),
