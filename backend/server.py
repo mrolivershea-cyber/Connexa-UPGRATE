@@ -2368,7 +2368,9 @@ async def manual_ping_speed_test_batch(
                 node.status = "speed_ok"
                 node.speed = f"{speed_result.get('download', 0)} Mbps"
             else:
-                node.status = "ping_failed"  # Speed failed goes to ping_failed as per requirements
+                # Speed failed - preserve existing speed_ok status
+                if node.status != "speed_ok":
+                    node.status = "ping_failed"
             
             node.last_check = datetime.utcnow()
             node.last_update = datetime.utcnow()
