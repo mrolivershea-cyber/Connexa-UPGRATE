@@ -8638,6 +8638,15 @@ State: California""",
             print("❌ Login failed - stopping tests")
             return False
         
+        # ========== CRITICAL ENHANCED PING AND SPEED TESTING (Review Request) ==========
+        print("\n" + "🔥" * 20 + " CRITICAL ENHANCED PING AND SPEED TESTING " + "🔥" * 20)
+        self.test_enhanced_ping_accuracy()
+        self.test_real_speed_testing()
+        self.test_service_status_preservation()
+        self.test_immediate_database_persistence()
+        self.test_batch_operations()
+        print("🔥" * 70)
+        
         # ========== CRITICAL PING IMPROVEMENTS TESTS (Review Request) ==========
         print("\n" + "🔥" * 20 + " CRITICAL REVIEW REQUEST TESTS " + "🔥" * 20)
         self.test_improved_ping_accuracy()
