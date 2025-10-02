@@ -288,6 +288,42 @@ backend:
         agent: "testing"
         comment: "✅ COMPREHENSIVE PING FUNCTIONALITY TESTING COMPLETED: Verified all improvements from the review request fixes. SPECIFIC SCENARIOS TESTED: 1) Database Reset Verification - Confirmed all nodes reset from 'checking' to proper status ✅ 2) Small Batch Test - Tested 2-3 nodes with /api/manual/ping-test-batch, no hanging detected ✅ 3) Timeout Protection - Verified nodes don't get stuck in 'checking' status anymore ✅ 4) Status Updates - Confirmed ping results are properly saved to database ✅ 5) Response Times - Tests complete within reasonable time (under 20 seconds for small batches) ✅ 6) Russian User Issues - 90% freeze resolved, status transitions work correctly ✅. ERROR HANDLING VERIFIED: Correctly handles invalid node IDs and empty requests. PERFORMANCE METRICS: Small batches complete in ~15 seconds, no nodes stuck in intermediate states, all status updates persist correctly. DATABASE STATE: 2336 total nodes, 0 nodes in 'checking' status. All critical issues from review request have been resolved and the system is ready for production use."
 
+  - task: "Enhanced Ping Accuracy and Real Speed Testing"
+    implemented: true
+    working: false
+    file: "server.py, ping_speed_test.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: false
+        agent: "main"
+        comment: "CRITICAL ACCURACY IMPROVEMENTS IMPLEMENTED: 1) Enhanced ping accuracy - increased timeout to 8s, more attempts (3-4), 75% packet loss threshold for better tolerance of slow servers, 2) Real speed testing - replaced simulation with aiohttp-based HTTP speed tests using cloudflare.com test files, 3) Immediate database saving - added db.commit() after each successful test to prevent data loss, 4) Start Service fix - nodes with speed_ok status remain speed_ok on service failure (not downgraded to ping_failed), 5) Russian error messages - localized timeout messages. USER ISSUES ADDRESSED: Too strict ping tests now more lenient, real speed measurements instead of simulation, service launch preserves validated status."
+
+  - task: "Fixed Start Service Status Preservation" 
+    implemented: true
+    working: false
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: false
+        agent: "main"
+        comment: "CRITICAL BUG FIXED: Start Service function was incorrectly downgrading speed_ok nodes to ping_failed on service failure. SOLUTION: Modified manual_launch_services() to maintain speed_ok status when PPTP service fails, allowing nodes to remain in validated state for retry. CHANGED: Lines 2559 and 2572 - status remains 'speed_ok' instead of being set to 'ping_failed'. This prevents loss of validated server status and allows users to retry service launch."
+
+  - task: "Immediate Database Persistence"
+    implemented: true  
+    working: false
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: false
+        agent: "main"
+        comment: "CRITICAL DATA PROTECTION IMPLEMENTED: Added immediate db.commit() after each successful test completion to prevent data loss during process interruption. LOCATIONS: 1) manual_ping_test_batch - commit after each ping result, 2) manual_speed_test - commit after speed test completion, 3) manual_ping_speed_test_batch - commit after ping success AND after final speed result. BENEFIT: Users won't lose successful test results if process crashes or hangs."
+
 frontend:
   - task: "Service management functionality verification"
     implemented: true
