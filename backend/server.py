@@ -2568,7 +2568,7 @@ async def manual_launch_services(
                 node.status = "online"
                 node.last_check = datetime.utcnow()
                 node.last_update = datetime.utcnow()  # Update time when online
-                db.commit()
+                # Note: Database will auto-commit via get_db() dependency
                 
                 results.append({
                     "node_id": node_id,
