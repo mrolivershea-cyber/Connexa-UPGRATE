@@ -290,15 +290,18 @@ backend:
 
   - task: "Enhanced Ping Accuracy and Real Speed Testing"
     implemented: true
-    working: false
+    working: true
     file: "server.py, ping_speed_test.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: false
         agent: "main"
         comment: "CRITICAL ACCURACY IMPROVEMENTS IMPLEMENTED: 1) Enhanced ping accuracy - increased timeout to 8s, more attempts (3-4), 75% packet loss threshold for better tolerance of slow servers, 2) Real speed testing - replaced simulation with aiohttp-based HTTP speed tests using cloudflare.com test files, 3) Immediate database saving - added db.commit() after each successful test to prevent data loss, 4) Start Service fix - nodes with speed_ok status remain speed_ok on service failure (not downgraded to ping_failed), 5) Russian error messages - localized timeout messages. USER ISSUES ADDRESSED: Too strict ping tests now more lenient, real speed measurements instead of simulation, service launch preserves validated status."
+      - working: true
+        agent: "testing"
+        comment: "✅ ENHANCED PING ACCURACY VERIFIED: Comprehensive testing completed with 60% success rate (3/5 nodes ping_ok) using improved 8s timeout and 75% packet loss threshold. Significant improvement from previous strict settings. ✅ REAL SPEED TESTING VERIFIED: HTTP speed testing using aiohttp and cloudflare.com working correctly - returned actual Mbps values (90.6, 68.0, 109.0 Mbps) instead of simulated data. ✅ BATCH OPERATIONS VERIFIED: No hanging at 90% completion - batch ping completed in 16.2s, combined ping+speed in 26.0s with all 5 nodes completing successfully. Russian user issues with 90% freeze completely resolved."
 
   - task: "Fixed Start Service Status Preservation" 
     implemented: true
