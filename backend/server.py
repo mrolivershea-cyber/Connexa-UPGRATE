@@ -2601,7 +2601,7 @@ async def manual_launch_services(
             node.status = "speed_ok"  # Maintain speed_ok instead of ping_failed
             node.last_check = datetime.utcnow()
             node.last_update = datetime.utcnow()  # Update time on error
-            db.commit()
+            # Note: Database will auto-commit via get_db() dependency
             
             results.append({
                 "node_id": node_id,
