@@ -2272,6 +2272,7 @@ async def manual_ping_test_batch(
         # If entire batch times out, ensure no nodes remain in 'checking' status
         results = []
         for node in nodes:
+            # Don't downgrade from any successful status to ping_failed
             if node.status == "checking":
                 node.status = "ping_failed"
                 node.last_check = datetime.utcnow()
@@ -2441,6 +2442,7 @@ async def manual_ping_speed_test_batch(
         # If entire batch times out, ensure no nodes remain in 'checking' status
         results = []
         for node in nodes:
+            # Don't downgrade from any successful status to ping_failed
             if node.status == "checking":
                 node.status = "ping_failed"
                 node.last_check = datetime.utcnow()
