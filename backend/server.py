@@ -2192,7 +2192,7 @@ async def manual_ping_test_batch(
                 "success": False,
                 "status": node.status,
                 "original_status": original_status,
-                "ping_result": {"success": False, "message": "Timeout after 8 seconds"},
+                "ping_result": {"success": False, "message": "Таймаут через 8 секунд"},
                 "message": f"Ping test timeout: {original_status} -> {node.status}"
             }
             
