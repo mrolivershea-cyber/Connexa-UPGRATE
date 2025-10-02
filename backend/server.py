@@ -1574,16 +1574,21 @@ async def start_services(
                         "message": f"PPTP + SOCKS started on {interface}:{socks_result['port']}"
                     })
                 else:
-                    # Service failed to start properly
-                    node.status = "offline"
-                    node.last_update = datetime.utcnow()  # Update time when offline
+                    # Service failed to start properly - preserve speed_ok status
+                    if node.status == "speed_ok":
+                        # Don't downgrade speed_ok nodes - keep for retry
+                        pass  # Keep current status
+                    else:
+                        node.status = "offline"
+                    node.last_update = datetime.utcnow()  # Update time
                     db.commit()
                     results.append({
                         "node_id": node_id,
                         "success": False,
                         "pptp": pptp_result,
                         "socks": socks_result,
-                        "message": "PPTP OK, SOCKS failed"
+                        "status": node.status,
+                        "message": f"PPTP OK, SOCKS failed - status remains {node.status}"
                     })
             else:
                 # PPTP connection failed - preserve original status if it was speed_ok
