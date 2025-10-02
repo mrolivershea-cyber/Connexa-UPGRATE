@@ -307,13 +307,16 @@ backend:
     implemented: true
     working: false
     file: "server.py"
-    stuck_count: 0
+    stuck_count: 1
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: false
         agent: "main"
         comment: "CRITICAL BUG FIXED: Start Service function was incorrectly downgrading speed_ok nodes to ping_failed on service failure. SOLUTION: Modified manual_launch_services() to maintain speed_ok status when PPTP service fails, allowing nodes to remain in validated state for retry. CHANGED: Lines 2559 and 2572 - status remains 'speed_ok' instead of being set to 'ping_failed'. This prevents loss of validated server status and allows users to retry service launch."
+      - working: false
+        agent: "testing"
+        comment: "❌ CRITICAL ISSUE: Service status preservation NOT working correctly. Testing showed 2/2 speed_ok nodes were incorrectly downgraded to ping_failed after service launch failure. The fix implemented by main agent is not functioning as intended. SPECIFIC FAILURE: Nodes with speed_ok status should remain speed_ok when PPTP service launch fails, but they are being downgraded to ping_failed. This is a HIGH PRIORITY issue that needs immediate attention from main agent."
 
   - task: "Immediate Database Persistence"
     implemented: true  
