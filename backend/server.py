@@ -1586,15 +1586,20 @@ async def start_services(
                         "message": "PPTP OK, SOCKS failed"
                     })
             else:
-                # PPTP connection failed
-                node.status = "offline"
-                node.last_update = datetime.utcnow()  # Update time when offline
+                # PPTP connection failed - preserve original status if it was speed_ok
+                if node.status == "speed_ok":
+                    # Don't downgrade speed_ok nodes - keep for retry
+                    pass  # Keep current status
+                else:
+                    node.status = "offline"
+                node.last_update = datetime.utcnow()  # Update time
                 db.commit()
                 results.append({
                     "node_id": node_id,
                     "success": False,
                     "pptp": pptp_result,
-                    "message": "PPTP connection failed"
+                    "status": node.status,
+                    "message": f"PPTP connection failed - status remains {node.status}"
                 })
                 
         except Exception as e:
