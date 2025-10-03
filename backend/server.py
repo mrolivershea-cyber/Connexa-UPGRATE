@@ -2988,7 +2988,12 @@ async def manual_speed_test(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Manual speed test - only for ping_ok nodes"""
+    """Manual speed test - allowed for all except ping_failed.
+    - not_tested: allow speed; success -> speed_ok (baseline PING OK), fail -> ping_failed
+    - ping_ok: allow speed; success -> speed_ok, fail -> keep ping_ok
+    - speed_ok/online: allow re-test; success -> speed_ok, fail -> keep ping_ok
+    - ping_failed: skip
+    """
     results = []
     
     for node_id in test_request.node_ids:
@@ -3001,12 +3006,16 @@ async def manual_speed_test(
             })
             continue
         
-        # Check if node is in correct status for speed test
-        if node.status != "ping_ok":
+        original_status = node.status
+        
+        # Skip ping_failed per requirements
+        if original_status == "ping_failed":
             results.append({
                 "node_id": node_id,
+                "ip": node.ip,
                 "success": False,
-                "message": f"Node status is '{node.status}', expected 'ping_ok'"
+                "status": original_status,
+                "message": "Speed test skipped for ping_failed"
             })
             continue
         
@@ -3014,33 +3023,31 @@ async def manual_speed_test(
             # Set status to checking during test
             node.status = "checking"
             node.last_check = datetime.utcnow()
-            node.last_update = datetime.utcnow()  # Update time when status changes
+            node.last_update = datetime.utcnow()
             db.commit()
             
             # Perform real speed test
             from ping_speed_test import test_node_speed
             speed_result = await test_node_speed(node.ip)
             
-            if speed_result['success'] and speed_result.get('download'):
+            if speed_result.get('success') and speed_result.get('download'):
                 node.speed = f"{speed_result['download']:.1f}"
-                node.status = "speed_ok"  # Any successful speed test = speed_ok
+                node.status = "speed_ok"
             else:
-                # Speed test failed: if базовый статус уже есть, откатываемся к PING OK, иначе PING FAILED
-                if has_ping_baseline(node.status):
+                # Failure: keep baseline if it existed; otherwise mark ping_failed
+                if has_ping_baseline(original_status):
                     node.status = "ping_ok"
                 else:
                     node.status = "ping_failed"
                 node.speed = None
             
             node.last_check = datetime.utcnow()
-            node.last_update = datetime.utcnow()  # Update time after test
+            node.last_update = datetime.utcnow()
             
-            # CRITICAL: Immediate database save after each test completion
             try:
                 db.commit()
             except Exception as commit_error:
                 print(f"Speed test commit error for node {node_id}: {commit_error}")
-                # Continue processing even if commit fails
             
             results.append({
                 "node_id": node_id,
@@ -3053,11 +3060,13 @@ async def manual_speed_test(
             })
             
         except Exception as e:
-            # On error, preserve speed_ok status
-            if node.status != "speed_ok":
+            # On error, revert to baseline if existed; else ping_failed
+            if has_ping_baseline(original_status):
+                node.status = "ping_ok"
+            else:
                 node.status = "ping_failed"
             node.last_check = datetime.utcnow()
-            node.last_update = datetime.utcnow()  # Update time on error
+            node.last_update = datetime.utcnow()
             db.commit()
             
             results.append({
