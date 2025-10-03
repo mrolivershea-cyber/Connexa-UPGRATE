@@ -2817,10 +2817,10 @@ async def manual_ping_speed_test_batch(
             node.last_update = datetime.utcnow()
             db.commit()
             
-            ping_result = await asyncio.wait_for(
-                test_node_ping(node.ip, fast_mode=True),
-                timeout=12.0
-            )
+            # New single-port multi-timeout TCP ping
+            from ping_speed_test import multiport_tcp_ping
+            ports = get_ping_ports_for_node(node)
+            ping_result = await multiport_tcp_ping(node.ip, ports=ports, timeouts=[0.8, 1.2, 1.6])
             
             if not ping_result or not ping_result.get('success', False):
                 # Ping failed - never drop below PING OK baseline
