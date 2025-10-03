@@ -433,42 +433,48 @@ async def import_nodes(
                     for node_id in nodes_to_test:
                         node = db.query(Node).filter(Node.id == node_id).first()
                         if node:
+                            # CRITICAL: Save original status BEFORE any changes
+                            original_status = node.status
+                            logger.info(f"🔍 Import test: Node {node.id} original status: {original_status}")
+                            
+                            # NEVER test speed_ok nodes - they already passed validation
+                            if original_status == "speed_ok":
+                                logger.info(f"✅ Import: Node {node.id} has speed_ok - SKIPPING test to preserve status")
+                                continue
+                            
                             node.status = "checking"
-                            node.last_update = datetime.utcnow()  # Update time when status changes
+                            node.last_update = datetime.utcnow()
                             
                             if data.testing_mode in ["ping_only", "ping_speed"]:
-                                # Skip testing if node already has speed_ok status
-                                if node.status == "speed_ok":
-                                    logger.info(f"Skipping ping test for node {node.id} - already speed_ok")
+                                # Perform ping test
+                                ping_result = await network_tester.ping_test(node.ip)
+                                if ping_result['reachable']:
+                                    node.status = "ping_ok"
+                                    logger.info(f"✅ Import: Node {node.id} ping SUCCESS - {original_status} -> ping_ok")
                                 else:
-                                    # Perform ping test
-                                    ping_result = await network_tester.ping_test(node.ip)
-                                    if ping_result['reachable']:
-                                        node.status = "ping_ok"
-                                    else:
-                                        node.status = "ping_failed"
-                                    node.last_update = datetime.utcnow()  # Update time after test
+                                    node.status = "ping_failed"
+                                    logger.info(f"❌ Import: Node {node.id} ping FAILED - {original_status} -> ping_failed")
+                                node.last_update = datetime.utcnow()
                             
                             if data.testing_mode in ["speed_only", "ping_speed"]:
-                                # Skip speed test if node already has speed_ok status
-                                if node.status == "speed_ok":
-                                    logger.info(f"Skipping speed test for node {node.id} - already speed_ok")
-                                elif node.status == "ping_ok":
+                                # Speed test only if ping passed
+                                if node.status == "ping_ok":
                                     # Perform speed test only if ping is OK
                                     speed_result = await network_tester.speed_test()
                                     if speed_result['success'] and speed_result.get('download_speed'):
                                         node.speed = f"{speed_result['download_speed']:.1f}"
-                                        # Consider speed good if > 1 Mbps, slow if <= 1 Mbps
                                         if speed_result['download_speed'] > 1.0:
                                             node.status = "speed_ok"
+                                            logger.info(f"✅ Import: Node {node.id} speed OK - {original_status} -> speed_ok")
                                         else:
                                             # Don't downgrade to ping_failed - keep ping_ok
-                                            node.status = "ping_ok"  # Changed from ping_failed
-                                        node.last_update = datetime.utcnow()  # Update time after test
+                                            node.status = "ping_ok"
+                                            logger.info(f"⚠️ Import: Node {node.id} speed SLOW - keeping ping_ok")
+                                        node.last_update = datetime.utcnow()
                                 
                             node.last_check = datetime.utcnow()
                     
-                    db.commit()
+                    # Note: get_db() will auto-commit
                 except Exception as e:
                     logger.warning(f"Testing during import failed: {str(e)}")
                     # Don't fail the import if testing fails
