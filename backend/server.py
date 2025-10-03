@@ -2633,16 +2633,11 @@ async def process_testing_batches(session_id: str, node_ids: list, testing_mode:
                         # Only nodes with baseline ping_ok (but not speed_ok/online) should be speed tested
                         skip_entire = original_status in ("speed_ok", "online") or original_status not in ("ping_ok",)
                         do_speed = not skip_entire
+                    # ping_speed removed; only ping_only or speed_only are valid
                     elif testing_mode == "ping_speed":
-                        # Skip nodes already at speed_ok/online
-                        if original_status in ("speed_ok", "online"):
-                            skip_entire = True
-                        elif original_status == "ping_ok":
-                            # Already have baseline: run speed only
-                            do_speed = True
-                        else:
-                            # not_tested or ping_failed: run ping first, then speed if ping succeeds
-                            do_ping = True
+                        # Backward-compat: treat as speed_only
+                        do_speed = original_status != "ping_failed"
+                        skip_entire = not do_speed
                     else:
                         # Unknown mode, skip safely
                         skip_entire = True
