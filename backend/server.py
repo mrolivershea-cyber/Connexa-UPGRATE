@@ -2626,187 +2626,115 @@ async def process_testing_batches(session_id: str, node_ids: list, testing_mode:
                 logger.info(f"🚫 Testing cancelled by user for session {session_id}")
                 break
             
-            # Process current batch
-            for i, node_id in enumerate(current_batch):
-                global_index = batch_start + i
-                
-                # Check cancellation frequently
-                if session_id in progress_store and progress_store[session_id].status == "cancelled":
-                    break
-                
-                # Dedupe: skip nodes tested very recently or already inflight
-                mode_key = "ping" if testing_mode in ["ping_only", "ping_speed"] else ("speed" if testing_mode in ["speed_only"] else testing_mode)
-                if test_dedupe_should_skip(node_id, mode_key):
-                    logger.info(f"⏭️ Testing: Skipping node {node_id} (dedupe {mode_key})")
-                    processed_nodes += 1
-                    if session_id in progress_store:
-                        progress_store[session_id].update(
-                            global_index + 1,
-                            f"⏭️ Пропуск {node_id} (повтор {mode_key})"
-                        )
-                    continue
-                else:
-                    test_dedupe_mark_enqueued(node_id, mode_key)
-                
-                try:
-                    node = db.query(Node).filter(Node.id == node_id).first()
-                    if not node:
-                        logger.warning(f"❌ Testing batch: Node {node_id} not found in database")
-                        failed_tests += 1
-                        continue
-                    
-                    # Update progress
-                    if session_id in progress_store:
-                        progress_store[session_id].update(
-                            global_index, 
-                            f"Тестирование {node.ip} ({global_index+1}/{total_nodes})"
-                        )
-                    
-                    # Save original status
-                    original_status = node.status
-                    logger.info(f"🔍 Testing batch: Node {node.id} ({node.ip}) original status: {original_status}")
-                    
-                    # Determine actions based on testing_mode and current status
-                    do_ping = False
-                    do_speed = False
-                    skip_entire = False
+            # Process current batch with concurrency
+            sem = asyncio.Semaphore(ping_concurrency if testing_mode == "ping_only" else speed_concurrency)
+            tasks = []
 
-                    if testing_mode == "ping_only":
-                        # Only nodes without baseline should be pinged
-                        skip_entire = has_ping_baseline(original_status)
-                        do_ping = not skip_entire
-                    elif testing_mode == "speed_only":
-                        # Per requirements: allow speed test for all except ping_failed
-                        skip_entire = (original_status == "ping_failed")
-                        do_speed = not skip_entire
-                    # ping_speed removed; only ping_only or speed_only are valid
-                    elif testing_mode == "ping_speed":
-                        # Backward-compat: treat as speed_only
-                        do_speed = original_status != "ping_failed"
-                        skip_entire = not do_speed
-                    else:
-                        # Unknown mode, skip safely
-                        skip_entire = True
-
-                    if skip_entire:
-                        logger.info(f"⏭️ Testing: Skipping Node {node.id} due to status {original_status} and mode {testing_mode}")
-                        processed_nodes += 1
-                        if session_id in progress_store:
-                            progress_store[session_id].update(
-                                global_index + 1,
-                                f"⏭️ {node.ip} - skipped ({original_status})",
-                                {"node_id": node.id, "ip": node.ip, "status": original_status, "success": True}
-                            )
-                        continue
-
-                    # Set checking status and commit
-                    node.status = "checking"
-                    node.last_update = datetime.utcnow()
-                    db.commit()
-                    
+            async def process_one(node_id: int, global_index: int):
+                async with sem:
+                    local_db = SessionLocal()
                     try:
-                        ping_result = None
-                        # Ping test when required
+                        node = local_db.query(Node).filter(Node.id == node_id).first()
+                        if not node:
+                            logger.warning(f"❌ Testing batch: Node {node_id} not found in database")
+                            return False
+
+                        # Dedupe check is done before scheduling; optional extra safety
+                        mode_key = "ping" if testing_mode in ["ping_only", "ping_speed"] else ("speed" if testing_mode in ["speed_only"] else testing_mode)
+
+                        # Update progress: starting this node
+                        if session_id in progress_store:
+                            progress_store[session_id].update(global_index, f"Тестирование {node.ip} ({global_index+1}/{total_nodes})")
+
+                        original_status = node.status
+                        logger.info(f"🔍 Testing batch: Node {node.id} ({node.ip}) original status: {original_status}")
+
+                        # Decide actions
+                        do_ping = False
+                        do_speed = False
+                        if testing_mode == "ping_only":
+                            do_ping = not has_ping_baseline(original_status)
+                        elif testing_mode == "speed_only":
+                            do_speed = (original_status != "ping_failed")
+                        else:
+                            # Treat any other as skip
+                            return True
+
+                        # Skip if no action
+                        if not (do_ping or do_speed):
+                            progress_increment(session_id, f"⏭️ {node.ip} - skipped ({original_status})", {"node_id": node.id, "ip": node.ip, "status": original_status, "success": True})
+                            return True
+
+                        # Do ping
                         if do_ping:
-                            logger.info(f"🔍 Testing: Starting multi-port TCP ping for Node {node.id}")
                             from ping_speed_test import multiport_tcp_ping
                             ports = get_ping_ports_for_node(node)
-                            # Adaptive per-attempt timeouts
-                            timeouts = ping_timeouts
-                            # Try shortest first, then longer
                             ping_result = None
-                            for t in timeouts:
+                            for t in ping_timeouts:
                                 ping_result = await multiport_tcp_ping(node.ip, ports=ports, attempts=3, per_attempt_timeout=t)
                                 if ping_result.get('success'):
                                     break
-
                             if ping_result.get('success'):
                                 node.status = "ping_ok"
-                                logger.info(f"✅ Testing: Node {node.id} ping SUCCESS")
                             else:
-                                # Never downgrade below PING OK once achieved
-                                if has_ping_baseline(original_status):
-                                    node.status = original_status
-                                    logger.info(f"🛡️ Testing: Node {node.id} ping FAILED but preserving baseline {original_status}")
-                                else:
-                                    node.status = "ping_failed"
-                                    logger.info(f"❌ Testing: Node {node.id} ping FAILED")
-                            # Maintain approximate compatibility for UI fields
-                            try:
-                                ping_result["packet_loss"] = round(100.0 - float(ping_result.get("success_rate", 0.0)), 1)
-                            except Exception:
-                                if ping_result is not None:
-                                    ping_result["packet_loss"] = 100.0 if not ping_result.get("success") else 0.0
-
+                                node.status = original_status if has_ping_baseline(original_status) else "ping_failed"
                             node.last_update = datetime.utcnow()
-                            db.commit()
-                        
-                        # Speed test when required
+                            local_db.commit()
+
+                        # Do speed
                         if do_speed:
-                            logger.info(f"🔍 Testing: Starting speed test for Node {node.id}")
+                            from ping_speed_test import test_node_speed
                             speed_result = await test_node_speed(node.ip, sample_kb=speed_sample_kb, timeout_total=speed_timeout)
-                            
-                            if speed_result['success'] and speed_result.get('download_speed'):
+                            if speed_result.get('success') and speed_result.get('download_speed'):
                                 download_speed = speed_result['download_speed']
                                 node.speed = f"{download_speed:.1f}"
-                                
-                                if download_speed > 1.0:
-                                    node.status = "speed_ok"
-                                    logger.info(f"✅ Testing: Node {node.id} speed OK ({download_speed:.1f} Mbps)")
-                                else:
-                                    node.status = "ping_ok"
-                                    logger.info(f"⚠️ Testing: Node {node.id} speed SLOW ({download_speed:.1f} Mbps)")
+                                node.status = "speed_ok" if download_speed > 1.0 else "ping_ok"
                             else:
-                                # On speed-only failures, do not drop below baseline
-                                if has_ping_baseline(original_status):
-                                    node.status = "ping_ok"
-                                else:
-                                    node.status = "ping_failed"
-                                logger.info(f"❌ Testing: Node {node.id} speed test FAILED")
-                            
+                                node.status = "ping_ok" if has_ping_baseline(original_status) else "ping_failed"
+                                node.speed = None
                             node.last_update = datetime.utcnow()
-                            db.commit()
-                        
+                            local_db.commit()
+
                         node.last_check = datetime.utcnow()
-                        db.commit()
-                        processed_nodes += 1
-                        
-                        # Update progress with success
-                        if session_id in progress_store:
-                            result_info = {
-                                "node_id": node.id,
-                                "ip": node.ip,
-                                "status": node.status,
-                                "success": True
-                            }
-                            progress_increment(
-                                session_id,
-                                f"✅ {node.ip} - {node.status}",
-                                result_info
-                            )
-                        
-                        # Mark dedupe finished
-                        test_dedupe_mark_finished(node.id)
-                    
-                    except asyncio.TimeoutError:
-                        logger.warning(f"⏱️ Testing: Node {node.id} test TIMEOUT - reverting to {original_status}")
-                        node.status = original_status
-                        node.last_update = datetime.utcnow()
-                        db.commit()
-                        failed_tests += 1
-                        
-                    
-                    except Exception as test_error:
-                        logger.error(f"❌ Testing: Node {node.id} test ERROR: {str(test_error)} - reverting to {original_status}")
-                        node.status = original_status
-                        node.last_update = datetime.utcnow()
-                        db.commit()
-                        failed_tests += 1
-                        
-                        if session_id in progress_store:
-                            progress_store[session_id].update(global_index + 1, f"❌ {node.ip} - error")
-                        
-                        test_dedupe_mark_finished(node.id)
+                        local_db.commit()
+
+                        # Progress
+                        progress_increment(session_id, f"✅ {node.ip} - {node.status}", {"node_id": node.id, "ip": node.ip, "status": node.status, "success": True})
+                        return True
+                    except Exception as e:
+                        logger.error(f"❌ Testing: Node {node_id} error: {e}")
+                        return False
+                    finally:
+                        try:
+                            test_dedupe_mark_finished(node_id)
+                            local_db.close()
+                        except Exception:
+                            pass
+
+            for i, node_id in enumerate(current_batch):
+                global_index = batch_start + i
+                # cancellation
+                if session_id in progress_store and progress_store[session_id].status == "cancelled":
+                    break
+                # Dedupe before scheduling
+                mode_key = "ping" if testing_mode in ["ping_only", "ping_speed"] else ("speed" if testing_mode in ["speed_only"] else testing_mode)
+                if test_dedupe_should_skip(node_id, mode_key):
+                    logger.info(f"⏭️ Testing: Skipping node {node_id} (dedupe {mode_key})")
+                    progress_increment(session_id, f"⏭️ Пропуск {node_id} (повтор {mode_key})")
+                    continue
+                test_dedupe_mark_enqueued(node_id, mode_key)
+                tasks.append(asyncio.create_task(process_one(node_id, global_index)))
+
+            if tasks:
+                results = await asyncio.gather(*tasks, return_exceptions=True)
+                # Update counters
+                processed_nodes += sum(1 for r in results if r is True)
+                failed_tests += sum(1 for r in results if r is False)
+            
+            # Small delay between batches to prevent system overload
+            await asyncio.sleep(0.5)
+            
+            logger.info(f"✅ Testing batch {batch_start//BATCH_SIZE + 1} completed: {len(current_batch)} nodes scheduled")
                 
                 except Exception as node_error:
                     logger.error(f"❌ Testing: Critical error processing Node {node_id}: {str(node_error)}")
