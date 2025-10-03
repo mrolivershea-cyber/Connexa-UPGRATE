@@ -293,8 +293,6 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], onTestComplete })
         return 'Проверка доступности узлов (ICMP ping)';
       case 'speed':
         return 'Тестирование скорости интернет соединения';
-      case 'both':
-        return 'Комбинированный тест: ping + скорость';
       default:
         return '';
     }
