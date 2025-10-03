@@ -674,7 +674,8 @@ async def import_nodes(
         return {
             "success": True,
             "message": smart_message,
-            "report": report
+            "report": report,
+            "session_id": session_id if data.testing_mode != "no_test" else None
         }
         
     except Exception as e:
