@@ -10929,10 +10929,10 @@ State: California""",
         print("\n🔥 CRITICAL IMPORT TESTING: ping_only mode")
         print("=" * 60)
         
-        # Test data: 3 PPTP configs in IP:PORT:LOGIN:PASSWORD format
-        test_configs = """1.2.3.4:1723:user1:pass1
-5.6.7.8:1723:user2:pass2
-9.10.11.12:1723:user3:pass3"""
+        # Test data: 3 PPTP configs in Format 2 (IP Login Password State) - more reliable
+        test_configs = """1.2.3.4 user1 pass1 CA
+5.6.7.8 user2 pass2 NY
+9.10.11.12 user3 pass3 TX"""
         
         import_data = {
             "data": test_configs,
