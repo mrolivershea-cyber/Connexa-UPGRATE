@@ -2779,9 +2779,9 @@ async def process_testing_batches(session_id: str, node_ids: list, testing_mode:
                                 "status": node.status,
                                 "success": True
                             }
-                            progress_store[session_id].update(
-                                global_index + 1, 
-                                f"✅ {node.ip} - {node.status}", 
+                            progress_increment(
+                                session_id,
+                                f"✅ {node.ip} - {node.status}",
                                 result_info
                             )
                         
