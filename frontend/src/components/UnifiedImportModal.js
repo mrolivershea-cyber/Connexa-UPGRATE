@@ -244,7 +244,7 @@ vpn2.example.com:443:client2:pass456:GB:London:`
               <Activity className="h-5 w-5 mr-2" />
               Импорт узлов
             </DialogTitle>
-            {loading && (
+            {(loading || progressData) && (
               <Button
                 variant="ghost"
                 size="sm"
