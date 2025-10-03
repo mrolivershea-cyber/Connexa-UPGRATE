@@ -225,9 +225,25 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], onTestComplete })
   };
 
   const handleMinimize = () => {
+    // Save current state to localStorage for restoration
+    if (sessionId || loading) {
+      const savedState = {
+        sessionId,
+        loading,
+        progressData,
+        results,
+        testType,
+        selectedNodeIds,
+        processedNodes,
+        totalNodes,
+        timestamp: Date.now()
+      };
+      localStorage.setItem('testingProgress', JSON.stringify(savedState));
+      toast.info('Тестирование свернуто. Откройте Testing для просмотра прогресса.');
+    }
+    
     // Close the modal but keep the process running
     onClose();
-    // The testing will continue in background
   };
 
   const getTestTypeDescription = () => {
