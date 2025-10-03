@@ -322,7 +322,20 @@ async def shutdown_event():
 # Authentication Routes
 @api_router.post("/auth/login", response_model=Token)
 async def login(login_request: LoginRequest, request: Request, db: Session = Depends(get_db)):
+    # Safety: auto-create admin if users table empty
+    try:
+        ensure_admin_user(db)
+    except Exception as e:
+        logger.error(f"ensure_admin_user failed: {e}")
+
     user = authenticate_user(db, login_request.username, login_request.password)
+    if not user:
+        # Re-check after creating admin
+        try:
+            ensure_admin_user(db)
+            user = authenticate_user(db, login_request.username, login_request.password)
+        except Exception:
+            user = None
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
