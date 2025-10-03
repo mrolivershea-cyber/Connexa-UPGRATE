@@ -98,13 +98,24 @@ api_router = APIRouter(prefix="/api")
 
 # Middleware
 app.add_middleware(SessionMiddleware, secret_key=os.getenv("SECRET_KEY", "connexa-secret"))
-app.add_middleware(
-    CORSMiddleware,
-    allow_credentials=True,
-    allow_origins=os.getenv('CORS_ORIGINS', '*').split(','),
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+# CORS: support wildcard with credentials via regex
+_cors_env = os.getenv('CORS_ORIGINS', '*')
+if _cors_env.strip() == '*':
+    app.add_middleware(
+        CORSMiddleware,
+        allow_credentials=True,
+        allow_origin_regex=r".*",
+        allow_methods=["*"],
+        allow_headers=["*"]
+    )
+else:
+    app.add_middleware(
+        CORSMiddleware,
+        allow_credentials=True,
+        allow_origins=_cors_env.split(','),
+        allow_methods=["*"],
+        allow_headers=["*"]
+    )
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
