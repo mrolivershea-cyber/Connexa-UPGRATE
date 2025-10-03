@@ -9127,6 +9127,440 @@ State: California""",
             self.log_test("Russian Immediate Persistence Final", False, f"Ping test failed: {ping_response}")
             return False
 
+    # ========== CRITICAL AUTOMATIC PROCESSES TESTS (FINAL REVIEW) ==========
+    
+    def test_import_nodes_speed_ok_preservation(self):
+        """CRITICAL TEST 1: Import Nodes with speed_ok nodes - verify NO downgrade during import"""
+        print("\n🔥 CRITICAL TEST 1: Import Nodes Speed_OK Preservation")
+        print("=" * 60)
+        
+        # Step 1: Create a node with speed_ok status first
+        test_node_data = {
+            "ip": "192.168.100.1",
+            "login": "speedtest",
+            "password": "speedpass123",
+            "protocol": "pptp",
+            "status": "speed_ok",
+            "provider": "SpeedTestProvider",
+            "country": "United States",
+            "state": "California",
+            "city": "Los Angeles"
+        }
+        
+        create_success, create_response = self.make_request('POST', 'nodes', test_node_data)
+        
+        if not create_success or 'id' not in create_response:
+            self.log_test("Import Nodes Speed_OK Preservation - Setup", False, 
+                         f"Failed to create test node: {create_response}")
+            return False
+        
+        test_node_id = create_response['id']
+        print(f"✅ Created test node {test_node_id} with speed_ok status")
+        
+        # Step 2: Verify node has speed_ok status
+        verify_success, verify_response = self.make_request('GET', f'nodes?id={test_node_id}')
+        if not verify_success or not verify_response.get('nodes'):
+            self.log_test("Import Nodes Speed_OK Preservation - Verify Setup", False, 
+                         f"Failed to verify test node: {verify_response}")
+            return False
+        
+        initial_status = verify_response['nodes'][0]['status']
+        print(f"✅ Verified initial status: {initial_status}")
+        
+        if initial_status != 'speed_ok':
+            self.log_test("Import Nodes Speed_OK Preservation - Initial Status", False, 
+                         f"Expected speed_ok, got {initial_status}")
+            return False
+        
+        # Step 3: Import the same node with testing_mode="ping_only" (should skip testing)
+        import_data = {
+            "data": "Ip: 192.168.100.1\nLogin: speedtest\nPass: speedpass123\nState: California",
+            "protocol": "pptp",
+            "testing_mode": "ping_only"
+        }
+        
+        print(f"🔄 Importing same node with testing_mode=ping_only...")
+        import_success, import_response = self.make_request('POST', 'nodes/import', import_data)
+        
+        if not import_success:
+            self.log_test("Import Nodes Speed_OK Preservation - Import", False, 
+                         f"Import failed: {import_response}")
+            return False
+        
+        print(f"✅ Import completed: {import_response.get('message', 'No message')}")
+        
+        # Step 4: Verify the speed_ok node was NOT downgraded
+        final_success, final_response = self.make_request('GET', f'nodes?ip=192.168.100.1')
+        
+        if not final_success or not final_response.get('nodes'):
+            self.log_test("Import Nodes Speed_OK Preservation - Final Check", False, 
+                         f"Failed to get final node status: {final_response}")
+            return False
+        
+        final_node = final_response['nodes'][0]
+        final_status = final_node['status']
+        
+        print(f"🔍 Final status check: {final_status}")
+        
+        if final_status == 'speed_ok':
+            self.log_test("Import Nodes Speed_OK Preservation", True, 
+                         f"✅ SUCCESS: speed_ok node preserved during import (status remains: {final_status})")
+            
+            # Cleanup
+            self.make_request('DELETE', f'nodes/{test_node_id}')
+            return True
+        else:
+            self.log_test("Import Nodes Speed_OK Preservation", False, 
+                         f"❌ CRITICAL BUG: speed_ok node downgraded to {final_status} during import!")
+            
+            # Cleanup
+            self.make_request('DELETE', f'nodes/{test_node_id}')
+            return False
+    
+    def test_auto_test_speed_ok_preservation(self):
+        """CRITICAL TEST 2: Auto-Test with speed_ok nodes - verify speed_ok status preserved"""
+        print("\n🔥 CRITICAL TEST 2: Auto-Test Speed_OK Preservation")
+        print("=" * 60)
+        
+        # Step 1: Create a node with speed_ok status
+        test_node_data = {
+            "ip": "192.168.100.2",
+            "login": "autotest",
+            "password": "autopass123",
+            "protocol": "pptp",
+            "status": "speed_ok",
+            "provider": "AutoTestProvider",
+            "country": "United States",
+            "state": "Texas"
+        }
+        
+        create_success, create_response = self.make_request('POST', 'nodes', test_node_data)
+        
+        if not create_success or 'id' not in create_response:
+            self.log_test("Auto-Test Speed_OK Preservation - Setup", False, 
+                         f"Failed to create test node: {create_response}")
+            return False
+        
+        test_node_id = create_response['id']
+        print(f"✅ Created test node {test_node_id} with speed_ok status")
+        
+        # Step 2: Call auto-test endpoint with test_type="speed"
+        auto_test_data = {
+            "node_ids": [test_node_id],
+            "test_type": "speed"
+        }
+        
+        print(f"🔄 Running auto-test with test_type=speed...")
+        auto_test_success, auto_test_response = self.make_request('POST', 'nodes/auto-test', auto_test_data)
+        
+        if not auto_test_success:
+            self.log_test("Auto-Test Speed_OK Preservation - Auto Test", False, 
+                         f"Auto-test failed: {auto_test_response}")
+            # Cleanup
+            self.make_request('DELETE', f'nodes/{test_node_id}')
+            return False
+        
+        print(f"✅ Auto-test completed: {auto_test_response.get('message', 'No message')}")
+        
+        # Step 3: Verify the speed_ok node status is preserved
+        final_success, final_response = self.make_request('GET', f'nodes?id={test_node_id}')
+        
+        if not final_success or not final_response.get('nodes'):
+            self.log_test("Auto-Test Speed_OK Preservation - Final Check", False, 
+                         f"Failed to get final node status: {final_response}")
+            # Cleanup
+            self.make_request('DELETE', f'nodes/{test_node_id}')
+            return False
+        
+        final_node = final_response['nodes'][0]
+        final_status = final_node['status']
+        
+        print(f"🔍 Final status check: {final_status}")
+        
+        if final_status == 'speed_ok':
+            self.log_test("Auto-Test Speed_OK Preservation", True, 
+                         f"✅ SUCCESS: speed_ok node preserved during auto-test (status remains: {final_status})")
+            
+            # Cleanup
+            self.make_request('DELETE', f'nodes/{test_node_id}')
+            return True
+        else:
+            self.log_test("Auto-Test Speed_OK Preservation", False, 
+                         f"❌ CRITICAL BUG: speed_ok node downgraded to {final_status} during auto-test!")
+            
+            # Cleanup
+            self.make_request('DELETE', f'nodes/{test_node_id}')
+            return False
+    
+    def test_manual_api_operations_control(self):
+        """CRITICAL TEST 3: Manual API operations (control) - verify they preserve speed_ok"""
+        print("\n🔥 CRITICAL TEST 3: Manual API Operations Control")
+        print("=" * 60)
+        
+        # Step 1: Create nodes with speed_ok status for testing
+        test_nodes = []
+        for i in range(3):
+            test_node_data = {
+                "ip": f"192.168.100.{10+i}",
+                "login": f"manual{i}",
+                "password": f"manualpass{i}",
+                "protocol": "pptp",
+                "status": "speed_ok",
+                "provider": "ManualTestProvider",
+                "country": "United States",
+                "state": "Florida"
+            }
+            
+            create_success, create_response = self.make_request('POST', 'nodes', test_node_data)
+            
+            if create_success and 'id' in create_response:
+                test_nodes.append(create_response['id'])
+                print(f"✅ Created test node {create_response['id']} with speed_ok status")
+            else:
+                self.log_test("Manual API Operations Control - Setup", False, 
+                             f"Failed to create test node {i}: {create_response}")
+                return False
+        
+        all_tests_passed = True
+        
+        # Test 1: Manual ping-test
+        print(f"\n🏓 Testing manual ping-test...")
+        ping_data = {"node_ids": [test_nodes[0]]}
+        ping_success, ping_response = self.make_request('POST', 'manual/ping-test', ping_data)
+        
+        if ping_success:
+            # Check if status is preserved
+            check_success, check_response = self.make_request('GET', f'nodes?id={test_nodes[0]}')
+            if check_success and check_response.get('nodes'):
+                final_status = check_response['nodes'][0]['status']
+                if final_status == 'speed_ok':
+                    print(f"✅ Manual ping-test preserved speed_ok status")
+                else:
+                    print(f"❌ Manual ping-test changed status to {final_status}")
+                    all_tests_passed = False
+            else:
+                print(f"❌ Failed to check status after manual ping-test")
+                all_tests_passed = False
+        else:
+            print(f"❌ Manual ping-test failed: {ping_response}")
+            all_tests_passed = False
+        
+        # Test 2: Services start
+        print(f"\n🚀 Testing services start...")
+        services_data = {"node_ids": [test_nodes[1]], "action": "start"}
+        services_success, services_response = self.make_request('POST', 'services/start', services_data)
+        
+        if services_success:
+            # Check if status is preserved
+            check_success, check_response = self.make_request('GET', f'nodes?id={test_nodes[1]}')
+            if check_success and check_response.get('nodes'):
+                final_status = check_response['nodes'][0]['status']
+                if final_status == 'speed_ok':
+                    print(f"✅ Services start preserved speed_ok status")
+                else:
+                    print(f"❌ Services start changed status to {final_status}")
+                    all_tests_passed = False
+            else:
+                print(f"❌ Failed to check status after services start")
+                all_tests_passed = False
+        else:
+            print(f"❌ Services start failed: {services_response}")
+            all_tests_passed = False
+        
+        # Cleanup
+        for node_id in test_nodes:
+            self.make_request('DELETE', f'nodes/{node_id}')
+        
+        if all_tests_passed:
+            self.log_test("Manual API Operations Control", True, 
+                         f"✅ SUCCESS: All manual operations preserved speed_ok status")
+            return True
+        else:
+            self.log_test("Manual API Operations Control", False, 
+                         f"❌ CRITICAL BUG: Some manual operations changed speed_ok status!")
+            return False
+    
+    def test_database_persistence_verification(self):
+        """CRITICAL TEST 4: Database persistence verification - ensure DB reflects correct statuses"""
+        print("\n🔥 CRITICAL TEST 4: Database Persistence Verification")
+        print("=" * 60)
+        
+        # Step 1: Create a node with speed_ok status
+        test_node_data = {
+            "ip": "192.168.100.20",
+            "login": "dbtest",
+            "password": "dbpass123",
+            "protocol": "pptp",
+            "status": "speed_ok",
+            "provider": "DBTestProvider",
+            "country": "United States",
+            "state": "Nevada"
+        }
+        
+        create_success, create_response = self.make_request('POST', 'nodes', test_node_data)
+        
+        if not create_success or 'id' not in create_response:
+            self.log_test("Database Persistence Verification - Setup", False, 
+                         f"Failed to create test node: {create_response}")
+            return False
+        
+        test_node_id = create_response['id']
+        print(f"✅ Created test node {test_node_id} with speed_ok status")
+        
+        # Step 2: Perform multiple operations and verify DB consistency
+        operations = [
+            ("GET nodes", lambda: self.make_request('GET', f'nodes?id={test_node_id}')),
+            ("GET stats", lambda: self.make_request('GET', 'stats')),
+            ("Manual ping-test", lambda: self.make_request('POST', 'manual/ping-test', {"node_ids": [test_node_id]})),
+        ]
+        
+        all_consistent = True
+        
+        for op_name, op_func in operations:
+            print(f"\n🔄 Testing {op_name}...")
+            
+            # Perform operation
+            op_success, op_response = op_func()
+            
+            if not op_success:
+                print(f"❌ {op_name} failed: {op_response}")
+                all_consistent = False
+                continue
+            
+            # Verify DB consistency by checking node status
+            check_success, check_response = self.make_request('GET', f'nodes?id={test_node_id}')
+            
+            if check_success and check_response.get('nodes'):
+                current_status = check_response['nodes'][0]['status']
+                if current_status == 'speed_ok':
+                    print(f"✅ {op_name}: DB status consistent (speed_ok)")
+                else:
+                    print(f"❌ {op_name}: DB status changed to {current_status}")
+                    all_consistent = False
+            else:
+                print(f"❌ {op_name}: Failed to verify DB status")
+                all_consistent = False
+        
+        # Step 3: Check stats consistency
+        stats_success, stats_response = self.make_request('GET', 'stats')
+        if stats_success and 'speed_ok' in stats_response:
+            speed_ok_count = stats_response['speed_ok']
+            print(f"✅ Stats show {speed_ok_count} speed_ok nodes")
+        else:
+            print(f"❌ Failed to get stats: {stats_response}")
+            all_consistent = False
+        
+        # Cleanup
+        self.make_request('DELETE', f'nodes/{test_node_id}')
+        
+        if all_consistent:
+            self.log_test("Database Persistence Verification", True, 
+                         f"✅ SUCCESS: Database persistence consistent across all operations")
+            return True
+        else:
+            self.log_test("Database Persistence Verification", False, 
+                         f"❌ CRITICAL BUG: Database persistence inconsistent!")
+            return False
+    
+    def test_background_monitoring_non_interference(self):
+        """CRITICAL TEST 5: Background monitoring test - verify it doesn't affect speed_ok nodes"""
+        print("\n🔥 CRITICAL TEST 5: Background Monitoring Non-Interference")
+        print("=" * 60)
+        
+        # Step 1: Create a node with speed_ok status
+        test_node_data = {
+            "ip": "192.168.100.30",
+            "login": "bgtest",
+            "password": "bgpass123",
+            "protocol": "pptp",
+            "status": "speed_ok",
+            "provider": "BGTestProvider",
+            "country": "United States",
+            "state": "Oregon"
+        }
+        
+        create_success, create_response = self.make_request('POST', 'nodes', test_node_data)
+        
+        if not create_success or 'id' not in create_response:
+            self.log_test("Background Monitoring Non-Interference - Setup", False, 
+                         f"Failed to create test node: {create_response}")
+            return False
+        
+        test_node_id = create_response['id']
+        print(f"✅ Created test node {test_node_id} with speed_ok status")
+        
+        # Step 2: Wait a short time to allow background monitoring to potentially run
+        print(f"⏳ Waiting 10 seconds to allow background monitoring...")
+        time.sleep(10)
+        
+        # Step 3: Verify the speed_ok node was NOT affected by background monitoring
+        final_success, final_response = self.make_request('GET', f'nodes?id={test_node_id}')
+        
+        if not final_success or not final_response.get('nodes'):
+            self.log_test("Background Monitoring Non-Interference - Final Check", False, 
+                         f"Failed to get final node status: {final_response}")
+            # Cleanup
+            self.make_request('DELETE', f'nodes/{test_node_id}')
+            return False
+        
+        final_node = final_response['nodes'][0]
+        final_status = final_node['status']
+        
+        print(f"🔍 Final status check after background monitoring: {final_status}")
+        
+        # Cleanup
+        self.make_request('DELETE', f'nodes/{test_node_id}')
+        
+        if final_status == 'speed_ok':
+            self.log_test("Background Monitoring Non-Interference", True, 
+                         f"✅ SUCCESS: Background monitoring did NOT affect speed_ok node (status remains: {final_status})")
+            return True
+        else:
+            self.log_test("Background Monitoring Non-Interference", False, 
+                         f"❌ CRITICAL BUG: Background monitoring changed speed_ok node to {final_status}!")
+            return False
+    
+    def test_comprehensive_automatic_processes_final(self):
+        """CRITICAL COMPREHENSIVE TEST: All automatic processes protection for speed_ok nodes"""
+        print("\n🔥 COMPREHENSIVE AUTOMATIC PROCESSES FINAL TEST")
+        print("=" * 80)
+        
+        # Run all critical tests
+        tests = [
+            ("Import Nodes Speed_OK Preservation", self.test_import_nodes_speed_ok_preservation),
+            ("Auto-Test Speed_OK Preservation", self.test_auto_test_speed_ok_preservation),
+            ("Manual API Operations Control", self.test_manual_api_operations_control),
+            ("Database Persistence Verification", self.test_database_persistence_verification),
+            ("Background Monitoring Non-Interference", self.test_background_monitoring_non_interference),
+        ]
+        
+        passed_tests = 0
+        total_tests = len(tests)
+        
+        for test_name, test_func in tests:
+            print(f"\n{'='*20} {test_name} {'='*20}")
+            if test_func():
+                passed_tests += 1
+        
+        print(f"\n{'='*80}")
+        print(f"🏁 COMPREHENSIVE AUTOMATIC PROCESSES TEST RESULTS")
+        print(f"   Passed: {passed_tests}/{total_tests}")
+        print(f"   Success Rate: {(passed_tests/total_tests*100):.1f}%")
+        
+        if passed_tests == total_tests:
+            print("🎉 ALL AUTOMATIC PROCESSES TESTS PASSED!")
+            print("✅ RUSSIAN USER PROBLEM COMPLETELY RESOLVED!")
+            self.log_test("Comprehensive Automatic Processes Final", True, 
+                         f"✅ ALL {total_tests} critical automatic processes tests passed - Russian user issue resolved")
+            return True
+        else:
+            failed_count = total_tests - passed_tests
+            print(f"⚠️  {failed_count} CRITICAL TESTS FAILED!")
+            print("❌ RUSSIAN USER PROBLEM NOT FULLY RESOLVED!")
+            self.log_test("Comprehensive Automatic Processes Final", False, 
+                         f"❌ {failed_count}/{total_tests} critical tests failed - Russian user issue NOT resolved")
+            return False
+
     def run_all_tests(self):
         """Run all backend tests"""
         print("🚀 Starting Connexa Backend API Tests")
