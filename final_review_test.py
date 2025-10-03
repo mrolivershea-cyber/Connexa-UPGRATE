@@ -7,7 +7,7 @@ import time
 from datetime import datetime
 
 class FinalReviewTester:
-    def __init__(self, base_url="https://admin-fix-14.preview.emergentagent.com"):
+    def __init__(self, base_url="https://connexa-admin-fix.preview.emergentagent.com"):
         self.base_url = base_url
         self.api_url = f"{base_url}/api"
         self.token = None
