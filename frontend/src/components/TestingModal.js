@@ -77,6 +77,8 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], onTestComplete })
     let eventSource = null;
     
     if (sessionId && loading) {
+      // Обеспечиваем мгновенную видимость процесса до прихода первого SSE
+      setProgressData(prev => prev || { status: 'running', processed_items: 0, total_items: totalNodes || selectedNodeIds.length, current_task: `Запущено тестирование ${selectedNodeIds.length} узлов...`, results: [] });
       eventSource = new EventSource(`${API}/progress/${sessionId}`);
       
       eventSource.onmessage = (event) => {
