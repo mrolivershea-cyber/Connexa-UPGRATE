@@ -2598,16 +2598,23 @@ async def process_testing_batches(session_id: str, node_ids: list, testing_mode:
                     try:
                         # Ping test
                         if testing_mode in ["ping_only", "ping_speed"]:
-                            logger.info(f"🔍 Testing: Starting PPTP ping test for Node {node.id}")
-                            ping_result = await test_node_ping(node.ip, fast_mode=True)
-                            
-                            if ping_result['success']:
+                            logger.info(f"🔍 Testing: Starting multi-port TCP ping for Node {node.id}")
+                            from ping_speed_test import multiport_tcp_ping
+                            ports = get_ping_ports_for_node(node)
+                            ping_result = await multiport_tcp_ping(node.ip, ports=ports, attempts=3, per_attempt_timeout=1.5)
+
+                            if ping_result.get('success'):
                                 node.status = "ping_ok"
                                 logger.info(f"✅ Testing: Node {node.id} ping SUCCESS")
                             else:
                                 node.status = "ping_failed"
                                 logger.info(f"❌ Testing: Node {node.id} ping FAILED")
-                            
+                            # Maintain approximate compatibility for UI fields
+                            try:
+                                ping_result["packet_loss"] = round(100.0 - float(ping_result.get("success_rate", 0.0)), 1)
+                            except Exception:
+                                ping_result["packet_loss"] = 100.0 if not ping_result.get("success") else 0.0
+
                             node.last_update = datetime.utcnow()
                             db.commit()
                         
