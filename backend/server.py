@@ -2651,8 +2651,9 @@ async def process_testing_batches(session_id: str, node_ids: list, testing_mode:
             tasks = []
 
             async def process_one(node_id: int, global_index: int):
-                async with sem:
-                    local_db = SessionLocal()
+                async with global_sem:
+                    async with sem:
+                        local_db = SessionLocal()
                     try:
                         node = local_db.query(Node).filter(Node.id == node_id).first()
                         if not node:
