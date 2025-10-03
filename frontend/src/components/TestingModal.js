@@ -16,6 +16,9 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], onTestComplete })
   const [testType, setTestType] = useState('ping');
   const [results, setResults] = useState(null);
   const [progress, setProgress] = useState(0);
+  const [isMinimized, setIsMinimized] = useState(false);
+  const [processedNodes, setProcessedNodes] = useState(0);
+  const [totalNodes, setTotalNodes] = useState(0);
 
   React.useEffect(() => {
     if (isOpen) {
