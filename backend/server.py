@@ -2344,11 +2344,16 @@ async def manual_ping_test(
             node.last_update = datetime.utcnow()
             # Note: get_db() will auto-commit
             
-            # Perform real ping test (use fast mode for batch requests)
-            from ping_speed_test import test_node_ping
-            fast_mode = len(test_request.node_ids) > 1
-            ping_result = await test_node_ping(node.ip, fast_mode=fast_mode)
-            
+            # Perform fast multi-port TCP ping based on node config
+            from ping_speed_test import multiport_tcp_ping
+            ports = get_ping_ports_for_node(node)
+            ping_result = await multiport_tcp_ping(node.ip, ports=ports, attempts=3, per_attempt_timeout=1.5)
+            # Add packet_loss for UI compatibility (100 - success_rate)
+            try:
+                ping_result["packet_loss"] = round(100.0 - float(ping_result.get("success_rate", 0.0)), 1)
+            except Exception:
+                ping_result["packet_loss"] = 100.0 if not ping_result.get("success") else 0.0
+
             # Update status based on result
             if ping_result['success']:
                 node.status = "ping_ok"
@@ -2364,7 +2369,7 @@ async def manual_ping_test(
             results.append({
                 "node_id": node_id,
                 "ip": node.ip,
-                "success": True,
+                "success": bool(ping_result.get("success", False)),
                 "status": node.status,
                 "original_status": original_status,
                 "ping_result": ping_result,
