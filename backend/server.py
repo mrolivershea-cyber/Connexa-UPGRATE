@@ -362,33 +362,14 @@ async def get_all_node_ids(
     db: Session = Depends(get_db)
 ):
     """Get all node IDs that match the filters (for Select All functionality)"""
-    query = db.query(Node.id)
+    # Build filters dict
+    filters = {k: v for k, v in locals().items() 
+              if k not in ['current_user', 'db'] and v is not None}
     
-    # Apply same filters as /nodes endpoint
-    if ip:
-        query = query.filter(Node.ip.ilike(f"%{ip}%"))
-    if provider:
-        query = query.filter(Node.provider.ilike(f"%{provider}%"))
-    if country:
-        query = query.filter(Node.country.ilike(f"%{country}%"))
-    if state:
-        query = query.filter(Node.state.ilike(f"%{state}%"))
-    if city:
-        query = query.filter(Node.city.ilike(f"%{city}%"))
-    if zipcode:
-        query = query.filter(Node.zipcode.ilike(f"%{zipcode}%"))
-    if login:
-        query = query.filter(Node.login.ilike(f"%{login}%"))
-    if comment:
-        query = query.filter(Node.comment.ilike(f"%{comment}%"))
-    if status:
-        query = query.filter(Node.status == status)
-    if protocol:
-        query = query.filter(Node.protocol == protocol)
-    if only_online:
-        query = query.filter(Node.status == "online")
+    # Apply filters using helper function - only select ID for performance
+    query = apply_node_filters(db.query(Node.id), **filters)
     
-    # Get all IDs (no pagination)
+    # Get all IDs (no pagination) - more efficient list comprehension
     node_ids = [row[0] for row in query.all()]
     
     return {
