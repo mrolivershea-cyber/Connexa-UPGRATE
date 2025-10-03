@@ -503,13 +503,30 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], onTestComplete })
               <CardContent>
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
-                    <span>Выполняется {testType === 'ping' ? 'ping' : testType === 'speed' ? 'speed' : 'комбинированное'} тестирование...</span>
+                    <span>
+                      {progressData?.current_task || `Выполняется ${testType === 'ping' ? 'ping' : testType === 'speed' ? 'speed' : 'комбинированное'} тестирование...`}
+                    </span>
                     <span>{Math.round((processedNodes / totalNodes) * 100) || progress}%</span>
                   </div>
                   <Progress value={processedNodes > 0 ? (processedNodes / totalNodes) * 100 : progress} className="w-full" />
                   <div className="text-xs text-gray-600">
                     Тестируется {selectedNodeIds.length} узлов
+                    {useNewSystem && ' (батч-система)'}
                   </div>
+                  
+                  {/* Show recent results for new system */}
+                  {progressData?.results && progressData.results.length > 0 && (
+                    <div className="mt-2 max-h-20 overflow-y-auto space-y-1">
+                      {progressData.results.slice(-3).map((result, index) => (
+                        <div key={index} className="text-xs text-gray-600 flex items-center">
+                          <span className={`mr-2 ${result.success ? 'text-green-600' : 'text-red-600'}`}>
+                            {result.success ? '✅' : '❌'}
+                          </span>
+                          {result.ip} - {result.status}
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
