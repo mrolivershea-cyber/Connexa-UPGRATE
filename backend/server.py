@@ -2732,6 +2732,8 @@ async def process_testing_batches(session_id: str, node_ids: list, testing_mode:
                         
                         if session_id in progress_store:
                             progress_store[session_id].update(global_index + 1, f"⏱️ {node.ip} - timeout")
+                        
+                        test_dedupe_mark_finished(node.id)
                     
                     except Exception as test_error:
                         logger.error(f"❌ Testing: Node {node.id} test ERROR: {str(test_error)} - reverting to {original_status}")
