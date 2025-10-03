@@ -1653,7 +1653,7 @@ async def start_services(
                     node.status = "offline"
                 logger.info(f"Node {node_id} status after PPTP failure: {node.status}")
                 node.last_update = datetime.utcnow()  # Update time
-                db.commit()
+                # Note: get_db() will auto-commit
                 results.append({
                     "node_id": node_id,
                     "success": False,
