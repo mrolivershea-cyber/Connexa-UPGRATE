@@ -118,6 +118,14 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], onTestComplete })
     }
   };
 
+  const handleMinimize = () => {
+    setIsMinimized(true);
+  };
+
+  const handleRestore = () => {
+    setIsMinimized(false);
+  };
+
   const getTestTypeDescription = () => {
     switch (testType) {
       case 'ping':
