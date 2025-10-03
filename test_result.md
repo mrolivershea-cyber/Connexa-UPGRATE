@@ -595,7 +595,9 @@ metadata:
   run_ui: false
 
 test_plan:
-  current_focus: []
+  current_focus:
+    - "Service-aware multiport ping implementation"
+    - "Manual Ping Test endpoint regression"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
