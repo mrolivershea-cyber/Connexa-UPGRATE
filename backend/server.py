@@ -572,19 +572,8 @@ async def import_nodes(
 async def process_import_testing_batches(session_id: str, node_ids: list, testing_mode: str, db_session: Session):
     """Process node testing in batches to prevent hanging and preserve results"""
     
-    BATCH_SIZE = 15  # Process 15 nodes at a time for better stability
-    total_nodes = len(node_ids)
-    processed_nodes = 0
-    failed_tests = 0
-    
-    try:
-        # Get fresh database session for background processing
-        db = SessionLocal()
-        
-        logger.info(f"🚀 Batch Processing: Starting {total_nodes} nodes in batches of {BATCH_SIZE}")
-        
-        # This function is incomplete - use process_testing_batches instead
-        pass
+    # Just delegate to the unified testing batches function
+    await process_testing_batches(session_id, node_ids, testing_mode, db_session)
         
         # Process nodes in batches
         for batch_start in range(0, total_nodes, BATCH_SIZE):
