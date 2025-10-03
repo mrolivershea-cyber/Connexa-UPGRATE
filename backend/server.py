@@ -17,7 +17,7 @@ from pathlib import Path
 import logging
 
 # Local imports
-from database import get_db, User, Node, create_tables, hash_password, verify_password
+from database import get_db, User, Node, create_tables, hash_password, verify_password, SessionLocal
 from auth import (
     create_access_token, authenticate_user, get_current_user, 
     get_current_user_optional, ACCESS_TOKEN_EXPIRE_MINUTES
