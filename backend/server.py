@@ -2359,13 +2359,18 @@ async def manual_ping_test(
             except Exception:
                 ping_result["packet_loss"] = 100.0 if not ping_result.get("success") else 0.0
 
-            # Update status based on result
+            # Update status based on result with sticky PING OK baseline
             if ping_result['success']:
                 node.status = "ping_ok"
                 logger.info(f"✅ Node {node_id} ping SUCCESS - status: {original_status} -> ping_ok")
             else:
-                node.status = "ping_failed"
-                logger.info(f"❌ Node {node_id} ping FAILED - status: {original_status} -> ping_failed")
+                # Never downgrade below PING OK once achieved
+                if has_ping_baseline(original_status):
+                    node.status = original_status  # keep ping_ok/speed_ok/online
+                    logger.info(f"🛡️ Node {node_id} ping FAILED but preserving baseline {original_status}")
+                else:
+                    node.status = "ping_failed"
+                    logger.info(f"❌ Node {node_id} ping FAILED - status: {original_status} -> ping_failed")
             
             node.last_check = datetime.utcnow()
             node.last_update = datetime.utcnow()
