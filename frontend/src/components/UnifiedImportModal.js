@@ -489,7 +489,6 @@ vpn2.example.com:443:client2:pass456:GB:London:`
                   <SelectContent>
                     <SelectItem value="ping_only">Ping only</SelectItem>
                     <SelectItem value="speed_only">Speed only</SelectItem>
-                    <SelectItem value="ping_speed">Ping + Speed</SelectItem>
                     <SelectItem value="no_test">No test</SelectItem>
                   </SelectContent>
                 </Select>
