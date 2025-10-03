@@ -513,6 +513,8 @@ test_plan:
     - "Immediate Database Persistence"
     - "Critical Russian User Speed_OK Protection Tests"
     - "Quick Speed_OK Status API Response Test"
+    - "Russian User Final Review - Complete Solution Verification"
+    - "Final Comprehensive Speed_OK Preservation Test"
 
 agent_communication:
   - agent: "main"
