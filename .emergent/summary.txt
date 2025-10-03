@@ -1,62 +1,85 @@
 <analysis>
-The trajectory details a debugging session initiated by a user reporting a critical bug: the server import process in the Connexa Admin Panel hangs at 90% when testing (ping or ping + speed) is enabled. Although the initial context suggested this bug had been fixed previously by replacing a generic ICMP ping with a specific PPTP connection test and adding timeouts, the user's report required re-investigation.
+The trajectory documents a multi-stage debugging and feature implementation process for the Connexa Admin Panel. The initial task was to investigate a user report that the server import process was hanging at 90%, a bug believed to be previously fixed. The user's requests, provided in Russian, evolved from a simple bug fix to a significant feature enhancement.
 
-The AI engineer's approach was systematic. First, it confirmed the user's request, which was exclusively to fix the hanging issue. Instead of diving into code edits, the engineer started by validating the current state of the application. It ran a comprehensive backend test suite, which confirmed that the import logic, including the PPTP tests and timeout handling in , was indeed working correctly and robustly. The backend tests passed all critical scenarios, proving the hanging issue was resolved at the core logic level.
+My chronological analysis reveals a multi-iteration development cycle. The first phase involved implementing a real-time progress update system using Server-Sent Events (SSE) on the FastAPI backend and integrating it into the React frontend modals (, ). This addressed the user's need for visibility during long operations.
 
-Next, the engineer investigated the frontend to understand why the user might still be experiencing the issue. Using a frontend testing agent, it successfully logged in, navigated to the import modal, and initiated an import. While a minor UI overlay issue was observed, the underlying backend process completed successfully.
+The user then reported the hanging persisted with large datasets, leading to the second phase: implementing backend batch processing. The AI refactored the import and testing logic to process nodes in smaller chunks, committing results incrementally to prevent data loss on failure. This phase introduced significant code complexity and syntax errors, which were resolved with the help of a .
 
-The conclusion was that the critical bug reported by the user had already been solved in a previous development cycle. The engineer communicated this to the user, explaining that the backend is stable and the perceived issue might be a minor visual glitch or browser cache problem, before asking for direction on the next task.
+The third and final phase focused on UI/UX refinement based on detailed user feedback. This included fixing the conditional rendering of UI elements (progress bars, minimize buttons) and implementing a robust minimize/restore functionality for the modals using  to persist the state of background tasks. The final automated test confirmed that all user requirements, including real-time progress, batch processing, and stateful minimization, were successfully implemented and functional. The project is now stable and awaits further user direction.
 </analysis>
 
 <product_requirements>
-The Connexa Admin Panel is a web application for managing a fleet of PPTP servers. The core product requirement is to provide administrators with reliable tools for importing, testing, and monitoring these servers.
+The primary goal is to enhance the Connexa Admin Panel to reliably handle large-scale server import and testing operations without UI freezes or data loss, while providing clear, real-time feedback to the user.
 
-A critical user-reported problem was that the server import feature would hang indefinitely at 90% completion when the ping only or ping + speed test options were selected. This made batch server management unusable and unreliable.
+**Core User Problems:**
+1.  **UI Freezing:** The application hangs at 90% when importing or testing a large number of servers, making the feature unusable.
+2.  **Lack of Feedback:** During these long operations, the user has no visibility into the current progress (e.g., how many servers have been processed).
+3.  **Blocking UI:** The modals for Import and Testing block the entire admin panel, preventing the user from performing other tasks while waiting.
 
-The previous engineer had implemented a fix by correcting the backend testing logic in the import API endpoint. The fix involved switching from a generic ICMP ping to a protocol-specific PPTP connection test and implementing a 30-second timeout with robust error handling for each server test. The work in this trajectory was to re-verify that this fix was still effective and resolve the user's recurring issue. The investigation confirmed the fix was successful at the backend level.
+**Implementation Requirements:**
+1.  **Real-time Progress Reporting:** Both the Import Nodes and Testing modals must display a real-time progress report, showing the number of servers processed out of the total (e.g., 50 of 200 processed).
+2.  **Minimize Functionality:** Both modals must include a minimize button in the header. When clicked, the modal should close, but the background process must continue. The user should be able to re-open the modal to view the ongoing progress.
+3.  **Batch Processing & Incremental Saves:** To prevent hanging and data loss, the backend must process nodes in small batches (e.g., 10-50 at a time) and save the results to the database after each batch.
 </product_requirements>
 
 <key_technical_concepts>
-- **FastAPI**: The Python web framework for the backend API.
-- **React**: The JavaScript library for the frontend user interface.
-- **Asyncio**: Used in the backend for concurrent, non-blocking server tests during the import process.  is key for timeout handling.
-- **PPTP Protocol Testing**: The core technical issue revolved around using the correct test—a TCP connection on port 1723—instead of a generic ICMP ping.
+- **FastAPI**: Backend framework for building the API.
+- **React**: Frontend library for building the user interface.
+- **Server-Sent Events (SSE)**: Used for pushing real-time progress updates from the backend to the frontend.
+- **Backend Batch Processing**: Logic to break down long-running tasks into smaller, manageable chunks to prevent timeouts and UI freezes.
+- **Frontend State Persistence**: Using  to save and restore the state of background tasks (like an import or test session) when a modal is minimized and re-opened.
 </key_technical_concepts>
 
 <code_architecture>
-The application is a monorepo with a Python/FastAPI backend and a React frontend.
+The application is a monorepo with a Python/FastAPI backend and a React/Vite frontend.
 
 
 
 -   ****
-    -   **Importance**: This file contains the main FastAPI application and the crucial  endpoint responsible for importing and testing servers. It was the location of the original bug and its fix.
-    -   **Summary of Changes**: No changes were made in this trajectory. The file was implicitly validated through backend testing, which confirmed that previous fixes (correct test function calls,  timeouts, and error handling) are working as intended.
+    -   **Importance**: This is the main backend file containing all API endpoints. It was heavily modified to support real-time progress and batch processing.
+    -   **Summary of Changes**:
+        -   A global dictionary () was added to manage the state of background tasks.
+        -   A new Server-Sent Events (SSE) endpoint () was created to stream progress updates to the client.
+        -   The primary import () and testing () endpoints were refactored to:
+            1.  Generate a unique  for each task.
+            2.  Delegate the processing to new asynchronous, batch-processing functions ().
+            3.  These functions process nodes in batches, update the progress tracker, and commit to the database incrementally.
+            4.  Return the  immediately to the client.
 
 -   ****
-    -   **Importance**: This module contains the specialized  class with the correct logic for testing PPTP connections. Its functions are called by  during the import process. It also contains placeholder logic for a speed test.
-    -   **Summary of Changes**: This file was read and analyzed to understand the testing logic, but no modifications were made.
+    -   **Importance**: The React component for the Import Nodes feature.
+    -   **Summary of Changes**:
+        -   State management was added for , , and .
+        -   On initiating an import, it now calls the backend, receives a , and subscribes to the SSE endpoint using .
+        -   The UI was updated to display a detailed, real-time progress bar and status messages based on the data from the SSE stream.
+        -   A minimize button was added. Its handler () saves the  to  and closes the modal.
+        -   Logic was added to  to check  on mount, allowing it to restore the state of a minimized process and re-subscribe to the SSE stream.
 
 -   ****
-    -   **Importance**: This is the React component that provides the user interface for the server import feature, where the user initiated the process and observed the hanging issue.
-    -   **Summary of Changes**: No changes were made to this file. Its functionality was tested via an automated frontend agent to confirm the UI was operational.
-
+    -   **Importance**: The React component for the Testing feature.
+    -   **Summary of Changes**:
+        -   It underwent the same architectural changes as  to unify functionality.
+        -   It was updated to call the new progress-enabled testing endpoints.
+        -   It now includes the same SSE subscription, progress display, and -based minimize/restore functionality.
 </code_architecture>
 
 <pending_tasks>
-- **Implement Real Speed Test**: The current speed test logic in  is a non-functional placeholder and needs to be replaced with a real implementation that measures server download/upload speeds.
-- **Implement SOCKS/OVPN Service Launch**: The core business logic for provisioning SOCKS and OpenVPN services on the managed servers has not been started.
+- **Implement Real Speed Test**: The current speed test logic is a placeholder and needs to be replaced with a real implementation.
+- **Implement SOCKS/OVPN Service Launch**: The core business logic for provisioning SOCKS and OpenVPN services on managed servers has not been started.
 </pending_tasks>
 
 <current_work>
-The most recent work was a re-investigation of a critical user-reported bug where the server import process would hang at 90% when testing was enabled. The process followed a test-first approach to validate the existing system state.
+The most recent work cycle involved a complete overhaul of the long-running tasks in the application to address critical UI freezing and user experience issues. The final implementation, validated by the testing agent, successfully delivered all requested features.
 
-1.  **Backend Verification**: A full suite of backend tests was executed against the  endpoint. The results were a 100% success, confirming that the previously implemented fixes were effective. The backend correctly uses a PPTP-specific test, handles unresponsive nodes with a 30-second timeout, and prevents the entire import process from stalling.
+1.  **Real-time Progress System**: A Server-Sent Events (SSE) system was established. The backend now generates a session ID for import/testing tasks and streams progress updates. The frontend modals subscribe to these streams to provide users with real-time feedback (e.g., Processing 50 of 200 nodes).
 
-2.  **Frontend Verification**: After confirming the backend was solid, an automated frontend test was performed. The test agent was able to successfully log into the application, open the , and initiate an import. This confirmed that the primary user flow was functional.
+2.  **Backend Batch Processing**: To handle large datasets without timeouts or server strain, the import and testing logic was refactored to process nodes in small, manageable batches. Results are saved to the database after each batch, ensuring no data is lost if the process fails mid-way.
 
-The conclusion of this work is that the critical hanging at 90% bug is **resolved** at the backend level. The user's experience may be affected by a minor, non-blocking UI glitch or browser cache issues, but the core server functionality is stable and reliable. The task was concluded by reporting these findings to the user and awaiting further instructions.
+3.  **Stateful UI Minimization**: Both the Import and Testing modals now feature a minimize button. When clicked, the modal closes, but the task continues in the background. The task's  is saved to . When the user re-opens the modal, it checks , restores its state, and reconnects to the SSE stream to show the current progress.
+
+The testing agent has confirmed that all these features are working correctly: the minimize buttons are present, the real-time report displays correctly from the start, and the state is successfully restored after minimizing.
 </current_work>
 
 <optional_next_step>
-Wait for the user's confirmation that the issue is resolved on their end, and then propose moving forward with the pending tasks, starting with the implementation of the real speed test functionality.
+All user-requested features have been implemented and validated. I will await further instructions or the next set of tasks.
 </optional_next_step>
