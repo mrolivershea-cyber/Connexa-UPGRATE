@@ -256,7 +256,6 @@ async def get_current_user_info(current_user: User = Depends(get_current_user)):
     return {"username": current_user.username, "id": current_user.id}
 
 # Node CRUD Routes
-@api_router.get("/nodes")
 def apply_node_filters(query, **filters):
     """Helper function to apply filters to node queries - reduces code duplication"""
     ip = filters.get('ip')
