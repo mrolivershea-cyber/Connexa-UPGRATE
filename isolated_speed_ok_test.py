@@ -101,16 +101,24 @@ class IsolatedSpeedOKTester:
         # Wait 2 seconds
         time.sleep(2)
         
-        # Verify node 1 status immediately
-        success_check1, response_check1 = self.make_request('GET', f'nodes/{node1_id}')
-        print(f"🔍 Full node response: {response_check1}")
+        # Verify node 1 status immediately by getting all nodes and finding our node
+        success_check1, response_check1 = self.make_request('GET', 'nodes')
+        node1_status = 'unknown'
         
-        if success_check1 and response_check1.get('status') == 'speed_ok':
+        if success_check1 and 'nodes' in response_check1:
+            for node in response_check1['nodes']:
+                if node.get('id') == node1_id:
+                    node1_status = node.get('status', 'unknown')
+                    break
+        
+        print(f"🔍 Node 1 status from nodes list: {node1_status}")
+        
+        if node1_status == 'speed_ok':
             print(f"✅ Node 1 status immediately after creation: speed_ok")
             self.log_test("Speed_OK Preservation - Immediate Status Check", True, "Node has speed_ok status immediately after creation")
         else:
-            print(f"❌ Node 1 status immediately after creation: {response_check1.get('status', 'unknown')}")
-            self.log_test("Speed_OK Preservation - Immediate Status Check", False, f"Expected speed_ok, got {response_check1.get('status', 'unknown')}")
+            print(f"❌ Node 1 status immediately after creation: {node1_status}")
+            self.log_test("Speed_OK Preservation - Immediate Status Check", False, f"Expected speed_ok, got {node1_status}")
             return False
         
         # Test 2: Verify status persists for 30 seconds
