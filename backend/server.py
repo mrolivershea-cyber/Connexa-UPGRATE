@@ -2732,10 +2732,6 @@ async def process_testing_batches(session_id: str, node_ids: list, testing_mode:
             await asyncio.sleep(0.5)
             
             logger.info(f"✅ Testing batch {batch_start//BATCH_SIZE + 1} completed: {len(current_batch)} nodes scheduled")
-                
-                except Exception as node_error:
-                    logger.error(f"❌ Testing: Critical error processing Node {node_id}: {str(node_error)}")
-                    failed_tests += 1
             
             # Cleanup dedupe registry periodically (outside inner loops)
             try:
