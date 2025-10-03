@@ -74,16 +74,6 @@ def progress_increment(session_id: str, current_task: str = "", add_result: dict
     new_val = min(tracker.total_items, (tracker.processed_items or 0) + 1)
     tracker.update(new_val, current_task, add_result)
 
-        return {
-            "session_id": self.session_id,
-            "total_items": self.total_items,
-            "processed_items": self.processed_items,
-            "current_task": self.current_task,
-            "status": self.status,
-            "progress_percent": int((self.processed_items / self.total_items) * 100) if self.total_items > 0 else 0,
-            "results": self.results
-        }
-
 async def cleanup_stuck_nodes():
     """Clean up nodes stuck in 'checking' status on startup"""
     try:
