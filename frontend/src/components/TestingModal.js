@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { Activity, Zap, Wifi, Timer } from 'lucide-react';
+import { Activity, Zap, Wifi, Timer, Minus, X } from 'lucide-react';
 import axios from 'axios';
 
 const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], onTestComplete }) => {
