@@ -719,8 +719,16 @@ async def process_import_testing_batches(session_id: str, node_ids: list, testin
                     logger.error(f"❌ Batch: Critical error processing Node {node_id}: {str(node_error)}")
                     failed_tests += 1
             
+            # Force commit after each batch and clear session cache
+            try:
+                db.commit()
+                db.expunge_all()  # Clear session cache to free memory
+            except Exception as commit_error:
+                logger.error(f"❌ Batch commit error: {commit_error}")
+                db.rollback()
+            
             # Small delay between batches to prevent system overload
-            await asyncio.sleep(1)
+            await asyncio.sleep(2)
             
             logger.info(f"✅ Batch {batch_start//BATCH_SIZE + 1} completed: {len(current_batch)} nodes processed")
     
