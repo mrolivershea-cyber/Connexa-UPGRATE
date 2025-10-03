@@ -48,16 +48,16 @@ class Node(Base):
     id = Column(Integer, primary_key=True, index=True)
     ip = Column(String(45), index=True, nullable=False)
     port = Column(Integer, nullable=True)  # Port for the service
-    login = Column(String(100), default="")
+    login = Column(String(100), index=True, default="")
     password = Column(String(255), default="")
-    provider = Column(String(100), default="")
-    country = Column(String(100), default="")
-    state = Column(String(100), default="")
-    city = Column(String(100), default="")
-    zipcode = Column(String(20), default="")
+    provider = Column(String(100), index=True, default="")
+    country = Column(String(100), index=True, default="")
+    state = Column(String(100), index=True, default="")
+    city = Column(String(100), index=True, default="")
+    zipcode = Column(String(20), index=True, default="")
     comment = Column(Text, default="")
-    protocol = Column(String(10), default="pptp")  # pptp, ssh, socks, server
-    status = Column(String(20), default="not_tested")  # Unified status: not_tested, ping_failed, ping_ok, speed_ok, offline, online
+    protocol = Column(String(10), index=True, default="pptp")  # pptp, ssh, socks, server
+    status = Column(String(20), index=True, default="not_tested")  # Unified status: not_tested, ping_failed, ping_ok, speed_ok, offline, online
     speed = Column(String(20), nullable=True)  # Connection speed in Mbps
     
     # SOCKS Proxy data (populated when services are launched)
