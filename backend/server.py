@@ -65,9 +65,9 @@ async def startup_event():
         db.commit()
         logger.info("Default admin user created with username: admin, password: admin")
     
-    # TEMPORARILY DISABLED background monitoring to isolate speed_ok status issue
-    # start_background_monitoring()
-    logger.warning("⚠️ Background monitoring DISABLED for debugging speed_ok status preservation")
+    # Start background monitoring with improved protection
+    start_background_monitoring()
+    logger.info("✅ Background monitoring RE-ENABLED with enhanced speed_ok protection")
 
 # ===== BACKGROUND MONITORING SYSTEM =====
 # This system monitors ONLY online nodes every 5 minutes as per user requirements
