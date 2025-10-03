@@ -241,7 +241,34 @@ vpn2.example.com:443:client2:pass456:GB:London:`
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto" data-testid="unified-import-modal">
         <DialogHeader>
-          <DialogTitle>Импорт узлов</DialogTitle>
+          <div className="flex items-center justify-between">
+            <DialogTitle className="flex items-center">
+              <Activity className="h-5 w-5 mr-2" />
+              Импорт узлов
+            </DialogTitle>
+            <div className="flex items-center space-x-2">
+              {loading && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleMinimize}
+                  className="h-8 w-8 p-0"
+                  title="Свернуть"
+                >
+                  <Minus className="h-4 w-4" />
+                </Button>
+              )}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onClose}
+                className="h-8 w-8 p-0"
+                title="Закрыть"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
           <DialogDescription>
             Введите данные узлов в текстовом формате. Поддерживается импорт как одного узла, так и нескольких.
           </DialogDescription>
