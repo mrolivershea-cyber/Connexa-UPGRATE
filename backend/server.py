@@ -574,8 +574,6 @@ async def process_import_testing_batches(session_id: str, node_ids: list, testin
     
     # Just delegate to the unified testing batches function
     await process_testing_batches(session_id, node_ids, testing_mode, db_session)
-        
-        # Process nodes in batches
         for batch_start in range(0, total_nodes, BATCH_SIZE):
             batch_end = min(batch_start + BATCH_SIZE, total_nodes)
             current_batch = node_ids[batch_start:batch_end]
