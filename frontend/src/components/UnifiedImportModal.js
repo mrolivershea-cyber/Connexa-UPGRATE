@@ -29,7 +29,35 @@ const UnifiedImportModal = ({ isOpen, onClose, onComplete }) => {
 
   React.useEffect(() => {
     if (isOpen) {
-      // Reset form
+      // Check for saved progress state first
+      const savedState = localStorage.getItem('importProgress');
+      
+      if (savedState) {
+        try {
+          const state = JSON.parse(savedState);
+          const isRecent = (Date.now() - state.timestamp) < 300000; // 5 minutes
+          
+          if (isRecent && state.sessionId) {
+            // Restore saved state
+            setSessionId(state.sessionId);
+            setLoading(state.loading || false);
+            setProgressData(state.progressData || null);
+            setIsMinimized(false);
+            
+            // Don't reset form if restoring active process
+            toast.info('Восстановлен активный процесс импорта');
+            return;
+          } else {
+            // Clear old saved state
+            localStorage.removeItem('importProgress');
+          }
+        } catch (error) {
+          console.error('Error parsing saved import state:', error);
+          localStorage.removeItem('importProgress');
+        }
+      }
+      
+      // Reset form for new import
       setImportData('');
       setProtocol('pptp');
       setTestingMode('ping_only');
