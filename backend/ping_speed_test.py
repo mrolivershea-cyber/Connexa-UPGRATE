@@ -51,24 +51,22 @@ async def tcp_connect_measure(ip: str, port: int, per_attempt_timeout: float) ->
     except Exception as e:
         return False, per_attempt_timeout * 1000.0, f"EXC:{str(e)}"
 
-async def multiport_tcp_ping(ip: str, ports: List[int], attempts: int = 3, per_attempt_timeout: float = 1.5) -> Dict:
-    """Fast reachability test across multiple ports with early-exit and stricter criteria.
-    Success when: total >= 2 successful probes, or 1 success with >=50% success_rate.
-    Returns structure compatible with UI expectations (server will add packet_loss for UI).
+async def multiport_tcp_ping(ip: str, ports: List[int], timeouts: List[float]) -> Dict:
+    """Reachability test across one or more ports with exactly len(timeouts) attempts total.
+    For each timeout in timeouts, run a parallel connect across provided ports with that per-attempt timeout.
+    Early-exit on sufficient success signal. This caps attempts to len(timeouts) (e.g., 3).
     """
     total_ok = 0
     total_attempts = 0
     best_ms: Optional[float] = None
     details: Dict[int, Dict[str, Optional[float]]] = {}
 
-    # Limit number of ports to probe to keep it fast
-    probe_ports = (ports or [1723, 443, 80, 22])[:4]
+    probe_ports = ports[:1] if ports else [1723]
 
-    for attempt_idx in range(attempts):
-        tasks = [tcp_connect_measure(ip, p, per_attempt_timeout) for p in probe_ports]
+    for idx, t in enumerate(timeouts):
+        tasks = [tcp_connect_measure(ip, p, t) for p in probe_ports]
         results = await asyncio.gather(*tasks)
         any_ok_this_round = False
-
         for p, (ok, elapsed, err) in zip(probe_ports, results):
             total_attempts += 1
             rec = details.setdefault(p, {"ok": 0, "fail": 0, "best_ms": None})
@@ -82,16 +80,14 @@ async def multiport_tcp_ping(ip: str, ports: List[int], attempts: int = 3, per_a
                     best_ms = elapsed
             else:
                 rec["fail"] += 1
-        # Early exit if we already have good signal
-        if total_ok >= 2:
+        # Early-exit
+        if total_ok >= 2 or (total_ok >= 1 and (total_ok / max(1, total_attempts)) >= 0.5):
             break
-        # Small pacing between attempts only if nothing succeeded
-        if attempt_idx < attempts - 1 and not any_ok_this_round:
-            await asyncio.sleep(0.15)
+        if not any_ok_this_round and idx < len(timeouts) - 1:
+            await asyncio.sleep(0.05)
 
     success_rate = (total_ok / max(1, total_attempts)) * 100.0
     success = total_ok >= 2 or (total_ok >= 1 and success_rate >= 50.0)
-    # Compute avg from best per-port successes to avoid skew
     times = [v["best_ms"] for v in details.values() if v["best_ms"] is not None]
     avg_time = float(sum(times) / len(times)) if times else 0.0
 
