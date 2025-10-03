@@ -276,11 +276,11 @@ vpn2.example.com:443:client2:pass456:GB:London:`
               <CardContent>
                 <div className="space-y-3">
                   <div className="flex justify-between text-sm">
-                    <span>{progressData.current_task || 'Выполняется импорт...'}</span>
-                    <span>{progressData.progress_percent || 0}%</span>
+                    <span>{progressData?.current_task || 'Выполняется импорт...'}</span>
+                    <span>{progressData?.progress_percent || 0}%</span>
                   </div>
                   <Progress 
-                    value={progressData.progress_percent || 0} 
+                    value={progressData?.progress_percent || 0} 
                     className="w-full" 
                   />
                   {progressData.results && progressData.results.length > 0 && (
