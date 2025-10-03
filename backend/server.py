@@ -610,6 +610,11 @@ async def import_nodes(
                 
                 logger.info(f"📊 Import testing completed: {processed_nodes} processed, {failed_tests} failed")
                 
+                # Complete progress tracking
+                if session_id in progress_store:
+                    progress.complete("completed")
+                    progress.update(len(nodes_to_test), f"Тестирование завершено: {processed_nodes} успешно, {failed_tests} ошибок")
+                
                 # Cleanup any remaining nodes stuck in "checking" status
                 stuck_nodes = db.query(Node).filter(Node.status == "checking").all()
                 if stuck_nodes:
