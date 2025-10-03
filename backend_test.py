@@ -13073,6 +13073,13 @@ State: California""",
             print("❌ Login failed - stopping tests")
             return False
         
+        # ========== IMPROVED PING WORKFLOW TESTS (Review Request) ==========
+        print("\n" + "="*80)
+        print("🔥 IMPROVED PING WORKFLOW TESTS (Review Request)")
+        print("="*80)
+        
+        self.test_improved_ping_workflow()
+        
         # PRIORITY: Run critical import tests first
         print("\n" + "="*80)
         print("🔥 CRITICAL RUSSIAN USER IMPORT TESTING - PRIORITY TESTS")
