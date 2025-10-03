@@ -76,8 +76,8 @@ monitoring_active = False
 
 async def monitor_online_nodes():
     """
-    Background monitoring task for online nodes
-    CRITICAL: Only monitors 'online' status - does NOT touch speed_ok or other statuses
+    Background monitoring task for online nodes ONLY
+    CRITICAL: This function MUST NEVER touch nodes with speed_ok, ping_ok, or any non-online status
     """
     global monitoring_active
     
@@ -86,61 +86,55 @@ async def monitor_online_nodes():
             # Create separate session to avoid transaction conflicts
             db = SessionLocal()
             
-            # CRITICAL: Only monitor nodes that are EXACTLY 'online' status
-            # ABSOLUTELY NEVER touch speed_ok, ping_ok, or other statuses
-            online_nodes = db.query(Node).filter(Node.status == "online").all()
+            # CRITICAL: Query ONLY nodes with 'online' status
+            # This ensures we NEVER touch speed_ok or other statuses
+            online_count = db.query(Node).filter(Node.status == "online").count()
             
-            # Double-check: exclude any nodes that aren't online
-            online_nodes = [node for node in online_nodes if node.status == "online"]
-            
-            if online_nodes:
-                logger.info(f"Monitoring {len(online_nodes)} online nodes...")
+            if online_count > 0:
+                logger.info(f"🔍 Background monitor cycle starting - {online_count} online nodes found")
+                
+                # Get fresh list of online nodes
+                online_nodes = db.query(Node).filter(Node.status == "online").all()
                 
                 for node in online_nodes:
+                    # ABSOLUTE SAFETY: Re-query node to ensure status hasn't changed
+                    fresh_node = db.query(Node).filter(Node.id == node.id).first()
+                    
+                    if not fresh_node:
+                        logger.warning(f"⚠️ Monitor: Node {node.id} no longer exists")
+                        continue
+                    
+                    # CRITICAL PROTECTION: If status is NOT online, skip it completely
+                    if fresh_node.status != "online":
+                        logger.info(f"🛡️ Monitor: Node {node.id} status changed to {fresh_node.status} - SKIPPING (only monitor online nodes)")
+                        continue
+                    
                     try:
-                        # Triple-check node is EXACTLY online (avoid race conditions)
-                        current_node = db.query(Node).filter(Node.id == node.id).first()
-                        if not current_node or current_node.status != "online":
-                            logger.info(f"SKIPPING node {node.id} - status is {current_node.status if current_node else 'deleted'} (not online)")
-                            continue
-                            
-                        # ABSOLUTE PROTECTION: Never touch speed_ok or other successful statuses
-                        if current_node.status in ["speed_ok", "ping_ok"]:
-                            logger.info(f"PROTECTION: Node {node.id} has {current_node.status} - skipping monitoring")
-                            continue
-                            
                         # Check if services are still running
                         service_status = await service_manager.get_service_status(node.id)
                         
                         if not service_status.get('active', False):
-                            # Service not active - BUT only change if node is still online
-                            if current_node.status == "online":
-                                logger.warning(f"Node {node.id} ({node.ip}) services failed - marking offline")
-                                current_node.status = "offline"
-                                current_node.last_update = datetime.utcnow()
+                            # Double-check status before changing
+                            if fresh_node.status == "online":
+                                logger.warning(f"❌ Monitor: Node {node.id} services failed - marking offline")
+                                fresh_node.status = "offline"
+                                fresh_node.last_update = datetime.utcnow()
                             else:
-                                logger.info(f"Node {node.id} status already changed to {current_node.status}")
-                            
-                            # Additional ping check for logging only
-                            try:
-                                ping_result = await network_tester.ping_test(node.ip)
-                                if not ping_result.get('reachable', False):
-                                    logger.warning(f"Node {node.id} ({node.ip}) also failed ping test")
-                            except Exception as ping_error:
-                                logger.warning(f"Ping check failed for node {node.id}: {ping_error}")
-                        
+                                logger.warning(f"⚠️ Monitor: Node {node.id} status already {fresh_node.status} - not changing")
+                    
                     except Exception as node_error:
-                        logger.error(f"Error monitoring node {node.id}: {node_error}")
-                        # CRITICAL FIX: Don't automatically mark as offline on monitoring errors
-                        # This could interfere with nodes that have speed_ok status
-                        logger.info(f"Node {node.id} monitoring error - NOT changing status to preserve current state")
+                        logger.error(f"❌ Monitor: Error checking node {node.id}: {node_error}")
+                        # NEVER change status on monitoring errors
+            else:
+                logger.debug("🔍 Background monitor cycle - no online nodes to monitor")
             
-            # Explicit commit for background task
+            # Commit changes for this monitoring cycle
             db.commit()
             db.close()
+            logger.debug("✅ Background monitor cycle complete")
             
         except Exception as e:
-            logger.error(f"Background monitoring error: {e}")
+            logger.error(f"❌ Background monitoring error: {e}")
             try:
                 db.rollback()
                 db.close()
