@@ -175,6 +175,12 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], onTestComplete })
     };
   }, [sessionId, loading, API, selectedNodeIds.length, onTestComplete, totalNodes]);
 
+  const [pingConcurrency, setPingConcurrency] = useState(50);
+  const [speedConcurrency, setSpeedConcurrency] = useState(8);
+  const [pingTimeouts, setPingTimeouts] = useState('0.8,1.2,1.6');
+  const [speedSampleKB, setSpeedSampleKB] = useState(512);
+  const [speedTimeout, setSpeedTimeout] = useState(15);
+
   const handleTest = async () => {
     if (selectedNodeIds.length === 0) {
       toast.error('Выберите узлы для тестирования');
