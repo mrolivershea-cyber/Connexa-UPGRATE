@@ -572,7 +572,7 @@ async def import_nodes(
 async def process_import_testing_batches(session_id: str, node_ids: list, testing_mode: str, db_session: Session):
     """Process node testing in batches to prevent hanging and preserve results"""
     
-    BATCH_SIZE = 25  # Process 25 nodes at a time
+    BATCH_SIZE = 15  # Process 15 nodes at a time for better stability
     total_nodes = len(node_ids)
     processed_nodes = 0
     failed_tests = 0
