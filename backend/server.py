@@ -53,6 +53,17 @@ class ProgressTracker:
         progress_store[self.session_id] = self
     
     def to_dict(self):
+# Progress safe increment helper
+progress_locks = {}
+
+def progress_increment(session_id: str, current_task: str = "", add_result: dict | None = None):
+    tracker = progress_store.get(session_id)
+    if not tracker:
+        return
+    # No real per-session lock to avoid overhead; ensure monotonic increment
+    new_val = min(tracker.total_items, (tracker.processed_items or 0) + 1)
+    tracker.update(new_val, current_task, add_result)
+
         return {
             "session_id": self.session_id,
             "total_items": self.total_items,
