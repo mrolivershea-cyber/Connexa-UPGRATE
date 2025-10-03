@@ -214,7 +214,12 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], onTestComplete })
       
       const response = await axios.post(`${API}/${endpoint}`, {
         node_ids: selectedNodeIds,
-        test_type: testType
+        test_type: testType,
+        ping_concurrency: pingConcurrency,
+        speed_concurrency: speedConcurrency,
+        ping_timeouts: pingTimeouts.split(',').map(v => parseFloat(v.trim())).filter(v => !isNaN(v)),
+        speed_sample_kb: Number(speedSampleKB) || 512,
+        speed_timeout: Number(speedTimeout) || 15
       }, {
         timeout: 180000 // 3 minutes for single tests
       });
