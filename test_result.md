@@ -501,6 +501,7 @@ test_plan:
     - "Manual testing workflow admin buttons"
     - "Enhanced Ping Accuracy and Real Speed Testing"
     - "Immediate Database Persistence"
+    - "Critical Russian User Speed_OK Protection Tests"
 
 agent_communication:
   - agent: "main"
