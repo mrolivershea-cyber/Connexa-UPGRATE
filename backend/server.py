@@ -86,8 +86,11 @@ async def monitor_online_nodes():
             db = SessionLocal()
             
             # CRITICAL: Only monitor nodes that are EXACTLY 'online' status
-            # Do NOT interfere with speed_ok, ping_ok, or other statuses
+            # ABSOLUTELY NEVER touch speed_ok, ping_ok, or other statuses
             online_nodes = db.query(Node).filter(Node.status == "online").all()
+            
+            # Double-check: exclude any nodes that aren't online
+            online_nodes = [node for node in online_nodes if node.status == "online"]
             
             if online_nodes:
                 logger.info(f"Monitoring {len(online_nodes)} online nodes...")
