@@ -152,7 +152,7 @@ class PingWorkflowTester:
         # No cleanup needed since we used existing nodes
         
         self.log_test("Improved Ping Workflow - Complete", success, 
-                     "All ping workflow tests completed" if success else "Some ping workflow tests failed")
+                     "All ping workflow tests completed successfully" if success else "Some ping workflow tests failed")
         return success
     
     def test_single_node_ping_with_validation(self, node_id):
