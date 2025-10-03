@@ -283,7 +283,7 @@ vpn2.example.com:443:client2:pass456:GB:London:`
                     value={progressData?.progress_percent || 0} 
                     className="w-full" 
                   />
-                  {progressData.results && progressData.results.length > 0 && (
+                  {progressData?.results && progressData.results.length > 0 && (
                     <div className="max-h-32 overflow-y-auto space-y-1">
                       {progressData.results.slice(-3).map((result, index) => (
                         <div key={index} className="text-xs text-gray-600 flex items-center">
