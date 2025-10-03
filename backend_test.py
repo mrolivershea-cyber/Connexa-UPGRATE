@@ -11008,9 +11008,9 @@ State: California""",
         print("\n🔥 CRITICAL IMPORT TESTING: ping_speed mode")
         print("=" * 60)
         
-        # Test data: 2 PPTP configs in IP:PORT:LOGIN:PASSWORD format
-        test_configs = """13.14.15.16:1723:testuser1:testpass1
-17.18.19.20:1723:testuser2:testpass2"""
+        # Test data: 2 PPTP configs in Format 2 (IP Login Password State) - more reliable
+        test_configs = """13.14.15.16 testuser1 testpass1 FL
+17.18.19.20 testuser2 testpass2 WA"""
         
         import_data = {
             "data": test_configs,
