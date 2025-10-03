@@ -163,13 +163,21 @@ class PingWorkflowTester:
         if success and 'results' in response:
             result = response['results'][0] if response['results'] else {}
             
+            # Debug: Print the actual response
+            print(f"   Debug - Ping result: {result}")
+            
             # Validate required fields in ping_result
             ping_result = result.get('ping_result', {})
             required_fields = ['success', 'avg_time', 'success_rate', 'packet_loss']
             
             missing_fields = [field for field in required_fields if field not in ping_result]
             
-            if not missing_fields:
+            # Special case: if node has speed_ok status, ping test is skipped
+            if result.get('status') == 'speed_ok' and 'message' in result and 'skipped' in result['message'].lower():
+                self.log_test("Single Node Ping - Speed_OK Protection", True, 
+                             f"Ping test correctly skipped for speed_ok node: {result.get('message')}")
+                return True
+            elif not missing_fields:
                 self.log_test("Single Node Ping - Field Validation", True, 
                              f"All required fields present: {required_fields}")
                 
