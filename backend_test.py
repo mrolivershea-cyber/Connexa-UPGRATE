@@ -9816,6 +9816,10 @@ State: California""",
             print("❌ Login failed - stopping tests")
             return False
         
+        # ========== RUSSIAN USER FINAL REVIEW TESTS (2025-01-08) ==========
+        print("\n🇷🇺 PRIORITY: Running Russian User Final Review Tests")
+        russian_tests_passed = self.run_russian_user_final_review_tests()
+        
         # ========== CRITICAL AUTOMATIC PROCESSES TESTS (FINAL REVIEW) ==========
         print("\n" + "🔥" * 20 + " КРИТИЧНЫЙ ФИНАЛЬНЫЙ ТЕСТ АВТОМАТИЧЕСКИХ ПРОЦЕССОВ " + "🔥" * 20)
         print("🎯 АБСОЛЮТНО ФИНАЛЬНЫЙ ТЕСТ: Проверка ВСЕХ автоматических процессов на сохранение speed_ok статуса")
