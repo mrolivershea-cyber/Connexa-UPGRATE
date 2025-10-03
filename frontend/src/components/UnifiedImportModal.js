@@ -256,6 +256,9 @@ vpn2.example.com:443:client2:pass456:GB:London:`
   // Progress completion handler
   React.useEffect(() => {
     if (progressData && progressData.status === 'completed') {
+      // Clear saved state when completed
+      localStorage.removeItem('importProgress');
+      
       // Show final results
       setPreviewResult({
         ...progressData,
@@ -268,8 +271,10 @@ vpn2.example.com:443:client2:pass456:GB:London:`
         onComplete(progressData);
       }
     } else if (progressData && progressData.status === 'failed') {
+      localStorage.removeItem('importProgress');
       toast.error('Ошибка при выполнении операции');
     } else if (progressData && progressData.status === 'cancelled') {
+      localStorage.removeItem('importProgress');
       toast.info('Операция отменена');
     }
   }, [progressData, onComplete]);
