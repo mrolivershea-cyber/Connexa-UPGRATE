@@ -2528,31 +2528,22 @@ async def manual_ping_speed_test_batch_progress(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Batch ping+speed test with real-time progress tracking"""
-    
-    # Generate session ID for progress tracking
+    """DEPRECATED: Combined ping+speed removed. This maps to speed-only for compatibility."""
     session_id = str(uuid.uuid4())
-    
-    # Get all valid nodes
+    # Gather nodes
     nodes = []
     for node_id in test_request.node_ids:
         node = db.query(Node).filter(Node.id == node_id).first()
         if node:
             nodes.append(node)
-    
     if not nodes:
         return {"session_id": session_id, "message": "Нет узлов для тестирования", "started": False}
-    
-    # Initialize progress tracker
     progress = ProgressTracker(session_id, len(nodes))
-    progress.update(0, f"Начинаем комбинированное тестирование {len(nodes)} узлов...")
-    
-    # Start background batch testing
+    progress.update(0, f"Запуск speed-тестирования {len(nodes)} узлов (замена ping+speed)")
     asyncio.create_task(process_testing_batches(
-        session_id, [n.id for n in nodes], "ping_speed", db
+        session_id, [n.id for n in nodes], "speed_only", db
     ))
-    
-    return {"session_id": session_id, "message": f"Запущено тестирование {len(nodes)} узлов", "started": True}
+    return {"session_id": session_id, "message": f"Запущено тестирование {len(nodes)} узлов (speed)", "started": True}
 
 async def process_testing_batches(session_id: str, node_ids: list, testing_mode: str, db_session):
     """Process testing in batches for any test type"""
