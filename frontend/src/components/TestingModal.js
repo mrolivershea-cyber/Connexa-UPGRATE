@@ -88,6 +88,7 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], onTestComplete })
       setProgress(100);
       
       setResults(response.data.results);
+      setProcessedNodes(response.data.results.length);
       
       const successCount = response.data.results.filter(r => r.success).length;
       const failCount = response.data.results.length - successCount;
