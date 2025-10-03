@@ -438,65 +438,113 @@ async def import_nodes(
                 nodes_to_test.append(replaced_node['id'])
             
             if nodes_to_test:
-                try:
-                    # Perform testing based on mode
-                    for node_id in nodes_to_test:
+                # Import proper testing functions
+                from ping_speed_test import test_node_ping, test_node_speed
+                
+                # Process nodes with better error handling to prevent hanging
+                processed_nodes = 0
+                failed_tests = 0
+                
+                for node_id in nodes_to_test:
+                    try:
                         node = db.query(Node).filter(Node.id == node_id).first()
-                        if node:
-                            # CRITICAL: Save original status BEFORE any changes
-                            original_status = node.status
-                            logger.info(f"🔍 Import test: Node {node.id} original status: {original_status}")
-                            
-                            # NEVER test speed_ok nodes - they already passed validation
-                            if original_status == "speed_ok":
-                                logger.info(f"✅ Import: Node {node.id} has speed_ok - SKIPPING test to preserve status")
-                                continue
-                            
-                            node.status = "checking"
-                            node.last_update = datetime.utcnow()
-                            
+                        if not node:
+                            logger.warning(f"❌ Import test: Node {node_id} not found in database")
+                            continue
+                        
+                        # CRITICAL: Save original status BEFORE any changes
+                        original_status = node.status
+                        logger.info(f"🔍 Import test: Node {node.id} ({node.ip}) original status: {original_status}")
+                        
+                        # NEVER test speed_ok nodes - they already passed validation
+                        if original_status == "speed_ok":
+                            logger.info(f"✅ Import: Node {node.id} has speed_ok - SKIPPING test to preserve status")
+                            continue
+                        
+                        # Set checking status and commit immediately to prevent data loss
+                        node.status = "checking"
+                        node.last_update = datetime.utcnow()
+                        db.commit()  # Immediate commit to save checking status
+                        
+                        try:
+                            # Ping test
                             if data.testing_mode in ["ping_only", "ping_speed"]:
-                                # Use proper PPTP ping test instead of ICMP ping
-                                from ping_speed_test import test_node_ping
+                                logger.info(f"🔍 Import: Starting PPTP ping test for Node {node.id} ({node.ip})")
                                 ping_result = await test_node_ping(node.ip, fast_mode=True)
+                                
                                 if ping_result['success']:
                                     node.status = "ping_ok"
                                     logger.info(f"✅ Import: Node {node.id} PPTP ping SUCCESS - {original_status} -> ping_ok")
                                 else:
                                     node.status = "ping_failed"
                                     logger.info(f"❌ Import: Node {node.id} PPTP ping FAILED - {original_status} -> ping_failed")
+                                
                                 node.last_update = datetime.utcnow()
+                                db.commit()  # Commit ping result immediately
                             
+                            # Speed test 
                             if data.testing_mode in ["speed_only", "ping_speed"]:
                                 # Speed test only if ping passed or for speed_only mode
-                                if data.testing_mode == "speed_only" or node.status == "ping_ok":
-                                    # Use proper speed test with IP address
-                                    from ping_speed_test import test_node_speed
+                                should_speed_test = (data.testing_mode == "speed_only" or node.status == "ping_ok")
+                                
+                                if should_speed_test:
+                                    logger.info(f"🔍 Import: Starting speed test for Node {node.id} ({node.ip})")
                                     speed_result = await test_node_speed(node.ip)
+                                    
                                     if speed_result['success'] and speed_result.get('download_speed'):
-                                        node.speed = f"{speed_result['download_speed']:.1f}"
-                                        if speed_result['download_speed'] > 1.0:
+                                        download_speed = speed_result['download_speed']
+                                        node.speed = f"{download_speed:.1f}"
+                                        
+                                        if download_speed > 1.0:  # Speed threshold
                                             node.status = "speed_ok"
-                                            logger.info(f"✅ Import: Node {node.id} speed OK ({speed_result['download_speed']:.1f} Mbps) - {original_status} -> speed_ok")
+                                            logger.info(f"✅ Import: Node {node.id} speed OK ({download_speed:.1f} Mbps) - {original_status} -> speed_ok")
                                         else:
-                                            # Don't downgrade to ping_failed - keep ping_ok
+                                            # Don't downgrade to ping_failed - keep appropriate status
                                             node.status = "ping_ok" if data.testing_mode == "ping_speed" else "ping_failed"
-                                            logger.info(f"⚠️ Import: Node {node.id} speed SLOW ({speed_result['download_speed']:.1f} Mbps) - keeping {node.status}")
-                                        node.last_update = datetime.utcnow()
+                                            logger.info(f"⚠️ Import: Node {node.id} speed SLOW ({download_speed:.1f} Mbps) - keeping {node.status}")
                                     else:
                                         # Speed test failed
                                         if data.testing_mode == "speed_only":
-                                            node.status = "ping_failed" 
+                                            node.status = "ping_failed"
                                         # For ping_speed mode, keep ping_ok if ping passed
                                         logger.info(f"❌ Import: Node {node.id} speed test FAILED - status: {node.status}")
-                                        node.last_update = datetime.utcnow()
-                                
+                                    
+                                    node.last_update = datetime.utcnow()
+                                    db.commit()  # Commit speed result immediately
+                            
                             node.last_check = datetime.utcnow()
+                            db.commit()  # Final commit for the node
+                            processed_nodes += 1
+                            
+                        except asyncio.TimeoutError:
+                            logger.warning(f"⏱️ Import: Node {node.id} test TIMEOUT - reverting to {original_status}")
+                            node.status = original_status  # Revert to original status on timeout
+                            node.last_update = datetime.utcnow()
+                            db.commit()
+                            failed_tests += 1
+                        
+                        except Exception as test_error:
+                            logger.error(f"❌ Import: Node {node.id} test ERROR: {str(test_error)} - reverting to {original_status}")
+                            node.status = original_status  # Revert to original status on error
+                            node.last_update = datetime.utcnow()
+                            db.commit()
+                            failed_tests += 1
                     
-                    # Note: get_db() will auto-commit
-                except Exception as e:
-                    logger.warning(f"Testing during import failed: {str(e)}")
-                    # Don't fail the import if testing fails
+                    except Exception as node_error:
+                        logger.error(f"❌ Import: Critical error processing Node {node_id}: {str(node_error)}")
+                        failed_tests += 1
+                        continue
+                
+                logger.info(f"📊 Import testing completed: {processed_nodes} processed, {failed_tests} failed")
+                
+                # Cleanup any remaining nodes stuck in "checking" status
+                stuck_nodes = db.query(Node).filter(Node.status == "checking").all()
+                if stuck_nodes:
+                    logger.warning(f"🧹 Import: Cleaning up {len(stuck_nodes)} nodes stuck in 'checking' status")
+                    for stuck_node in stuck_nodes:
+                        stuck_node.status = "not_tested"  # Safe fallback status
+                        stuck_node.last_update = datetime.utcnow()
+                    db.commit()
         
         # Create detailed report with smart summary
         added_count = len(results['added'])
