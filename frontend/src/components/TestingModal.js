@@ -212,7 +212,7 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], onTestComplete })
         node_ids: selectedNodeIds,
         test_type: testType
       }, {
-        timeout: testType === 'both' ? 300000 : 180000 // 5 minutes for combined, 3 minutes for single tests
+        timeout: 180000 // 3 minutes for single tests
       });
       
       if (response.data.session_id) {
