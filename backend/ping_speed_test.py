@@ -186,31 +186,36 @@ class PPTPTester:
             }
 
     @staticmethod
-    async def real_speed_test(ip: str) -> Dict:
+    async def real_speed_test(ip: str, sample_kb: int = 512, timeout_total: int = 15) -> Dict:
         """
-        Perform real speed test by downloading small data file
+        Perform real speed test by downloading small data (default 512KB). If result < 0.5 Mbps, retry once.
         Returns: {"success": bool, "download": float, "download_speed": float, "upload": float, "ping": float, "message": str}
         """
         try:
             import aiohttp
             from time import time as now
 
-            timeout = aiohttp.ClientTimeout(total=30)
+            timeout = aiohttp.ClientTimeout(total=timeout_total)
             async with aiohttp.ClientSession(timeout=timeout) as session:
                 download_speeds = []
-                for _ in range(3):
+                attempts = 2
+                for attempt in range(attempts):
                     try:
-                        test_url = "https://speed.cloudflare.com/__down?bytes=1048576"  # 1MB
+                        bytes_size = max(64, sample_kb) * 1024
+                        test_url = f"https://speed.cloudflare.com/__down?bytes={bytes_size}"
                         t0 = now()
                         async with session.get(test_url) as response:
                             data = await response.read()
                             t1 = now()
                             if len(data) > 0:
-                                duration = t1 - t0
+                                duration = max(0.001, t1 - t0)
                                 speed_mbps = (len(data) * 8) / (duration * 1_000_000)
                                 download_speeds.append(speed_mbps)
                     except Exception:
                         continue
+                    # If first result already decent, don't retry
+                    if download_speeds and download_speeds[-1] >= 0.5:
+                        break
 
                 if download_speeds:
                     avg_download = sum(download_speeds) / len(download_speeds)
@@ -224,8 +229,8 @@ class PPTPTester:
                     except Exception:
                         ping_ms = random.uniform(50, 200)
 
-                    final_download = max(1.0, round(avg_download, 2))
-                    final_upload = max(0.5, round(upload_speed, 2))
+                    final_download = max(0.1, round(avg_download, 2))
+                    final_upload = max(0.05, round(upload_speed, 2))
 
                     return {
                         "success": True,
