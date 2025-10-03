@@ -6,7 +6,7 @@ import time
 
 def test_format_errors_and_deduplication():
     """Test format errors and deduplication logic"""
-    base_url = "https://connexa-admin-fix.preview.emergentagent.com"
+    base_url = "https://pptp-connect.preview.emergentagent.com"
     api_url = f"{base_url}/api"
     
     # Login first

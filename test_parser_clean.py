@@ -6,7 +6,7 @@ import time
 
 def test_all_formats_clean():
     """Test all 6 formats with unique IPs to avoid duplicates"""
-    base_url = "https://connexa-admin-fix.preview.emergentagent.com"
+    base_url = "https://pptp-connect.preview.emergentagent.com"
     api_url = f"{base_url}/api"
     
     # Login first
