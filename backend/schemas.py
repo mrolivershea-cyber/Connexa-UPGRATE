@@ -110,7 +110,7 @@ class BulkImport(BaseModel):
 class ImportNodesSchema(BaseModel):
     data: str
     protocol: str = "pptp"
-    testing_mode: str = "no_test"  # ping_only, speed_only, ping_speed, no_test
+    testing_mode: str = "no_test"  # ping_only, speed_only, no_test
 
 class ExportRequest(BaseModel):
     node_ids: List[int]
@@ -123,7 +123,13 @@ class ServiceAction(BaseModel):
 
 class TestRequest(BaseModel):
     node_ids: List[int]
-    test_type: str = "both"  # ping, speed, both
+    test_type: str = "ping"  # ping, speed
+    # Optional tuning
+    ping_concurrency: Optional[int] = None
+    speed_concurrency: Optional[int] = None
+    ping_timeouts: Optional[List[float]] = None  # seconds per attempt, e.g., [0.8,1.2,1.6]
+    speed_sample_kb: Optional[int] = None        # e.g., 512
+    speed_timeout: Optional[int] = None          # total timeout seconds
 
 class ServiceStatus(BaseModel):
     node_id: int
