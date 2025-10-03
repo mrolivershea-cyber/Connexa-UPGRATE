@@ -514,7 +514,7 @@ metadata:
 
 test_plan:
   current_focus: 
-    - "All critical speed_ok protection tests completed successfully"
+    - "Import Testing Bug Fix - PPTP Testing and Timeout Protection"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
