@@ -571,12 +571,24 @@ async def import_nodes(
                             db.commit()  # Final commit for the node
                             processed_nodes += 1
                             
+                            # Update progress with success
+                            result_info = {
+                                "node_id": node.id,
+                                "ip": node.ip,
+                                "status": node.status,
+                                "success": True
+                            }
+                            progress.update(i + 1, f"✅ {node.ip} - {node.status}", result_info)
+                            
                         except asyncio.TimeoutError:
                             logger.warning(f"⏱️ Import: Node {node.id} test TIMEOUT - reverting to {original_status}")
                             node.status = original_status  # Revert to original status on timeout
                             node.last_update = datetime.utcnow()
                             db.commit()
                             failed_tests += 1
+                            
+                            # Update progress with timeout
+                            progress.update(i + 1, f"⏱️ {node.ip} - timeout")
                         
                         except Exception as test_error:
                             logger.error(f"❌ Import: Node {node.id} test ERROR: {str(test_error)} - reverting to {original_status}")
@@ -584,10 +596,16 @@ async def import_nodes(
                             node.last_update = datetime.utcnow()
                             db.commit()
                             failed_tests += 1
+                            
+                            # Update progress with error
+                            progress.update(i + 1, f"❌ {node.ip} - error")
                     
                     except Exception as node_error:
                         logger.error(f"❌ Import: Critical error processing Node {node_id}: {str(node_error)}")
                         failed_tests += 1
+                        
+                        # Update progress with critical error
+                        progress.update(i + 1, f"❌ Node {node_id} - critical error")
                         continue
                 
                 logger.info(f"📊 Import testing completed: {processed_nodes} processed, {failed_tests} failed")
