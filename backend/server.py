@@ -309,6 +309,7 @@ def apply_node_filters(query, **filters):
     
     return query
 
+@api_router.get("/nodes")
 async def get_nodes(
     page: int = 1,
     limit: int = 200,
