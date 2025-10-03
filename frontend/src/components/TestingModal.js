@@ -399,13 +399,24 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], onTestComplete })
           {/* Progress */}
           {loading && (
             <Card>
-              <CardContent className="pt-6">
+              <CardHeader>
+                <CardTitle className="text-sm flex items-center justify-between">
+                  <span>Прогресс тестирования</span>
+                  <span className="text-sm font-normal">
+                    {processedNodes}/{totalNodes}
+                  </span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
-                    <span>Выполняется тестирование...</span>
-                    <span>{progress}%</span>
+                    <span>Выполняется {testType === 'ping' ? 'ping' : testType === 'speed' ? 'speed' : 'комбинированное'} тестирование...</span>
+                    <span>{Math.round((processedNodes / totalNodes) * 100) || progress}%</span>
                   </div>
-                  <Progress value={progress} className="w-full" />
+                  <Progress value={processedNodes > 0 ? (processedNodes / totalNodes) * 100 : progress} className="w-full" />
+                  <div className="text-xs text-gray-600">
+                    Тестируется {selectedNodeIds.length} узлов
+                  </div>
                 </div>
               </CardContent>
             </Card>
