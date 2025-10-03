@@ -2356,39 +2356,41 @@ async def manual_ping_test_batch(
     
     try:
         # Execute all tests in parallel with more generous timeout for entire batch
-        batch_timeout = max(90.0, len(nodes) * 2.0)  # Dynamic timeout: 90s minimum or 2s per node
-        results = await asyncio.wait_for(
-            asyncio.gather(*[limited_test(node) for node in nodes]),
+        batch_timeout = max(90.0, len(nodes_to_test) * 2.0)  # Dynamic timeout based on testable nodes
+        test_results = await asyncio.wait_for(
+            asyncio.gather(*[limited_test(node) for node in nodes_to_test]),
             timeout=batch_timeout
         )
+        # Combine skipped and tested results
+        all_results = skipped_results + test_results
         
     except asyncio.TimeoutError:
         # If entire batch times out, ensure no nodes remain in 'checking' status
-        results = []
-        for node in nodes:
-            # Don't downgrade from any successful status to ping_failed
-            if node.status not in ["speed_ok", "ping_ok", "online"]:
+        test_results = []
+        for node in nodes_to_test:
+            original_status = nodes_original_status.get(node.id, "not_tested")
+            # NEVER downgrade speed_ok nodes
+            if original_status != "speed_ok" and node.status not in ["speed_ok", "ping_ok", "online"]:
                 node.status = "ping_failed"
                 node.last_check = datetime.utcnow()
                 node.last_update = datetime.utcnow()
+            elif original_status == "speed_ok":
+                node.status = "speed_ok"  # Restore if was changed
                 
-            results.append({
+            test_results.append({
                 "node_id": node.id,
                 "ip": node.ip,
                 "success": False,
                 "status": node.status,
+                "original_status": original_status,
                 "message": "Batch operation timed out"
             })
+        # Combine skipped and timeout results
+        all_results = skipped_results + test_results
     
-    # CRITICAL: Commit all database changes to ensure no nodes stay in 'checking'
-    try:
-        db.commit()
-    except Exception as e:
-        print(f"Database commit error: {e}")
-        # Even if commit fails, try to rollback to clean state
-        db.rollback()
+    # Note: get_db() will auto-commit when function exits
     
-    return {"results": results}
+    return {"results": all_results}
 
 @api_router.post("/manual/ping-speed-test-batch")
 async def manual_ping_speed_test_batch(
