@@ -2602,8 +2602,8 @@ async def manual_ping_speed_test_batch_progress(
     return {"session_id": session_id, "message": f"Запущено тестирование {len(nodes)} узлов (speed)", "started": True}
 
 async def process_testing_batches(session_id: str, node_ids: list, testing_mode: str, db_session, *,
-                                  ping_concurrency: int = 50,
-                                  speed_concurrency: int = 8,
+                                  ping_concurrency: int = 10,
+                                  speed_concurrency: int = 3,
                                   ping_timeouts: list[float] | None = None,
                                   speed_sample_kb: int = 512,
                                   speed_timeout: int = 15):
