@@ -2370,7 +2370,7 @@ async def manual_ping_test(
                 "success": True,
                 "status": "speed_ok",
                 "original_status": original_status,
-                "message": f"Node already has speed_ok status - test skipped to preserve validation"
+                "message": "Node already has speed_ok status - test skipped to preserve validation"
             })
             continue
         
