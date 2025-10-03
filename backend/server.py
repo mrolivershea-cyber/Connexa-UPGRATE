@@ -1692,7 +1692,7 @@ async def stop_services(
                 if node:
                     node.status = "offline"
                     node.last_update = datetime.utcnow()  # Update time when stopped
-                    db.commit()
+                    # Note: get_db() will auto-commit
             
             results.append({
                 "node_id": node_id,
