@@ -140,11 +140,13 @@ class PingWorkflowTester:
         
         # Test 3: Regression tests for speed test and launch services
         print(f"\n📍 Test 3: Regression tests")
-        success = success and self.test_regression_speed_and_launch(created_node_ids)
+        regression_success = self.test_regression_speed_and_launch(created_node_ids)
+        success = success and regression_success
         
         # Test 4: Performance tests
         print(f"\n📍 Test 4: Performance tests")
-        success = success and self.test_ping_performance(created_node_ids)
+        performance_success = self.test_ping_performance(created_node_ids)
+        success = success and performance_success
         
         # No cleanup needed since we used existing nodes
         
