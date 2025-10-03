@@ -118,6 +118,34 @@ async def startup_event():
             password=hash_password("admin")
         )
         db.add(admin_user)
+# Deduplication registry to avoid duplicate tests and reduce load
+TEST_DEDUPE_TTL = 180  # seconds
+_test_recent: dict = {}  # key: (node_id, mode) -> expires timestamp (epoch)
+_test_inflight: set = set()  # node_ids currently being tested
+
+def test_dedupe_should_skip(node_id: int, mode: str) -> bool:
+    now = datetime.utcnow().timestamp()
+    exp = _test_recent.get((node_id, mode))
+    if exp and exp > now:
+        return True
+    if node_id in _test_inflight:
+        return True
+    return False
+
+def test_dedupe_mark_enqueued(node_id: int, mode: str):
+    now = datetime.utcnow().timestamp()
+    _test_recent[(node_id, mode)] = now + TEST_DEDUPE_TTL
+    _test_inflight.add(node_id)
+
+def test_dedupe_mark_finished(node_id: int):
+    _test_inflight.discard(node_id)
+
+def test_dedupe_cleanup():
+    now = datetime.utcnow().timestamp()
+    to_del = [k for k, exp in _test_recent.items() if exp <= now]
+    for k in to_del:
+        _test_recent.pop(k, None)
+
         db.commit()
         logger.info("Default admin user created with username: admin, password: admin")
     
