@@ -132,21 +132,22 @@ class PingWorkflowTester:
         
         # Test 1: Single node ping test with mixed protocols
         print(f"\n📍 Test 1: Single node ping test")
-        success = self.test_single_node_ping_with_validation(created_node_ids[0])
+        test1_success = self.test_single_node_ping_with_validation(created_node_ids[0])
         
         # Test 2: Batch ping test with progress tracking
         print(f"\n📍 Test 2: Batch ping test with progress")
-        success = success and self.test_batch_ping_with_progress(created_node_ids)
+        test2_success = self.test_batch_ping_with_progress(created_node_ids)
         
         # Test 3: Regression tests for speed test and launch services
         print(f"\n📍 Test 3: Regression tests")
-        regression_success = self.test_regression_speed_and_launch(created_node_ids)
-        success = success and regression_success
+        test3_success = self.test_regression_speed_and_launch(created_node_ids)
         
         # Test 4: Performance tests
         print(f"\n📍 Test 4: Performance tests")
-        performance_success = self.test_ping_performance(created_node_ids)
-        success = success and performance_success
+        test4_success = self.test_ping_performance(created_node_ids)
+        
+        # Overall success
+        success = test1_success and test2_success and test3_success and test4_success
         
         # No cleanup needed since we used existing nodes
         
