@@ -2516,8 +2516,8 @@ async def manual_ping_test_batch(
     progress.update(0, f"Начинаем ping тестирование {len(nodes)} узлов...")
     
     # Start background batch testing
-    asyncio.create_task(process_ping_testing_batches(
-        session_id, [n.id for n in nodes], db
+    asyncio.create_task(process_testing_batches(
+        session_id, [n.id for n in nodes], "ping_only", db
     ))
     
     return {"results": [], "session_id": session_id, "message": f"Запущено тестирование {len(nodes)} узлов"}
