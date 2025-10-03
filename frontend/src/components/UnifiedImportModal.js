@@ -35,8 +35,46 @@ const UnifiedImportModal = ({ isOpen, onClose, onComplete }) => {
       setTestingMode('ping_only');
       setPreviewResult(null);
       setShowPreview(false);
+      setProgressData(null);
+      setSessionId(null);
+      setIsMinimized(false);
     }
   }, [isOpen]);
+
+  // Progress tracking effect
+  React.useEffect(() => {
+    let eventSource = null;
+    
+    if (sessionId && loading) {
+      eventSource = new EventSource(`${API}/progress/${sessionId}`);
+      
+      eventSource.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          setProgressData(data);
+          
+          if (data.status === 'completed' || data.status === 'failed' || data.status === 'cancelled') {
+            eventSource.close();
+            setLoading(false);
+          }
+        } catch (error) {
+          console.error('Error parsing progress data:', error);
+        }
+      };
+      
+      eventSource.onerror = (error) => {
+        console.error('SSE Error:', error);
+        eventSource.close();
+        setLoading(false);
+      };
+    }
+    
+    return () => {
+      if (eventSource) {
+        eventSource.close();
+      }
+    };
+  }, [sessionId, loading, API]);
 
   // ============ Import Functions ============
   const addSampleText = () => {
