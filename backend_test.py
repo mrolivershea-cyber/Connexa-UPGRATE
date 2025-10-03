@@ -9816,6 +9816,14 @@ State: California""",
             print("❌ Login failed - stopping tests")
             return False
         
+        # ========== CRITICAL RUSSIAN USER SPEED_OK PROTECTION TESTS (HIGHEST PRIORITY) ==========
+        print("\n🔥🔥🔥 CRITICAL RUSSIAN USER SPEED_OK PROTECTION TESTS 🔥🔥🔥")
+        print("=" * 80)
+        print("This addresses the critical issue where 1400+ validated servers")
+        print("(speed_ok status) keep losing their status and reverting to ping_failed.")
+        print("=" * 80)
+        self.test_critical_russian_user_speed_ok_protection_complete()
+        
         # ========== RUSSIAN USER FINAL REVIEW TESTS (2025-01-08) ==========
         print("\n🇷🇺 PRIORITY: Running Russian User Final Review Tests")
         russian_tests_passed = self.run_russian_user_final_review_tests()
