@@ -519,8 +519,7 @@ metadata:
   run_ui: false
 
 test_plan:
-  current_focus: 
-    - "Import Testing Bug Fix - PPTP Testing and Timeout Protection"
+  current_focus: []
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
@@ -533,6 +532,7 @@ test_plan:
     - "Quick Speed_OK Status API Response Test"
     - "Russian User Final Review - Complete Solution Verification"
     - "Final Comprehensive Speed_OK Preservation Test"
+    - "Import Testing Bug Fix - PPTP Testing and Timeout Protection"
 
   - agent: "main"
     message: "✅ IMPORT TESTING FIX IMPLEMENTED (2025-01-08): Fixed critical import testing issues causing nodes to fall to PING Failed or hang at 90%. PROBLEMS IDENTIFIED: 1) Import used wrong ping test (ICMP ping from services.py instead of PPTP port test from ping_speed_test.py), 2) Speed test called without IP address, 3) No timeout protection causing nodes to get stuck in 'checking' status. SOLUTION: 1) Replaced network_tester.ping_test with test_node_ping for proper PPTP port 1723 testing, 2) Fixed speed test to use test_node_speed with IP address, 3) Added comprehensive error handling with immediate db.commit() after each test phase, 4) Added timeout and exception recovery that reverts nodes to original status, 5) Added cleanup for any nodes stuck in 'checking' status. Import testing now uses same robust testing logic as manual testing functions."
