@@ -4,7 +4,7 @@ import requests
 import sys
 
 class DatabaseInspector:
-    def __init__(self, base_url="https://realtimeadmin.preview.emergentagent.com"):
+    def __init__(self, base_url="https://realtime-progress.preview.emergentagent.com"):
         self.base_url = base_url
         self.api_url = f"{base_url}/api"
         self.token = None
