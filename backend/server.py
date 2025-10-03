@@ -2719,6 +2719,9 @@ async def process_testing_batches(session_id: str, node_ids: list, testing_mode:
                                 f"✅ {node.ip} - {node.status}", 
                                 result_info
                             )
+                        
+                        # Mark dedupe finished
+                        test_dedupe_mark_finished(node.id)
                     
                     except asyncio.TimeoutError:
                         logger.warning(f"⏱️ Testing: Node {node.id} test TIMEOUT - reverting to {original_status}")
