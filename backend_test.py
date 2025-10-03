@@ -11698,6 +11698,17 @@ State: California""",
         self.test_import_with_testing_ping_speed()
         self.test_import_timeout_protection()
         
+        # ========== NEW BATCH IMPORT SYSTEM TESTS (Review Request 2025-01-08) ==========
+        print("\n" + "="*80)
+        print("🔥 NEW BATCH IMPORT SYSTEM TESTS (Review Request 2025-01-08)")
+        print("="*80)
+        
+        self.test_batch_import_with_ping_only()
+        self.test_batch_processing_functionality()
+        self.test_cancellation_functionality()
+        self.test_batch_system_no_hanging()
+        self.test_results_saved_after_each_batch()
+        
         # ========== CRITICAL SPEED_OK PROTECTION TEST (HIGHEST PRIORITY) ==========
         print("\n" + "🔥" * 25 + " CRITICAL SPEED_OK PROTECTION TEST " + "🔥" * 25)
         print("🎯 REVIEW REQUEST: FINAL COMPREHENSIVE SPEED_OK PRESERVATION TEST")
