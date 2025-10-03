@@ -19,6 +19,11 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], onTestComplete })
   const [isMinimized, setIsMinimized] = useState(false);
   const [processedNodes, setProcessedNodes] = useState(0);
   const [totalNodes, setTotalNodes] = useState(0);
+  
+  // Progress State for new system
+  const [progressData, setProgressData] = useState(null);
+  const [sessionId, setSessionId] = useState(null);
+  const [useNewSystem, setUseNewSystem] = useState(false);
 
   React.useEffect(() => {
     if (isOpen) {
