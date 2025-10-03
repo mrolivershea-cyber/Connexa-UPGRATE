@@ -4,7 +4,7 @@ import requests
 import json
 
 def test_ping_restriction_removal():
-    base_url = "https://pptp-connect.preview.emergentagent.com"
+    base_url = "https://connexa-admin-debug.preview.emergentagent.com"
     api_url = f"{base_url}/api"
     
     # Login
