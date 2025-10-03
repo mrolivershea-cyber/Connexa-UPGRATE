@@ -2605,6 +2605,20 @@ async def process_testing_batches(session_id: str, node_ids: list, testing_mode:
                 if session_id in progress_store and progress_store[session_id].status == "cancelled":
                     break
                 
+                # Dedupe: skip nodes tested very recently or already inflight
+                mode_key = "ping" if testing_mode in ["ping_only", "ping_speed"] else ("speed" if testing_mode in ["speed_only"] else testing_mode)
+                if test_dedupe_should_skip(node_id, mode_key):
+                    logger.info(f"⏭️ Testing: Skipping node {node_id} (dedupe {mode_key})")
+                    processed_nodes += 1
+                    if session_id in progress_store:
+                        progress_store[session_id].update(
+                            global_index + 1,
+                            f"⏭️ Пропуск {node_id} (повтор {mode_key})"
+                        )
+                    continue
+                else:
+                    test_dedupe_mark_enqueued(node_id, mode_key)
+                
                 try:
                     node = db.query(Node).filter(Node.id == node_id).first()
                     if not node:
