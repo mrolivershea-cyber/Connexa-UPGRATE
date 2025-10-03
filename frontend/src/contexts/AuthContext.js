@@ -16,7 +16,11 @@ const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [token, setToken] = useState(localStorage.getItem('token'));
 
-  const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+  // Resolve backend URL for both CRA and Vite
+  const envBackend = (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.REACT_APP_BACKEND_URL)
+    || process.env.REACT_APP_BACKEND_URL
+    || (window?.env?.REACT_APP_BACKEND_URL);
+  const BACKEND_URL = (envBackend || window.location.origin).replace(/\/$/, '');
   const API = `${BACKEND_URL}/api`;
 
   // Configure axios defaults
