@@ -10296,6 +10296,227 @@ State: California""",
         
         return True
 
+    def test_speed_ok_protection_comprehensive(self):
+        """FINAL COMPREHENSIVE SPEED_OK PRESERVATION TEST - Background Monitoring Re-Enabled"""
+        print("\n🔥 CRITICAL SPEED_OK PROTECTION COMPREHENSIVE TEST")
+        print("=" * 70)
+        print("Testing the exact 7 scenarios from the review request...")
+        
+        # Test 1: Create speed_ok nodes and verify immediate persistence
+        print("\n📋 TEST 1: Create speed_ok nodes and verify immediate persistence")
+        
+        test_nodes_data = [
+            {"ip": "203.1.1.1", "login": "finaltest1", "password": "test123", "status": "speed_ok", "comment": "Final comprehensive test"},
+            {"ip": "203.1.1.2", "login": "finaltest2", "password": "test123", "status": "speed_ok", "comment": "Final comprehensive test"},
+            {"ip": "203.1.1.3", "login": "finaltest3", "password": "test123", "status": "speed_ok", "comment": "Final comprehensive test"}
+        ]
+        
+        created_node_ids = []
+        
+        for i, node_data in enumerate(test_nodes_data, 1):
+            success, response = self.make_request('POST', 'nodes', node_data)
+            if success and 'id' in response:
+                created_node_ids.append(response['id'])
+                print(f"   ✅ Created node {i}: ID {response['id']}, IP {node_data['ip']}, Status: {response.get('status', 'unknown')}")
+            else:
+                print(f"   ❌ Failed to create node {i}: {response}")
+                self.log_test("Speed_OK Protection Test 1 - Create Nodes", False, f"Failed to create node {i}")
+                return False
+        
+        if len(created_node_ids) != 3:
+            self.log_test("Speed_OK Protection Test 1 - Create Nodes", False, f"Expected 3 nodes, created {len(created_node_ids)}")
+            return False
+        
+        # Verify all 3 nodes have speed_ok status
+        success, response = self.make_request('GET', 'nodes?status=speed_ok')
+        if success and 'nodes' in response:
+            speed_ok_count = len([n for n in response['nodes'] if n['ip'].startswith('203.1.1.')])
+            print(f"   ✅ Verification: {speed_ok_count}/3 nodes have speed_ok status")
+            if speed_ok_count < 3:
+                self.log_test("Speed_OK Protection Test 1 - Verify Status", False, f"Only {speed_ok_count}/3 nodes have speed_ok status")
+                return False
+        else:
+            self.log_test("Speed_OK Protection Test 1 - Verify Status", False, f"Failed to verify status: {response}")
+            return False
+        
+        # Test 2: Verify speed_ok nodes persist for 60 seconds (2 monitoring cycles)
+        print("\n⏰ TEST 2: Verify speed_ok nodes persist for 60 seconds (2 monitoring cycles)")
+        print("   Waiting 60 seconds for 2 monitoring cycles...")
+        time.sleep(60)
+        
+        # Check if nodes still have speed_ok status
+        success, response = self.make_request('GET', 'nodes?status=speed_ok')
+        if success and 'nodes' in response:
+            speed_ok_count_after = len([n for n in response['nodes'] if n['ip'].startswith('203.1.1.')])
+            print(f"   📊 After 60 seconds: {speed_ok_count_after}/3 nodes still have speed_ok status")
+            if speed_ok_count_after < 3:
+                self.log_test("Speed_OK Protection Test 2 - Background Monitoring", False, 
+                             f"Background monitoring downgraded {3 - speed_ok_count_after} speed_ok nodes")
+                return False
+            else:
+                print(f"   ✅ All 3 nodes STILL have speed_ok status (background monitoring protection working)")
+        else:
+            self.log_test("Speed_OK Protection Test 2 - Background Monitoring", False, f"Failed to check status after wait: {response}")
+            return False
+        
+        # Test 3: Test manual_ping_test protection
+        print("\n🏓 TEST 3: Test manual_ping_test protection")
+        ping_data = {"node_ids": created_node_ids[:2]}
+        success, response = self.make_request('POST', 'manual/ping-test', ping_data)
+        
+        if success and 'results' in response:
+            skipped_count = 0
+            for result in response['results']:
+                if 'skip' in result.get('message', '').lower() or result.get('status') == 'speed_ok':
+                    skipped_count += 1
+                    print(f"   ✅ Node {result['node_id']}: {result.get('message', 'Skipped')}")
+                else:
+                    print(f"   ❌ Node {result['node_id']}: {result.get('message', 'Not skipped')}")
+            
+            if skipped_count >= 2:
+                print(f"   ✅ Manual ping test correctly skipped {skipped_count}/2 speed_ok nodes")
+            else:
+                self.log_test("Speed_OK Protection Test 3 - Manual Ping Protection", False, 
+                             f"Only {skipped_count}/2 nodes were skipped")
+                return False
+        else:
+            self.log_test("Speed_OK Protection Test 3 - Manual Ping Protection", False, f"Manual ping test failed: {response}")
+            return False
+        
+        # Verify nodes still have speed_ok
+        success, response = self.make_request('GET', 'nodes?status=speed_ok')
+        if success and 'nodes' in response:
+            speed_ok_count_after_ping = len([n for n in response['nodes'] if n['ip'].startswith('203.1.1.')])
+            if speed_ok_count_after_ping >= 3:
+                print(f"   ✅ After manual ping test: {speed_ok_count_after_ping}/3 nodes STILL have speed_ok status")
+            else:
+                self.log_test("Speed_OK Protection Test 3 - Status Preservation", False, 
+                             f"Manual ping test downgraded {3 - speed_ok_count_after_ping} speed_ok nodes")
+                return False
+        
+        # Test 4: Test batch ping protection
+        print("\n🏓 TEST 4: Test batch ping protection")
+        batch_ping_data = {"node_ids": created_node_ids}
+        success, response = self.make_request('POST', 'manual/ping-test-batch', batch_ping_data)
+        
+        if success and 'results' in response:
+            skipped_count = 0
+            for result in response['results']:
+                if 'skip' in result.get('message', '').lower() or result.get('status') == 'speed_ok':
+                    skipped_count += 1
+                    print(f"   ✅ Node {result['node_id']}: {result.get('message', 'Skipped')}")
+                else:
+                    print(f"   ❌ Node {result['node_id']}: {result.get('message', 'Not skipped')}")
+            
+            if skipped_count >= 3:
+                print(f"   ✅ Batch ping test correctly skipped {skipped_count}/3 speed_ok nodes")
+            else:
+                self.log_test("Speed_OK Protection Test 4 - Batch Ping Protection", False, 
+                             f"Only {skipped_count}/3 nodes were skipped in batch")
+                return False
+        else:
+            self.log_test("Speed_OK Protection Test 4 - Batch Ping Protection", False, f"Batch ping test failed: {response}")
+            return False
+        
+        # Verify preservation
+        success, response = self.make_request('GET', 'nodes?status=speed_ok')
+        if success and 'nodes' in response:
+            speed_ok_count_after_batch = len([n for n in response['nodes'] if n['ip'].startswith('203.1.1.')])
+            if speed_ok_count_after_batch >= 3:
+                print(f"   ✅ After batch ping test: {speed_ok_count_after_batch}/3 nodes STILL have speed_ok status")
+            else:
+                self.log_test("Speed_OK Protection Test 4 - Status Preservation", False, 
+                             f"Batch ping test downgraded {3 - speed_ok_count_after_batch} speed_ok nodes")
+                return False
+        
+        # Test 5: Test service operations protection
+        print("\n🔧 TEST 5: Test service operations protection")
+        service_data = {"node_ids": created_node_ids[:2], "action": "start"}
+        success, response = self.make_request('POST', 'services/start', service_data)
+        
+        if success and 'results' in response:
+            preserved_count = 0
+            for result in response['results']:
+                if result.get('status') in ['speed_ok', 'online']:
+                    preserved_count += 1
+                    print(f"   ✅ Node {result['node_id']}: Status {result.get('status')} (preserved or upgraded)")
+                else:
+                    print(f"   ❌ Node {result['node_id']}: Status {result.get('status')} (downgraded)")
+            
+            if preserved_count >= 2:
+                print(f"   ✅ Service operations preserved/upgraded {preserved_count}/2 nodes")
+            else:
+                self.log_test("Speed_OK Protection Test 5 - Service Operations", False, 
+                             f"Only {preserved_count}/2 nodes were preserved/upgraded")
+                return False
+        else:
+            self.log_test("Speed_OK Protection Test 5 - Service Operations", False, f"Service operations failed: {response}")
+            return False
+        
+        # Test 6: Test manual_launch_services
+        print("\n🚀 TEST 6: Test manual_launch_services")
+        launch_data = {"node_ids": [created_node_ids[2]]}
+        success, response = self.make_request('POST', 'manual/launch-services', launch_data)
+        
+        if success and 'results' in response:
+            result = response['results'][0] if response['results'] else {}
+            final_status = result.get('status', 'unknown')
+            if final_status in ['speed_ok', 'online']:
+                print(f"   ✅ Node {result.get('node_id')}: Status {final_status} (preserved or upgraded)")
+            else:
+                print(f"   ❌ Node {result.get('node_id')}: Status {final_status} (downgraded)")
+                self.log_test("Speed_OK Protection Test 6 - Manual Launch Services", False, 
+                             f"Node was downgraded to {final_status}")
+                return False
+        else:
+            self.log_test("Speed_OK Protection Test 6 - Manual Launch Services", False, f"Manual launch services failed: {response}")
+            return False
+        
+        # Test 7: Check backend logs for protection evidence
+        print("\n📋 TEST 7: Check backend logs for protection evidence")
+        try:
+            import subprocess
+            result = subprocess.run(['tail', '-n', '100', '/var/log/supervisor/backend.err.log'], 
+                                  capture_output=True, text=True, timeout=10)
+            
+            if result.returncode == 0:
+                log_content = result.stdout
+                protection_keywords = ['speed_ok', 'SKIP', 'PROTECT', 'Monitor', '🛡️', '✅']
+                found_keywords = []
+                
+                for keyword in protection_keywords:
+                    if keyword.lower() in log_content.lower():
+                        found_keywords.append(keyword)
+                
+                if found_keywords:
+                    print(f"   ✅ Backend logs show protection evidence: {', '.join(found_keywords)}")
+                else:
+                    print(f"   ⚠️ Backend logs don't show clear protection evidence")
+            else:
+                print(f"   ⚠️ Could not read backend logs: {result.stderr}")
+        except Exception as e:
+            print(f"   ⚠️ Error reading backend logs: {e}")
+        
+        # Final verification - count all speed_ok nodes
+        success, response = self.make_request('GET', 'nodes?status=speed_ok')
+        final_speed_ok_count = 0
+        if success and 'nodes' in response:
+            final_speed_ok_count = len([n for n in response['nodes'] if n['ip'].startswith('203.1.1.')])
+        
+        print(f"\n📊 FINAL RESULTS:")
+        print(f"   Created nodes: 3")
+        print(f"   Final speed_ok nodes: {final_speed_ok_count}")
+        print(f"   Success rate: {final_speed_ok_count}/3 ({final_speed_ok_count/3*100:.1f}%)")
+        
+        if final_speed_ok_count >= 3:
+            self.log_test("FINAL COMPREHENSIVE SPEED_OK PRESERVATION TEST", True, 
+                         f"✅ ALL TESTS PASSED: {final_speed_ok_count}/3 speed_ok nodes preserved through all operations. Russian user's issue is RESOLVED.")
+            return True
+        else:
+            self.log_test("FINAL COMPREHENSIVE SPEED_OK PRESERVATION TEST", False, 
+                         f"❌ CRITICAL FAILURE: Only {final_speed_ok_count}/3 speed_ok nodes preserved. Russian user's issue remains UNRESOLVED.")
+            return False
+
     def run_all_tests(self):
         """Run all backend tests"""
         print("🚀 Starting Connexa Backend API Tests")
