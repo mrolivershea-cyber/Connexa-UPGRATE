@@ -333,7 +333,8 @@ async def create_node(
     db_node = Node(**node.dict())
     db_node.last_update = datetime.utcnow()  # Set current time on creation
     db.add(db_node)
-    db.commit()
+    # Remove explicit commit - let get_db() handle it
+    db.flush()  # Flush to get the ID
     db.refresh(db_node)
     return db_node
 
