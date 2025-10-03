@@ -20,6 +20,11 @@ const UnifiedImportModal = ({ isOpen, onClose, onComplete }) => {
   const [testingMode, setTestingMode] = useState('ping_only');
   const [previewResult, setPreviewResult] = useState(null);
   const [showPreview, setShowPreview] = useState(false);
+  
+  // Progress State
+  const [isMinimized, setIsMinimized] = useState(false);
+  const [progressData, setProgressData] = useState(null);
+  const [sessionId, setSessionId] = useState(null);
 
   React.useEffect(() => {
     if (isOpen) {
