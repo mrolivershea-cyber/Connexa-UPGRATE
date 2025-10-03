@@ -489,12 +489,22 @@ async def import_nodes(
                 processed_nodes = 0
                 failed_tests = 0
                 
-                for node_id in nodes_to_test:
+                for i, node_id in enumerate(nodes_to_test):
+                    # Check if operation was cancelled
+                    if session_id in progress_store and progress_store[session_id].status == "cancelled":
+                        logger.info(f"🚫 Import cancelled by user for session {session_id}")
+                        progress.complete("cancelled")
+                        break
+                    
                     try:
                         node = db.query(Node).filter(Node.id == node_id).first()
                         if not node:
                             logger.warning(f"❌ Import test: Node {node_id} not found in database")
+                            progress.update(i + 1, f"Ошибка: узел {node_id} не найден")
                             continue
+                        
+                        # Update progress
+                        progress.update(i, f"Тестирование {node.ip} ({i+1}/{len(nodes_to_test)})")
                         
                         # CRITICAL: Save original status BEFORE any changes
                         original_status = node.status
@@ -503,6 +513,7 @@ async def import_nodes(
                         # NEVER test speed_ok nodes - they already passed validation
                         if original_status == "speed_ok":
                             logger.info(f"✅ Import: Node {node.id} has speed_ok - SKIPPING test to preserve status")
+                            progress.update(i + 1, f"Пропущен {node.ip} (уже протестирован)")
                             continue
                         
                         # Set checking status and commit immediately to prevent data loss
