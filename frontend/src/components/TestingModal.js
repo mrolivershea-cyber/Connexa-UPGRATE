@@ -25,8 +25,11 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], onTestComplete })
       setTestType('ping');
       setResults(null);
       setProgress(0);
+      setIsMinimized(false);
+      setProcessedNodes(0);
+      setTotalNodes(selectedNodeIds.length);
     }
-  }, [isOpen]);
+  }, [isOpen, selectedNodeIds.length]);
 
   const handleTest = async () => {
     if (selectedNodeIds.length === 0) {
