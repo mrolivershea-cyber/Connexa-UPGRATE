@@ -333,26 +333,41 @@ async def get_all_node_ids(
         "total_count": len(node_ids)
     }
 
+@api_router.get("/nodes/{node_id}")
+async def get_node_by_id(
+    node_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get a single node by ID"""
+    node = db.query(Node).filter(Node.id == node_id).first()
+    if not node:
+        raise HTTPException(status_code=404, detail="Node not found")
+    
+    logger.info(f"🔍 GET /nodes/{node_id} - Returning node with status: {node.status}")
+    return node
+
 @api_router.post("/nodes")
 async def create_node(
     node: NodeCreate,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    logger.info(f"Creating node with input status: {node.dict().get('status', 'not specified')}")
+    logger.info(f"🔍 Creating node with input status: {node.dict().get('status', 'not specified')}")
     db_node = Node(**node.dict())
     db_node.last_update = datetime.utcnow()  # Set current time on creation
-    logger.info(f"Node object status before add: {db_node.status}")
+    logger.info(f"🔍 Node object status before add: {db_node.status}")
     db.add(db_node)
     # Remove explicit commit - let get_db() handle it
     db.flush()  # Flush to get the ID
-    logger.info(f"Node object status after flush: {db_node.status}")
+    logger.info(f"🔍 Node object status after flush: {db_node.status}")
     db.refresh(db_node)
-    logger.info(f"Node object status after refresh: {db_node.status}")
+    logger.info(f"🔍 Node object status after refresh: {db_node.status}")
     
     # Double-check by querying the database directly
     check_node = db.query(Node).filter(Node.id == db_node.id).first()
-    logger.info(f"Node status from direct DB query: {check_node.status if check_node else 'not found'}")
+    logger.info(f"🔍 Node status from direct DB query: {check_node.status if check_node else 'not found'}")
+    logger.info(f"✅ Returning created node with status: {db_node.status}")
     
     return db_node
 
