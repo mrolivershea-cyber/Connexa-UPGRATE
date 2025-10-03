@@ -13519,11 +13519,20 @@ def run_critical_speed_ok_tests():
     success = tester.run_critical_speed_ok_preservation_tests()
     return 0 if success else 1
 
+def run_critical_import_tests():
+    """Run critical import tests for Russian user issue"""
+    tester = ConnexaAPITester()
+    success = tester.run_critical_import_tests()
+    return 0 if success else 1
+
 if __name__ == "__main__":
     import sys
     
-    # Check if we should run critical speed_ok preservation tests
-    if len(sys.argv) > 1 and sys.argv[1] == "--critical-speed-ok":
+    # Check if we should run critical import tests (default for this review request)
+    if len(sys.argv) > 1 and sys.argv[1] == "--critical-import":
+        print("🔥 ЗАПУСК КРИТИЧЕСКИХ ТЕСТОВ IMPORT - RUSSIAN USER ISSUE")
+        sys.exit(run_critical_import_tests())
+    elif len(sys.argv) > 1 and sys.argv[1] == "--critical-speed-ok":
         print("🔥 ЗАПУСК КРИТИЧЕСКИХ ТЕСТОВ SPEED_OK PRESERVATION")
         sys.exit(run_critical_speed_ok_tests())
     elif len(sys.argv) > 1 and sys.argv[1] == "--isolated-speed-ok":
@@ -13534,6 +13543,6 @@ if __name__ == "__main__":
         # Run PPTP-specific tests
         sys.exit(run_pptp_tests())
     else:
-        # Run isolated speed_ok test by default for this review request
-        print("🔥 ЗАПУСК ИЗОЛИРОВАННЫХ ТЕСТОВ SPEED_OK PRESERVATION (DEFAULT)")
-        sys.exit(run_isolated_speed_ok_tests())
+        # Run critical import tests by default for this review request
+        print("🔥 ЗАПУСК КРИТИЧЕСКИХ ТЕСТОВ IMPORT - RUSSIAN USER ISSUE (DEFAULT)")
+        sys.exit(run_critical_import_tests())
