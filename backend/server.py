@@ -1632,11 +1632,11 @@ async def get_progress_stream(session_id: str, current_user: User = Depends(get_
     
     return StreamingResponse(
         event_generator(), 
-        media_type="text/plain",
+        media_type="text/event-stream",
         headers={
             "Cache-Control": "no-cache",
             "Connection": "keep-alive",
-            "Access-Control-Allow-Origin": "*"
+            "X-Accel-Buffering": "no"
         }
     )
 
