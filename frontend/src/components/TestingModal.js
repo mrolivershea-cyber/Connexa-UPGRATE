@@ -33,6 +33,9 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], onTestComplete })
       setIsMinimized(false);
       setProcessedNodes(0);
       setTotalNodes(selectedNodeIds.length);
+      setProgressData(null);
+      setSessionId(null);
+      setUseNewSystem(false);
     }
   }, [isOpen, selectedNodeIds.length]);
 
