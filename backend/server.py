@@ -2217,26 +2217,47 @@ async def manual_ping_test_batch(
     import asyncio
     from ping_speed_test import test_node_ping
     
-    # Get all nodes first
+    # Get all nodes first and save their original status
     nodes = []
+    nodes_original_status = {}  # Store original status BEFORE any changes
     for node_id in test_request.node_ids:
         node = db.query(Node).filter(Node.id == node_id).first()
         if node:
+            nodes_original_status[node.id] = node.status  # Save BEFORE any modifications
+            logger.info(f"🔍 Batch: Node {node.id} original status: {node.status}")
             nodes.append(node)
     
     if not nodes:
         return {"results": []}
     
-    # Set all nodes to checking status
+    # Filter out speed_ok nodes - NEVER test them to preserve validation
+    nodes_to_test = []
+    skipped_results = []
     for node in nodes:
+        original_status = nodes_original_status[node.id]
+        if original_status == "speed_ok":
+            logger.info(f"✅ Batch: Node {node.id} has speed_ok - SKIPPING to preserve status")
+            skipped_results.append({
+                "node_id": node.id,
+                "ip": node.ip,
+                "success": True,
+                "status": "speed_ok",
+                "original_status": original_status,
+                "message": "Node has speed_ok status - test skipped to preserve validation"
+            })
+        else:
+            nodes_to_test.append(node)
+    
+    # Set only non-speed_ok nodes to checking status
+    for node in nodes_to_test:
         node.status = "checking"
         node.last_check = datetime.utcnow()
         node.last_update = datetime.utcnow()
-    db.commit()
+    # Note: get_db() will auto-commit
     
     # Perform parallel ping tests with timeout protection
     async def test_single_node(node):
-        original_status = node.status if hasattr(node, 'original_status') else "not_tested"
+        original_status = nodes_original_status.get(node.id, "not_tested")
         
         try:
             # Reduced timeout for better user experience
