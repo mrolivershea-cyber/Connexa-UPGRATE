@@ -246,28 +246,17 @@ vpn2.example.com:443:client2:pass456:GB:London:`
               <Activity className="h-5 w-5 mr-2" />
               Импорт узлов
             </DialogTitle>
-            <div className="flex items-center space-x-2">
-              {loading && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleMinimize}
-                  className="h-8 w-8 p-0"
-                  title="Свернуть"
-                >
-                  <Minus className="h-4 w-4" />
-                </Button>
-              )}
+            {loading && (
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={onClose}
+                onClick={handleMinimize}
                 className="h-8 w-8 p-0"
-                title="Закрыть"
+                title="Свернуть"
               >
-                <X className="h-4 w-4" />
+                <Minus className="h-4 w-4" />
               </Button>
-            </div>
+            )}
           </div>
           <DialogDescription>
             Введите данные узлов в текстовом формате. Поддерживается импорт как одного узла, так и нескольких.
