@@ -209,9 +209,20 @@ vpn2.example.com:443:client2:pass456:GB:London:`
   };
 
   const handleMinimize = () => {
+    // Save current state to localStorage for restoration
+    if (sessionId || loading) {
+      const savedState = {
+        sessionId,
+        loading,
+        progressData,
+        timestamp: Date.now()
+      };
+      localStorage.setItem('importProgress', JSON.stringify(savedState));
+      toast.info('Процесс свернут. Откройте Импорт для просмотра прогресса.');
+    }
+    
     // Close the modal but keep the process running
     onClose();
-    // The progress will continue in background and can be accessed via Import button
   };
 
   // Progress completion handler
