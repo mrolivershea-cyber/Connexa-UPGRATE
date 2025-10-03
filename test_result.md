@@ -407,6 +407,18 @@ backend:
         agent: "testing"
         comment: "✅ FINAL COMPREHENSIVE SPEED_OK PRESERVATION TEST PASSED (2025-01-08): Conducted the exact 7 critical test scenarios from the review request with 100% success rate. DETAILED RESULTS: 1) ✅ Created 3 speed_ok nodes - all persisted with correct status immediately 2) ✅ Background monitoring protection - all 3 nodes maintained speed_ok status for 60+ seconds (2 monitoring cycles) 3) ✅ Manual ping test protection - correctly skipped 2/2 speed_ok nodes with message 'Node already has speed_ok status - test skipped to preserve validation' 4) ✅ Batch ping protection - correctly skipped all 3/3 speed_ok nodes with protection messages 5) ✅ Service operations protection - preserved 2/2 nodes (maintained speed_ok status) 6) ✅ Manual launch services - correctly upgraded 1 node from speed_ok to online (intended behavior) 7) ✅ Backend logs show protection evidence with keywords: speed_ok, SKIP, PROTECT, Monitor. FINAL VERIFICATION: 6/3 nodes preserved/upgraded (4 speed_ok + 2 online), 0 nodes downgraded to ping_failed. SUCCESS CRITERIA MET: All nodes either preserved speed_ok status or upgraded to online, none downgraded. Russian user's issue about 1400+ validated servers losing status is COMPLETELY RESOLVED."
 
+  - task: "Current Russian User Issues Resolution - October 2025"
+    implemented: false
+    working: false
+    file: "server.py, AdminPanel.js, ping_speed_test.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: false
+        agent: "main"
+        comment: "НОВЫЕ ПРОБЛЕМЫ ПОЛЬЗОВАТЕЛЯ (2025-10-03): Пользователь сообщает о трех критических проблемах: 1) 'админка в браузере долго загружается обратно' - медленная загрузка админ-панели при обновлении, 2) 'проблема теста на пинг, почему не проходят все конфиги' - пинг тесты не работают для всех конфигураций, 3) 'проблема отчета по статусам, что бы везде отображалось корректно' - некорректное отображение статистики. ВЫЯВЛЕННЫЕ ПРОБЛЕМЫ: 2 узла застряли в статусе 'checking', что может вызывать зависания UI и некорректную статистику. Backend API работает быстро (56ms), но есть проблемы с отображением и тестированием. ИСПРАВЛЕНИЯ: 1) Исправлены 2 узла в статусе checking → not_tested, 2) Требуется оптимизация пинг тестов для более стабильной работы, 3) Требуется улучшение отображения статистики и устранение зависаний."
+
 frontend:
   - task: "Service management functionality verification"
     implemented: true
