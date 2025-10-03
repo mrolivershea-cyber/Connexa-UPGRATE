@@ -108,7 +108,7 @@ def has_ping_baseline(status: str) -> bool:
 create_tables()
 
 # Create default admin user if not exists
-@app.on_event("startup")
+@api_router.on_event("startup")
 async def startup_event():
     db = next(get_db())
     admin_user = db.query(User).filter(User.username == "admin").first()
@@ -118,6 +118,14 @@ async def startup_event():
             password=hash_password("admin")
         )
         db.add(admin_user)
+        db.commit()
+        logger.info("Default admin user created with username: admin, password: admin")
+    # Clean up any nodes stuck in 'checking' status on startup
+    await cleanup_stuck_nodes()
+    # Start background monitoring with improved protection
+    start_background_monitoring()
+    logger.info("✅ Background monitoring RE-ENABLED with enhanced speed_ok protection")
+
 # Deduplication registry to avoid duplicate tests and reduce load
 TEST_DEDUPE_TTL = 180  # seconds
 _test_recent: dict = {}  # key: (node_id, mode) -> expires timestamp (epoch)
@@ -146,15 +154,6 @@ def test_dedupe_cleanup():
     for k in to_del:
         _test_recent.pop(k, None)
 
-        db.commit()
-        logger.info("Default admin user created with username: admin, password: admin")
-    
-    # Clean up any nodes stuck in 'checking' status on startup
-    await cleanup_stuck_nodes()
-    
-    # Start background monitoring with improved protection
-    start_background_monitoring()
-    logger.info("✅ Background monitoring RE-ENABLED with enhanced speed_ok protection")
 # Helper to choose ping ports based on node configuration
 # B) Keep general TCP ping (no protocol handshake) but use DB-configured ports with fallbacks
 
