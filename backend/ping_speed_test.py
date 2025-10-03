@@ -12,6 +12,8 @@ import re
 import socket
 from typing import Dict, Optional, Tuple
 
+from collections import defaultdict
+
 class PPTPTester:
     """Handles real PPTP ping and speed testing"""
     
