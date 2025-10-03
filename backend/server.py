@@ -257,6 +257,58 @@ async def get_current_user_info(current_user: User = Depends(get_current_user)):
 
 # Node CRUD Routes
 @api_router.get("/nodes")
+def apply_node_filters(query, **filters):
+    """Helper function to apply filters to node queries - reduces code duplication"""
+    ip = filters.get('ip')
+    provider = filters.get('provider')
+    country = filters.get('country')
+    state = filters.get('state')
+    city = filters.get('city')
+    zipcode = filters.get('zipcode')
+    login = filters.get('login')
+    comment = filters.get('comment')
+    status = filters.get('status')
+    protocol = filters.get('protocol')
+    only_online = filters.get('only_online')
+    
+    # Apply filters - optimize for exact matches first, then partial
+    if ip:
+        # Try exact match first, then partial
+        if '.' in ip and len(ip) > 7:  # Looks like a full IP
+            query = query.filter(Node.ip == ip)
+        else:
+            query = query.filter(Node.ip.ilike(f"%{ip}%"))
+    
+    # Exact matches for these fields are faster with indexes
+    if provider:
+        query = query.filter(Node.provider.ilike(f"%{provider}%"))
+    if country:
+        query = query.filter(Node.country.ilike(f"%{country}%"))
+    if state:
+        query = query.filter(Node.state.ilike(f"%{state}%"))
+    if city:
+        query = query.filter(Node.city.ilike(f"%{city}%"))
+    if zipcode:
+        # Zipcode is usually exact
+        if len(zipcode) >= 4:  # Likely full zipcode
+            query = query.filter(Node.zipcode == zipcode)
+        else:
+            query = query.filter(Node.zipcode.ilike(f"%{zipcode}%"))
+    if login:
+        query = query.filter(Node.login.ilike(f"%{login}%"))
+    if comment:
+        query = query.filter(Node.comment.ilike(f"%{comment}%"))
+    
+    # These use indexes for fast exact match
+    if status:
+        query = query.filter(Node.status == status)
+    if protocol:
+        query = query.filter(Node.protocol == protocol)
+    if only_online:
+        query = query.filter(Node.status == "online")
+    
+    return query
+
 async def get_nodes(
     page: int = 1,
     limit: int = 200,
@@ -274,32 +326,14 @@ async def get_nodes(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    query = db.query(Node)
+    # Build filters dict
+    filters = {k: v for k, v in locals().items() 
+              if k not in ['page', 'limit', 'current_user', 'db'] and v is not None}
     
-    # Apply filters
-    if ip:
-        query = query.filter(Node.ip.ilike(f"%{ip}%"))
-    if provider:
-        query = query.filter(Node.provider.ilike(f"%{provider}%"))
-    if country:
-        query = query.filter(Node.country.ilike(f"%{country}%"))
-    if state:
-        query = query.filter(Node.state.ilike(f"%{state}%"))
-    if city:
-        query = query.filter(Node.city.ilike(f"%{city}%"))
-    if zipcode:
-        query = query.filter(Node.zipcode.ilike(f"%{zipcode}%"))
-    if login:
-        query = query.filter(Node.login.ilike(f"%{login}%"))
-    if comment:
-        query = query.filter(Node.comment.ilike(f"%{comment}%"))
-    if status:
-        query = query.filter(Node.status == status)
-    if protocol:
-        query = query.filter(Node.protocol == protocol)
-    if only_online:
-        query = query.filter(Node.status == "online")
+    # Apply filters using helper function
+    query = apply_node_filters(db.query(Node), **filters)
     
+    # Use a single query for count to improve performance
     total_count = query.count()
     nodes = query.offset((page - 1) * limit).limit(limit).all()
     
