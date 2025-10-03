@@ -44,7 +44,7 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], onTestComplete })
             setTestType(state.testType || 'ping');
             setProcessedNodes(state.processedNodes || 0);
             setTotalNodes(state.totalNodes || selectedNodeIds.length);
-            setUseNewSystem(selectedNodeIds.length > 50);
+            setUseNewSystem(true);
             setIsMinimized(false);
             
             toast.info('Восстановлено активное тестирование');
@@ -71,6 +71,38 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], onTestComplete })
       setUseNewSystem(false);
     }
   }, [isOpen, selectedNodeIds.length]);
+
+  // Auto-persist testing session to survive page refreshes
+  React.useEffect(() => {
+    if (!sessionId || !loading) return;
+    const persist = () => {
+      const savedState = {
+        sessionId,
+        loading,
+        progressData,
+        results,
+        testType,
+        selectedNodeIds,
+        processedNodes,
+        totalNodes,
+        timestamp: Date.now()
+      };
+      localStorage.setItem('testingProgress', JSON.stringify(savedState));
+    };
+
+    // Persist immediately and on interval
+    persist();
+    const iv = setInterval(persist, 1500);
+
+    // Persist on page unload
+    const handleBeforeUnload = () => persist();
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      clearInterval(iv);
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [sessionId, loading, progressData, results, testType, processedNodes, totalNodes, selectedNodeIds]);
 
   // Progress tracking effect (same as ImportModal)
   React.useEffect(() => {
@@ -141,7 +173,7 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], onTestComplete })
         eventSource.close();
       }
     };
-  }, [sessionId, loading, API, selectedNodeIds.length, onTestComplete]);
+  }, [sessionId, loading, API, selectedNodeIds.length, onTestComplete, totalNodes]);
 
   const handleTest = async () => {
     if (selectedNodeIds.length === 0) {
@@ -186,6 +218,19 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], onTestComplete })
       if (response.data.session_id) {
         // Track progress via SSE
         setSessionId(response.data.session_id);
+        // Persist initial state to survive refreshes
+        const savedState = {
+          sessionId: response.data.session_id,
+          loading: true,
+          progressData: null,
+          results: null,
+          testType,
+          selectedNodeIds,
+          processedNodes: 0,
+          totalNodes: selectedNodeIds.length,
+          timestamp: Date.now()
+        };
+        localStorage.setItem('testingProgress', JSON.stringify(savedState));
         toast.info(response.data.message || 'Тестирование начато');
         // Don't set loading to false yet, SSE will handle completion
       } else {
@@ -488,10 +533,6 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], onTestComplete })
           {/* Node Selection Info */}
           <Card>
             <CardHeader>
-              {(!selectedNodeIds || selectedNodeIds.length === 0) && (
-                <div className="text-sm text-red-600">Нет выбранных узлов. Выберите узлы в таблице или используйте Select All.</div>
-              )}
-
               <CardTitle className="text-sm">Выбранные Узлы</CardTitle>
             </CardHeader>
             <CardContent>
@@ -500,6 +541,9 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], onTestComplete })
                   <p>Выбрано {selectedNodeIds.length} узлов для тестирования</p>
                 ) : (
                   <p>Используйте чекбоксы в таблице для выбора узлов</p>
+                )}
+                {(!selectedNodeIds || selectedNodeIds.length === 0) && (
+                  <div className="text-sm text-red-600">Нет выбранных узлов. Выберите узлы в таблице или используйте Select All.</div>
                 )}
               </div>
             </CardContent>
