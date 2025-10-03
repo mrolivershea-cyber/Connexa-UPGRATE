@@ -53,6 +53,16 @@ class ProgressTracker:
         progress_store[self.session_id] = self
     
     def to_dict(self):
+        return {
+            "session_id": self.session_id,
+            "total_items": self.total_items,
+            "processed_items": self.processed_items,
+            "current_task": self.current_task,
+            "status": self.status,
+            "progress_percent": int((self.processed_items / self.total_items) * 100) if self.total_items > 0 else 0,
+            "results": self.results
+        }
+
 # Progress safe increment helper
 progress_locks = {}
 
