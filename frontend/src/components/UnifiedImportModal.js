@@ -269,7 +269,7 @@ vpn2.example.com:443:client2:pass456:GB:London:`
                 <CardTitle className="text-sm flex items-center justify-between">
                   <span>Прогресс импорта</span>
                   <span className="text-sm font-normal">
-                    {progressData.processed_items}/{progressData.total_items}
+                    {progressData ? `${progressData.processed_items}/${progressData.total_items}` : '0/0'}
                   </span>
                 </CardTitle>
               </CardHeader>
