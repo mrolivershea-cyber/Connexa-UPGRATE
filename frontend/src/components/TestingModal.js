@@ -139,7 +139,7 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], onTestComplete })
         eventSource.close();
       }
     };
-  }, [sessionId, loading, useNewSystem, API, selectedNodeIds.length, onTestComplete]);
+  }, [sessionId, loading, API, selectedNodeIds.length, onTestComplete]);
 
   const handleTest = async () => {
     if (selectedNodeIds.length === 0) {
