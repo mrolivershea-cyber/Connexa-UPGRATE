@@ -200,8 +200,6 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], onTestComplete })
         endpoint = 'manual/ping-test-batch-progress';
       } else if (testType === 'speed') {
         endpoint = 'manual/speed-test-batch-progress';
-      } else if (testType === 'both') {
-        endpoint = 'manual/ping-speed-test-batch-progress';
       }
       
       // No more progress simulation - SSE will provide real progress
