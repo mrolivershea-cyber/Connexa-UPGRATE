@@ -275,7 +275,45 @@ vpn2.example.com:443:client2:pass456:GB:London:`
         </DialogHeader>
 
         <div className="space-y-4 mt-4">
-            {/* Protocol Selection */}
+          {/* Progress Display */}
+          {loading && progressData && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-sm flex items-center justify-between">
+                  <span>Прогресс импорта</span>
+                  <span className="text-sm font-normal">
+                    {progressData.processed_items}/{progressData.total_items}
+                  </span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <div className="flex justify-between text-sm">
+                    <span>{progressData.current_task || 'Выполняется импорт...'}</span>
+                    <span>{progressData.progress_percent || 0}%</span>
+                  </div>
+                  <Progress 
+                    value={progressData.progress_percent || 0} 
+                    className="w-full" 
+                  />
+                  {progressData.results && progressData.results.length > 0 && (
+                    <div className="max-h-32 overflow-y-auto space-y-1">
+                      {progressData.results.slice(-3).map((result, index) => (
+                        <div key={index} className="text-xs text-gray-600 flex items-center">
+                          <span className={`mr-2 ${result.success ? 'text-green-600' : 'text-red-600'}`}>
+                            {result.success ? '✅' : '❌'}
+                          </span>
+                          {result.ip} - {result.status}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Protocol Selection */}
             <div className="space-y-2">
               <Label htmlFor="import-protocol">Тип протокола</Label>
               <Select value={protocol} onValueChange={setProtocol}>
