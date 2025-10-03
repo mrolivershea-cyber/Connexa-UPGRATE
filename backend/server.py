@@ -98,6 +98,11 @@ app.add_middleware(
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+# Status helpers according to new business rules (sticky PING OK baseline)
+
+def has_ping_baseline(status: str) -> bool:
+    return status in ("ping_ok", "speed_ok", "online")
+
 
 # Create tables on startup
 create_tables()
