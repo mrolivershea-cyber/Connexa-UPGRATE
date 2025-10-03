@@ -216,8 +216,8 @@ async def monitor_online_nodes():
                         if not service_status.get('active', False):
                             # Double-check status before changing
                             if fresh_node.status == "online":
-                                logger.warning(f"❌ Monitor: Node {node.id} services failed - marking offline")
-                                fresh_node.status = "offline"
+                                logger.warning(f"❌ Monitor: Node {node.id} services failed - reverting to ping_ok baseline")
+                                fresh_node.status = "ping_ok"
                                 fresh_node.last_update = datetime.utcnow()
                             else:
                                 logger.warning(f"⚠️ Monitor: Node {node.id} status already {fresh_node.status} - not changing")
