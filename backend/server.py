@@ -28,6 +28,41 @@ from schemas import (
 )
 from services import service_manager, network_tester
 
+# Progress Tracking System
+import uuid
+progress_store = {}
+
+class ProgressTracker:
+    def __init__(self, session_id: str, total_items: int):
+        self.session_id = session_id
+        self.total_items = total_items
+        self.processed_items = 0
+        self.current_task = ""
+        self.status = "running"
+        self.results = []
+        
+    def update(self, processed: int, current_task: str = "", add_result: dict = None):
+        self.processed_items = processed
+        self.current_task = current_task
+        if add_result:
+            self.results.append(add_result)
+        progress_store[self.session_id] = self
+    
+    def complete(self, status: str = "completed"):
+        self.status = status
+        progress_store[self.session_id] = self
+    
+    def to_dict(self):
+        return {
+            "session_id": self.session_id,
+            "total_items": self.total_items,
+            "processed_items": self.processed_items,
+            "current_task": self.current_task,
+            "status": self.status,
+            "progress_percent": int((self.processed_items / self.total_items) * 100) if self.total_items > 0 else 0,
+            "results": self.results
+        }
+
 # Setup
 ROOT_DIR = Path(__file__).parent
 
