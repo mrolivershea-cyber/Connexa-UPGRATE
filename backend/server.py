@@ -63,6 +63,22 @@ class ProgressTracker:
             "results": self.results
         }
 
+async def cleanup_stuck_nodes():
+    """Clean up nodes stuck in 'checking' status on startup"""
+    try:
+        db = next(get_db())
+        stuck_nodes = db.query(Node).filter(Node.status == "checking").all()
+        if stuck_nodes:
+            for node in stuck_nodes:
+                node.status = "not_tested"
+                node.last_update = datetime.utcnow()
+            db.commit()
+            logger.info(f"🧹 Cleaned up {len(stuck_nodes)} nodes stuck in 'checking' status on startup")
+        else:
+            logger.info("✅ No stuck nodes found during startup cleanup")
+    except Exception as e:
+        logger.error(f"❌ Error during stuck nodes cleanup: {str(e)}")
+
 # Setup
 ROOT_DIR = Path(__file__).parent
 
