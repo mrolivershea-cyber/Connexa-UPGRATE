@@ -3986,6 +3986,510 @@ City: Broomfield""",
                      f"✅ Complete workflow successful: Created node → Initial ping_status=null → Manual ping test → ping_status='{final_ping_status}' → status='{final_status}'")
         return True
 
+    def run_comprehensive_tests(self):
+        """Run comprehensive test suite for SQLite optimization review"""
+        print("🚀 Starting Connexa Admin Panel Comprehensive Testing - SQLite Optimization Review")
+        print("=" * 80)
+        
+        # Authentication tests
+        if not self.test_login():
+            print("❌ Login failed - stopping tests")
+            return False
+        
+        if not self.test_get_current_user():
+            print("❌ User authentication failed - stopping tests")
+            return False
+        
+        # Core functionality tests
+        nodes = self.test_get_nodes()
+        self.test_get_stats()
+        
+        # REVIEW REQUEST SPECIFIC TESTS
+        print("\n🔥 REVIEW REQUEST SPECIFIC TESTS - SQLite Performance & Deduplication")
+        print("=" * 80)
+        
+        # 1. Import Functionality with Deduplication
+        self.test_import_deduplication_review()
+        
+        # 2. Import with testing_mode: ping_only (real-time progress)
+        self.test_import_with_ping_only_progress()
+        
+        # 3. Manual Ping Test on not_tested nodes
+        self.test_manual_ping_test_review()
+        
+        # 4. Speed Test on ping_ok nodes
+        self.test_manual_speed_test_review()
+        
+        # 5. Progress Tracking (SSE) during import
+        self.test_progress_tracking_sse()
+        
+        # 6. Database Performance Tests
+        self.test_database_performance_review()
+        
+        # 7. Real Test Data Verification
+        self.test_real_data_verification()
+        
+        # Additional comprehensive tests
+        self.test_comprehensive_parser_format_1()
+        self.test_comprehensive_parser_format_2_critical()
+        self.test_comprehensive_deduplication_logic()
+        
+        # Service management tests
+        node_ids = [node['id'] for node in nodes[:3]] if nodes else []
+        if node_ids:
+            self.test_service_control_start(node_ids)
+            self.test_service_control_stop(node_ids)
+            self.test_ping_test(node_ids)
+            self.test_speed_test(node_ids)
+        
+        # Print summary
+        print("\n" + "=" * 80)
+        print(f"🏁 COMPREHENSIVE TESTING COMPLETE - SQLite Optimization Review")
+        print(f"📊 Tests Run: {self.tests_run}")
+        print(f"✅ Tests Passed: {self.tests_passed}")
+        print(f"❌ Tests Failed: {self.tests_run - self.tests_passed}")
+        print(f"📈 Success Rate: {(self.tests_passed / self.tests_run * 100):.1f}%")
+        
+        if self.tests_passed == self.tests_run:
+            print("🎉 ALL TESTS PASSED!")
+            return True
+        else:
+            print("⚠️  SOME TESTS FAILED - Check details above")
+            return False
+
+    # ========== REVIEW REQUEST SPECIFIC TESTS ==========
+    
+    def test_import_deduplication_review(self):
+        """Test 1: Import with deduplication - 3 new PPTP configs, then same 3 again"""
+        print("\n🔥 TEST 1: Import Functionality with Deduplication")
+        print("-" * 60)
+        
+        # Test data from review request
+        test_data = """200.1.1.1:1723:testuser1:testpass1
+200.1.1.2:1723:testuser2:testpass2  
+200.1.1.3:1723:testuser3:testpass3"""
+        
+        import_data = {
+            "data": test_data,
+            "protocol": "pptp",
+            "testing_mode": "no_test"
+        }
+        
+        # First import - should add 3 new nodes
+        print("📥 First import - expecting 3 new nodes...")
+        success1, response1 = self.make_request('POST', 'nodes/import', import_data)
+        
+        if success1 and 'report' in response1:
+            report1 = response1['report']
+            added_first = report1.get('added', 0)
+            skipped_first = report1.get('skipped_duplicates', 0)
+            
+            print(f"   Added: {added_first}, Skipped: {skipped_first}")
+            
+            # Second import - same data, should skip all as duplicates
+            print("📥 Second import - expecting 0 new, 3 skipped duplicates...")
+            success2, response2 = self.make_request('POST', 'nodes/import', import_data)
+            
+            if success2 and 'report' in response2:
+                report2 = response2['report']
+                added_second = report2.get('added', 0)
+                skipped_second = report2.get('skipped_duplicates', 0)
+                
+                print(f"   Added: {added_second}, Skipped: {skipped_second}")
+                
+                # Verify deduplication worked correctly
+                if added_first == 3 and added_second == 0 and skipped_second == 3:
+                    self.log_test("Import Deduplication Review", True, 
+                                 f"✅ Deduplication working: First import added {added_first}, second import skipped {skipped_second} duplicates")
+                    return True
+                else:
+                    self.log_test("Import Deduplication Review", False, 
+                                 f"❌ Deduplication failed: Expected 3 added, 0 added, 3 skipped. Got {added_first}, {added_second}, {skipped_second}")
+                    return False
+            else:
+                self.log_test("Import Deduplication Review", False, f"Second import failed: {response2}")
+                return False
+        else:
+            self.log_test("Import Deduplication Review", False, f"First import failed: {response1}")
+            return False
+    
+    def test_import_with_ping_only_progress(self):
+        """Test 2: Import with testing_mode: ping_only and verify real-time progress"""
+        print("\n🔥 TEST 2: Import with ping_only testing - Real-time Progress")
+        print("-" * 60)
+        
+        # Test data - 2-3 nodes as requested
+        test_data = """200.2.2.1:1723:pingtest1:pingpass1
+200.2.2.2:1723:pingtest2:pingpass2
+200.2.2.3:1723:pingtest3:pingpass3"""
+        
+        import_data = {
+            "data": test_data,
+            "protocol": "pptp",
+            "testing_mode": "ping_only"
+        }
+        
+        print("📥 Starting import with ping_only testing...")
+        success, response = self.make_request('POST', 'nodes/import', import_data)
+        
+        if success and 'session_id' in response:
+            session_id = response['session_id']
+            print(f"✅ Import started with session_id: {session_id}")
+            
+            # Test progress endpoint immediately
+            progress_success, progress_response = self.make_request('GET', f'progress/{session_id}')
+            
+            if progress_success and 'total_items' in progress_response:
+                total_items = progress_response.get('total_items', 0)
+                processed_items = progress_response.get('processed_items', 0)
+                progress_percent = progress_response.get('progress_percent', 0)
+                current_task = progress_response.get('current_task', '')
+                
+                print(f"📊 Progress: {processed_items}/{total_items} ({progress_percent}%)")
+                print(f"📋 Current task: {current_task}")
+                
+                # Wait and check progress again
+                import time
+                time.sleep(3)
+                
+                progress_success2, progress_response2 = self.make_request('GET', f'progress/{session_id}')
+                if progress_success2:
+                    new_progress = progress_response2.get('progress_percent', 0)
+                    print(f"📈 Progress after 3s: {new_progress}%")
+                    
+                    self.log_test("Import with Ping Only Progress", True, 
+                                 f"✅ Real-time progress working: {progress_percent}% → {new_progress}%, session_id: {session_id}")
+                    return True
+                else:
+                    self.log_test("Import with Ping Only Progress", False, 
+                                 f"❌ Progress endpoint failed on second check: {progress_response2}")
+                    return False
+            else:
+                self.log_test("Import with Ping Only Progress", False, 
+                             f"❌ Progress endpoint failed: {progress_response}")
+                return False
+        else:
+            self.log_test("Import with Ping Only Progress", False, 
+                         f"❌ Import with ping_only failed: {response}")
+            return False
+    
+    def test_manual_ping_test_review(self):
+        """Test 3: Manual ping test on 3-5 not_tested nodes"""
+        print("\n🔥 TEST 3: Manual Ping Test on not_tested nodes")
+        print("-" * 60)
+        
+        # Get not_tested nodes
+        success, response = self.make_request('GET', 'nodes?status=not_tested&limit=5')
+        
+        if success and 'nodes' in response:
+            not_tested_nodes = response['nodes']
+            
+            if len(not_tested_nodes) >= 3:
+                # Test with 3-5 nodes as requested
+                test_node_ids = [node['id'] for node in not_tested_nodes[:5]]
+                
+                print(f"📍 Testing ping on {len(test_node_ids)} not_tested nodes: {test_node_ids}")
+                
+                ping_data = {
+                    "node_ids": test_node_ids
+                }
+                
+                ping_success, ping_response = self.make_request('POST', 'manual/ping-test', ping_data)
+                
+                if ping_success and 'results' in ping_response:
+                    results = ping_response['results']
+                    successful_pings = len([r for r in results if r.get('success', False)])
+                    
+                    print(f"📊 Ping results: {successful_pings}/{len(results)} successful")
+                    
+                    # Verify status changes and timestamps
+                    import time
+                    time.sleep(1)  # Wait for DB updates
+                    
+                    updated_nodes = []
+                    for node_id in test_node_ids:
+                        node_success, node_response = self.make_request('GET', f'nodes/{node_id}')
+                        if node_success:
+                            node = node_response
+                            updated_nodes.append({
+                                'id': node_id,
+                                'status': node.get('status'),
+                                'last_update': node.get('last_update')
+                            })
+                    
+                    # Check if statuses changed from not_tested
+                    status_changed = len([n for n in updated_nodes if n['status'] in ['ping_ok', 'ping_failed']])
+                    
+                    if status_changed >= 3:
+                        self.log_test("Manual Ping Test Review", True, 
+                                     f"✅ Ping test successful: {status_changed}/{len(test_node_ids)} nodes changed status, timestamps updated")
+                        return True
+                    else:
+                        self.log_test("Manual Ping Test Review", False, 
+                                     f"❌ Only {status_changed}/{len(test_node_ids)} nodes changed status")
+                        return False
+                else:
+                    self.log_test("Manual Ping Test Review", False, 
+                                 f"❌ Manual ping test failed: {ping_response}")
+                    return False
+            else:
+                self.log_test("Manual Ping Test Review", False, 
+                             f"❌ Not enough not_tested nodes found: {len(not_tested_nodes)}")
+                return False
+        else:
+            self.log_test("Manual Ping Test Review", False, 
+                         f"❌ Failed to get not_tested nodes: {response}")
+            return False
+    
+    def test_manual_speed_test_review(self):
+        """Test 4: Speed test on 2-3 ping_ok nodes"""
+        print("\n🔥 TEST 4: Manual Speed Test on ping_ok nodes")
+        print("-" * 60)
+        
+        # Get ping_ok nodes
+        success, response = self.make_request('GET', 'nodes?status=ping_ok&limit=3')
+        
+        if success and 'nodes' in response:
+            ping_ok_nodes = response['nodes']
+            
+            if len(ping_ok_nodes) >= 2:
+                # Test with 2-3 nodes as requested
+                test_node_ids = [node['id'] for node in ping_ok_nodes[:3]]
+                
+                print(f"🚀 Testing speed on {len(test_node_ids)} ping_ok nodes: {test_node_ids}")
+                
+                speed_data = {
+                    "node_ids": test_node_ids
+                }
+                
+                speed_success, speed_response = self.make_request('POST', 'manual/speed-test', speed_data)
+                
+                if speed_success and 'results' in speed_response:
+                    results = speed_response['results']
+                    successful_speeds = len([r for r in results if r.get('success', False)])
+                    
+                    print(f"📊 Speed results: {successful_speeds}/{len(results)} successful")
+                    
+                    # Verify status changes to speed_ok and Mbps values
+                    import time
+                    time.sleep(1)  # Wait for DB updates
+                    
+                    speed_ok_count = 0
+                    for node_id in test_node_ids:
+                        node_success, node_response = self.make_request('GET', f'nodes/{node_id}')
+                        if node_success:
+                            node = node_response
+                            if node.get('status') == 'speed_ok':
+                                speed_ok_count += 1
+                                download_mbps = node.get('download_mbps', 0)
+                                upload_mbps = node.get('upload_mbps', 0)
+                                print(f"   Node {node_id}: {download_mbps} Mbps down, {upload_mbps} Mbps up")
+                    
+                    if speed_ok_count >= 1:
+                        self.log_test("Manual Speed Test Review", True, 
+                                     f"✅ Speed test successful: {speed_ok_count}/{len(test_node_ids)} nodes achieved speed_ok status with real Mbps values")
+                        return True
+                    else:
+                        self.log_test("Manual Speed Test Review", False, 
+                                     f"❌ No nodes achieved speed_ok status")
+                        return False
+                else:
+                    self.log_test("Manual Speed Test Review", False, 
+                                 f"❌ Manual speed test failed: {speed_response}")
+                    return False
+            else:
+                self.log_test("Manual Speed Test Review", False, 
+                             f"❌ Not enough ping_ok nodes found: {len(ping_ok_nodes)}")
+                return False
+        else:
+            self.log_test("Manual Speed Test Review", False, 
+                         f"❌ Failed to get ping_ok nodes: {response}")
+            return False
+    
+    def test_progress_tracking_sse(self):
+        """Test 5: Progress Tracking (SSE) during import with ping_only"""
+        print("\n🔥 TEST 5: Progress Tracking SSE during import")
+        print("-" * 60)
+        
+        # Create test data with 5-10 nodes for progress tracking
+        test_nodes = []
+        for i in range(1, 8):  # 7 nodes for progress tracking
+            test_nodes.append(f"200.5.5.{i}:1723:progresstest{i}:progresspass{i}")
+        
+        test_data = "\n".join(test_nodes)
+        
+        import_data = {
+            "data": test_data,
+            "protocol": "pptp",
+            "testing_mode": "ping_only"
+        }
+        
+        print("📥 Starting import with progress tracking...")
+        success, response = self.make_request('POST', 'nodes/import', import_data)
+        
+        if success and 'session_id' in response:
+            session_id = response['session_id']
+            print(f"✅ Import started with session_id: {session_id}")
+            
+            # Track progress over time
+            progress_checks = []
+            for i in range(5):  # Check progress 5 times
+                progress_success, progress_response = self.make_request('GET', f'progress/{session_id}')
+                
+                if progress_success and 'progress_percent' in progress_response:
+                    progress_data = {
+                        'check': i + 1,
+                        'progress_percent': progress_response.get('progress_percent', 0),
+                        'processed_items': progress_response.get('processed_items', 0),
+                        'total_items': progress_response.get('total_items', 0),
+                        'current_task': progress_response.get('current_task', ''),
+                        'status': progress_response.get('status', '')
+                    }
+                    progress_checks.append(progress_data)
+                    
+                    print(f"📊 Check {i+1}: {progress_data['progress_percent']}% - {progress_data['current_task']}")
+                
+                import time
+                time.sleep(2)  # Wait 2 seconds between checks
+            
+            # Verify progress increased over time
+            if len(progress_checks) >= 3:
+                first_progress = progress_checks[0]['progress_percent']
+                last_progress = progress_checks[-1]['progress_percent']
+                
+                if last_progress >= first_progress:
+                    self.log_test("Progress Tracking SSE", True, 
+                                 f"✅ Progress tracking working: {first_progress}% → {last_progress}%, session updates correctly")
+                    return True
+                else:
+                    self.log_test("Progress Tracking SSE", False, 
+                                 f"❌ Progress went backwards: {first_progress}% → {last_progress}%")
+                    return False
+            else:
+                self.log_test("Progress Tracking SSE", False, 
+                             f"❌ Not enough progress checks completed: {len(progress_checks)}")
+                return False
+        else:
+            self.log_test("Progress Tracking SSE", False, 
+                         f"❌ Import failed to start: {response}")
+            return False
+    
+    def test_database_performance_review(self):
+        """Test 6: Database Performance - Stats API <50ms, Nodes API <100ms"""
+        print("\n🔥 TEST 6: Database Performance Testing")
+        print("-" * 60)
+        
+        import time
+        
+        # Test Stats API performance
+        print("📊 Testing Stats API performance...")
+        start_time = time.time()
+        stats_success, stats_response = self.make_request('GET', 'stats')
+        stats_time = (time.time() - start_time) * 1000  # Convert to milliseconds
+        
+        print(f"   Stats API response time: {stats_time:.1f}ms")
+        
+        # Test Nodes API performance (page_size=200)
+        print("📊 Testing Nodes API performance...")
+        start_time = time.time()
+        nodes_success, nodes_response = self.make_request('GET', 'nodes?limit=200')
+        nodes_time = (time.time() - start_time) * 1000  # Convert to milliseconds
+        
+        print(f"   Nodes API response time: {nodes_time:.1f}ms")
+        
+        # Check for duplicate nodes
+        if nodes_success and 'nodes' in nodes_response:
+            nodes = nodes_response['nodes']
+            node_keys = set()
+            duplicates = 0
+            
+            for node in nodes:
+                key = (node.get('ip'), node.get('login'), node.get('password'))
+                if key in node_keys:
+                    duplicates += 1
+                else:
+                    node_keys.add(key)
+            
+            print(f"   Duplicate check: {duplicates} duplicates found in {len(nodes)} nodes")
+            
+            # Performance criteria from review request
+            stats_ok = stats_time < 50  # <50ms
+            nodes_ok = nodes_time < 100  # <100ms
+            no_duplicates = duplicates == 0
+            
+            if stats_ok and nodes_ok and no_duplicates:
+                self.log_test("Database Performance Review", True, 
+                             f"✅ Performance excellent: Stats {stats_time:.1f}ms (<50ms), Nodes {nodes_time:.1f}ms (<100ms), {duplicates} duplicates")
+                return True
+            else:
+                issues = []
+                if not stats_ok:
+                    issues.append(f"Stats API slow: {stats_time:.1f}ms (>50ms)")
+                if not nodes_ok:
+                    issues.append(f"Nodes API slow: {nodes_time:.1f}ms (>100ms)")
+                if not no_duplicates:
+                    issues.append(f"{duplicates} duplicate nodes found")
+                
+                self.log_test("Database Performance Review", False, 
+                             f"❌ Performance issues: {', '.join(issues)}")
+                return False
+        else:
+            self.log_test("Database Performance Review", False, 
+                         f"❌ Failed to get nodes for performance test: {nodes_response}")
+            return False
+    
+    def test_real_data_verification(self):
+        """Test 7: Real Test Data Verification using existing ping_ok nodes"""
+        print("\n🔥 TEST 7: Real Test Data Verification")
+        print("-" * 60)
+        
+        # Test with existing ping_ok nodes mentioned in review request
+        test_ips = ['144.229.29.35', '71.84.237.32']
+        
+        verified_nodes = []
+        for ip in test_ips:
+            print(f"🔍 Checking node {ip}...")
+            success, response = self.make_request('GET', f'nodes?ip={ip}')
+            
+            if success and 'nodes' in response and response['nodes']:
+                node = response['nodes'][0]
+                status = node.get('status')
+                ping_time = node.get('ping_time_ms', 0)
+                download_mbps = node.get('download_mbps', 0)
+                upload_mbps = node.get('upload_mbps', 0)
+                
+                print(f"   Status: {status}")
+                print(f"   Ping: {ping_time}ms")
+                print(f"   Speed: {download_mbps} Mbps down, {upload_mbps} Mbps up")
+                
+                # Verify realistic values
+                realistic_ping = ping_time > 0 and ping_time < 500  # <500ms for working nodes
+                realistic_speed = download_mbps > 1.0 or upload_mbps > 1.0  # >1.0 Mbps
+                
+                verified_nodes.append({
+                    'ip': ip,
+                    'status': status,
+                    'ping_realistic': realistic_ping,
+                    'speed_realistic': realistic_speed,
+                    'ping_time': ping_time,
+                    'download_mbps': download_mbps
+                })
+            else:
+                print(f"   ❌ Node {ip} not found")
+        
+        # Verify at least one node has realistic values
+        realistic_nodes = [n for n in verified_nodes if n['ping_realistic'] and n['speed_realistic']]
+        
+        if len(realistic_nodes) >= 1:
+            node = realistic_nodes[0]
+            self.log_test("Real Test Data Verification", True, 
+                         f"✅ Real data verified: {node['ip']} has realistic ping ({node['ping_time']}ms) and speed ({node['download_mbps']} Mbps)")
+            return True
+        else:
+            self.log_test("Real Test Data Verification", False, 
+                         f"❌ No nodes with realistic test values found. Verified: {len(verified_nodes)}, Realistic: {len(realistic_nodes)}")
+            return False
+
     def test_create_node_with_auto_test(self):
         """Test creating node with automatic testing"""
         test_node = {
