@@ -131,42 +131,42 @@ async def startup_event():
 # B) Keep general TCP ping (no protocol handshake) but use DB-configured ports with fallbacks
 
 def get_ping_ports_for_node(node: Node) -> list[int]:
+    """Return ports strictly by protocol without cross-protocol mixing.
+    - pptp: [node.port] or [1723]
+    - socks: [socks_port] or [1080]
+    - ovpn: [node.port] or [1194, 443]
+    - ssh: [node.port] or [22]
+    - unknown: [node.port] or [] (no mixing)
+    """
     try:
-        ports = []
+        ports: list[int] = []
         proto = (node.protocol or "").lower()
         # Prefer explicit node.port when present
         if node.port:
             ports.append(int(node.port))
         if proto == "pptp":
-            if 1723 not in ports:
-                ports.append(1723)
+            if not ports:
+                ports = [1723]
         elif proto == "socks":
             # Prefer stored socks_port, then common default 1080
-            if getattr(node, "socks_port", None):
-                sp = int(node.socks_port)
-                if sp not in ports:
-                    ports.append(sp)
-            if 1080 not in ports:
-                ports.append(1080)
+            sp = getattr(node, "socks_port", None)
+            if sp:
+                ports = [int(sp)]
+            elif not ports:
+                ports = [1080]
         elif proto == "ovpn":
-            # Common OpenVPN TCP ports
-            for p in [1194, 443]:
-                if p not in ports:
-                    ports.append(p)
+            if not ports:
+                ports = [1194, 443]
         elif proto == "ssh":
-            if 22 not in ports:
-                ports.append(22)
-        # Universal TCP fallbacks for reachability
-        for p in [443, 80, 22]:
-            if p not in ports:
-                ports.append(p)
-        # Ensure unique and valid
-        ports = [int(p) for p in ports if isinstance(p, (int, str))]
-        # Limit to reasonable list length
-        return ports[:6]
+            if not ports:
+                ports = [22]
+        else:
+            # Unknown protocol: only explicit port if provided
+            ports = ports
+        # Ensure unique ints
+        return [int(p) for p in ports]
     except Exception:
-        # Safe fallback
-        return [1723, 443, 80, 22]
+        return [1723]
 
 
 # ===== BACKGROUND MONITORING SYSTEM =====
