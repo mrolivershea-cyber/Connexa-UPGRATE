@@ -2816,11 +2816,14 @@ async def manual_ping_speed_test_batch(
             
             # Update final status based on speed result
             if speed_result and speed_result.get('success', False):
+                # On successful speed test, ensure baseline PING OK and set SPEED OK
                 node.status = "speed_ok"
                 node.speed = f"{speed_result.get('download', 0)} Mbps"
             else:
-                # Speed failed - preserve existing speed_ok status
-                if node.status != "speed_ok":
+                # Speed failed: downgrade from SPEED OK only to PING OK; never to PING FAILED
+                if has_ping_baseline(original_status):
+                    node.status = "ping_ok"
+                else:
                     node.status = "ping_failed"
             
             node.last_check = datetime.utcnow()
