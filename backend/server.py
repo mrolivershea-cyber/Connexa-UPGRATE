@@ -2748,10 +2748,11 @@ async def process_testing_batches(session_id: str, node_ids: list, testing_mode:
                 test_dedupe_cleanup()
             except Exception:
                 pass
-                
-                except Exception as node_error:
-                    logger.error(f"❌ Testing: Critical error processing Node {node_id}: {str(node_error)}")
-                    failed_tests += 1
+            
+            # Handle unexpected node-level errors
+            except Exception as node_error:
+                logger.error(f"❌ Testing: Critical error processing Node {node_id}: {str(node_error)}")
+                failed_tests += 1
             
             # Force commit after each batch and clear session cache
             try:
