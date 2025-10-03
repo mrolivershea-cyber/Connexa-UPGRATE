@@ -2496,9 +2496,47 @@ async def manual_ping_test_batch(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Optimized batch ping test with parallel execution"""
-    import asyncio
-    from ping_speed_test import test_node_ping
+    """Optimized batch ping test with real-time progress tracking"""
+    
+    # Generate session ID for progress tracking
+    session_id = str(uuid.uuid4())
+    
+    # Get all nodes first
+    nodes = []
+    for node_id in test_request.node_ids:
+        node = db.query(Node).filter(Node.id == node_id).first()
+        if node:
+            nodes.append(node)
+    
+    if not nodes:
+        return {"results": [], "session_id": session_id}
+    
+    # Initialize progress tracker
+    progress = ProgressTracker(session_id, len(nodes))
+    progress.update(0, f"Начинаем ping тестирование {len(nodes)} узлов...")
+    
+    # Start background batch testing
+    asyncio.create_task(process_ping_testing_batches(
+        session_id, [n.id for n in nodes], db
+    ))
+    
+    return {"results": [], "session_id": session_id, "message": f"Запущено тестирование {len(nodes)} узлов"}
+
+async def process_ping_testing_batches(session_id: str, node_ids: list, db_session):
+    """Process ping testing in batches"""
+    
+    BATCH_SIZE = 15  # Process 15 nodes at a time
+    total_nodes = len(node_ids)
+    processed_nodes = 0
+    
+    try:
+        # Get fresh database session for background processing
+        db = SessionLocal()
+        
+        logger.info(f"🚀 Ping Batch: Starting {total_nodes} nodes in batches of {BATCH_SIZE}")
+        
+        # Import testing functions
+        from ping_speed_test import test_node_ping
     
     # Get all nodes first and save their original status
     nodes = []
