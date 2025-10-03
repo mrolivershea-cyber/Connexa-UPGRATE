@@ -2748,14 +2748,6 @@ async def process_testing_batches(session_id: str, node_ids: list, testing_mode:
                 test_dedupe_cleanup()
             except Exception:
                 pass
-                        node.last_update = datetime.utcnow()
-                        db.commit()
-                        failed_tests += 1
-                        
-                        if session_id in progress_store:
-                            progress_store[session_id].update(global_index + 1, f"❌ {node.ip} - error")
-                        
-                        test_dedupe_mark_finished(node.id)
                 
                 except Exception as node_error:
                     logger.error(f"❌ Testing: Critical error processing Node {node_id}: {str(node_error)}")
