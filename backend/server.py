@@ -2658,6 +2658,9 @@ async def process_testing_batches(session_id: str, node_ids: list, testing_mode:
                         if not node:
                             logger.warning(f"❌ Testing batch: Node {node_id} not found in database")
                             return False
+            # Choose global semaphore by mode
+            global_sem = global_ping_sem if testing_mode == "ping_only" else global_speed_sem
+
 
                         # Dedupe check is done before scheduling; optional extra safety
                         mode_key = "ping" if testing_mode in ["ping_only", "ping_speed"] else ("speed" if testing_mode in ["speed_only"] else testing_mode)
