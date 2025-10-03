@@ -466,15 +466,26 @@ vpn2.example.com:443:client2:pass456:GB:London:`
             </div>
             
             <div className="flex space-x-2">
-              <Button type="button" variant="outline" onClick={onClose}>
-                Отмена
-              </Button>
+              {loading ? (
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={handleCancel}
+                  data-testid="cancel-btn"
+                >
+                  Отменить операцию
+                </Button>
+              ) : (
+                <Button type="button" variant="outline" onClick={onClose}>
+                  Закрыть
+                </Button>
+              )}
               <Button 
                 onClick={handleImport}
                 disabled={loading || !importData.trim()}
                 data-testid="import-btn"
               >
-                {loading ? 'Импорт...' : 'Импортировать узлы'}
+                {loading ? 'Выполняется...' : 'Импортировать узлы'}
               </Button>
             </div>
           </div>
