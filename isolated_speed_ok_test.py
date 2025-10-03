@@ -103,6 +103,8 @@ class IsolatedSpeedOKTester:
         
         # Verify node 1 status immediately
         success_check1, response_check1 = self.make_request('GET', f'nodes/{node1_id}')
+        print(f"🔍 Full node response: {response_check1}")
+        
         if success_check1 and response_check1.get('status') == 'speed_ok':
             print(f"✅ Node 1 status immediately after creation: speed_ok")
             self.log_test("Speed_OK Preservation - Immediate Status Check", True, "Node has speed_ok status immediately after creation")
