@@ -39,6 +39,9 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], onTestComplete })
 
     setLoading(true);
     setProgress(0);
+    setProcessedNodes(0);
+    setTotalNodes(selectedNodeIds.length);
+    setResults(null);
     
     // Declare progressInterval in the function scope so it's accessible in catch/finally blocks
     let progressInterval = null;
