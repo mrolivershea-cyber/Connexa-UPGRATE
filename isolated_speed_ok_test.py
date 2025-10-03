@@ -264,8 +264,13 @@ class IsolatedSpeedOKTester:
             time.sleep(2)
             
             # Verify status after service operation
-            success_service_check, response_service_check = self.make_request('GET', f'nodes/{node1_id}')
-            service_status = response_service_check.get('status', 'unknown') if success_service_check else 'unknown'
+            success_service_check, response_service_check = self.make_request('GET', 'nodes')
+            service_status = 'unknown'
+            if success_service_check and 'nodes' in response_service_check:
+                for node in response_service_check['nodes']:
+                    if node.get('id') == node1_id:
+                        service_status = node.get('status', 'unknown')
+                        break
             
             if service_status in ['speed_ok', 'online']:
                 print(f"✅ Node maintained good status after service operation: {service_status}")
