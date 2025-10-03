@@ -32,6 +32,13 @@ from services import service_manager, network_tester
 import uuid
 progress_store = {}
 
+# Global testing concurrency controls (safe defaults)
+MAX_PING_GLOBAL = 10
+MAX_SPEED_GLOBAL = 3
+
+global_ping_sem = asyncio.Semaphore(MAX_PING_GLOBAL)
+global_speed_sem = asyncio.Semaphore(MAX_SPEED_GLOBAL)
+
 class ProgressTracker:
     def __init__(self, session_id: str, total_items: int):
         self.session_id = session_id
