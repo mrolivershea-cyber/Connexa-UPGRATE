@@ -2781,8 +2781,10 @@ async def manual_ping_speed_test_batch(
             )
             
             if not ping_result or not ping_result.get('success', False):
-                # Ping failed - preserve speed_ok status
-                if node.status != "speed_ok":
+                # Ping failed - never drop below PING OK baseline
+                if has_ping_baseline(original_status):
+                    node.status = original_status
+                else:
                     node.status = "ping_failed"
                 node.last_check = datetime.utcnow()
                 node.last_update = datetime.utcnow()
