@@ -11104,8 +11104,8 @@ State: California""",
         print("=" * 60)
         
         # Test with potentially problematic IPs that might timeout
-        test_configs = """192.0.2.1:1723:timeout1:test1
-192.0.2.2:1723:timeout2:test2"""
+        test_configs = """192.0.2.1 timeout1 test1 CA
+192.0.2.2 timeout2 test2 NY"""
         
         import_data = {
             "data": test_configs,
