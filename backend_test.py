@@ -11170,7 +11170,7 @@ State: California""",
         print("=" * 60)
         
         # Test with minimal data to verify endpoint functionality
-        test_configs = """21.22.23.24:1723:verify1:test1"""
+        test_configs = """21.22.23.24 verify1 test1 CA"""
         
         # Test 1: ping_only mode
         import_data_ping = {
@@ -11189,7 +11189,7 @@ State: California""",
             return False
         
         # Test 2: ping_speed mode
-        test_configs2 = """25.26.27.28:1723:verify2:test2"""
+        test_configs2 = """25.26.27.28 verify2 test2 NY"""
         import_data_speed = {
             "data": test_configs2,
             "protocol": "pptp",
@@ -11206,7 +11206,7 @@ State: California""",
             return False
         
         # Test 3: no_test mode (should also work)
-        test_configs3 = """29.30.31.32:1723:verify3:test3"""
+        test_configs3 = """29.30.31.32 verify3 test3 TX"""
         import_data_no_test = {
             "data": test_configs3,
             "protocol": "pptp",
