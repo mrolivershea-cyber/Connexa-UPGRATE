@@ -2,6 +2,8 @@ from sqlalchemy import create_engine, Column, Integer, String, DateTime, Boolean
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.sql import func
+from sqlalchemy import event
+from sqlalchemy.pool import NullPool
 import os
 from dotenv import load_dotenv
 from passlib.context import CryptContext
