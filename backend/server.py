@@ -2269,12 +2269,21 @@ async def manual_ping_test_batch(
             # Update status based on result - ENSURE node never stays in 'checking'
             # CRITICAL: Protect speed_ok status from being downgraded
             if ping_result and ping_result.get('success', False):
-                node.status = "ping_ok"
+                # Only update to ping_ok if original wasn't speed_ok
+                if original_status != "speed_ok":
+                    node.status = "ping_ok"
+                    logger.info(f"✅ Batch: Node {node.id} ping SUCCESS - {original_status} -> ping_ok")
+                else:
+                    node.status = "speed_ok"
+                    logger.info(f"✅ Batch: Node {node.id} PROTECTED - preserving speed_ok despite ping success")
             else:
                 # Don't downgrade speed_ok nodes - they have already passed comprehensive tests
-                if node.status != "speed_ok":
+                if original_status != "speed_ok":
                     node.status = "ping_failed"
-                # If node is speed_ok, keep it as speed_ok
+                    logger.info(f"❌ Batch: Node {node.id} ping FAILED - {original_status} -> ping_failed")
+                else:
+                    node.status = "speed_ok"
+                    logger.info(f"🛡️ Batch: Node {node.id} PROTECTED - preserving speed_ok despite ping failure")
             
             node.last_check = datetime.utcnow()
             node.last_update = datetime.utcnow()
