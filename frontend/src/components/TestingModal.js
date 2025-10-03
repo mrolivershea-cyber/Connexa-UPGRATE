@@ -528,6 +528,38 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], onTestComplete })
                   {getTestTypeDescription()}
                 </div>
               </div>
+          {/* Concurrency & Tuning */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-sm">Параметры Производительности</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
+                <div>
+                  <label className="block text-xs text-gray-600 mb-1">Параллелизм (Ping)</label>
+                  <input type="number" min={1} max={200} value={pingConcurrency} onChange={e => setPingConcurrency(parseInt(e.target.value) || 1)} className="w-full border rounded px-2 py-1" />
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-600 mb-1">Параллелизм (Speed)</label>
+                  <input type="number" min={1} max={50} value={speedConcurrency} onChange={e => setSpeedConcurrency(parseInt(e.target.value) || 1)} className="w-full border rounded px-2 py-1" />
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-600 mb-1">Таймауты Ping (сек, через запятую)</label>
+                  <input type="text" value={pingTimeouts} onChange={e => setPingTimeouts(e.target.value)} className="w-full border rounded px-2 py-1" />
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-600 mb-1">Объём пробы Speed (KB)</label>
+                  <input type="number" min={64} max={2048} value={speedSampleKB} onChange={e => setSpeedSampleKB(parseInt(e.target.value) || 512)} className="w-full border rounded px-2 py-1" />
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-600 mb-1">Таймаут Speed (сек)</label>
+                  <input type="number" min={5} max={60} value={speedTimeout} onChange={e => setSpeedTimeout(parseInt(e.target.value) || 15)} className="w-full border rounded px-2 py-1" />
+                </div>
+              </div>
+              <div className="text-xs text-gray-500 mt-2">По умолчанию: Ping=50, Speed=8, Ping таймауты=0.8/1.2/1.6, Speed=512KB, 15с</div>
+            </CardContent>
+          </Card>
+
             </CardContent>
           </Card>
 
