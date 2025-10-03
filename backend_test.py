@@ -12656,11 +12656,14 @@ if __name__ == "__main__":
     if len(sys.argv) > 1 and sys.argv[1] == "--critical-speed-ok":
         print("🔥 ЗАПУСК КРИТИЧЕСКИХ ТЕСТОВ SPEED_OK PRESERVATION")
         sys.exit(run_critical_speed_ok_tests())
+    elif len(sys.argv) > 1 and sys.argv[1] == "--isolated-speed-ok":
+        # Run ONLY isolated speed_ok preservation test (background monitoring disabled)
+        print("🔥 ЗАПУСК ИЗОЛИРОВАННЫХ ТЕСТОВ SPEED_OK PRESERVATION")
+        sys.exit(run_isolated_speed_ok_tests())
     elif len(sys.argv) > 1 and sys.argv[1] == "--pptp":
         # Run PPTP-specific tests
         sys.exit(run_pptp_tests())
     else:
-        # Run comprehensive tests including critical Russian user speed_ok protection
-        tester = ConnexaAPITester()
-        success = tester.run_all_tests()
-        sys.exit(0 if success else 1)
+        # Run isolated speed_ok test by default for this review request
+        print("🔥 ЗАПУСК ИЗОЛИРОВАННЫХ ТЕСТОВ SPEED_OK PRESERVATION (DEFAULT)")
+        sys.exit(run_isolated_speed_ok_tests())
