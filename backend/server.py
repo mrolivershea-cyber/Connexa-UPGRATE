@@ -12,7 +12,6 @@ import csv
 import io
 import asyncio
 import threading
-import uuid
 from datetime import datetime, timedelta
 from pathlib import Path
 import logging
