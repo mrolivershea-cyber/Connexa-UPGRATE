@@ -65,8 +65,8 @@ async def startup_event():
         db.commit()
         logger.info("Default admin user created with username: admin, password: admin")
     
-    # TEMPORARILY DISABLED: Background monitoring service for testing
-    # start_background_monitoring()
+    # Start background monitoring service for online nodes ONLY
+    start_background_monitoring()
 
 # ===== BACKGROUND MONITORING SYSTEM =====
 # This system monitors ONLY online nodes every 5 minutes as per user requirements
