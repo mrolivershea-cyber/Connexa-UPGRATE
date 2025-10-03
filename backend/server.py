@@ -1572,30 +1572,40 @@ async def get_stats(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    total_nodes = db.query(Node).count()
+    # OPTIMIZED: Single query with GROUP BY instead of multiple COUNT queries
+    from sqlalchemy import func
     
-    # Unified status statistics
-    not_tested_nodes = db.query(Node).filter(Node.status == "not_tested").count()
-    ping_failed_nodes = db.query(Node).filter(Node.status == "ping_failed").count()
-    ping_ok_nodes = db.query(Node).filter(Node.status == "ping_ok").count()
-    speed_ok_nodes = db.query(Node).filter(Node.status == "speed_ok").count()
-    offline_nodes = db.query(Node).filter(Node.status == "offline").count()
-    online_nodes = db.query(Node).filter(Node.status == "online").count()
+    # Get status counts in one query
+    status_counts = db.query(
+        Node.status, func.count(Node.id).label('count')
+    ).group_by(Node.status).all()
+    
+    status_dict = {status: count for status, count in status_counts}
+    
+    # Get protocol counts in one query
+    protocol_counts = db.query(
+        Node.protocol, func.count(Node.id).label('count')
+    ).group_by(Node.protocol).all()
+    
+    protocol_dict = {protocol: count for protocol, count in protocol_counts}
+    
+    # Get total
+    total_nodes = sum(status_dict.values())
     
     return {
         "total": total_nodes,
-        "not_tested": not_tested_nodes,
-        "ping_failed": ping_failed_nodes,
-        "ping_ok": ping_ok_nodes,
-        "speed_ok": speed_ok_nodes,
-        "offline": offline_nodes,
-        "online": online_nodes,
+        "not_tested": status_dict.get("not_tested", 0),
+        "ping_failed": status_dict.get("ping_failed", 0),
+        "ping_ok": status_dict.get("ping_ok", 0),
+        "speed_ok": status_dict.get("speed_ok", 0),
+        "offline": status_dict.get("offline", 0),
+        "online": status_dict.get("online", 0),
         "by_protocol": {
-            "pptp": db.query(Node).filter(Node.protocol == "pptp").count(),
-            "ssh": db.query(Node).filter(Node.protocol == "ssh").count(),
-            "socks": db.query(Node).filter(Node.protocol == "socks").count(),
-            "server": db.query(Node).filter(Node.protocol == "server").count(),
-            "ovpn": db.query(Node).filter(Node.protocol == "ovpn").count(),
+            "pptp": protocol_dict.get("pptp", 0),
+            "ssh": protocol_dict.get("ssh", 0),
+            "socks": protocol_dict.get("socks", 0),
+            "server": protocol_dict.get("server", 0),
+            "ovpn": protocol_dict.get("ovpn", 0),
         }
     }
 
