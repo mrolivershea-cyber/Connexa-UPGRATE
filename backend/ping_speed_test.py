@@ -147,6 +147,9 @@ class PPTPTester:
                 "success": False,
                 "avg_time": 0,
                 "packet_loss": 100,
+
+# ==== New fast multi-port TCP reachability helpers (service-aware, no protocol handshake) ====
+
                 "message": f"Ping test error: {str(e)}"
 async def tcp_connect_measure(ip: str, port: int, per_attempt_timeout: float) -> Tuple[bool, float, str]:
     """Attempt TCP connect to ip:port within per_attempt_timeout seconds.
