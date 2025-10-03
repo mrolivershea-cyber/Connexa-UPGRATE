@@ -2629,20 +2629,53 @@ async def process_testing_batches(session_id: str, node_ids: list, testing_mode:
                     original_status = node.status
                     logger.info(f"🔍 Testing batch: Node {node.id} ({node.ip}) original status: {original_status}")
                     
-                    # Skip speed_ok nodes to preserve validation
-                    if original_status == "speed_ok":
-                        logger.info(f"✅ Testing: Node {node.id} has speed_ok - SKIPPING test to preserve status")
+                    # Determine actions based on testing_mode and current status
+                    do_ping = False
+                    do_speed = False
+                    skip_entire = False
+
+                    if testing_mode == "ping_only":
+                        # Only nodes without baseline should be pinged
+                        skip_entire = has_ping_baseline(original_status)
+                        do_ping = not skip_entire
+                    elif testing_mode == "speed_only":
+                        # Only nodes with baseline ping_ok (but not speed_ok/online) should be speed tested
+                        skip_entire = original_status in ("speed_ok", "online") or original_status not in ("ping_ok",)
+                        do_speed = not skip_entire
+                    elif testing_mode == "ping_speed":
+                        # Skip nodes already at speed_ok/online
+                        if original_status in ("speed_ok", "online"):
+                            skip_entire = True
+                        elif original_status == "ping_ok":
+                            # Already have baseline: run speed only
+                            do_speed = True
+                        else:
+                            # not_tested or ping_failed: run ping first, then speed if ping succeeds
+                            do_ping = True
+                    else:
+                        # Unknown mode, skip safely
+                        skip_entire = True
+
+                    if skip_entire:
+                        logger.info(f"⏭️ Testing: Skipping Node {node.id} due to status {original_status} and mode {testing_mode}")
                         processed_nodes += 1
+                        if session_id in progress_store:
+                            progress_store[session_id].update(
+                                global_index + 1,
+                                f"⏭️ {node.ip} - skipped ({original_status})",
+                                {"node_id": node.id, "ip": node.ip, "status": original_status, "success": True}
+                            )
                         continue
-                    
+
                     # Set checking status and commit
                     node.status = "checking"
                     node.last_update = datetime.utcnow()
                     db.commit()
                     
                     try:
-                        # Ping test
-                        if testing_mode in ["ping_only", "ping_speed"]:
+                        ping_result = None
+                        # Ping test when required
+                        if do_ping:
                             logger.info(f"🔍 Testing: Starting multi-port TCP ping for Node {node.id}")
                             from ping_speed_test import multiport_tcp_ping
                             ports = get_ping_ports_for_node(node)
@@ -2663,36 +2696,37 @@ async def process_testing_batches(session_id: str, node_ids: list, testing_mode:
                             try:
                                 ping_result["packet_loss"] = round(100.0 - float(ping_result.get("success_rate", 0.0)), 1)
                             except Exception:
-                                ping_result["packet_loss"] = 100.0 if not ping_result.get("success") else 0.0
+                                if ping_result is not None:
+                                    ping_result["packet_loss"] = 100.0 if not ping_result.get("success") else 0.0
 
                             node.last_update = datetime.utcnow()
                             db.commit()
                         
-                        # Speed test
-                        if testing_mode in ["speed_only", "ping_speed"]:
-                            should_speed_test = (testing_mode == "speed_only" or node.status == "ping_ok")
+                        # Speed test when required
+                        if do_speed or (testing_mode == "ping_speed" and do_ping and node.status == "ping_ok"):
+                            logger.info(f"🔍 Testing: Starting speed test for Node {node.id}")
+                            speed_result = await test_node_speed(node.ip)
                             
-                            if should_speed_test:
-                                logger.info(f"🔍 Testing: Starting speed test for Node {node.id}")
-                                speed_result = await test_node_speed(node.ip)
+                            if speed_result['success'] and speed_result.get('download_speed'):
+                                download_speed = speed_result['download_speed']
+                                node.speed = f"{download_speed:.1f}"
                                 
-                                if speed_result['success'] and speed_result.get('download_speed'):
-                                    download_speed = speed_result['download_speed']
-                                    node.speed = f"{download_speed:.1f}"
-                                    
-                                    if download_speed > 1.0:
-                                        node.status = "speed_ok"
-                                        logger.info(f"✅ Testing: Node {node.id} speed OK ({download_speed:.1f} Mbps)")
-                                    else:
-                                        node.status = "ping_ok" if testing_mode == "ping_speed" else "ping_failed"
-                                        logger.info(f"⚠️ Testing: Node {node.id} speed SLOW ({download_speed:.1f} Mbps)")
+                                if download_speed > 1.0:
+                                    node.status = "speed_ok"
+                                    logger.info(f"✅ Testing: Node {node.id} speed OK ({download_speed:.1f} Mbps)")
                                 else:
-                                    if testing_mode == "speed_only":
-                                        node.status = "ping_failed"
-                                    logger.info(f"❌ Testing: Node {node.id} speed test FAILED")
-                                
-                                node.last_update = datetime.utcnow()
-                                db.commit()
+                                    node.status = "ping_ok"
+                                    logger.info(f"⚠️ Testing: Node {node.id} speed SLOW ({download_speed:.1f} Mbps)")
+                            else:
+                                # On speed-only failures, do not drop below baseline
+                                if has_ping_baseline(original_status):
+                                    node.status = "ping_ok"
+                                else:
+                                    node.status = "ping_failed"
+                                logger.info(f"❌ Testing: Node {node.id} speed test FAILED")
+                            
+                            node.last_update = datetime.utcnow()
+                            db.commit()
                         
                         node.last_check = datetime.utcnow()
                         db.commit()
