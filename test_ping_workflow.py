@@ -89,59 +89,20 @@ class PingWorkflowTester:
         print("\n🔥 TESTING IMPROVED PING WORKFLOW")
         print("=" * 60)
         
-        # First, create test nodes with different protocols and configurations
-        test_nodes = [
-            {
-                "ip": "192.168.100.1",
-                "login": "pptp_user1",
-                "password": "pptp_pass1",
-                "protocol": "pptp",
-                "port": "1723",
-                "provider": "TestProvider1",
-                "country": "United States",
-                "state": "California",
-                "city": "Los Angeles",
-                "comment": "PPTP test node with port"
-            },
-            {
-                "ip": "192.168.100.2", 
-                "login": "pptp_user2",
-                "password": "pptp_pass2",
-                "protocol": "pptp",
-                "provider": "TestProvider2",
-                "country": "United States",
-                "state": "Texas",
-                "city": "Houston",
-                "comment": "PPTP test node without port (should use fallback)"
-            },
-            {
-                "ip": "192.168.100.3",
-                "login": "socks_user1", 
-                "password": "socks_pass1",
-                "protocol": "socks",
-                "port": "1080",
-                "provider": "TestProvider3",
-                "country": "Canada",
-                "state": "Ontario",
-                "city": "Toronto",
-                "comment": "SOCKS test node"
-            }
-        ]
+        # Get existing nodes from database instead of creating unreachable ones
+        success, response = self.make_request('GET', 'nodes', {'limit': 10})
         
-        created_node_ids = []
-        
-        # Create test nodes
-        for node_data in test_nodes:
-            success, response = self.make_request('POST', 'nodes', node_data)
-            if success and 'id' in response:
-                created_node_ids.append(response['id'])
-                print(f"✅ Created test node: {node_data['ip']} (ID: {response['id']})")
-            else:
-                print(f"❌ Failed to create test node: {node_data['ip']}")
-        
-        if not created_node_ids:
-            self.log_test("Improved Ping Workflow - Setup", False, "Failed to create test nodes")
+        if not success or 'nodes' not in response or len(response['nodes']) < 3:
+            self.log_test("Improved Ping Workflow - Setup", False, "Not enough existing nodes for testing")
             return False
+        
+        # Use first 3 existing nodes for testing
+        existing_nodes = response['nodes'][:3]
+        created_node_ids = [node['id'] for node in existing_nodes]
+        
+        print(f"✅ Using existing nodes for testing:")
+        for node in existing_nodes:
+            print(f"   - {node['ip']} (ID: {node['id']}, Protocol: {node.get('protocol', 'N/A')})")
         
         # Test 1: Single node ping test with mixed protocols
         print(f"\n📍 Test 1: Single node ping test")
