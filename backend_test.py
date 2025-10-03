@@ -9530,7 +9530,7 @@ State: California""",
             ("Import Nodes Speed_OK Preservation", self.test_import_nodes_speed_ok_preservation),
             ("Auto-Test Speed_OK Preservation", self.test_auto_test_speed_ok_preservation),
             ("Manual API Operations Control", self.test_manual_api_operations_control),
-            ("Database Persistence Verification", self.test_database_persistence_verification),
+            ("Database Persistence Verification", self.test_database_persistence_verification_critical),
             ("Background Monitoring Non-Interference", self.test_background_monitoring_non_interference),
         ]
         
