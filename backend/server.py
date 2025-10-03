@@ -2645,7 +2645,9 @@ async def process_testing_batches(session_id: str, node_ids: list, testing_mode:
                 break
             
             # Process current batch with concurrency
-            sem = asyncio.Semaphore(ping_concurrency if testing_mode == "ping_only" else speed_concurrency)
+            # Combine global limiter + session limiter
+            session_sem = asyncio.Semaphore(ping_concurrency if testing_mode == "ping_only" else speed_concurrency)
+            sem = session_sem
             tasks = []
 
             async def process_one(node_id: int, global_index: int):
