@@ -10237,6 +10237,65 @@ State: California""",
             print(f"⚠️ RUSSIAN USER ISSUE NOT RESOLVED - {failed_tests} critical protection mechanisms failed")
             return False
 
+    def test_speed_ok_status_api_response(self):
+        """QUICK SPEED_OK STATUS API RESPONSE TEST (Review Request)"""
+        print("\n🔥 QUICK SPEED_OK STATUS API RESPONSE TEST")
+        print("=" * 60)
+        
+        # Test 1: Create a single speed_ok node and verify response
+        print("📋 Test 1: Create node with speed_ok status")
+        test_node = {
+            "ip": "202.1.1.1",
+            "login": "quicktest",
+            "password": "test123",
+            "status": "speed_ok",
+            "comment": "Quick API test",
+            "protocol": "pptp"
+        }
+        
+        success, response = self.make_request('POST', 'nodes', test_node, 200)
+        
+        if not success or 'id' not in response:
+            self.log_test("Speed_OK API Test - Create Node", False, f"Failed to create node: {response}")
+            return False
+        
+        node_id = response['id']
+        created_status = response.get('status')
+        
+        print(f"   ✅ Node created with ID: {node_id}")
+        print(f"   📊 POST response status: {created_status}")
+        
+        if created_status != 'speed_ok':
+            self.log_test("Speed_OK API Test - POST Response", False, 
+                         f"POST /api/nodes returned status '{created_status}', expected 'speed_ok'")
+            return False
+        
+        # Test 2: Verify using new GET endpoint
+        print(f"\n📋 Test 2: Verify using GET /nodes/{node_id}")
+        get_success, get_response = self.make_request('GET', f'nodes/{node_id}')
+        
+        if not get_success:
+            self.log_test("Speed_OK API Test - GET Response", False, f"GET /api/nodes/{node_id} failed: {get_response}")
+            return False
+        
+        get_status = get_response.get('status')
+        print(f"   📊 GET response status: {get_status}")
+        
+        if get_status != 'speed_ok':
+            self.log_test("Speed_OK API Test - GET Response", False, 
+                         f"GET /api/nodes/{node_id} returned status '{get_status}', expected 'speed_ok'")
+            return False
+        
+        # Success criteria met
+        self.log_test("Speed_OK API Test - Complete", True, 
+                     f"✅ Both POST and GET return correct speed_ok status. Node ID: {node_id}")
+        
+        print(f"\n🎯 SUCCESS CRITERIA MET:")
+        print(f"   ✅ POST /api/nodes returns node with correct speed_ok status")
+        print(f"   ✅ GET /api/nodes/{node_id} returns node with correct speed_ok status")
+        
+        return True
+
     def run_all_tests(self):
         """Run all backend tests"""
         print("🚀 Starting Connexa Backend API Tests")
@@ -10251,6 +10310,13 @@ State: California""",
         if not self.test_login():
             print("❌ Login failed - stopping tests")
             return False
+        
+        # ========== QUICK SPEED_OK STATUS API RESPONSE TEST (REVIEW REQUEST) ==========
+        print("\n" + "🔥" * 20 + " QUICK SPEED_OK STATUS API RESPONSE TEST " + "🔥" * 20)
+        print("🎯 REVIEW REQUEST: Testing if API correctly returns speed_ok status")
+        print("🔍 CONTEXT: Added missing GET /nodes/{id} endpoint and enhanced logging")
+        self.test_speed_ok_status_api_response()
+        print("🔥" * 80)
         
         # ========== CRITICAL RUSSIAN USER SPEED_OK PROTECTION TESTS (HIGHEST PRIORITY) ==========
         print("\n🔥🔥🔥 CRITICAL RUSSIAN USER SPEED_OK PROTECTION TESTS 🔥🔥🔥")
