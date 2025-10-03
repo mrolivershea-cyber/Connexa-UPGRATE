@@ -206,17 +206,6 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], onTestComplete })
         setLoading(false);
       }
       
-      if (successCount > 0) {
-        toast.success(`Протестировано ${successCount} узлов`);
-      }
-      if (failCount > 0) {
-        toast.warning(`Ошибки с ${failCount} узлами`);
-      }
-
-      if (onTestComplete) {
-        onTestComplete();
-      }
-      
     } catch (error) {
       console.error('Testing error:', error);
       toast.error('Ошибка тестирования: ' + (error.response?.data?.detail || error.message));
