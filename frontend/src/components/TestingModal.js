@@ -223,6 +223,9 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], onTestComplete })
         }
         setProgress(100);
         
+        // Clear saved state for old system
+        localStorage.removeItem('testingProgress');
+        
         setResults(response.data.results);
         setProcessedNodes(response.data.results?.length || 0);
         
