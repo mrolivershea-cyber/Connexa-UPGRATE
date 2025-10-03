@@ -306,10 +306,34 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], onTestComplete })
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[800px] max-h-[80vh] overflow-y-auto" data-testid="testing-modal">
         <DialogHeader>
-          <DialogTitle className="flex items-center">
-            <Activity className="h-5 w-5 mr-2" />
-            Тестирование Узлов
-          </DialogTitle>
+          <div className="flex items-center justify-between">
+            <DialogTitle className="flex items-center">
+              <Activity className="h-5 w-5 mr-2" />
+              Тестирование Узлов
+            </DialogTitle>
+            <div className="flex items-center space-x-2">
+              {loading && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleMinimize}
+                  className="h-8 w-8 p-0"
+                  title="Свернуть"
+                >
+                  <Minus className="h-4 w-4" />
+                </Button>
+              )}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onClose}
+                className="h-8 w-8 p-0"
+                title="Закрыть"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
           <DialogDescription>
             Проверка доступности и скорости соединения для выбранных узлов.
           </DialogDescription>
