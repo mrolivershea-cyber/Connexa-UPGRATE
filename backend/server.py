@@ -137,18 +137,21 @@ def has_ping_baseline(status: str) -> bool:
 create_tables()
 
 # Create default admin user if not exists
-@api_router.on_event("startup")
+@app.on_event("startup")
 async def startup_event():
     db = next(get_db())
-    admin_user = db.query(User).filter(User.username == "admin").first()
-    if not admin_user:
-        admin_user = User(
-            username="admin",
-            password=hash_password("admin")
-        )
-        db.add(admin_user)
-        db.commit()
-        logger.info("Default admin user created with username: admin, password: admin")
+    try:
+        admin_user = db.query(User).filter(User.username == "admin").first()
+        if not admin_user:
+            admin_user = User(
+                username="admin",
+                password=hash_password("admin")
+            )
+            db.add(admin_user)
+            db.commit()
+            logger.info("Default admin user created with username: admin, password: admin")
+    except Exception as e:
+        logger.error(f"Startup admin check/create error: {e}")
     # Clean up any nodes stuck in 'checking' status on startup
     await cleanup_stuck_nodes()
     # Start background monitoring with improved protection
