@@ -2730,20 +2730,24 @@ async def process_testing_batches(session_id: str, node_ids: list, testing_mode:
                         db.commit()
                         failed_tests += 1
                         
-        # Cleanup dedupe registry periodically
-        try:
-            test_dedupe_cleanup()
-        except Exception:
-            pass
-
-                        if session_id in progress_store:
-                            progress_store[session_id].update(global_index + 1, f"⏱️ {node.ip} - timeout")
-                        
-                        test_dedupe_mark_finished(node.id)
                     
                     except Exception as test_error:
                         logger.error(f"❌ Testing: Node {node.id} test ERROR: {str(test_error)} - reverting to {original_status}")
                         node.status = original_status
+                        node.last_update = datetime.utcnow()
+                        db.commit()
+                        failed_tests += 1
+                        
+                        if session_id in progress_store:
+                            progress_store[session_id].update(global_index + 1, f"❌ {node.ip} - error")
+                        
+                        test_dedupe_mark_finished(node.id)
+            
+            # Cleanup dedupe registry periodically (outside inner loops)
+            try:
+                test_dedupe_cleanup()
+            except Exception:
+                pass
                         node.last_update = datetime.utcnow()
                         db.commit()
                         failed_tests += 1
