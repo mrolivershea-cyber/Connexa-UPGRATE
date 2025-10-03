@@ -154,12 +154,23 @@ const AdminPanel = () => {
       setSelectAllMode(false);
     } else {
       // Select all nodes matching current filters
-      const allIds = await getAllNodeIds();
-      if (allIds.length > 0) {
-        setAllSelectedIds(allIds);
-        setSelectedNodes(nodes.map(node => node.id).filter(id => allIds.includes(id)));
-        setSelectAllMode(true);
-        toast.success(`Selected ${allIds.length} nodes total`);
+      setLoading(true); // Show loading state
+      try {
+        const allIds = await getAllNodeIds();
+        if (allIds.length > 0) {
+          setAllSelectedIds(allIds);
+          // For visible nodes, create a Set for fast lookup
+          const visibleIds = new Set(nodes.map(node => node.id));
+          const visibleSelected = allIds.filter(id => visibleIds.has(id));
+          setSelectedNodes(visibleSelected);
+          setSelectAllMode(true);
+          toast.success(`Выбрано ${allIds.length} узлов`);
+        }
+      } catch (error) {
+        console.error('Error selecting all:', error);
+        toast.error('Ошибка при выборе всех узлов');
+      } finally {
+        setLoading(false);
       }
     }
   };
