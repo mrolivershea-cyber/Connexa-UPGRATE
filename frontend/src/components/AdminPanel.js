@@ -98,14 +98,14 @@ const AdminPanel = () => {
     }
   }, [API, activeFilters]);
 
-  const loadStats = async () => {
+  const loadStats = useCallback(async () => {
     try {
       const response = await axios.get(`${API}/stats`);
       setStats(response.data);
     } catch (error) {
       console.error('Error loading stats:', error);
     }
-  };
+  }, [API]);
 
   useEffect(() => {
     loadNodes();
