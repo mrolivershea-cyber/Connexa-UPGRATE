@@ -432,8 +432,11 @@ async def import_nodes(
                                     node.last_update = datetime.utcnow()  # Update time after test
                             
                             if data.testing_mode in ["speed_only", "ping_speed"]:
-                                # Perform speed test only if ping is OK
-                                if node.status == "ping_ok":
+                                # Skip speed test if node already has speed_ok status
+                                if node.status == "speed_ok":
+                                    logger.info(f"Skipping speed test for node {node.id} - already speed_ok")
+                                elif node.status == "ping_ok":
+                                    # Perform speed test only if ping is OK
                                     speed_result = await network_tester.speed_test()
                                     if speed_result['success'] and speed_result.get('download_speed'):
                                         node.speed = f"{speed_result['download_speed']:.1f}"
@@ -441,7 +444,8 @@ async def import_nodes(
                                         if speed_result['download_speed'] > 1.0:
                                             node.status = "speed_ok"
                                         else:
-                                            node.status = "ping_failed"
+                                            # Don't downgrade to ping_failed - keep ping_ok
+                                            node.status = "ping_ok"  # Changed from ping_failed
                                         node.last_update = datetime.utcnow()  # Update time after test
                                 
                             node.last_check = datetime.utcnow()
