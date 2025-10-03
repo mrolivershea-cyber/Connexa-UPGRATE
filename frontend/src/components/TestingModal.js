@@ -210,13 +210,17 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], onTestComplete })
       console.error('Testing error:', error);
       toast.error('Ошибка тестирования: ' + (error.response?.data?.detail || error.message));
     } finally {
-      // Always clear the interval and reset loading state
+      // Always clear the interval for old system
       if (progressInterval) {
         clearInterval(progressInterval);
         progressInterval = null;
       }
-      setProgress(100);
-      setLoading(false);
+      
+      // Only reset loading state for old system (new system handles via SSE)
+      if (!useNewSystem) {
+        setProgress(100);
+        setLoading(false);
+      }
     }
   };
 
