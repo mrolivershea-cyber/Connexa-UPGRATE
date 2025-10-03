@@ -9380,7 +9380,7 @@ State: California""",
                          f"❌ CRITICAL BUG: Some manual operations changed speed_ok status!")
             return False
     
-    def test_database_persistence_verification(self):
+    def test_database_persistence_verification_critical(self):
         """CRITICAL TEST 4: Database persistence verification - ensure DB reflects correct statuses"""
         print("\n🔥 CRITICAL TEST 4: Database Persistence Verification")
         print("=" * 60)
