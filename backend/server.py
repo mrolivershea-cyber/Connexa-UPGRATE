@@ -3011,7 +3011,7 @@ async def manual_launch_services(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Manual service launch - only for speed_ok nodes"""
+    """Manual service launch - allowed for baseline nodes (PING OK / SPEED OK / ONLINE)"""
     results = []
     
     for node_id in test_request.node_ids:
