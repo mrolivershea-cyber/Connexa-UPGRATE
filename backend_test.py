@@ -13929,21 +13929,8 @@ def run_critical_import_tests():
 if __name__ == "__main__":
     import sys
     
-    # Check if we should run critical import tests (default for this review request)
-    if len(sys.argv) > 1 and sys.argv[1] == "--critical-import":
-        print("🔥 ЗАПУСК КРИТИЧЕСКИХ ТЕСТОВ IMPORT - RUSSIAN USER ISSUE")
-        sys.exit(run_critical_import_tests())
-    elif len(sys.argv) > 1 and sys.argv[1] == "--critical-speed-ok":
-        print("🔥 ЗАПУСК КРИТИЧЕСКИХ ТЕСТОВ SPEED_OK PRESERVATION")
-        sys.exit(run_critical_speed_ok_tests())
-    elif len(sys.argv) > 1 and sys.argv[1] == "--isolated-speed-ok":
-        # Run ONLY isolated speed_ok preservation test (background monitoring disabled)
-        print("🔥 ЗАПУСК ИЗОЛИРОВАННЫХ ТЕСТОВ SPEED_OK PRESERVATION")
-        sys.exit(run_isolated_speed_ok_tests())
-    elif len(sys.argv) > 1 and sys.argv[1] == "--pptp":
-        # Run PPTP-specific tests
-        sys.exit(run_pptp_tests())
-    else:
-        # Run critical import tests by default for this review request
-        print("🔥 ЗАПУСК КРИТИЧЕСКИХ ТЕСТОВ IMPORT - RUSSIAN USER ISSUE (DEFAULT)")
-        sys.exit(run_critical_import_tests())
+    # Run comprehensive tests for SQLite optimization review
+    tester = ConnexaAPITester()
+    success = tester.run_comprehensive_tests()
+    
+    sys.exit(0 if success else 1)
