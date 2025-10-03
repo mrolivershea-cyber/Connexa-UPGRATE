@@ -454,8 +454,12 @@ async def import_nodes(
     db: Session = Depends(get_db)
 ):
     """Enhanced import with comprehensive parsing and deduplication"""
+    
+    # Generate session ID for progress tracking
+    session_id = str(uuid.uuid4())
+    
     try:
-        logger.info(f"Import request with testing_mode: {data.testing_mode}")
+        logger.info(f"Import request with testing_mode: {data.testing_mode}, session_id: {session_id}")
         
         # Parse text data with enhanced parser
         parsed_data = parse_nodes_text(data.data, data.protocol)
@@ -473,6 +477,11 @@ async def import_nodes(
                 nodes_to_test.append(replaced_node['id'])
             
             if nodes_to_test:
+                # Initialize progress tracker
+                progress = ProgressTracker(session_id, len(nodes_to_test))
+                progress.update(0, f"Начинаем тестирование {len(nodes_to_test)} серверов...")
+                
+                logger.info(f"📊 Import: Starting progress tracking for session {session_id} with {len(nodes_to_test)} nodes")
                 # Import proper testing functions
                 from ping_speed_test import test_node_ping, test_node_speed
                 
