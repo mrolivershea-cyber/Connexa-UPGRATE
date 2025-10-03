@@ -197,6 +197,12 @@ async def monitor_online_nodes():
         
         # Wait 5 minutes before next check
         await asyncio.sleep(300)  # 300 seconds = 5 minutes
+        
+        # Periodic cleanup of stuck nodes (every 5 minutes)
+        try:
+            await cleanup_stuck_nodes()
+        except Exception as cleanup_error:
+            logger.error(f"❌ Error during periodic stuck nodes cleanup: {cleanup_error}")
 
 def run_monitoring_loop():
     """Run the monitoring loop in a separate thread"""
