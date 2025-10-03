@@ -1,55 +1,52 @@
 <analysis>
-The AI engineer's work in this trajectory primarily focused on resolving critical performance issues in the Connexa Admin Panel. Initially, the AI presented a plan, but the user immediately reported persistent UI sluggishness (панель по прежнему долго реагирует). The  was engaged, identifying root causes: inefficient frontend re-renders, lack of debouncing, unoptimized backend queries with , and missing database indexes.
+The trajectory outlines the transition of work from a previous AI engineer to the current one. Initially, the previous AI focused on optimizing the Connexa Admin Panel by implementing frontend debouncing, database indexing, and query optimizations to resolve UI sluggishness. When the current AI took over, the first task was to clarify requirements for SOCKS/OVPN Service Launch. However, the user immediately reported new critical issues: slow admin panel loading on refresh, failed ping tests, and incorrect status reporting.
 
-The AI then systematically implemented fixes: frontend debouncing and / in ; backend database indexing in ; and optimized SQL queries in . Critical bugs, including a missing and a duplicated  decorator in , were also identified and corrected.
-
-After iterative debugging and restarts, the AI successfully verified the fixes through screenshots and . The panel now loads quickly, filtering is responsive, Select All performs efficiently, and backend API calls meet performance targets. The task concluded with status updates in .
+The current AI systematically diagnosed these new problems, leveraging  to pinpoint the root causes: SQLite concurrency limitations, leading to slow concurrent API calls, and nodes getting stuck in checking status. The AI implemented several critical fixes: a  function was added to  and integrated into both the FastAPI startup event and a periodic background monitoring loop. Crucially, the SQLAlchemy engine in  was optimized using  and  to handle concurrent SQLite operations efficiently. Comprehensive testing verified that all reported issues were successfully resolved, resulting in a fast, responsive, and stable admin panel.
 </analysis>
 
 <product_requirements>
-The user requires an enhanced Connexa Admin Panel capable of reliably handling large server import and testing operations without UI freezes or data loss, while providing real-time feedback.
-**Initial Problems:** UI freezing at 90% during imports/tests, lack of progress visibility, and blocking modals.
-**Initial Requirements:** Real-time progress (processed/total), minimize functionality with  state persistence, and backend batch processing with incremental saves.
-**Evolved Requirements (from user feedback):**
-1.  Verify real speed test functionality.
-2.  Crucially, resolve slow panel loading and UI freezing, particularly for Select All and filter operations, which was a recurring user complaint.
-3.  Ensure accurate, real-time graphical reports in modals and tables that persist.
-4.  Prevent duplicate configuration checks to avoid server overload.
+The Connexa Admin Panel aims to manage server import and testing, providing real-time feedback without UI freezes. Initially, it faced UI freezing during imports/tests, lack of progress, and blocking modals. Prior requirements included real-time progress, minimize functionality with  persistence, and backend batch processing. The system also needed a verified real-speed test, resolution of slow panel loading/UI freezing (especially for Select All and filters), accurate real-time reports, and prevention of duplicate configuration checks.
 
-The implementation so far has focused on real-time progress, modal minimization, and, most recently and prominently, addressing the UI sluggishness, making the panel responsive, and optimizing data fetching and filtering performance by both frontend and backend enhancements.
+Most recently, the user explicitly reported three critical issues:
+1.  **Slow Admin Panel Loading:** The panel was sluggish to load upon browser refresh.
+2.  **Ping Test Failures:** Not all configurations were passing ping tests.
+3.  **Incorrect Status Reporting:** Statuses were not displaying correctly across the application.
+The implementation in the trajectory addressed these new, critical performance and reporting issues.
 </product_requirements>
 
 <key_technical_concepts>
 -   **FastAPI:** Python framework for backend APIs.
 -   **React:** JavaScript library for frontend UI.
--   **Server-Sent Events (SSE):** Unidirectional real-time communication for progress updates.
--   **SQLite:** Relational database chosen for performance and stability.
--   **SQLAlchemy:** ORM for database interactions.
+-   **Server-Sent Events (SSE):** Real-time communication for progress updates.
+-   **SQLite:** Relational database.
+-   **SQLAlchemy:** ORM for database interactions, optimized with  for concurrency.
 -   **Debouncing:** Frontend technique to limit function calls.
--   **React Hooks (, , ):** For side effects and performance optimization.
--   **Database Indexing:** Optimizing query performance by creating indexes.
+-   **React Hooks:** , ,  for performance.
+-   **Database Indexing:** For query optimization.
+-   **Background Tasks:** FastAPI  and  for periodic tasks.
+-   **Supervisor:** For process management.
 </key_technical_concepts>
 
 <code_architecture>
-The application is a monorepo with a Python/FastAPI backend and a React/Vite frontend.
+The application uses a monorepo structure with a Python/FastAPI backend and a React/Vite frontend.
 
 
 
 -   ****
     -   **Importance**: Main backend application, handling API routes and business logic.
-    -   **Summary of Changes**: Introduced  and SSE endpoint. Refactored import/testing endpoints for batch processing. **Recent Changes (in this trajectory):** Optimized  and  endpoints to improve  query performance by leveraging new database indexes. Crucially, fixed a missing  decorator and a duplicate endpoint declaration which caused API errors.
+    -   **Summary of Changes**: (Previous AI) Introduced , SSE, refactored import/testing endpoints for batch processing. Optimized  and  using database indexes. Fixed a missing and a duplicated  decorator. (Current AI) Added a  function to reset nodes stuck in checking status. Integrated this cleanup function into the FastAPI  and periodically within the background monitoring loop ().
 
 -   ****
-    -   **Importance**: Handles database connection and ORM setup, defining the  model schema.
-    -   **Summary of Changes**: Confirmed optimized for SQLite. **Recent Changes (in this trajectory):** Added database indexes to the  model for frequently filtered columns (, , , , , , , , , , ) to significantly boost query performance.
+    -   **Importance**: Handles database connection, ORM setup, and defines the  model.
+    -   **Summary of Changes**: (Previous AI) Confirmed optimized for SQLite and added database indexes to  model for frequently filtered columns. (Current AI) Optimized the SQLAlchemy engine to use  and  to improve concurrency and prevent deadlocks with SQLite, particularly during concurrent read/write operations.
 
 -   ****
     -   **Importance**: Main admin interface for listing nodes, filtering, and actions.
-    -   **Summary of Changes**: Optimized  (pre-existing). **Recent Changes (in this trajectory):** Implemented debouncing (300ms) for filter inputs, and utilized  and  to prevent unnecessary re-renders, significantly improving UI responsiveness during filtering.
+    -   **Summary of Changes**: (Previous AI) Implemented debouncing (300ms) for filter inputs and utilized  and  hooks to optimize component rendering and significantly improve UI responsiveness.
 
 -   ****
     -   **Importance**: React component for node testing, displaying real-time progress.
-    -   **Summary of Changes**: Ensured SSE-based progress is *always* displayed, removing simulated progress logic (pre-existing optimization).
+    -   **Summary of Changes**: Ensures SSE-based progress is always displayed, removing simulated progress logic (pre-existing optimization).
 
 -   ****
     -   **Importance**: React component for importing nodes, including SSE-based progress and minimize functionality.
@@ -57,28 +54,37 @@ The application is a monorepo with a Python/FastAPI backend and a React/Vite fro
 
 -   ****
     -   **Importance**: Contains core logic for ping and speed tests.
-    -   **Summary of Changes**: Confirmed to contain a real speed test implementation (pre-existing confirmation).
+    -   **Summary of Changes**: Confirmed to contain a real speed test implementation (pre-existing confirmation). Reviewed during troubleshooting for ping test issues, no direct code changes were explicitly mentioned in the trajectory.
 
 -   ****
     -   **Importance**: Document created by the AI to summarize performance optimizations.
+
+-   ****
+    -   **Importance**: Stores , testing data, and agent communications.
+    -   **Summary of Changes**: Updated multiple times throughout the trajectory to reflect troubleshooting steps, identified issues, and successful bug resolutions.
 </code_architecture>
 
 <pending_tasks>
--   **Implement SOCKS/OVPN Service Launch**: The core business logic for provisioning SOCKS and OpenVPN services on managed servers has not been started.
+-   **Implement SOCKS/OVPN Service Launch**: The core business logic for provisioning SOCKS and OpenVPN services on managed servers has not been started. This task was paused to address critical bug fixes.
 </pending_tasks>
 
 <current_work>
-The most recent work addressed critical user-reported issues regarding persistent UI sluggishness, specifically панель по прежнему долго реагирует на обновление или выбор конфигов. The  was engaged to diagnose the problem, which identified inefficient frontend re-renders (due to  triggering excessive API calls on filter changes without debouncing), unoptimized backend queries using , and a lack of proper database indexing.
+Immediately prior to this summary, the work focused entirely on resolving three critical user-reported issues: persistent slow loading of the admin panel, ping test failures for certain configurations, and incorrect status reporting.
 
-The AI engineer implemented the following fixes:
-1.  **Frontend Performance ():** Introduced a 300ms debouncing mechanism for filter inputs and integrated  and  hooks to optimize component rendering, significantly improving UI responsiveness.
-2.  **Backend Database Optimization ():** Added comprehensive database indexes to the  model for all frequently filtered columns, such as , , , , , , , , , , and .
-3.  **Backend API Query Optimization ():** Refined the  and  API endpoints to leverage the newly created database indexes and enhance the efficiency of  operations.
-4.  **Critical Bug Resolution ():** Fixed two severe bugs introduced during the optimization process: a missing  decorator and a duplicate declaration of the  endpoint, which were causing Field required errors and breaking frontend filtering.
+The  played a key role, diagnosing the primary issues as SQLite's poor handling of concurrent queries (leading to slow API responses) and nodes getting stuck in a checking status, affecting accurate reporting.
 
-After applying these changes, comprehensive testing was conducted using screenshots and the  agent. The tests confirmed that the admin panel now loads quickly, filtering is highly responsive, Select All functions efficiently, and all relevant backend API endpoints meet performance targets (e.g., Nodes Filters at 41.7ms, Nodes All-IDs at 42.9ms, Stats API at 35.0ms). The  file was updated to reflect these successful optimizations.
+To address these, the following actions were taken:
+1.  **Stuck Nodes Resolution**: A new asynchronous function, , was created in . This function identifies and resets nodes that have been in a checking state for too long.
+2.  **Automated Cleanup Integration**: The  function was integrated into the FastAPI application lifecycle:
+    *   It's called once on application startup via .
+    *   It's periodically called (every 5 minutes) within the existing  task in  to ensure continuous maintenance.
+3.  **Database Concurrency Optimization**: In , the SQLAlchemy engine configuration was modified to better handle SQLite's limitations with concurrency. This involved:
+    *   Setting  to allow multiple threads to interact with the database connection (caution required, but necessary for SQLite with async).
+    *   Implementing  to prevent SQLite connection pooling issues in a highly concurrent environment.
+
+After these changes, comprehensive testing was performed, confirming that the admin panel now loads quickly, ping tests execute correctly, and all node statuses are reported accurately with no nodes getting stuck.
 </current_work>
 
 <optional_next_step>
-Initiate the implementation of SOCKS/OVPN service launch functionality.
+Revisit the implementation of the SOCKS/OVPN service launch functionality.
 </optional_next_step>
