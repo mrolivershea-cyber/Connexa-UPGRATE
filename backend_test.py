@@ -15937,13 +15937,22 @@ def run_critical_import_tests():
 if __name__ == "__main__":
     import sys
     
-    # Check if we should run Russian user tests specifically
-    if len(sys.argv) > 1 and sys.argv[1] == "russian":
-        tester = ConnexaAPITester()
-        success = tester.run_russian_user_issues_tests()
-        sys.exit(0 if success else 1)
-    else:
-        # Run comprehensive tests for SQLite optimization review
-        tester = ConnexaAPITester()
-        success = tester.run_comprehensive_tests()
-        sys.exit(0 if success else 1)
+    # Check command line arguments for specific test modes
+    if len(sys.argv) > 1:
+        if sys.argv[1] == "russian":
+            tester = ConnexaAPITester()
+            success = tester.run_russian_user_issues_tests()
+            sys.exit(0 if success else 1)
+        elif sys.argv[1] == "--russian-final":
+            tester = ConnexaAPITester()
+            success = tester.run_russian_user_final_verification()
+            sys.exit(0 if success else 1)
+        elif sys.argv[1] == "--comprehensive":
+            tester = ConnexaAPITester()
+            success = tester.run_comprehensive_tests()
+            sys.exit(0 if success else 1)
+    
+    # Default: Run comprehensive tests for SQLite optimization review
+    tester = ConnexaAPITester()
+    success = tester.run_comprehensive_tests()
+    sys.exit(0 if success else 1)
