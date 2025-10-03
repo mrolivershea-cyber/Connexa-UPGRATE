@@ -1041,5 +1041,35 @@
       2347
     ],
     "status": "pending"
+  },
+  {
+    "id": 1759463528,
+    "timestamp": "2025-10-03T03:52:08.348528",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "1.2.3.4",
+      "login": "user1",
+      "password": "pass1",
+      "state": "California"
+    },
+    "conflicting_node_ids": [
+      2342
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759463575,
+    "timestamp": "2025-10-03T03:52:55.566440",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "13.14.15.16",
+      "login": "testuser1",
+      "password": "testpass1",
+      "state": "Florida"
+    },
+    "conflicting_node_ids": [
+      2343
+    ],
+    "status": "pending"
   }
 ]
