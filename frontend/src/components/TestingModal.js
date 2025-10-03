@@ -92,6 +92,9 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], onTestComplete })
             setLoading(false);
             
             if (data.status === 'completed') {
+              // Clear saved state when completed
+              localStorage.removeItem('testingProgress');
+              
               // Convert progress results to expected format
               const testResults = data.results?.map(result => ({
                 node_id: result.node_id,
@@ -115,6 +118,7 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], onTestComplete })
                 onTestComplete();
               }
             } else if (data.status === 'failed') {
+              localStorage.removeItem('testingProgress');
               toast.error('Ошибка при тестировании');
             }
           }
