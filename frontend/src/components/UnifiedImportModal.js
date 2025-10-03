@@ -154,29 +154,36 @@ vpn2.example.com:443:client2:pass456:GB:London:`
       
       if (response.data.success) {
         const report = response.data.report;
-        setPreviewResult(report);
-        setShowPreview(true);
         
-        // Use smart summary from backend if available
-        const message = report.smart_summary || response.data.message;
-        
-        // Show appropriate toast based on what happened
-        if (report.added === 0 && report.skipped_duplicates > 0) {
-          // All duplicates - show info toast
-          toast.info(message, { duration: 5000 });
-        } else if (report.added > 0) {
-          // Some added - show success
-          toast.success(message, { duration: 5000 });
-        } else if (report.format_errors > 0) {
-          // Errors - show warning
-          toast.warning(message, { duration: 5000 });
+        // If there's a session_id, start progress tracking
+        if (response.data.session_id) {
+          setSessionId(response.data.session_id);
+          // Don't set loading to false yet, let the progress tracking handle it
         } else {
-          toast.info(message, { duration: 5000 });
+          // No testing, immediate completion
+          setLoading(false);
+          setPreviewResult(report);
+          setShowPreview(true);
+          
+          // Use smart summary from backend if available
+          const message = report.smart_summary || response.data.message;
+          
+          // Show appropriate toast based on what happened
+          if (report.added === 0 && report.skipped_duplicates > 0) {
+            toast.info(message, { duration: 5000 });
+          } else if (report.added > 0) {
+            toast.success(message, { duration: 5000 });
+          } else if (report.format_errors > 0) {
+            toast.warning(message, { duration: 5000 });
+          } else {
+            toast.info(message, { duration: 5000 });
+          }
+          
+          onComplete(report);
         }
-        
-        onComplete(report);
       } else {
         toast.error(response.data.message || 'Ошибка импорта');
+        setLoading(false);
       }
     } catch (error) {
       console.error('Error importing:', error);
