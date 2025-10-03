@@ -456,30 +456,39 @@ async def import_nodes(
                             node.last_update = datetime.utcnow()
                             
                             if data.testing_mode in ["ping_only", "ping_speed"]:
-                                # Perform ping test
-                                ping_result = await network_tester.ping_test(node.ip)
-                                if ping_result['reachable']:
+                                # Use proper PPTP ping test instead of ICMP ping
+                                from ping_speed_test import test_node_ping
+                                ping_result = await test_node_ping(node.ip, fast_mode=True)
+                                if ping_result['success']:
                                     node.status = "ping_ok"
-                                    logger.info(f"✅ Import: Node {node.id} ping SUCCESS - {original_status} -> ping_ok")
+                                    logger.info(f"✅ Import: Node {node.id} PPTP ping SUCCESS - {original_status} -> ping_ok")
                                 else:
                                     node.status = "ping_failed"
-                                    logger.info(f"❌ Import: Node {node.id} ping FAILED - {original_status} -> ping_failed")
+                                    logger.info(f"❌ Import: Node {node.id} PPTP ping FAILED - {original_status} -> ping_failed")
                                 node.last_update = datetime.utcnow()
                             
                             if data.testing_mode in ["speed_only", "ping_speed"]:
-                                # Speed test only if ping passed
-                                if node.status == "ping_ok":
-                                    # Perform speed test only if ping is OK
-                                    speed_result = await network_tester.speed_test()
+                                # Speed test only if ping passed or for speed_only mode
+                                if data.testing_mode == "speed_only" or node.status == "ping_ok":
+                                    # Use proper speed test with IP address
+                                    from ping_speed_test import test_node_speed
+                                    speed_result = await test_node_speed(node.ip)
                                     if speed_result['success'] and speed_result.get('download_speed'):
                                         node.speed = f"{speed_result['download_speed']:.1f}"
                                         if speed_result['download_speed'] > 1.0:
                                             node.status = "speed_ok"
-                                            logger.info(f"✅ Import: Node {node.id} speed OK - {original_status} -> speed_ok")
+                                            logger.info(f"✅ Import: Node {node.id} speed OK ({speed_result['download_speed']:.1f} Mbps) - {original_status} -> speed_ok")
                                         else:
                                             # Don't downgrade to ping_failed - keep ping_ok
-                                            node.status = "ping_ok"
-                                            logger.info(f"⚠️ Import: Node {node.id} speed SLOW - keeping ping_ok")
+                                            node.status = "ping_ok" if data.testing_mode == "ping_speed" else "ping_failed"
+                                            logger.info(f"⚠️ Import: Node {node.id} speed SLOW ({speed_result['download_speed']:.1f} Mbps) - keeping {node.status}")
+                                        node.last_update = datetime.utcnow()
+                                    else:
+                                        # Speed test failed
+                                        if data.testing_mode == "speed_only":
+                                            node.status = "ping_failed" 
+                                        # For ping_speed mode, keep ping_ok if ping passed
+                                        logger.info(f"❌ Import: Node {node.id} speed test FAILED - status: {node.status}")
                                         node.last_update = datetime.utcnow()
                                 
                             node.last_check = datetime.utcnow()
