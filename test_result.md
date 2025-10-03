@@ -494,6 +494,18 @@ metadata:
         agent: "testing"
         comment: "✅ QUICK SPEED_OK STATUS API RESPONSE TEST COMPLETED SUCCESSFULLY: Verified that the missing GET /nodes/{id} endpoint and enhanced logging are working correctly. SPECIFIC TEST RESULTS: 1) ✅ POST /api/nodes with speed_ok status creates node correctly (Node ID: 2360) 2) ✅ POST response returns correct speed_ok status 3) ✅ GET /api/nodes/{id} endpoint working and returns correct speed_ok status 4) ✅ Backend logs confirm status tracking throughout: 'Creating node with input status: speed_ok', 'Node object status after flush: speed_ok', 'Returning created node with status: speed_ok', 'GET /nodes/2360 - Returning node with status: speed_ok'. SUCCESS CRITERIA MET: Both POST response and GET response show correct speed_ok status, backend logs confirm status is speed_ok throughout. API serialization is working correctly and ready for background monitoring re-enablement."
 
+  - task: "Import Testing Bug Fix - PPTP Testing and Timeout Protection"
+    implemented: true
+    working: false
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "RUSSIAN USER ISSUE: Import modal with ping or ping+speed testing causes all configs to fall to PING Failed or hang at 90%. ROOT CAUSE IDENTIFIED: 1) Import testing used wrong ping function (ICMP ping from services.py instead of PPTP port test from ping_speed_test.py), 2) Speed test called without IP address (network_tester.speed_test() instead of test_node_speed(ip)), 3) No timeout protection causing nodes to get stuck in 'checking' status. FIXES IMPLEMENTED: 1) Replaced network_tester.ping_test with test_node_ping for proper PPTP port 1723 testing, 2) Fixed speed test to use test_node_speed with proper IP address, 3) Added comprehensive error handling with immediate db.commit() after each test phase to prevent data loss, 4) Added timeout and exception recovery that reverts nodes to original status instead of leaving them stuck, 5) Added cleanup logic for any nodes stuck in 'checking' status at the end of import, 6) Enhanced logging to track all test phases. Import testing now uses same robust testing logic as manual testing functions that were already working correctly."
+
 metadata:
   created_by: "main_agent"
   version: "1.0"
