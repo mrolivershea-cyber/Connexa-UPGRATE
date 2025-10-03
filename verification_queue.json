@@ -1071,5 +1071,50 @@
       2343
     ],
     "status": "pending"
+  },
+  {
+    "id": 1759463603,
+    "timestamp": "2025-10-03T03:53:23.171754",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "1.2.3.4",
+      "login": "user1",
+      "password": "pass1",
+      "state": "California"
+    },
+    "conflicting_node_ids": [
+      2342
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759463603,
+    "timestamp": "2025-10-03T03:53:23.289453",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "13.14.15.16",
+      "login": "testuser1",
+      "password": "testpass1",
+      "state": "Florida"
+    },
+    "conflicting_node_ids": [
+      2343
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759463603,
+    "timestamp": "2025-10-03T03:53:23.438469",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.0.2.1",
+      "login": "timeout1",
+      "password": "test1",
+      "state": "California"
+    },
+    "conflicting_node_ids": [
+      2344
+    ],
+    "status": "pending"
   }
 ]
