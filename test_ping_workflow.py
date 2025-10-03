@@ -166,8 +166,8 @@ class PingWorkflowTester:
         if success and 'results' in response:
             result = response['results'][0] if response['results'] else {}
             
-            # Debug: Print the actual response
-            print(f"   Debug - Ping result: {result}")
+            # Debug: Print the actual response (commented out for cleaner output)
+            # print(f"   Debug - Ping result: {result}")
             
             # Validate required fields in ping_result
             ping_result = result.get('ping_result', {})
