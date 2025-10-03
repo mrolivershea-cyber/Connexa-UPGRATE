@@ -122,6 +122,47 @@ async def startup_event():
     # Start background monitoring with improved protection
     start_background_monitoring()
     logger.info("✅ Background monitoring RE-ENABLED with enhanced speed_ok protection")
+# Helper to choose ping ports based on node configuration
+# B) Keep general TCP ping (no protocol handshake) but use DB-configured ports with fallbacks
+
+def get_ping_ports_for_node(node: Node) -> list[int]:
+    try:
+        ports = []
+        proto = (node.protocol or "").lower()
+        # Prefer explicit node.port when present
+        if node.port:
+            ports.append(int(node.port))
+        if proto == "pptp":
+            if 1723 not in ports:
+                ports.append(1723)
+        elif proto == "socks":
+            # Prefer stored socks_port, then common default 1080
+            if getattr(node, "socks_port", None):
+                sp = int(node.socks_port)
+                if sp not in ports:
+                    ports.append(sp)
+            if 1080 not in ports:
+                ports.append(1080)
+        elif proto == "ovpn":
+            # Common OpenVPN TCP ports
+            for p in [1194, 443]:
+                if p not in ports:
+                    ports.append(p)
+        elif proto == "ssh":
+            if 22 not in ports:
+                ports.append(22)
+        # Universal TCP fallbacks for reachability
+        for p in [443, 80, 22]:
+            if p not in ports:
+                ports.append(p)
+        # Ensure unique and valid
+        ports = [int(p) for p in ports if isinstance(p, (int, str))]
+        # Limit to reasonable list length
+        return ports[:6]
+    except Exception:
+        # Safe fallback
+        return [1723, 443, 80, 22]
+
 
 # ===== BACKGROUND MONITORING SYSTEM =====
 # This system monitors ONLY online nodes every 5 minutes as per user requirements
