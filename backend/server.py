@@ -419,13 +419,17 @@ async def import_nodes(
                             node.last_update = datetime.utcnow()  # Update time when status changes
                             
                             if data.testing_mode in ["ping_only", "ping_speed"]:
-                                # Perform ping test
-                                ping_result = await network_tester.ping_test(node.ip)
-                                if ping_result['reachable']:
-                                    node.status = "ping_ok"
+                                # Skip testing if node already has speed_ok status
+                                if node.status == "speed_ok":
+                                    logger.info(f"Skipping ping test for node {node.id} - already speed_ok")
                                 else:
-                                    node.status = "ping_failed"
-                                node.last_update = datetime.utcnow()  # Update time after test
+                                    # Perform ping test
+                                    ping_result = await network_tester.ping_test(node.ip)
+                                    if ping_result['reachable']:
+                                        node.status = "ping_ok"
+                                    else:
+                                        node.status = "ping_failed"
+                                    node.last_update = datetime.utcnow()  # Update time after test
                             
                             if data.testing_mode in ["speed_only", "ping_speed"]:
                                 # Perform speed test only if ping is OK
