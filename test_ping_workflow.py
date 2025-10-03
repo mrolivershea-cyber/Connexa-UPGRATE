@@ -120,9 +120,7 @@ class PingWorkflowTester:
         print(f"\n📍 Test 4: Performance tests")
         success = success and self.test_ping_performance(created_node_ids)
         
-        # Cleanup test nodes
-        for node_id in created_node_ids:
-            self.make_request('DELETE', f'nodes/{node_id}')
+        # No cleanup needed since we used existing nodes
         
         self.log_test("Improved Ping Workflow - Complete", success, 
                      "All ping workflow tests completed" if success else "Some ping workflow tests failed")
