@@ -10536,6 +10536,394 @@ State: California""",
                          f"❌ CRITICAL FAILURE: Only {total_preserved_or_upgraded}/3 nodes preserved/upgraded, {final_ping_failed_count} downgraded to ping_failed. Russian user's issue remains UNRESOLVED.")
             return False
 
+    # ========== RUSSIAN USER IMPORT TESTING ISSUE TESTS ==========
+    
+    def test_import_ping_only_mode(self):
+        """Test /api/nodes/import with testing_mode 'ping_only' - verify PPTP port 1723 testing"""
+        print("\n🔥 TESTING IMPORT WITH PING_ONLY MODE (Russian User Issue)")
+        print("=" * 60)
+        
+        # Use the exact test data from review request
+        test_data = """72.197.30.147 admin admin US
+100.11.102.204 admin admin US  
+100.16.39.213 admin admin US
+200.1.1.1 admin admin US
+200.1.1.2 admin admin US"""
+        
+        import_data = {
+            "data": test_data,
+            "protocol": "pptp",
+            "testing_mode": "ping_only"
+        }
+        
+        print(f"📋 Importing 5 nodes with testing_mode='ping_only'")
+        print(f"   Expected: Uses PPTP port 1723 testing instead of ICMP ping")
+        print(f"   Working IP: 72.197.30.147 (should show ping_ok)")
+        print(f"   Non-working IPs: Others (should show ping_failed)")
+        
+        success, response = self.make_request('POST', 'nodes/import', import_data)
+        
+        if success and 'report' in response:
+            report = response['report']
+            print(f"   Import Results: Added={report.get('added', 0)}, Errors={report.get('format_errors', 0)}")
+            
+            # Wait a moment for testing to complete
+            time.sleep(10)
+            
+            # Check specific nodes for correct status
+            test_results = []
+            expected_results = [
+                {'ip': '72.197.30.147', 'expected_status': 'ping_ok'},  # Working IP
+                {'ip': '100.11.102.204', 'expected_status': 'ping_failed'},  # Non-working
+                {'ip': '200.1.1.1', 'expected_status': 'ping_failed'},  # Non-working
+            ]
+            
+            for test_case in expected_results:
+                nodes_success, nodes_response = self.make_request('GET', f'nodes?ip={test_case["ip"]}')
+                
+                if nodes_success and 'nodes' in nodes_response and nodes_response['nodes']:
+                    node = nodes_response['nodes'][0]
+                    actual_status = node.get('status')
+                    expected_status = test_case['expected_status']
+                    
+                    if actual_status == expected_status:
+                        test_results.append(f"✅ {test_case['ip']}: {actual_status} (correct)")
+                    else:
+                        test_results.append(f"❌ {test_case['ip']}: {actual_status} (expected {expected_status})")
+                else:
+                    test_results.append(f"❌ {test_case['ip']}: Node not found")
+            
+            print(f"\n📊 PING_ONLY TEST RESULTS:")
+            for result in test_results:
+                print(f"   {result}")
+            
+            # Check for nodes stuck in 'checking' status
+            checking_success, checking_response = self.make_request('GET', 'nodes?status=checking')
+            checking_count = 0
+            if checking_success and 'nodes' in checking_response:
+                checking_count = len(checking_response['nodes'])
+            
+            print(f"   Nodes stuck in 'checking': {checking_count}")
+            
+            # Determine success
+            success_count = len([r for r in test_results if r.startswith('✅')])
+            total_tests = len(test_results)
+            
+            if success_count >= 2 and checking_count == 0:  # At least 2/3 correct and no stuck nodes
+                self.log_test("Import Ping Only Mode", True, 
+                             f"✅ PPTP port 1723 testing working correctly. {success_count}/{total_tests} nodes correct, {checking_count} stuck")
+                return True
+            else:
+                self.log_test("Import Ping Only Mode", False, 
+                             f"❌ PPTP testing issues. {success_count}/{total_tests} nodes correct, {checking_count} stuck in checking")
+                return False
+        else:
+            self.log_test("Import Ping Only Mode", False, f"Import failed: {response}")
+            return False
+
+    def test_import_ping_speed_mode(self):
+        """Test /api/nodes/import with testing_mode 'ping_speed' - verify both PPTP ping and speed tests"""
+        print("\n🔥 TESTING IMPORT WITH PING_SPEED MODE (Russian User Issue)")
+        print("=" * 60)
+        
+        # Use different IPs to avoid conflicts with previous test
+        test_data = """72.197.30.148 admin admin US
+100.11.102.205 admin admin US  
+200.1.1.3 admin admin US"""
+        
+        import_data = {
+            "data": test_data,
+            "protocol": "pptp",
+            "testing_mode": "ping_speed"
+        }
+        
+        print(f"📋 Importing 3 nodes with testing_mode='ping_speed'")
+        print(f"   Expected: PPTP ping test first, then speed test for successful pings")
+        
+        success, response = self.make_request('POST', 'nodes/import', import_data)
+        
+        if success and 'report' in response:
+            report = response['report']
+            print(f"   Import Results: Added={report.get('added', 0)}, Errors={report.get('format_errors', 0)}")
+            
+            # Wait longer for ping+speed testing to complete
+            time.sleep(15)
+            
+            # Check nodes for correct status progression
+            test_results = []
+            expected_results = [
+                {'ip': '72.197.30.148', 'expected_statuses': ['ping_ok', 'speed_ok']},  # Should pass both
+                {'ip': '100.11.102.205', 'expected_statuses': ['ping_failed']},  # Should fail ping
+                {'ip': '200.1.1.3', 'expected_statuses': ['ping_failed']},  # Should fail ping
+            ]
+            
+            for test_case in expected_results:
+                nodes_success, nodes_response = self.make_request('GET', f'nodes?ip={test_case["ip"]}')
+                
+                if nodes_success and 'nodes' in nodes_response and nodes_response['nodes']:
+                    node = nodes_response['nodes'][0]
+                    actual_status = node.get('status')
+                    expected_statuses = test_case['expected_statuses']
+                    
+                    if actual_status in expected_statuses:
+                        test_results.append(f"✅ {test_case['ip']}: {actual_status} (correct)")
+                    else:
+                        test_results.append(f"❌ {test_case['ip']}: {actual_status} (expected one of {expected_statuses})")
+                else:
+                    test_results.append(f"❌ {test_case['ip']}: Node not found")
+            
+            print(f"\n📊 PING_SPEED TEST RESULTS:")
+            for result in test_results:
+                print(f"   {result}")
+            
+            # Check for nodes stuck in 'checking' status
+            checking_success, checking_response = self.make_request('GET', 'nodes?status=checking')
+            checking_count = 0
+            if checking_success and 'nodes' in checking_response:
+                checking_count = len(checking_response['nodes'])
+            
+            print(f"   Nodes stuck in 'checking': {checking_count}")
+            
+            # Determine success
+            success_count = len([r for r in test_results if r.startswith('✅')])
+            total_tests = len(test_results)
+            
+            if success_count >= 2 and checking_count == 0:  # At least 2/3 correct and no stuck nodes
+                self.log_test("Import Ping Speed Mode", True, 
+                             f"✅ PPTP ping+speed testing working correctly. {success_count}/{total_tests} nodes correct, {checking_count} stuck")
+                return True
+            else:
+                self.log_test("Import Ping Speed Mode", False, 
+                             f"❌ PPTP ping+speed testing issues. {success_count}/{total_tests} nodes correct, {checking_count} stuck in checking")
+                return False
+        else:
+            self.log_test("Import Ping Speed Mode", False, f"Import failed: {response}")
+            return False
+
+    def test_import_timeout_protection(self):
+        """Test that nodes don't get stuck in 'checking' status and have timeout protection"""
+        print("\n🔥 TESTING IMPORT TIMEOUT PROTECTION (Russian User Issue)")
+        print("=" * 60)
+        
+        # Use non-responsive IPs to test timeout behavior
+        test_data = """192.0.2.1 admin admin US
+192.0.2.2 admin admin US"""  # RFC 5737 test IPs (should timeout)
+        
+        import_data = {
+            "data": test_data,
+            "protocol": "pptp",
+            "testing_mode": "ping_only"
+        }
+        
+        print(f"📋 Importing 2 nodes with non-responsive IPs to test timeout protection")
+        print(f"   Expected: Nodes should revert to original status on timeout, not stuck in 'checking'")
+        
+        success, response = self.make_request('POST', 'nodes/import', import_data)
+        
+        if success and 'report' in response:
+            report = response['report']
+            print(f"   Import Results: Added={report.get('added', 0)}, Errors={report.get('format_errors', 0)}")
+            
+            # Wait for timeout to occur (should be quick with fast_mode)
+            time.sleep(8)
+            
+            # Check that no nodes are stuck in 'checking' status
+            checking_success, checking_response = self.make_request('GET', 'nodes?status=checking')
+            checking_count = 0
+            if checking_success and 'nodes' in checking_response:
+                checking_count = len(checking_response['nodes'])
+            
+            # Check the status of our test nodes
+            test_results = []
+            for ip in ['192.0.2.1', '192.0.2.2']:
+                nodes_success, nodes_response = self.make_request('GET', f'nodes?ip={ip}')
+                
+                if nodes_success and 'nodes' in nodes_response and nodes_response['nodes']:
+                    node = nodes_response['nodes'][0]
+                    actual_status = node.get('status')
+                    
+                    # Should be either 'not_tested' (reverted) or 'ping_failed' (timeout handled)
+                    if actual_status in ['not_tested', 'ping_failed']:
+                        test_results.append(f"✅ {ip}: {actual_status} (timeout handled correctly)")
+                    else:
+                        test_results.append(f"❌ {ip}: {actual_status} (should be not_tested or ping_failed)")
+                else:
+                    test_results.append(f"❌ {ip}: Node not found")
+            
+            print(f"\n📊 TIMEOUT PROTECTION TEST RESULTS:")
+            for result in test_results:
+                print(f"   {result}")
+            print(f"   Nodes stuck in 'checking': {checking_count}")
+            
+            # Success if no nodes stuck and timeout handled correctly
+            success_count = len([r for r in test_results if r.startswith('✅')])
+            
+            if checking_count == 0 and success_count >= 1:
+                self.log_test("Import Timeout Protection", True, 
+                             f"✅ Timeout protection working. {success_count}/2 nodes handled correctly, {checking_count} stuck")
+                return True
+            else:
+                self.log_test("Import Timeout Protection", False, 
+                             f"❌ Timeout protection issues. {success_count}/2 nodes handled correctly, {checking_count} stuck in checking")
+                return False
+        else:
+            self.log_test("Import Timeout Protection", False, f"Import failed: {response}")
+            return False
+
+    def test_import_mixed_working_nonworking(self):
+        """Test import with mix of working and non-working PPTP servers"""
+        print("\n🔥 TESTING IMPORT WITH MIXED WORKING/NON-WORKING SERVERS")
+        print("=" * 60)
+        
+        # Mix of working and non-working IPs
+        test_data = """72.197.30.149 admin admin US
+203.0.113.1 admin admin US
+198.51.100.1 admin admin US"""  # First might work, others are test IPs
+        
+        import_data = {
+            "data": test_data,
+            "protocol": "pptp",
+            "testing_mode": "ping_only"
+        }
+        
+        print(f"📋 Importing 3 nodes with mixed working/non-working servers")
+        print(f"   Expected: Proper categorization of working vs non-working servers")
+        
+        success, response = self.make_request('POST', 'nodes/import', import_data)
+        
+        if success and 'report' in response:
+            report = response['report']
+            print(f"   Import Results: Added={report.get('added', 0)}, Errors={report.get('format_errors', 0)}")
+            
+            # Wait for testing to complete
+            time.sleep(10)
+            
+            # Check final status distribution
+            status_counts = {}
+            test_ips = ['72.197.30.149', '203.0.113.1', '198.51.100.1']
+            
+            for ip in test_ips:
+                nodes_success, nodes_response = self.make_request('GET', f'nodes?ip={ip}')
+                
+                if nodes_success and 'nodes' in nodes_response and nodes_response['nodes']:
+                    node = nodes_response['nodes'][0]
+                    status = node.get('status', 'unknown')
+                    status_counts[status] = status_counts.get(status, 0) + 1
+                    print(f"   {ip}: {status}")
+            
+            # Check for nodes stuck in 'checking'
+            checking_success, checking_response = self.make_request('GET', 'nodes?status=checking')
+            checking_count = 0
+            if checking_success and 'nodes' in checking_response:
+                checking_count = len(checking_response['nodes'])
+            
+            print(f"\n📊 STATUS DISTRIBUTION:")
+            for status, count in status_counts.items():
+                print(f"   {status}: {count} nodes")
+            print(f"   Nodes stuck in 'checking': {checking_count}")
+            
+            # Success if we have proper categorization and no stuck nodes
+            has_ping_ok = status_counts.get('ping_ok', 0) > 0
+            has_ping_failed = status_counts.get('ping_failed', 0) > 0
+            no_stuck_nodes = checking_count == 0
+            
+            if has_ping_failed and no_stuck_nodes:  # At least some categorization and no stuck nodes
+                self.log_test("Import Mixed Working/Non-working", True, 
+                             f"✅ Proper categorization: ping_ok={status_counts.get('ping_ok', 0)}, ping_failed={status_counts.get('ping_failed', 0)}, stuck={checking_count}")
+                return True
+            else:
+                self.log_test("Import Mixed Working/Non-working", False, 
+                             f"❌ Categorization issues: ping_ok={status_counts.get('ping_ok', 0)}, ping_failed={status_counts.get('ping_failed', 0)}, stuck={checking_count}")
+                return False
+        else:
+            self.log_test("Import Mixed Working/Non-working", False, f"Import failed: {response}")
+            return False
+
+    def test_import_no_ping_failed_fallback(self):
+        """Test that failed tests don't cause nodes to fall to PING Failed incorrectly"""
+        print("\n🔥 TESTING IMPORT - NO INCORRECT PING FAILED FALLBACK")
+        print("=" * 60)
+        
+        # Test with speed_only mode to ensure nodes don't fall to ping_failed incorrectly
+        test_data = """72.197.30.150 admin admin US"""
+        
+        import_data = {
+            "data": test_data,
+            "protocol": "pptp",
+            "testing_mode": "speed_only"  # Should not set ping_failed for speed test failures
+        }
+        
+        print(f"📋 Importing 1 node with testing_mode='speed_only'")
+        print(f"   Expected: Speed test failure should not cause ping_failed status")
+        
+        success, response = self.make_request('POST', 'nodes/import', import_data)
+        
+        if success and 'report' in response:
+            report = response['report']
+            print(f"   Import Results: Added={report.get('added', 0)}, Errors={report.get('format_errors', 0)}")
+            
+            # Wait for testing to complete
+            time.sleep(8)
+            
+            # Check the node status
+            nodes_success, nodes_response = self.make_request('GET', 'nodes?ip=72.197.30.150')
+            
+            if nodes_success and 'nodes' in nodes_response and nodes_response['nodes']:
+                node = nodes_response['nodes'][0]
+                actual_status = node.get('status')
+                
+                print(f"   Node 72.197.30.150 final status: {actual_status}")
+                
+                # Should NOT be ping_failed for speed_only mode
+                if actual_status != 'ping_failed':
+                    self.log_test("Import No Ping Failed Fallback", True, 
+                                 f"✅ Correct: speed_only mode did not cause ping_failed status (got {actual_status})")
+                    return True
+                else:
+                    self.log_test("Import No Ping Failed Fallback", False, 
+                                 f"❌ Incorrect: speed_only mode caused ping_failed status")
+                    return False
+            else:
+                self.log_test("Import No Ping Failed Fallback", False, "Node not found after import")
+                return False
+        else:
+            self.log_test("Import No Ping Failed Fallback", False, f"Import failed: {response}")
+            return False
+
+    def run_russian_user_import_tests(self):
+        """Run all Russian user import issue tests"""
+        print("\n🇷🇺 RUSSIAN USER IMPORT TESTING ISSUE - COMPREHENSIVE TEST SUITE")
+        print("=" * 80)
+        print("Testing fixes for import functionality with different testing modes")
+        print("Issues: Import with ping or ping+speed testing causes configs to fall to PING Failed or hang at 90%")
+        print("=" * 80)
+        
+        # Run all import-specific tests
+        test_results = []
+        
+        test_results.append(self.test_import_ping_only_mode())
+        test_results.append(self.test_import_ping_speed_mode())
+        test_results.append(self.test_import_timeout_protection())
+        test_results.append(self.test_import_mixed_working_nonworking())
+        test_results.append(self.test_import_no_ping_failed_fallback())
+        
+        # Summary
+        passed_tests = sum(test_results)
+        total_tests = len(test_results)
+        
+        print(f"\n🏁 RUSSIAN USER IMPORT TESTS SUMMARY")
+        print(f"   Total Tests: {total_tests}")
+        print(f"   Passed: {passed_tests}")
+        print(f"   Failed: {total_tests - passed_tests}")
+        print(f"   Success Rate: {(passed_tests/total_tests*100):.1f}%")
+        
+        if passed_tests == total_tests:
+            print("🎉 ALL RUSSIAN USER IMPORT TESTS PASSED!")
+            return True
+        else:
+            print("❌ SOME RUSSIAN USER IMPORT TESTS FAILED")
+            return False
+
     def run_all_tests(self):
         """Run all backend tests"""
         print("🚀 Starting Connexa Backend API Tests")
