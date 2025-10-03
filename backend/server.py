@@ -2673,7 +2673,14 @@ async def process_testing_batches(session_id: str, node_ids: list, testing_mode:
                             logger.info(f"🔍 Testing: Starting multi-port TCP ping for Node {node.id}")
                             from ping_speed_test import multiport_tcp_ping
                             ports = get_ping_ports_for_node(node)
-                            ping_result = await multiport_tcp_ping(node.ip, ports=ports, attempts=3, per_attempt_timeout=1.5)
+                            # Adaptive per-attempt timeouts
+                            timeouts = ping_timeouts
+                            # Try shortest first, then longer
+                            ping_result = None
+                            for t in timeouts:
+                                ping_result = await multiport_tcp_ping(node.ip, ports=ports, attempts=3, per_attempt_timeout=t)
+                                if ping_result.get('success'):
+                                    break
 
                             if ping_result.get('success'):
                                 node.status = "ping_ok"
