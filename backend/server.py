@@ -481,7 +481,12 @@ async def import_nodes(
                 progress = ProgressTracker(session_id, len(nodes_to_test))
                 progress.update(0, f"Начинаем тестирование {len(nodes_to_test)} серверов...")
                 
-                logger.info(f"📊 Import: Starting progress tracking for session {session_id} with {len(nodes_to_test)} nodes")
+                logger.info(f"📊 Import: Starting batch testing for session {session_id} with {len(nodes_to_test)} nodes")
+                
+                # Start background batch testing instead of blocking
+                asyncio.create_task(process_import_testing_batches(
+                    session_id, nodes_to_test, data.testing_mode, db
+                ))
                 # Import proper testing functions
                 from ping_speed_test import test_node_ping, test_node_speed
                 
