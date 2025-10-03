@@ -194,6 +194,49 @@ vpn2.example.com:443:client2:pass456:GB:London:`
     }
   };
 
+  const handleCancel = async () => {
+    if (sessionId && loading) {
+      try {
+        await axios.post(`${API}/progress/${sessionId}/cancel`);
+        toast.info('Операция отменена');
+      } catch (error) {
+        console.error('Error cancelling operation:', error);
+      }
+    }
+    setLoading(false);
+    setProgressData(null);
+    setSessionId(null);
+  };
+
+  const handleMinimize = () => {
+    setIsMinimized(true);
+  };
+
+  const handleRestore = () => {
+    setIsMinimized(false);
+  };
+
+  // Progress completion handler
+  React.useEffect(() => {
+    if (progressData && progressData.status === 'completed') {
+      // Show final results
+      setPreviewResult({
+        ...progressData,
+        smart_summary: progressData.current_task
+      });
+      setShowPreview(true);
+      toast.success('Импорт и тестирование завершено!');
+      
+      if (onComplete) {
+        onComplete(progressData);
+      }
+    } else if (progressData && progressData.status === 'failed') {
+      toast.error('Ошибка при выполнении операции');
+    } else if (progressData && progressData.status === 'cancelled') {
+      toast.info('Операция отменена');
+    }
+  }, [progressData, onComplete]);
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto" data-testid="unified-import-modal">
