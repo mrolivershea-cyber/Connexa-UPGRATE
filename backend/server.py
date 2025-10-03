@@ -2617,8 +2617,13 @@ async def process_testing_batches(session_id: str, node_ids: list, testing_mode:
                                 node.status = "ping_ok"
                                 logger.info(f"✅ Testing: Node {node.id} ping SUCCESS")
                             else:
-                                node.status = "ping_failed"
-                                logger.info(f"❌ Testing: Node {node.id} ping FAILED")
+                                # Never downgrade below PING OK once achieved
+                                if has_ping_baseline(original_status):
+                                    node.status = original_status
+                                    logger.info(f"🛡️ Testing: Node {node.id} ping FAILED but preserving baseline {original_status}")
+                                else:
+                                    node.status = "ping_failed"
+                                    logger.info(f"❌ Testing: Node {node.id} ping FAILED")
                             # Maintain approximate compatibility for UI fields
                             try:
                                 ping_result["packet_loss"] = round(100.0 - float(ping_result.get("success_rate", 0.0)), 1)
