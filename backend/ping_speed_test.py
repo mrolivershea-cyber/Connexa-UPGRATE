@@ -150,6 +150,105 @@ class PPTPTester:
 
 # ==== New fast multi-port TCP reachability helpers (service-aware, no protocol handshake) ====
 
+async def tcp_connect_measure(ip: str, port: int, per_attempt_timeout: float) -> Tuple[bool, float, str]:
+    """Attempt TCP connect to ip:port within per_attempt_timeout seconds.
+    Returns (success, elapsed_ms, error_code_text). Non-blocking with select.
+    """
+    try:
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.settimeout(per_attempt_timeout)
+        sock.setblocking(False)
+        start = time.time()
+        result = sock.connect_ex((ip, port))
+        if result == 0:
+            elapsed = (time.time() - start) * 1000.0
+            sock.close()
+            return True, elapsed, "OK"
+        elif result in [115, 11]:  # EINPROGRESS / EWOULDBLOCK
+            import select
+            ready = select.select([], [sock], [], per_attempt_timeout)
+            if ready[1]:
+                err = sock.getsockopt(socket.SOL_SOCKET, socket.SO_ERROR)
+                if err == 0:
+                    elapsed = (time.time() - start) * 1000.0
+                    sock.close()
+                    return True, elapsed, "OK"
+                else:
+                    sock.close()
+                    return False, (time.time() - start) * 1000.0, f"SO_ERROR:{err}"
+            else:
+                sock.close()
+                return False, per_attempt_timeout * 1000.0, "timeout"
+        else:
+            # Immediate failure (e.g., ECONNREFUSED)
+            sock.close()
+            return False, (time.time() - start) * 1000.0, f"ERR:{result}"
+    except socket.timeout:
+        return False, per_attempt_timeout * 1000.0, "timeout"
+    except Exception as e:
+        return False, per_attempt_timeout * 1000.0, f"EXC:{str(e)}"
+
+async def multiport_tcp_ping(ip: str, ports: list[int], attempts: int = 3, per_attempt_timeout: float = 1.5) -> Dict:
+    """Fast reachability test across multiple ports with early-exit and stricter criteria.
+    Success when: total >= 2 successful probes, or 1 success with >=50% success_rate.
+    Returns structure compatible with UI expectations (adds packet_loss later in server code).
+    """
+    total_ok = 0
+    total_attempts = 0
+    best_ms = None
+    details: Dict[int, Dict[str, Optional[float]]] = {}
+
+    # Limit number of ports to probe to keep it fast
+    probe_ports = ports[:4] if ports else [1723, 443, 80, 22]
+
+    for attempt_idx in range(attempts):
+        tasks = [tcp_connect_measure(ip, p, per_attempt_timeout) for p in probe_ports]
+        results = await asyncio.gather(*tasks)
+        any_ok_this_round = False
+
+        for p, (ok, elapsed, err) in zip(probe_ports, results):
+            total_attempts += 1
+            rec = details.setdefault(p, {"ok": 0, "fail": 0, "best_ms": None})
+            if ok:
+                rec["ok"] += 1
+                total_ok += 1
+                any_ok_this_round = True
+                if rec["best_ms"] is None or elapsed < float(rec["best_ms"] or 1e9):
+                    rec["best_ms"] = elapsed
+                if best_ms is None or elapsed < best_ms:
+                    best_ms = elapsed
+            else:
+                rec["fail"] += 1
+        # Early exit if we already have good signal
+        if total_ok >= 2:
+            break
+        # Small pacing between attempts only if nothing succeeded
+        if attempt_idx < attempts - 1 and not any_ok_this_round:
+            await asyncio.sleep(0.15)
+
+    success_rate = (total_ok / max(1, total_attempts)) * 100.0
+    success = total_ok >= 2 or (total_ok >= 1 and success_rate >= 50.0)
+    # Compute avg from best per-port successes to avoid skew
+    times = [v["best_ms"] for v in details.values() if v["best_ms"] is not None]
+    avg_time = float(sum(times) / len(times)) if times else 0.0
+
+    msg = (
+        f"TCP reachability: {'OK' if success else 'FAILED'}; "
+        f"best={(best_ms or 0.0):.1f}ms avg={avg_time:.1f}ms success={success_rate:.0f}% over {total_attempts} probes"
+    )
+
+    return {
+        "success": bool(success),
+        "avg_time": round(avg_time, 1),
+        "best_time": round((best_ms or 0.0), 1),
+        "success_rate": round(success_rate, 1),
+        "attempts_total": int(total_attempts),
+        "attempts_ok": int(total_ok),
+        "details": details,
+        "message": msg,
+    }
+
+
                 "message": f"Ping test error: {str(e)}"
 async def tcp_connect_measure(ip: str, port: int, per_attempt_timeout: float) -> Tuple[bool, float, str]:
     """Attempt TCP connect to ip:port within per_attempt_timeout seconds.
