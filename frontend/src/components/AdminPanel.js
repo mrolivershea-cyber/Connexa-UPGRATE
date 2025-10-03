@@ -107,14 +107,24 @@ const AdminPanel = () => {
     }
   }, [API]);
 
+  // Initial load
   useEffect(() => {
     loadNodes();
     loadStats();
-    // Clear selection when filters change
-    setSelectedNodes([]);
-    setAllSelectedIds([]);
-    setSelectAllMode(false);
-  }, [filters]);
+  }, []);
+
+  // Debounced filter effect
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      loadNodes(1);
+      // Clear selection when filters change
+      setSelectedNodes([]);
+      setAllSelectedIds([]);
+      setSelectAllMode(false);
+    }, 300); // 300ms debounce
+
+    return () => clearTimeout(timeoutId);
+  }, [loadNodes]);
 
   const handleFilterChange = (key, value) => {
     setFilters(prev => ({ ...prev, [key]: value }));
