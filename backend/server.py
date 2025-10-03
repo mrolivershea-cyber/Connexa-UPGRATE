@@ -1677,6 +1677,45 @@ async def get_stats(
         }
     }
 
+@api_router.get("/progress/{session_id}")
+async def get_progress_stream(session_id: str, current_user: User = Depends(get_current_user)):
+    """Server-Sent Events endpoint for real-time progress updates"""
+    
+    async def event_generator():
+        while True:
+            if session_id in progress_store:
+                progress = progress_store[session_id]
+                data = json.dumps(progress.to_dict())
+                yield f"data: {data}\n\n"
+                
+                # If completed or failed, break the loop
+                if progress.status in ["completed", "failed", "cancelled"]:
+                    break
+            else:
+                # Session not found, send empty progress
+                yield f"data: {json.dumps({'error': 'Session not found'})}\n\n"
+                break
+            
+            await asyncio.sleep(0.5)  # Update every 500ms
+    
+    return StreamingResponse(
+        event_generator(), 
+        media_type="text/plain",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "Access-Control-Allow-Origin": "*"
+        }
+    )
+
+@api_router.post("/progress/{session_id}/cancel")
+async def cancel_progress(session_id: str, current_user: User = Depends(get_current_user)):
+    """Cancel ongoing operation"""
+    if session_id in progress_store:
+        progress_store[session_id].status = "cancelled"
+        return {"success": True, "message": "Operation cancelled"}
+    return {"success": False, "message": "Session not found"}
+
 # Service Management Routes
 @api_router.post("/services/start")
 async def start_services(
