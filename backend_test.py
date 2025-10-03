@@ -12437,6 +12437,11 @@ if __name__ == "__main__":
     if len(sys.argv) > 1 and sys.argv[1] == "--critical-speed-ok":
         print("🔥 ЗАПУСК КРИТИЧЕСКИХ ТЕСТОВ SPEED_OK PRESERVATION")
         sys.exit(run_critical_speed_ok_tests())
-    else:
-        # Run PPTP-specific tests as requested in the review
+    elif len(sys.argv) > 1 and sys.argv[1] == "--pptp":
+        # Run PPTP-specific tests
         sys.exit(run_pptp_tests())
+    else:
+        # Run comprehensive tests including critical Russian user speed_ok protection
+        tester = ConnexaAPITester()
+        success = tester.run_all_tests()
+        sys.exit(0 if success else 1)
