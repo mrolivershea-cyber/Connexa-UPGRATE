@@ -2548,6 +2548,7 @@ async def manual_ping_speed_test_batch_progress(
 async def process_testing_batches(session_id: str, node_ids: list, testing_mode: str, db_session):
     """Process testing in batches for any test type"""
     
+    total_nodes = len(node_ids)
     # Dynamic batch sizing to balance throughput and load
     if total_nodes < 1000:
         BATCH_SIZE = 120
@@ -2555,7 +2556,6 @@ async def process_testing_batches(session_id: str, node_ids: list, testing_mode:
         BATCH_SIZE = 160
     else:
         BATCH_SIZE = 200
-    total_nodes = len(node_ids)
     processed_nodes = 0
     failed_tests = 0
     
