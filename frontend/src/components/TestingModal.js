@@ -119,11 +119,9 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], onTestComplete })
   };
 
   const handleMinimize = () => {
-    setIsMinimized(true);
-  };
-
-  const handleRestore = () => {
-    setIsMinimized(false);
+    // Close the modal but keep the process running
+    onClose();
+    // The testing will continue in background
   };
 
   const getTestTypeDescription = () => {
