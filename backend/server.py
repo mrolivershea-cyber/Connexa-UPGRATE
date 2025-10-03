@@ -2545,11 +2545,16 @@ async def manual_ping_speed_test_batch_progress(
     ))
     return {"session_id": session_id, "message": f"Запущено тестирование {len(nodes)} узлов (speed)", "started": True}
 
-async def process_testing_batches(session_id: str, node_ids: list, testing_mode: str, db_session):
-    """Process testing in batches for any test type"""
+async def process_testing_batches(session_id: str, node_ids: list, testing_mode: str, db_session, *,
+                                  ping_concurrency: int = 50,
+                                  speed_concurrency: int = 8,
+                                  ping_timeouts: list[float] | None = None,
+                                  speed_sample_kb: int = 512,
+                                  speed_timeout: int = 15):
+    """Process testing in batches for any test type with concurrency controls"""
     
     total_nodes = len(node_ids)
-    # Dynamic batch sizing to balance throughput and load
+    # Dynamic batch sizing to balance throughput and load (still used to chunk UI progress)
     if total_nodes < 1000:
         BATCH_SIZE = 120
     elif total_nodes < 3000:
@@ -2558,6 +2563,9 @@ async def process_testing_batches(session_id: str, node_ids: list, testing_mode:
         BATCH_SIZE = 200
     processed_nodes = 0
     failed_tests = 0
+
+    if ping_timeouts is None:
+        ping_timeouts = [0.8, 1.2, 1.6]
     
     try:
         # Get fresh database session for background processing
