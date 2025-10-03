@@ -201,23 +201,15 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], onTestComplete })
         timeout: testType === 'both' ? 300000 : 180000 // 5 minutes for combined, 3 minutes for single tests
       });
       
-      if (shouldUseNewSystem && response.data.session_id) {
-        // New system: track progress via SSE
+      if (response.data.session_id) {
+        // Track progress via SSE
         setSessionId(response.data.session_id);
-        toast.info(response.data.message);
+        toast.info(response.data.message || 'Тестирование начато');
         // Don't set loading to false yet, SSE will handle completion
       } else {
-        // Old system: direct response
-        // Clear interval and set progress to 100% on success
-        if (progressInterval) {
-          clearInterval(progressInterval);
-          progressInterval = null;
-        }
+        // Fallback: direct response (shouldn't happen with progress endpoints)
         setProgress(100);
-        
-        // Clear saved state for old system
         localStorage.removeItem('testingProgress');
-        
         setResults(response.data.results);
         setProcessedNodes(response.data.results?.length || 0);
         
