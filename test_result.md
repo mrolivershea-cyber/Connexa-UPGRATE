@@ -514,6 +514,7 @@ test_plan:
     - "Enhanced Ping Accuracy and Real Speed Testing"
     - "Immediate Database Persistence"
     - "Critical Russian User Speed_OK Protection Tests"
+    - "Quick Speed_OK Status API Response Test"
 
 agent_communication:
   - agent: "main"
