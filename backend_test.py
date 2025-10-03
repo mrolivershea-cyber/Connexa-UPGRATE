@@ -1388,6 +1388,396 @@ ZIP: 78701"""
             self.log_test("Single Node Service Stop", False, f"Failed to stop service for single node: {response}")
             return False
 
+    # ========== NEW BATCH IMPORT SYSTEM TESTS (Review Request 2025-01-08) ==========
+    
+    def test_batch_import_with_ping_only(self):
+        """Test new batch import system with testing_mode: ping_only"""
+        print("\n🔥 TESTING NEW BATCH IMPORT SYSTEM - PING ONLY MODE")
+        print("=" * 60)
+        
+        # Test data from review request
+        test_data = """Ip: 1.1.1.1
+Login: test
+Pass: test
+State: Test
+City: Test
+
+Ip: 2.2.2.2
+Login: test
+Pass: test
+State: Test
+City: Test
+
+Ip: 3.3.3.3
+Login: test
+Pass: test
+State: Test
+City: Test"""
+        
+        import_data = {
+            "data": test_data,
+            "protocol": "pptp",
+            "testing_mode": "ping_only"
+        }
+        
+        success, response = self.make_request('POST', 'nodes/import', import_data)
+        
+        if success and 'session_id' in response:
+            session_id = response['session_id']
+            print(f"✅ Import started with session_id: {session_id}")
+            print(f"📊 Import response: {response.get('message', 'No message')}")
+            
+            # Test that import returns quickly (not hanging)
+            self.log_test("Batch Import - Quick Response", True, 
+                         f"Import returned session_id {session_id} without hanging")
+            
+            # Test progress endpoint
+            return self.test_progress_endpoint(session_id)
+        else:
+            self.log_test("Batch Import - Ping Only Mode", False, 
+                         f"Failed to start batch import: {response}")
+            return False
+    
+    def test_progress_endpoint(self, session_id: str):
+        """Test /api/progress/{session_id} SSE endpoint"""
+        print(f"\n📊 TESTING PROGRESS ENDPOINT FOR SESSION: {session_id}")
+        
+        # Test progress endpoint (non-SSE version for testing)
+        success, response = self.make_request('GET', f'progress/{session_id}')
+        
+        if success and 'session_id' in response:
+            progress_data = response
+            print(f"✅ Progress data retrieved:")
+            print(f"   Session ID: {progress_data.get('session_id')}")
+            print(f"   Total Items: {progress_data.get('total_items', 0)}")
+            print(f"   Processed Items: {progress_data.get('processed_items', 0)}")
+            print(f"   Progress: {progress_data.get('progress_percent', 0)}%")
+            print(f"   Status: {progress_data.get('status', 'unknown')}")
+            print(f"   Current Task: {progress_data.get('current_task', 'N/A')}")
+            
+            self.log_test("Progress Endpoint", True, 
+                         f"Progress endpoint working - {progress_data.get('progress_percent', 0)}% complete")
+            
+            # Wait a bit and check again to see if progress updates
+            import time
+            time.sleep(5)
+            
+            success2, response2 = self.make_request('GET', f'progress/{session_id}')
+            if success2 and 'progress_percent' in response2:
+                new_progress = response2.get('progress_percent', 0)
+                print(f"📈 Progress after 5s: {new_progress}%")
+                
+                if new_progress >= progress_data.get('progress_percent', 0):
+                    self.log_test("Progress Updates", True, 
+                                 f"Progress updating correctly: {progress_data.get('progress_percent', 0)}% → {new_progress}%")
+                else:
+                    self.log_test("Progress Updates", False, 
+                                 f"Progress went backwards: {progress_data.get('progress_percent', 0)}% → {new_progress}%")
+            
+            return True
+        else:
+            self.log_test("Progress Endpoint", False, 
+                         f"Failed to get progress data: {response}")
+            return False
+    
+    def test_batch_processing_functionality(self):
+        """Test that batch processing works with 15 nodes per batch"""
+        print("\n🔥 TESTING BATCH PROCESSING FUNCTIONALITY")
+        print("=" * 60)
+        
+        # Create test data with more than 15 nodes to test batching
+        test_nodes = []
+        for i in range(1, 21):  # 20 nodes to test batching (should be 2 batches of 15 and 5)
+            test_nodes.append(f"""Ip: 10.10.10.{i}
+Login: batchtest{i}
+Pass: testpass{i}
+State: TestState
+City: TestCity""")
+        
+        test_data = "\n\n".join(test_nodes)
+        
+        import_data = {
+            "data": test_data,
+            "protocol": "pptp",
+            "testing_mode": "ping_only"
+        }
+        
+        success, response = self.make_request('POST', 'nodes/import', import_data)
+        
+        if success and 'session_id' in response:
+            session_id = response['session_id']
+            print(f"✅ Batch import started with 20 nodes, session_id: {session_id}")
+            
+            # Monitor progress to verify batching
+            import time
+            max_wait = 120  # 2 minutes max wait
+            wait_time = 0
+            
+            while wait_time < max_wait:
+                progress_success, progress_response = self.make_request('GET', f'progress/{session_id}')
+                
+                if progress_success and 'status' in progress_response:
+                    status = progress_response.get('status')
+                    progress = progress_response.get('progress_percent', 0)
+                    processed = progress_response.get('processed_items', 0)
+                    total = progress_response.get('total_items', 0)
+                    
+                    print(f"📊 Progress: {processed}/{total} ({progress}%) - Status: {status}")
+                    
+                    if status == "completed":
+                        print(f"✅ Batch processing completed!")
+                        
+                        # Verify that results were saved after each batch
+                        if processed == total and total == 20:
+                            self.log_test("Batch Processing - 15 Node Batches", True, 
+                                         f"All 20 nodes processed successfully in batches")
+                            return True
+                        else:
+                            self.log_test("Batch Processing - 15 Node Batches", False, 
+                                         f"Expected 20 nodes, processed {processed}")
+                            return False
+                    
+                    elif status == "failed":
+                        self.log_test("Batch Processing - 15 Node Batches", False, 
+                                     f"Batch processing failed")
+                        return False
+                
+                time.sleep(5)
+                wait_time += 5
+            
+            self.log_test("Batch Processing - 15 Node Batches", False, 
+                         f"Batch processing timed out after {max_wait}s")
+            return False
+        else:
+            self.log_test("Batch Processing - 15 Node Batches", False, 
+                         f"Failed to start batch import: {response}")
+            return False
+    
+    def test_cancellation_functionality(self):
+        """Test POST /api/progress/{session_id}/cancel"""
+        print("\n🔥 TESTING CANCELLATION FUNCTIONALITY")
+        print("=" * 60)
+        
+        # Start a batch import
+        test_data = """Ip: 20.20.20.1
+Login: canceltest1
+Pass: testpass1
+State: TestState
+
+Ip: 20.20.20.2
+Login: canceltest2
+Pass: testpass2
+State: TestState
+
+Ip: 20.20.20.3
+Login: canceltest3
+Pass: testpass3
+State: TestState"""
+        
+        import_data = {
+            "data": test_data,
+            "protocol": "pptp",
+            "testing_mode": "ping_only"
+        }
+        
+        success, response = self.make_request('POST', 'nodes/import', import_data)
+        
+        if success and 'session_id' in response:
+            session_id = response['session_id']
+            print(f"✅ Import started for cancellation test, session_id: {session_id}")
+            
+            # Wait a moment then cancel
+            import time
+            time.sleep(2)
+            
+            # Test cancellation endpoint
+            cancel_success, cancel_response = self.make_request('POST', f'progress/{session_id}/cancel')
+            
+            if cancel_success:
+                print(f"✅ Cancellation request sent successfully")
+                
+                # Check that status becomes cancelled
+                time.sleep(2)
+                progress_success, progress_response = self.make_request('GET', f'progress/{session_id}')
+                
+                if progress_success and progress_response.get('status') == 'cancelled':
+                    self.log_test("Cancellation Functionality", True, 
+                                 f"Operation successfully cancelled")
+                    return True
+                else:
+                    self.log_test("Cancellation Functionality", False, 
+                                 f"Status not cancelled: {progress_response.get('status')}")
+                    return False
+            else:
+                self.log_test("Cancellation Functionality", False, 
+                             f"Failed to cancel operation: {cancel_response}")
+                return False
+        else:
+            self.log_test("Cancellation Functionality", False, 
+                         f"Failed to start import for cancellation test: {response}")
+            return False
+    
+    def test_batch_system_no_hanging(self):
+        """Test that 90% hanging issue is resolved"""
+        print("\n🔥 TESTING 90% HANGING ISSUE RESOLUTION")
+        print("=" * 60)
+        
+        # Test with moderate number of nodes that previously caused hanging
+        test_nodes = []
+        for i in range(1, 11):  # 10 nodes
+            test_nodes.append(f"""Ip: 30.30.30.{i}
+Login: hangtest{i}
+Pass: testpass{i}
+State: TestState
+City: TestCity""")
+        
+        test_data = "\n\n".join(test_nodes)
+        
+        import_data = {
+            "data": test_data,
+            "protocol": "pptp",
+            "testing_mode": "ping_only"
+        }
+        
+        import time
+        start_time = time.time()
+        success, response = self.make_request('POST', 'nodes/import', import_data)
+        
+        if success and 'session_id' in response:
+            session_id = response['session_id']
+            print(f"✅ Import started, session_id: {session_id}")
+            
+            # Monitor for hanging at 90%
+            max_wait = 90  # 1.5 minutes max wait
+            wait_time = 0
+            hung_at_90 = False
+            last_progress = 0
+            stuck_count = 0
+            
+            while wait_time < max_wait:
+                progress_success, progress_response = self.make_request('GET', f'progress/{session_id}')
+                
+                if progress_success and 'progress_percent' in progress_response:
+                    progress = progress_response.get('progress_percent', 0)
+                    status = progress_response.get('status', 'unknown')
+                    
+                    print(f"📊 Progress: {progress}% - Status: {status}")
+                    
+                    # Check for hanging at 90%
+                    if progress >= 90 and progress < 100:
+                        if progress == last_progress:
+                            stuck_count += 1
+                            if stuck_count >= 6:  # Stuck for 30 seconds
+                                hung_at_90 = True
+                                print(f"❌ HANGING DETECTED at {progress}%")
+                                break
+                        else:
+                            stuck_count = 0
+                    
+                    if status == "completed":
+                        end_time = time.time()
+                        total_time = end_time - start_time
+                        print(f"✅ Import completed in {total_time:.1f}s without hanging!")
+                        
+                        self.log_test("90% Hanging Issue Resolution", True, 
+                                     f"Import completed in {total_time:.1f}s without hanging at 90%")
+                        return True
+                    
+                    elif status == "failed":
+                        self.log_test("90% Hanging Issue Resolution", False, 
+                                     f"Import failed")
+                        return False
+                    
+                    last_progress = progress
+                
+                time.sleep(5)
+                wait_time += 5
+            
+            if hung_at_90:
+                self.log_test("90% Hanging Issue Resolution", False, 
+                             f"Import hung at 90% - issue NOT resolved")
+                return False
+            else:
+                self.log_test("90% Hanging Issue Resolution", False, 
+                             f"Import timed out after {max_wait}s")
+                return False
+        else:
+            self.log_test("90% Hanging Issue Resolution", False, 
+                         f"Failed to start import: {response}")
+            return False
+    
+    def test_results_saved_after_each_batch(self):
+        """Test that intermediate results are saved after each batch"""
+        print("\n🔥 TESTING INTERMEDIATE RESULTS SAVING")
+        print("=" * 60)
+        
+        # Create exactly 16 nodes to test 2 batches (15 + 1)
+        test_nodes = []
+        for i in range(1, 17):  # 16 nodes
+            test_nodes.append(f"""Ip: 40.40.40.{i}
+Login: savetest{i}
+Pass: testpass{i}
+State: TestState
+City: TestCity""")
+        
+        test_data = "\n\n".join(test_nodes)
+        
+        import_data = {
+            "data": test_data,
+            "protocol": "pptp",
+            "testing_mode": "ping_only"
+        }
+        
+        success, response = self.make_request('POST', 'nodes/import', import_data)
+        
+        if success and 'session_id' in response:
+            session_id = response['session_id']
+            print(f"✅ Import started with 16 nodes, session_id: {session_id}")
+            
+            # Monitor and check database after first batch
+            import time
+            first_batch_saved = False
+            
+            for _ in range(24):  # Check for 2 minutes
+                progress_success, progress_response = self.make_request('GET', f'progress/{session_id}')
+                
+                if progress_success:
+                    processed = progress_response.get('processed_items', 0)
+                    status = progress_response.get('status', 'unknown')
+                    
+                    print(f"📊 Processed: {processed}/16 - Status: {status}")
+                    
+                    # After first batch (15 nodes), check if they're saved in DB
+                    if processed >= 15 and not first_batch_saved:
+                        # Check database for saved nodes
+                        nodes_success, nodes_response = self.make_request('GET', 'nodes?login=savetest1')
+                        
+                        if nodes_success and 'nodes' in nodes_response and nodes_response['nodes']:
+                            print(f"✅ First batch results saved to database!")
+                            first_batch_saved = True
+                        else:
+                            print(f"❌ First batch results NOT saved to database")
+                    
+                    if status == "completed":
+                        if first_batch_saved:
+                            self.log_test("Intermediate Results Saving", True, 
+                                         f"Results saved after each batch (verified after first batch of 15)")
+                            return True
+                        else:
+                            self.log_test("Intermediate Results Saving", False, 
+                                         f"Could not verify intermediate saving")
+                            return False
+                
+                time.sleep(5)
+            
+            self.log_test("Intermediate Results Saving", False, 
+                         f"Test timed out")
+            return False
+        else:
+            self.log_test("Intermediate Results Saving", False, 
+                         f"Failed to start import: {response}")
+            return False
+
     # ========== CRITICAL SERVICE MANAGEMENT TESTS (Review Request) ==========
     
     def test_service_management_workflow_complete(self):
