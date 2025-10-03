@@ -1728,7 +1728,7 @@ async def test_ping(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Test ping for selected nodes"""
+    """Test ping for selected nodes - preserves speed_ok status"""
     results = []
     
     for node_id in test_request.node_ids:
@@ -1741,40 +1741,67 @@ async def test_ping(
             })
             continue
         
+        # CRITICAL: Save original status BEFORE any changes
+        original_status = node.status
+        logger.info(f"🔍 Test ping: Node {node_id} original status: {original_status}")
+        
+        # NEVER test speed_ok nodes
+        if original_status == "speed_ok":
+            logger.info(f"✅ Test ping: Node {node_id} has speed_ok - SKIPPING to preserve status")
+            results.append({
+                "node_id": node_id,
+                "ip": node.ip,
+                "success": True,
+                "status": "speed_ok",
+                "message": "Node has speed_ok status - test skipped to preserve validation"
+            })
+            continue
+        
         try:
             # Set status to checking
             node.status = "checking"
             node.last_check = datetime.utcnow()
-            node.last_update = datetime.utcnow()  # Update time when status changes
-            db.commit()
+            node.last_update = datetime.utcnow()
+            # Note: get_db() will auto-commit
             
             ping_result = await network_tester.ping_test(node.ip)
             
             # Update status based on ping result
             if ping_result['reachable']:
                 node.status = "ping_ok"
+                logger.info(f"✅ Test ping: Node {node_id} SUCCESS - {original_status} -> ping_ok")
             else:
                 node.status = "ping_failed"
+                logger.info(f"❌ Test ping: Node {node_id} FAILED - {original_status} -> ping_failed")
             
-            node.last_update = datetime.utcnow()  # Update time after test
-            db.commit()
+            node.last_update = datetime.utcnow()
+            # Note: get_db() will auto-commit
             
             results.append({
                 "node_id": node_id,
                 "ip": node.ip,
                 "success": ping_result['success'],
+                "status": node.status,
+                "original_status": original_status,
                 "ping": ping_result
             })
             
         except Exception as e:
-            # Reset status on error
-            node.status = "offline"
-            node.last_update = datetime.utcnow()  # Update time on error
-            db.commit()
+            # On error, NEVER downgrade speed_ok
+            if original_status != "speed_ok":
+                node.status = "offline"
+                logger.error(f"❌ Test ping: Node {node_id} ERROR - {original_status} -> offline - {str(e)}")
+            else:
+                node.status = "speed_ok"
+                logger.error(f"❌ Test ping: Node {node_id} ERROR but PROTECTED - preserving speed_ok - {str(e)}")
+            node.last_update = datetime.utcnow()
+            # Note: get_db() will auto-commit
             
             results.append({
                 "node_id": node_id,
                 "success": False,
+                "status": node.status,
+                "original_status": original_status,
                 "message": f"Ping test error: {str(e)}"
             })
     
