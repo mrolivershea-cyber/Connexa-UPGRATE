@@ -97,7 +97,7 @@ app = FastAPI(title="Connexa Admin Panel", version="1.7")
 api_router = APIRouter(prefix="/api")
 
 # Middleware
-app.add_middleware(SessionMiddleware, secret_key=os.getenv("SECRET_KEY", "connexa-secret"))
+app.add_middleware(SessionMiddleware, secret_key=os.getenv("SECRET_KEY", "connexa-secret"), same_site="lax", session_cookie="connexa", max_age=60*60*8)
 # CORS: support wildcard with credentials via regex
 _cors_env = os.getenv('CORS_ORIGINS', '*')
 if _cors_env.strip() == '*':
