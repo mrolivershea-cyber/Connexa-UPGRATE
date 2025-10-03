@@ -70,15 +70,20 @@ const AdminPanel = () => {
     only_online: false
   });
 
-  const loadNodes = async (page = 1) => {
+  // Memoized filters to prevent unnecessary re-renders
+  const activeFilters = useMemo(() => {
+    return Object.fromEntries(
+      Object.entries(filters).filter(([key, value]) => value !== '' && value !== false && value !== 'all')
+    );
+  }, [filters]);
+
+  const loadNodes = useCallback(async (page = 1) => {
     try {
       setLoading(true);
       const params = {
         page,
         limit: 200,
-        ...Object.fromEntries(
-          Object.entries(filters).filter(([key, value]) => value !== '' && value !== false && value !== 'all')
-        )
+        ...activeFilters
       };
       
       const response = await axios.get(`${API}/nodes`, { params });
@@ -91,7 +96,7 @@ const AdminPanel = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [API, activeFilters]);
 
   const loadStats = async () => {
     try {
