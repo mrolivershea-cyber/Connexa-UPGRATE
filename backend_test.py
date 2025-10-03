@@ -10311,6 +10311,13 @@ State: California""",
             print("❌ Login failed - stopping tests")
             return False
         
+        # ========== CRITICAL SPEED_OK PROTECTION TEST (HIGHEST PRIORITY) ==========
+        print("\n" + "🔥" * 25 + " CRITICAL SPEED_OK PROTECTION TEST " + "🔥" * 25)
+        print("🎯 REVIEW REQUEST: FINAL COMPREHENSIVE SPEED_OK PRESERVATION TEST")
+        print("🔍 CONTEXT: Background Monitoring Re-Enabled - Testing 7 critical scenarios")
+        speed_ok_success = self.test_speed_ok_protection_comprehensive()
+        print("🔥" * 90)
+        
         # ========== QUICK SPEED_OK STATUS API RESPONSE TEST (REVIEW REQUEST) ==========
         print("\n" + "🔥" * 20 + " QUICK SPEED_OK STATUS API RESPONSE TEST " + "🔥" * 20)
         print("🎯 REVIEW REQUEST: Testing if API correctly returns speed_ok status")
