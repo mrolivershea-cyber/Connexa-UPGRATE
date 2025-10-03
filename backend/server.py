@@ -158,40 +158,27 @@ def test_dedupe_cleanup():
 # B) Keep general TCP ping (no protocol handshake) but use DB-configured ports with fallbacks
 
 def get_ping_ports_for_node(node: Node) -> list[int]:
-    """Return ports strictly by protocol without cross-protocol mixing.
-    - pptp: [node.port] or [1723]
-    - socks: [socks_port] or [1080]
-    - ovpn: [node.port] or [1194, 443]
-    - ssh: [node.port] or [22]
-    - unknown: [node.port] or [] (no mixing)
+    """Return exactly one port per protocol (no mixing).
+    - pptp: node.port else 1723
+    - socks: socks_port else 1080
+    - ovpn: node.port else 1194
+    - ssh: node.port else 22
+    - unknown: only explicit node.port if provided; else empty
     """
     try:
-        ports: list[int] = []
         proto = (node.protocol or "").lower()
         # Prefer explicit node.port when present
-        if node.port:
-            ports.append(int(node.port))
         if proto == "pptp":
-            if not ports:
-                ports = [1723]
-        elif proto == "socks":
-            # Prefer stored socks_port, then common default 1080
+            return [int(node.port)] if node.port else [1723]
+        if proto == "socks":
             sp = getattr(node, "socks_port", None)
-            if sp:
-                ports = [int(sp)]
-            elif not ports:
-                ports = [1080]
-        elif proto == "ovpn":
-            if not ports:
-                ports = [1194, 443]
-        elif proto == "ssh":
-            if not ports:
-                ports = [22]
-        else:
-            # Unknown protocol: only explicit port if provided
-            ports = ports
-        # Ensure unique ints
-        return [int(p) for p in ports]
+            return [int(sp)] if sp else ([int(node.port)] if node.port else [1080])
+        if proto == "ovpn":
+            return [int(node.port)] if node.port else [1194]
+        if proto == "ssh":
+            return [int(node.port)] if node.port else [22]
+        # Unknown protocol
+        return [int(node.port)] if node.port else []
     except Exception:
         return [1723]
 
