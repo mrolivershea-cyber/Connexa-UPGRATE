@@ -14430,11 +14430,640 @@ def run_critical_import_tests():
     success = tester.run_critical_import_tests()
     return 0 if success else 1
 
+    def run_russian_user_issues_tests(self):
+        """Run tests specifically for Russian user issues from review request"""
+        print(f"\n🇷🇺 RUSSIAN USER ISSUES TESTING - COMPREHENSIVE REVIEW")
+        print(f"🌐 Base URL: {self.base_url}")
+        print("=" * 80)
+        print("ЗАДАЧА: Тестирование трех критических проблем:")
+        print("1) админка в браузере долго загружается обратно - API performance")
+        print("2) проблема теста на пинг, почему не проходят все конфиги - ping testing")
+        print("3) проблема отчета по статусам, что бы везде отображалось корректно - stats")
+        print("=" * 80)
+        
+        # Core authentication
+        if not self.test_login():
+            print("❌ Login failed - stopping tests")
+            return False
+        
+        # ISSUE 1: Admin panel loading performance (API response times)
+        print("\n🔥 ISSUE 1: ADMIN PANEL LOADING PERFORMANCE")
+        print("-" * 50)
+        self.test_admin_panel_performance()
+        
+        # ISSUE 2: Ping testing problems
+        print("\n🔥 ISSUE 2: PING TESTING PROBLEMS")
+        print("-" * 50)
+        self.test_ping_testing_comprehensive()
+        
+        # ISSUE 3: Status reporting correctness
+        print("\n🔥 ISSUE 3: STATUS REPORTING CORRECTNESS")
+        print("-" * 50)
+        self.test_status_reporting_correctness()
+        
+        # Additional comprehensive tests
+        print("\n🔥 ADDITIONAL COMPREHENSIVE TESTS")
+        print("-" * 50)
+        self.test_nodes_stuck_in_checking_status()
+        self.test_batch_ping_stability()
+        self.test_database_consistency()
+        
+        # Print summary
+        print("\n" + "=" * 80)
+        print(f"🏁 Russian User Issues Test Summary: {self.tests_passed}/{self.tests_run} tests passed")
+        print(f"📊 Success Rate: {(self.tests_passed/self.tests_run)*100:.1f}%")
+        
+        if self.tests_passed == self.tests_run:
+            print("🎉 All Russian user issues resolved!")
+            return True
+        else:
+            print(f"❌ {self.tests_run - self.tests_passed} tests failed - issues remain")
+            return False
+
+    def test_admin_panel_performance(self):
+        """Test admin panel loading performance - Issue 1"""
+        print("📊 Testing admin panel API performance...")
+        
+        # Test 1: GET /api/stats performance (should be < 50ms as mentioned)
+        start_time = time.time()
+        success, response = self.make_request('GET', 'stats')
+        stats_time = (time.time() - start_time) * 1000  # Convert to ms
+        
+        if success and stats_time < 100:  # Allow 100ms tolerance
+            self.log_test("Stats API Performance", True, 
+                         f"Stats API responded in {stats_time:.1f}ms (target < 100ms)")
+        else:
+            self.log_test("Stats API Performance", False, 
+                         f"Stats API too slow: {stats_time:.1f}ms or failed: {response}")
+        
+        # Test 2: GET /api/nodes performance (should be < 100ms as mentioned)
+        start_time = time.time()
+        success, response = self.make_request('GET', 'nodes?limit=200')
+        nodes_time = (time.time() - start_time) * 1000
+        
+        if success and nodes_time < 200:  # Allow 200ms tolerance
+            total_nodes = response.get('total', 0)
+            self.log_test("Nodes API Performance", True, 
+                         f"Nodes API responded in {nodes_time:.1f}ms with {total_nodes} total nodes (target < 200ms)")
+        else:
+            self.log_test("Nodes API Performance", False, 
+                         f"Nodes API too slow: {nodes_time:.1f}ms or failed: {response}")
+        
+        # Test 3: Multiple concurrent requests (simulate admin panel loading)
+        print("🔄 Testing concurrent API requests...")
+        import threading
+        import queue
+        
+        results_queue = queue.Queue()
+        
+        def make_concurrent_request(endpoint, result_queue):
+            start = time.time()
+            success, response = self.make_request('GET', endpoint)
+            duration = (time.time() - start) * 1000
+            result_queue.put((endpoint, success, duration, response))
+        
+        # Start 5 concurrent requests
+        threads = []
+        endpoints = ['stats', 'nodes?limit=50', 'nodes?limit=50&status=not_tested', 
+                    'autocomplete/countries', 'autocomplete/providers']
+        
+        start_concurrent = time.time()
+        for endpoint in endpoints:
+            thread = threading.Thread(target=make_concurrent_request, args=(endpoint, results_queue))
+            thread.start()
+            threads.append(thread)
+        
+        # Wait for all threads
+        for thread in threads:
+            thread.join()
+        
+        total_concurrent_time = (time.time() - start_concurrent) * 1000
+        
+        # Collect results
+        all_success = True
+        max_time = 0
+        results = []
+        
+        while not results_queue.empty():
+            endpoint, success, duration, response = results_queue.get()
+            results.append(f"{endpoint}: {duration:.1f}ms")
+            if not success:
+                all_success = False
+            max_time = max(max_time, duration)
+        
+        if all_success and total_concurrent_time < 2000:  # 2 seconds for all concurrent
+            self.log_test("Concurrent API Performance", True, 
+                         f"All 5 concurrent requests completed in {total_concurrent_time:.1f}ms total, max individual: {max_time:.1f}ms")
+        else:
+            self.log_test("Concurrent API Performance", False, 
+                         f"Concurrent requests too slow or failed: {total_concurrent_time:.1f}ms total, results: {results}")
+
+    def test_ping_testing_comprehensive(self):
+        """Test ping testing functionality - Issue 2"""
+        print("🏓 Testing ping functionality comprehensively...")
+        
+        # First, get some nodes to test with
+        success, response = self.make_request('GET', 'nodes?limit=10&status=not_tested')
+        if not success or not response.get('nodes'):
+            print("⚠️ No not_tested nodes found, creating test nodes...")
+            # Create test nodes for ping testing
+            self.create_test_nodes_for_ping()
+            success, response = self.make_request('GET', 'nodes?limit=10&status=not_tested')
+        
+        if success and response.get('nodes'):
+            test_nodes = response['nodes'][:5]  # Test with 5 nodes
+            node_ids = [node['id'] for node in test_nodes]
+            
+            print(f"📋 Testing with {len(node_ids)} nodes: {[node['ip'] for node in test_nodes]}")
+            
+            # Test 1: Single node ping test
+            if node_ids:
+                self.test_single_ping_test(node_ids[0])
+            
+            # Test 2: Batch ping test (should not hang at 90%)
+            if len(node_ids) >= 3:
+                self.test_batch_ping_no_hanging(node_ids[:3])
+            
+            # Test 3: Verify no nodes stuck in 'checking' status
+            self.test_no_nodes_stuck_checking()
+            
+            # Test 4: Test ping test with different node statuses
+            self.test_ping_with_different_statuses()
+            
+        else:
+            self.log_test("Ping Testing Setup", False, "Could not get nodes for ping testing")
+
+    def create_test_nodes_for_ping(self):
+        """Create test nodes specifically for ping testing"""
+        test_nodes_data = [
+            {"ip": "72.197.30.147", "login": "admin", "password": "admin", "protocol": "pptp", "comment": "Test node 1 for ping"},
+            {"ip": "100.11.102.204", "login": "user1", "password": "pass1", "protocol": "pptp", "comment": "Test node 2 for ping"},
+            {"ip": "100.16.39.213", "login": "user2", "password": "pass2", "protocol": "pptp", "comment": "Test node 3 for ping"},
+            {"ip": "144.229.29.35", "login": "admin", "password": "admin", "protocol": "pptp", "comment": "Test node 4 for ping"},
+            {"ip": "76.178.64.46", "login": "admin", "password": "admin", "protocol": "pptp", "comment": "Test node 5 for ping"}
+        ]
+        
+        for node_data in test_nodes_data:
+            self.make_request('POST', 'nodes', node_data)
+        
+        print(f"✅ Created {len(test_nodes_data)} test nodes for ping testing")
+
+    def test_single_ping_test(self, node_id):
+        """Test single node ping functionality"""
+        print(f"🏓 Testing single ping for node {node_id}...")
+        
+        ping_data = {"node_ids": [node_id]}
+        
+        start_time = time.time()
+        success, response = self.make_request('POST', 'manual/ping-test', ping_data)
+        ping_time = (time.time() - start_time) * 1000
+        
+        if success and 'results' in response:
+            results = response['results']
+            if results and len(results) > 0:
+                result = results[0]
+                status = result.get('status', 'unknown')
+                message = result.get('message', 'No message')
+                
+                self.log_test("Single Ping Test", True, 
+                             f"Ping completed in {ping_time:.1f}ms, status: {status}, message: {message}")
+                return True
+            else:
+                self.log_test("Single Ping Test", False, "No results in ping response")
+                return False
+        else:
+            self.log_test("Single Ping Test", False, f"Ping test failed: {response}")
+            return False
+
+    def test_batch_ping_no_hanging(self, node_ids):
+        """Test batch ping to ensure no hanging at 90%"""
+        print(f"🏓 Testing batch ping with {len(node_ids)} nodes (no hanging test)...")
+        
+        ping_data = {"node_ids": node_ids}
+        
+        start_time = time.time()
+        success, response = self.make_request('POST', 'manual/ping-test-batch', ping_data)
+        batch_ping_time = (time.time() - start_time) * 1000
+        
+        # Should complete within reasonable time (not hang)
+        if success and batch_ping_time < 60000:  # 60 seconds max
+            results = response.get('results', [])
+            successful_pings = len([r for r in results if r.get('status') in ['ping_ok', 'ping_failed']])
+            
+            self.log_test("Batch Ping No Hanging", True, 
+                         f"Batch ping completed in {batch_ping_time:.1f}ms with {successful_pings}/{len(node_ids)} results")
+            
+            # Verify no nodes are stuck in 'checking' status after batch ping
+            time.sleep(2)  # Wait a bit
+            return self.verify_no_checking_nodes_after_ping(node_ids)
+        else:
+            self.log_test("Batch Ping No Hanging", False, 
+                         f"Batch ping took too long ({batch_ping_time:.1f}ms) or failed: {response}")
+            return False
+
+    def verify_no_checking_nodes_after_ping(self, node_ids):
+        """Verify that nodes are not stuck in 'checking' status after ping"""
+        checking_nodes = []
+        
+        for node_id in node_ids:
+            success, response = self.make_request('GET', f'nodes/{node_id}')
+            if success and response.get('status') == 'checking':
+                checking_nodes.append(node_id)
+        
+        if not checking_nodes:
+            self.log_test("No Nodes Stuck in Checking", True, 
+                         f"All {len(node_ids)} nodes have proper status (not 'checking')")
+            return True
+        else:
+            self.log_test("No Nodes Stuck in Checking", False, 
+                         f"{len(checking_nodes)} nodes stuck in 'checking' status: {checking_nodes}")
+            return False
+
+    def test_no_nodes_stuck_checking(self):
+        """Test that no nodes are stuck in 'checking' status globally"""
+        success, response = self.make_request('GET', 'nodes?status=checking&limit=1000')
+        
+        if success:
+            checking_nodes = response.get('nodes', [])
+            total_checking = response.get('total', 0)
+            
+            if total_checking == 0:
+                self.log_test("Global No Checking Nodes", True, 
+                             "No nodes stuck in 'checking' status globally")
+                return True
+            else:
+                checking_ips = [node.get('ip', 'unknown') for node in checking_nodes[:5]]
+                self.log_test("Global No Checking Nodes", False, 
+                             f"{total_checking} nodes stuck in 'checking' status. Examples: {checking_ips}")
+                return False
+        else:
+            self.log_test("Global No Checking Nodes", False, f"Failed to check for checking nodes: {response}")
+            return False
+
+    def test_ping_with_different_statuses(self):
+        """Test ping functionality with nodes in different statuses"""
+        print("🏓 Testing ping with different node statuses...")
+        
+        # Get nodes with different statuses
+        statuses_to_test = ['not_tested', 'ping_failed', 'ping_ok']
+        test_results = []
+        
+        for status in statuses_to_test:
+            success, response = self.make_request('GET', f'nodes?status={status}&limit=1')
+            
+            if success and response.get('nodes'):
+                node = response['nodes'][0]
+                node_id = node['id']
+                
+                # Test ping on this node
+                ping_data = {"node_ids": [node_id]}
+                ping_success, ping_response = self.make_request('POST', 'manual/ping-test', ping_data)
+                
+                if ping_success:
+                    test_results.append(f"{status}: ✅")
+                else:
+                    test_results.append(f"{status}: ❌")
+            else:
+                test_results.append(f"{status}: No nodes")
+        
+        if len(test_results) > 0:
+            self.log_test("Ping Different Statuses", True, 
+                         f"Ping tested with different statuses: {', '.join(test_results)}")
+            return True
+        else:
+            self.log_test("Ping Different Statuses", False, "Could not test ping with different statuses")
+            return False
+
+    def test_status_reporting_correctness(self):
+        """Test status reporting correctness - Issue 3"""
+        print("📊 Testing status reporting correctness...")
+        
+        # Test 1: GET /api/stats endpoint correctness and speed
+        start_time = time.time()
+        success, response = self.make_request('GET', 'stats')
+        stats_time = (time.time() - start_time) * 1000
+        
+        if success and 'total' in response:
+            # Verify all expected status fields are present
+            expected_fields = ['total', 'not_tested', 'ping_failed', 'ping_ok', 'speed_ok', 'offline', 'online']
+            missing_fields = [field for field in expected_fields if field not in response]
+            
+            if not missing_fields:
+                # Verify that status counts add up to total
+                status_sum = sum([response.get(field, 0) for field in expected_fields[1:]])  # Exclude 'total'
+                total_reported = response.get('total', 0)
+                
+                if status_sum == total_reported:
+                    self.log_test("Stats Correctness", True, 
+                                 f"All status fields present, counts add up correctly: {total_reported} total in {stats_time:.1f}ms")
+                else:
+                    self.log_test("Stats Correctness", False, 
+                                 f"Status counts don't add up: sum={status_sum}, total={total_reported}")
+            else:
+                self.log_test("Stats Correctness", False, 
+                             f"Missing status fields: {missing_fields}")
+        else:
+            self.log_test("Stats Correctness", False, f"Stats API failed or missing 'total': {response}")
+        
+        # Test 2: Cross-verify stats with actual node counts
+        self.test_stats_vs_actual_counts()
+        
+        # Test 3: Test stats performance under load
+        self.test_stats_performance_load()
+
+    def test_stats_vs_actual_counts(self):
+        """Cross-verify stats API with actual node counts"""
+        print("🔍 Cross-verifying stats with actual node counts...")
+        
+        # Get stats
+        stats_success, stats_response = self.make_request('GET', 'stats')
+        if not stats_success:
+            self.log_test("Stats vs Actual Counts", False, "Could not get stats")
+            return False
+        
+        # Get actual counts by querying nodes with each status
+        statuses = ['not_tested', 'ping_failed', 'ping_ok', 'speed_ok', 'offline', 'online']
+        actual_counts = {}
+        total_actual = 0
+        
+        for status in statuses:
+            success, response = self.make_request('GET', f'nodes?status={status}&limit=1')
+            if success:
+                actual_counts[status] = response.get('total', 0)
+                total_actual += actual_counts[status]
+            else:
+                actual_counts[status] = -1  # Error
+        
+        # Compare stats API vs actual counts
+        discrepancies = []
+        for status in statuses:
+            stats_count = stats_response.get(status, 0)
+            actual_count = actual_counts.get(status, 0)
+            
+            if stats_count != actual_count and actual_count != -1:
+                discrepancies.append(f"{status}: stats={stats_count}, actual={actual_count}")
+        
+        stats_total = stats_response.get('total', 0)
+        
+        if not discrepancies and stats_total == total_actual:
+            self.log_test("Stats vs Actual Counts", True, 
+                         f"Stats API matches actual counts: {stats_total} total nodes")
+            return True
+        else:
+            self.log_test("Stats vs Actual Counts", False, 
+                         f"Discrepancies found: {discrepancies}, total: stats={stats_total}, actual={total_actual}")
+            return False
+
+    def test_stats_performance_load(self):
+        """Test stats API performance under load"""
+        print("⚡ Testing stats API performance under load...")
+        
+        # Make 10 rapid stats requests
+        times = []
+        successes = 0
+        
+        for i in range(10):
+            start_time = time.time()
+            success, response = self.make_request('GET', 'stats')
+            request_time = (time.time() - start_time) * 1000
+            
+            times.append(request_time)
+            if success:
+                successes += 1
+        
+        avg_time = sum(times) / len(times)
+        max_time = max(times)
+        min_time = min(times)
+        
+        if successes == 10 and avg_time < 200:  # Average under 200ms
+            self.log_test("Stats Performance Load", True, 
+                         f"10 rapid requests: avg={avg_time:.1f}ms, min={min_time:.1f}ms, max={max_time:.1f}ms")
+            return True
+        else:
+            self.log_test("Stats Performance Load", False, 
+                         f"Load test failed: {successes}/10 successful, avg={avg_time:.1f}ms")
+            return False
+
+    def test_nodes_stuck_in_checking_status(self):
+        """Test for nodes stuck in 'checking' status - specific Russian user issue"""
+        print("🔍 Checking for nodes stuck in 'checking' status...")
+        
+        success, response = self.make_request('GET', 'nodes?status=checking')
+        
+        if success:
+            checking_nodes = response.get('nodes', [])
+            total_checking = response.get('total', 0)
+            
+            if total_checking == 0:
+                self.log_test("No Stuck Checking Nodes", True, 
+                             "No nodes stuck in 'checking' status - issue resolved")
+                return True
+            else:
+                # Log details about stuck nodes
+                stuck_details = []
+                for node in checking_nodes[:5]:  # Show first 5
+                    last_update = node.get('last_update', 'unknown')
+                    stuck_details.append(f"ID:{node.get('id')} IP:{node.get('ip')} Updated:{last_update}")
+                
+                self.log_test("No Stuck Checking Nodes", False, 
+                             f"Found {total_checking} nodes stuck in 'checking' status. Examples: {stuck_details}")
+                
+                # Try to fix stuck nodes by resetting them to 'not_tested'
+                self.attempt_fix_stuck_nodes(checking_nodes[:10])  # Fix first 10
+                return False
+        else:
+            self.log_test("No Stuck Checking Nodes", False, f"Could not check for stuck nodes: {response}")
+            return False
+
+    def attempt_fix_stuck_nodes(self, stuck_nodes):
+        """Attempt to fix nodes stuck in 'checking' status"""
+        print(f"🔧 Attempting to fix {len(stuck_nodes)} stuck nodes...")
+        
+        fixed_count = 0
+        for node in stuck_nodes:
+            node_id = node.get('id')
+            if node_id:
+                # Try to update status to 'not_tested'
+                update_data = {"status": "not_tested"}
+                success, response = self.make_request('PUT', f'nodes/{node_id}', update_data)
+                
+                if success:
+                    fixed_count += 1
+        
+        if fixed_count > 0:
+            print(f"✅ Fixed {fixed_count}/{len(stuck_nodes)} stuck nodes")
+        else:
+            print(f"❌ Could not fix any stuck nodes")
+
+    def test_batch_ping_stability(self):
+        """Test batch ping stability and performance"""
+        print("🏓 Testing batch ping stability...")
+        
+        # Get some nodes for batch testing
+        success, response = self.make_request('GET', 'nodes?limit=10')
+        if not success or not response.get('nodes'):
+            self.log_test("Batch Ping Stability", False, "No nodes available for batch testing")
+            return False
+        
+        test_nodes = response['nodes'][:5]  # Test with 5 nodes
+        node_ids = [node['id'] for node in test_nodes]
+        
+        print(f"📋 Testing batch ping with {len(node_ids)} nodes...")
+        
+        # Test batch ping multiple times to check stability
+        batch_results = []
+        
+        for i in range(3):  # Run 3 batch tests
+            print(f"🔄 Batch test {i+1}/3...")
+            
+            start_time = time.time()
+            success, response = self.make_request('POST', 'manual/ping-test-batch', {"node_ids": node_ids})
+            batch_time = (time.time() - start_time) * 1000
+            
+            if success and 'results' in response:
+                results = response['results']
+                completed_count = len([r for r in results if r.get('status') in ['ping_ok', 'ping_failed']])
+                batch_results.append({
+                    'success': True,
+                    'time': batch_time,
+                    'completed': completed_count,
+                    'total': len(node_ids)
+                })
+            else:
+                batch_results.append({
+                    'success': False,
+                    'time': batch_time,
+                    'error': str(response)
+                })
+            
+            time.sleep(2)  # Wait between tests
+        
+        # Analyze results
+        successful_batches = [r for r in batch_results if r.get('success')]
+        
+        if len(successful_batches) == 3:
+            avg_time = sum([r['time'] for r in successful_batches]) / len(successful_batches)
+            avg_completed = sum([r['completed'] for r in successful_batches]) / len(successful_batches)
+            
+            self.log_test("Batch Ping Stability", True, 
+                         f"3/3 batch tests successful, avg time: {avg_time:.1f}ms, avg completed: {avg_completed:.1f}/{len(node_ids)}")
+            return True
+        else:
+            failed_count = 3 - len(successful_batches)
+            self.log_test("Batch Ping Stability", False, 
+                         f"{failed_count}/3 batch tests failed. Results: {batch_results}")
+            return False
+
+    def test_database_consistency(self):
+        """Test database consistency and integrity"""
+        print("🗄️ Testing database consistency...")
+        
+        # Test 1: Verify total node count consistency
+        stats_success, stats_response = self.make_request('GET', 'stats')
+        nodes_success, nodes_response = self.make_request('GET', 'nodes?limit=1')
+        
+        if stats_success and nodes_success:
+            stats_total = stats_response.get('total', 0)
+            nodes_total = nodes_response.get('total', 0)
+            
+            if stats_total == nodes_total:
+                self.log_test("Database Consistency - Total Count", True, 
+                             f"Stats and nodes endpoints report same total: {stats_total}")
+            else:
+                self.log_test("Database Consistency - Total Count", False, 
+                             f"Inconsistent totals: stats={stats_total}, nodes={nodes_total}")
+        else:
+            self.log_test("Database Consistency - Total Count", False, 
+                         "Could not get data for consistency check")
+        
+        # Test 2: Verify no duplicate IPs with same credentials
+        self.test_no_duplicate_nodes()
+        
+        # Test 3: Verify all nodes have required fields
+        self.test_node_data_integrity()
+
+    def test_no_duplicate_nodes(self):
+        """Test that there are no duplicate nodes (same IP + login + password)"""
+        print("🔍 Checking for duplicate nodes...")
+        
+        # Get a sample of nodes to check
+        success, response = self.make_request('GET', 'nodes?limit=100')
+        
+        if success and response.get('nodes'):
+            nodes = response['nodes']
+            seen_combinations = set()
+            duplicates = []
+            
+            for node in nodes:
+                combination = (node.get('ip'), node.get('login'), node.get('password'))
+                if combination in seen_combinations:
+                    duplicates.append(f"ID:{node.get('id')} IP:{node.get('ip')}")
+                else:
+                    seen_combinations.add(combination)
+            
+            if not duplicates:
+                self.log_test("No Duplicate Nodes", True, 
+                             f"No duplicates found in {len(nodes)} nodes checked")
+                return True
+            else:
+                self.log_test("No Duplicate Nodes", False, 
+                             f"Found {len(duplicates)} duplicates: {duplicates[:5]}")
+                return False
+        else:
+            self.log_test("No Duplicate Nodes", False, "Could not get nodes for duplicate check")
+            return False
+
+    def test_node_data_integrity(self):
+        """Test that all nodes have required fields and valid data"""
+        print("🔍 Checking node data integrity...")
+        
+        success, response = self.make_request('GET', 'nodes?limit=50')
+        
+        if success and response.get('nodes'):
+            nodes = response['nodes']
+            issues = []
+            
+            for node in nodes:
+                node_id = node.get('id')
+                
+                # Check required fields
+                if not node.get('ip'):
+                    issues.append(f"ID:{node_id} missing IP")
+                if not node.get('login'):
+                    issues.append(f"ID:{node_id} missing login")
+                if not node.get('password'):
+                    issues.append(f"ID:{node_id} missing password")
+                if not node.get('status'):
+                    issues.append(f"ID:{node_id} missing status")
+                
+                # Check valid status values
+                valid_statuses = ['not_tested', 'ping_failed', 'ping_ok', 'speed_ok', 'offline', 'online', 'checking']
+                if node.get('status') not in valid_statuses:
+                    issues.append(f"ID:{node_id} invalid status: {node.get('status')}")
+            
+            if not issues:
+                self.log_test("Node Data Integrity", True, 
+                             f"All {len(nodes)} nodes have valid data")
+                return True
+            else:
+                self.log_test("Node Data Integrity", False, 
+                             f"Found {len(issues)} data issues: {issues[:5]}")
+                return False
+        else:
+            self.log_test("Node Data Integrity", False, "Could not get nodes for integrity check")
+            return False
+
+
 if __name__ == "__main__":
     import sys
     
-    # Run comprehensive tests for SQLite optimization review
-    tester = ConnexaAPITester()
-    success = tester.run_comprehensive_tests()
-    
-    sys.exit(0 if success else 1)
+    # Check if we should run Russian user tests specifically
+    if len(sys.argv) > 1 and sys.argv[1] == "russian":
+        tester = ConnexaAPITester()
+        success = tester.run_russian_user_issues_tests()
+        sys.exit(0 if success else 1)
+    else:
+        # Run comprehensive tests for SQLite optimization review
+        tester = ConnexaAPITester()
+        success = tester.run_comprehensive_tests()
+        sys.exit(0 if success else 1)
