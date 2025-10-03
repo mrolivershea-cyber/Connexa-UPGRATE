@@ -158,9 +158,6 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], onTestComplete })
     // ALWAYS use progress-enabled endpoints for ANY batch size
     setUseNewSystem(true);
     
-    // Declare progressInterval in the function scope so it's accessible in catch/finally blocks
-    let progressInterval = null;
-    
     try {
       let endpoint;
       
@@ -173,24 +170,7 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], onTestComplete })
         endpoint = 'manual/ping-speed-test-batch-progress';
       }
       
-      // Improved progress simulation based on node count and test type
-      let expectedDuration;
-      if (selectedNodeIds.length > 1) {
-        // Batch operations
-        if (testType === 'both') {
-          expectedDuration = Math.min(selectedNodeIds.length * 8000, 150000); // Combined: ~8s per node, max 150s
-        } else {
-          expectedDuration = Math.min(selectedNodeIds.length * 3000, 90000); // Regular batch: ~3s per node, max 90s
-        }
-      } else {
-        // Single node operations
-        expectedDuration = testType === 'both' ? 25000 : 15000; // Single: 25s for combined, 15s for single test
-      }
-      const progressStep = 90 / (expectedDuration / 1000); // Reach 90% by expected time
-      
-      progressInterval = setInterval(() => {
-        setProgress(prev => prev < 90 ? prev + progressStep : prev);
-      }, 1000);
+      // No more progress simulation - SSE will provide real progress
       
       console.log(`Starting ${testType} test for ${selectedNodeIds.length} nodes using ${endpoint}`);
       
