@@ -569,6 +569,191 @@ async def import_nodes(
             "session_id": session_id
         }
 
+async def process_import_testing_batches(session_id: str, node_ids: list, testing_mode: str, db_session: Session):
+    """Process node testing in batches to prevent hanging and preserve results"""
+    
+    BATCH_SIZE = 25  # Process 25 nodes at a time
+    total_nodes = len(node_ids)
+    processed_nodes = 0
+    failed_tests = 0
+    
+    try:
+        # Get fresh database session for background processing
+        db = SessionLocal()
+        
+        logger.info(f"🚀 Batch Processing: Starting {total_nodes} nodes in batches of {BATCH_SIZE}")
+        
+        # Import testing functions
+        from ping_speed_test import test_node_ping, test_node_speed
+        
+        # Process nodes in batches
+        for batch_start in range(0, total_nodes, BATCH_SIZE):
+            batch_end = min(batch_start + BATCH_SIZE, total_nodes)
+            current_batch = node_ids[batch_start:batch_end]
+            
+            logger.info(f"📦 Processing batch {batch_start//BATCH_SIZE + 1}: nodes {batch_start+1}-{batch_end}")
+            
+            # Check if operation was cancelled
+            if session_id in progress_store and progress_store[session_id].status == "cancelled":
+                logger.info(f"🚫 Batch processing cancelled by user for session {session_id}")
+                break
+            
+            # Process current batch
+            for i, node_id in enumerate(current_batch):
+                global_index = batch_start + i
+                
+                # Check cancellation frequently
+                if session_id in progress_store and progress_store[session_id].status == "cancelled":
+                    break
+                
+                try:
+                    node = db.query(Node).filter(Node.id == node_id).first()
+                    if not node:
+                        logger.warning(f"❌ Batch test: Node {node_id} not found in database")
+                        failed_tests += 1
+                        continue
+                    
+                    # Update progress
+                    if session_id in progress_store:
+                        progress_store[session_id].update(
+                            global_index, 
+                            f"Тестирование {node.ip} ({global_index+1}/{total_nodes})"
+                        )
+                    
+                    # Save original status
+                    original_status = node.status
+                    logger.info(f"🔍 Batch test: Node {node.id} ({node.ip}) original status: {original_status}")
+                    
+                    # Skip speed_ok nodes to preserve validation
+                    if original_status == "speed_ok":
+                        logger.info(f"✅ Batch: Node {node.id} has speed_ok - SKIPPING test to preserve status")
+                        processed_nodes += 1
+                        continue
+                    
+                    # Set checking status and commit
+                    node.status = "checking"
+                    node.last_update = datetime.utcnow()
+                    db.commit()
+                    
+                    try:
+                        # Ping test
+                        if testing_mode in ["ping_only", "ping_speed"]:
+                            logger.info(f"🔍 Batch: Starting PPTP ping test for Node {node.id}")
+                            ping_result = await test_node_ping(node.ip, fast_mode=True)
+                            
+                            if ping_result['success']:
+                                node.status = "ping_ok"
+                                logger.info(f"✅ Batch: Node {node.id} ping SUCCESS")
+                            else:
+                                node.status = "ping_failed"
+                                logger.info(f"❌ Batch: Node {node.id} ping FAILED")
+                            
+                            node.last_update = datetime.utcnow()
+                            db.commit()
+                        
+                        # Speed test
+                        if testing_mode in ["speed_only", "ping_speed"]:
+                            should_speed_test = (testing_mode == "speed_only" or node.status == "ping_ok")
+                            
+                            if should_speed_test:
+                                logger.info(f"🔍 Batch: Starting speed test for Node {node.id}")
+                                speed_result = await test_node_speed(node.ip)
+                                
+                                if speed_result['success'] and speed_result.get('download_speed'):
+                                    download_speed = speed_result['download_speed']
+                                    node.speed = f"{download_speed:.1f}"
+                                    
+                                    if download_speed > 1.0:
+                                        node.status = "speed_ok"
+                                        logger.info(f"✅ Batch: Node {node.id} speed OK ({download_speed:.1f} Mbps)")
+                                    else:
+                                        node.status = "ping_ok" if testing_mode == "ping_speed" else "ping_failed"
+                                        logger.info(f"⚠️ Batch: Node {node.id} speed SLOW ({download_speed:.1f} Mbps)")
+                                else:
+                                    if testing_mode == "speed_only":
+                                        node.status = "ping_failed"
+                                    logger.info(f"❌ Batch: Node {node.id} speed test FAILED")
+                                
+                                node.last_update = datetime.utcnow()
+                                db.commit()
+                        
+                        node.last_check = datetime.utcnow()
+                        db.commit()
+                        processed_nodes += 1
+                        
+                        # Update progress with success
+                        if session_id in progress_store:
+                            result_info = {
+                                "node_id": node.id,
+                                "ip": node.ip,
+                                "status": node.status,
+                                "success": True
+                            }
+                            progress_store[session_id].update(
+                                global_index + 1, 
+                                f"✅ {node.ip} - {node.status}", 
+                                result_info
+                            )
+                    
+                    except asyncio.TimeoutError:
+                        logger.warning(f"⏱️ Batch: Node {node.id} test TIMEOUT - reverting to {original_status}")
+                        node.status = original_status
+                        node.last_update = datetime.utcnow()
+                        db.commit()
+                        failed_tests += 1
+                        
+                        if session_id in progress_store:
+                            progress_store[session_id].update(global_index + 1, f"⏱️ {node.ip} - timeout")
+                    
+                    except Exception as test_error:
+                        logger.error(f"❌ Batch: Node {node.id} test ERROR: {str(test_error)} - reverting to {original_status}")
+                        node.status = original_status
+                        node.last_update = datetime.utcnow()
+                        db.commit()
+                        failed_tests += 1
+                        
+                        if session_id in progress_store:
+                            progress_store[session_id].update(global_index + 1, f"❌ {node.ip} - error")
+                
+                except Exception as node_error:
+                    logger.error(f"❌ Batch: Critical error processing Node {node_id}: {str(node_error)}")
+                    failed_tests += 1
+            
+            # Small delay between batches to prevent system overload
+            await asyncio.sleep(1)
+            
+            logger.info(f"✅ Batch {batch_start//BATCH_SIZE + 1} completed: {len(current_batch)} nodes processed")
+    
+    except Exception as e:
+        logger.error(f"❌ Batch processing error: {str(e)}", exc_info=True)
+        if session_id in progress_store:
+            progress_store[session_id].complete("failed")
+    
+    finally:
+        # Complete progress tracking
+        if session_id in progress_store:
+            progress_store[session_id].complete("completed")
+            progress_store[session_id].update(
+                total_nodes, 
+                f"Тестирование завершено: {processed_nodes} успешно, {failed_tests} ошибок"
+            )
+        
+        # Cleanup any remaining nodes stuck in "checking" status
+        try:
+            stuck_nodes = db.query(Node).filter(Node.status == "checking").all()
+            if stuck_nodes:
+                logger.warning(f"🧹 Batch: Cleaning up {len(stuck_nodes)} nodes stuck in 'checking' status")
+                for stuck_node in stuck_nodes:
+                    stuck_node.status = "not_tested"
+                    stuck_node.last_update = datetime.utcnow()
+                db.commit()
+        except Exception as cleanup_error:
+            logger.error(f"❌ Cleanup error: {cleanup_error}")
+        
+        db.close()
+        
+        logger.info(f"📊 Batch processing completed: {processed_nodes} processed, {failed_tests} failed")
+
 # Import/Export Routes
 @api_router.post("/import")
 async def import_nodes_legacy(
