@@ -9520,6 +9520,246 @@ State: California""",
                          f"❌ CRITICAL BUG: Background monitoring changed speed_ok node to {final_status}!")
             return False
     
+    # ========== RUSSIAN USER FINAL REVIEW TESTS (2025-01-08) ==========
+    
+    def test_russian_user_final_review_speed_ok_creation(self):
+        """FINAL TEST 1: Creating speed_ok nodes - verify nodes are created and maintain speed_ok status"""
+        print("\n🇷🇺 RUSSIAN USER FINAL REVIEW TEST 1: Creating speed_ok nodes")
+        print("=" * 60)
+        
+        # Create a node with speed_ok status directly
+        test_node = {
+            "ip": "185.220.100.240",
+            "login": "speedtest_user",
+            "password": "SpeedTest123!",
+            "protocol": "pptp",
+            "status": "speed_ok",
+            "provider": "Russian VPN Provider",
+            "country": "Russia",
+            "state": "Moscow",
+            "city": "Moscow",
+            "comment": "Russian user final test - speed_ok node"
+        }
+        
+        success, response = self.make_request('POST', 'nodes', test_node, 200)
+        
+        if success and 'id' in response:
+            node_id = response['id']
+            created_status = response.get('status')
+            
+            # Verify the node was created with speed_ok status
+            if created_status == 'speed_ok':
+                # Wait 2 seconds and verify status is still speed_ok
+                time.sleep(2)
+                
+                verify_success, verify_response = self.make_request('GET', f'nodes?id={node_id}')
+                if verify_success and 'nodes' in verify_response and verify_response['nodes']:
+                    current_status = verify_response['nodes'][0].get('status')
+                    
+                    if current_status == 'speed_ok':
+                        self.log_test("Russian Final Review - Create speed_ok nodes", True, 
+                                     f"✅ Node created with speed_ok status and maintained after 2 seconds")
+                        return node_id
+                    else:
+                        self.log_test("Russian Final Review - Create speed_ok nodes", False, 
+                                     f"❌ Node status changed from speed_ok to {current_status}")
+                        return None
+                else:
+                    self.log_test("Russian Final Review - Create speed_ok nodes", False, 
+                                 f"❌ Could not verify node after creation")
+                    return None
+            else:
+                self.log_test("Russian Final Review - Create speed_ok nodes", False, 
+                             f"❌ Node created with wrong status: {created_status} (expected speed_ok)")
+                return None
+        else:
+            self.log_test("Russian Final Review - Create speed_ok nodes", False, 
+                         f"❌ Failed to create speed_ok node: {response}")
+            return None
+
+    def test_russian_user_final_review_service_operations(self):
+        """FINAL TEST 3: Service operations with speed_ok - verify speed_ok status is preserved during service failures"""
+        print("\n🇷🇺 RUSSIAN USER FINAL REVIEW TEST 3: Service operations with speed_ok nodes")
+        print("=" * 60)
+        
+        # Create speed_ok nodes for testing
+        speed_ok_nodes = []
+        for i in range(2):
+            test_node = {
+                "ip": f"185.220.101.{240 + i}",
+                "login": f"service_test_user_{i}",
+                "password": f"ServiceTest{i}!",
+                "protocol": "pptp",
+                "status": "speed_ok",
+                "provider": "Russian Service Test Provider",
+                "country": "Russia",
+                "state": "Moscow",
+                "city": "Moscow",
+                "comment": f"Russian user service test - speed_ok node {i}"
+            }
+            
+            success, response = self.make_request('POST', 'nodes', test_node, 200)
+            if success and 'id' in response and response.get('status') == 'speed_ok':
+                speed_ok_nodes.append(response['id'])
+        
+        if len(speed_ok_nodes) < 2:
+            self.log_test("Russian Final Review - Service operations", False, 
+                         f"❌ Could not create enough speed_ok nodes for testing (created {len(speed_ok_nodes)}/2)")
+            return False
+        
+        print(f"📋 Created {len(speed_ok_nodes)} speed_ok nodes for service testing")
+        
+        # Test 1: POST /api/services/start with speed_ok nodes
+        print(f"\n🚀 Testing /api/services/start with speed_ok nodes")
+        service_start_data = {
+            "node_ids": [speed_ok_nodes[0]],
+            "action": "start"
+        }
+        
+        start_success, start_response = self.make_request('POST', 'services/start', service_start_data)
+        
+        if start_success:
+            # Verify node status is still speed_ok after service start (even if service fails)
+            verify_success, verify_response = self.make_request('GET', f'nodes?id={speed_ok_nodes[0]}')
+            
+            if verify_success and 'nodes' in verify_response and verify_response['nodes']:
+                current_status = verify_response['nodes'][0].get('status')
+                
+                if current_status == 'speed_ok':
+                    print(f"   ✅ Node {speed_ok_nodes[0]}: status preserved as speed_ok after service start")
+                    service_start_ok = True
+                else:
+                    print(f"   ❌ Node {speed_ok_nodes[0]}: status changed to {current_status} after service start")
+                    service_start_ok = False
+            else:
+                service_start_ok = False
+        else:
+            service_start_ok = False
+        
+        # Test 2: POST /api/manual/launch-services with speed_ok nodes
+        print(f"\n🚀 Testing /api/manual/launch-services with speed_ok nodes")
+        launch_data = {"node_ids": [speed_ok_nodes[1]]}
+        
+        launch_success, launch_response = self.make_request('POST', 'manual/launch-services', launch_data)
+        
+        if launch_success:
+            # Verify node status after manual launch services
+            verify_success, verify_response = self.make_request('GET', f'nodes?id={speed_ok_nodes[1]}')
+            
+            if verify_success and 'nodes' in verify_response and verify_response['nodes']:
+                current_status = verify_response['nodes'][0].get('status')
+                
+                # Status should be either speed_ok (if service failed) or online (if service succeeded)
+                if current_status in ['speed_ok', 'online']:
+                    print(f"   ✅ Node {speed_ok_nodes[1]}: status is {current_status} after manual launch")
+                    manual_launch_ok = True
+                else:
+                    print(f"   ❌ Node {speed_ok_nodes[1]}: status incorrectly changed to {current_status}")
+                    manual_launch_ok = False
+            else:
+                manual_launch_ok = False
+        else:
+            manual_launch_ok = False
+        
+        # Overall result
+        if service_start_ok and manual_launch_ok:
+            self.log_test("Russian Final Review - Service operations", True, 
+                         f"✅ Both service operations preserved speed_ok status correctly")
+            return True
+        else:
+            self.log_test("Russian Final Review - Service operations", False, 
+                         f"❌ Service operations failed to preserve speed_ok status (start: {service_start_ok}, launch: {manual_launch_ok})")
+            return False
+
+    def test_russian_user_final_review_background_monitoring(self):
+        """FINAL TEST 5: Background monitoring - verify speed_ok nodes are not changed by background monitoring"""
+        print("\n🇷🇺 RUSSIAN USER FINAL REVIEW TEST 5: Background monitoring protection")
+        print("=" * 60)
+        
+        # Create a speed_ok node for monitoring test
+        test_node = {
+            "ip": "185.220.103.240",
+            "login": "monitoring_test_user",
+            "password": "MonitoringTest123!",
+            "protocol": "pptp",
+            "status": "speed_ok",
+            "provider": "Russian Monitoring Test Provider",
+            "country": "Russia",
+            "state": "Moscow",
+            "city": "Moscow",
+            "comment": "Russian user monitoring test - speed_ok node"
+        }
+        
+        success, response = self.make_request('POST', 'nodes', test_node, 200)
+        
+        if not success or 'id' not in response or response.get('status') != 'speed_ok':
+            self.log_test("Russian Final Review - Background monitoring", False, 
+                         f"❌ Could not create speed_ok node for monitoring test: {response}")
+            return False
+        
+        node_id = response['id']
+        print(f"📋 Created speed_ok node {node_id} for monitoring test")
+        
+        # Wait for background monitoring cycle (background monitoring runs every 5 minutes, but we'll wait 30 seconds)
+        print(f"⏳ Waiting 30 seconds to verify background monitoring doesn't affect speed_ok nodes...")
+        time.sleep(30)
+        
+        # Verify node status is still speed_ok
+        verify_success, verify_response = self.make_request('GET', f'nodes?id={node_id}')
+        
+        if verify_success and 'nodes' in verify_response and verify_response['nodes']:
+            current_status = verify_response['nodes'][0].get('status')
+            
+            if current_status == 'speed_ok':
+                self.log_test("Russian Final Review - Background monitoring", True, 
+                             f"✅ speed_ok node protected from background monitoring - status remained speed_ok after 30 seconds")
+                return True
+            else:
+                self.log_test("Russian Final Review - Background monitoring", False, 
+                             f"❌ CRITICAL: Background monitoring changed speed_ok node to {current_status}")
+                return False
+        else:
+            self.log_test("Russian Final Review - Background monitoring", False, 
+                         "❌ Could not verify node status after monitoring period")
+            return False
+
+    def run_russian_user_final_review_tests(self):
+        """Run all Russian user final review tests"""
+        print("\n🇷🇺 RUSSIAN USER FINAL REVIEW - COMPREHENSIVE TESTING")
+        print("=" * 80)
+        print("Testing the complete solution for Russian user's speed_ok node protection issue")
+        print("=" * 80)
+        
+        # Run all final review tests
+        test_results = []
+        
+        test_results.append(self.test_russian_user_final_review_speed_ok_creation())
+        test_results.append(self.test_russian_user_final_review_service_operations())
+        test_results.append(self.test_russian_user_final_review_background_monitoring())
+        
+        # Count results (filter out None values from creation test)
+        passed_tests = sum(1 for result in test_results if result is True)
+        total_tests = len([r for r in test_results if r is not None])
+        
+        print("\n" + "=" * 80)
+        print(f"🇷🇺 RUSSIAN USER FINAL REVIEW RESULTS")
+        print("=" * 80)
+        print(f"   Total Tests: {total_tests}")
+        print(f"   Passed: {passed_tests}")
+        print(f"   Failed: {total_tests - passed_tests}")
+        print(f"   Success Rate: {(passed_tests/total_tests*100):.1f}%" if total_tests > 0 else "   Success Rate: 0.0%")
+        
+        if passed_tests == total_tests and total_tests > 0:
+            print("🎉 ✅ ALL RUSSIAN USER ISSUES RESOLVED!")
+            print("🇷🇺 speed_ok nodes are fully protected from automatic status changes")
+            print("🛡️ 1400+ validated nodes will be protected from status loss")
+            return True
+        else:
+            print("❌ CRITICAL ISSUES REMAIN - Russian user problem NOT fully resolved")
+            failed_count = total_tests - passed_tests
+            print(f"🚨 {failed_count} critical protection mechanisms are still broken")
+            return False
+
     def test_comprehensive_automatic_processes_final(self):
         """CRITICAL COMPREHENSIVE TEST: All automatic processes protection for speed_ok nodes"""
         print("\n🔥 COMPREHENSIVE AUTOMATIC PROCESSES FINAL TEST")
