@@ -15676,6 +15676,263 @@ def run_critical_import_tests():
             self.log_test("Node Data Integrity", False, "Could not get nodes for integrity check")
             return False
 
+    def run_russian_user_final_verification(self):
+        """Run final verification tests for Russian user's three critical issues"""
+        print("🔥 RUSSIAN USER FINAL VERIFICATION - THREE CRITICAL ISSUES")
+        print("=" * 80)
+        print("ЗАДАЧА: Провести финальную проверку всех трех исправленных проблем:")
+        print("1. АДМИНКА БЫСТРО ЗАГРУЖАЕТСЯ - Admin panel loads quickly")
+        print("2. ВСЕ ПИНГ ТЕСТЫ РАБОТАЮТ - All ping tests work")  
+        print("3. СТАТИСТИКА КОРРЕКТНА - Statistics are correct")
+        print("=" * 80)
+        
+        # Authentication first
+        if not self.test_login():
+            print("❌ Login failed - cannot continue with tests")
+            return False
+        
+        # ISSUE 1: АДМИНКА БЫСТРО ЗАГРУЖАЕТСЯ (Admin panel loads quickly)
+        print("\n🔍 ISSUE 1: АДМИНКА БЫСТРО ЗАГРУЖАЕТСЯ (Admin Panel Performance)")
+        print("-" * 60)
+        
+        admin_performance_passed = True
+        
+        # Test individual API performance
+        start_time = time.time()
+        stats_success = self.test_get_stats()
+        stats_time = time.time() - start_time
+        
+        start_time = time.time()
+        nodes_success = self.test_get_nodes()
+        nodes_time = time.time() - start_time
+        
+        start_time = time.time()
+        auth_success = self.test_get_current_user()
+        auth_time = time.time() - start_time
+        
+        # Performance thresholds
+        if stats_time > 2.0:  # Stats API should be under 2 seconds
+            self.log_test("Admin Panel - Stats API Performance", False, 
+                         f"Stats API too slow: {stats_time:.2f}s > 2.0s threshold")
+            admin_performance_passed = False
+        else:
+            self.log_test("Admin Panel - Stats API Performance", True, 
+                         f"Stats API fast: {stats_time:.2f}s < 2.0s threshold")
+        
+        if nodes_time > 1.0:  # Nodes API should be under 1 second
+            self.log_test("Admin Panel - Nodes API Performance", False, 
+                         f"Nodes API too slow: {nodes_time:.2f}s > 1.0s threshold")
+            admin_performance_passed = False
+        else:
+            self.log_test("Admin Panel - Nodes API Performance", True, 
+                         f"Nodes API fast: {nodes_time:.2f}s < 1.0s threshold")
+        
+        if auth_time > 0.5:  # Auth API should be under 0.5 seconds
+            self.log_test("Admin Panel - Auth API Performance", False, 
+                         f"Auth API too slow: {auth_time:.2f}s > 0.5s threshold")
+            admin_performance_passed = False
+        else:
+            self.log_test("Admin Panel - Auth API Performance", True, 
+                         f"Auth API fast: {auth_time:.2f}s < 0.5s threshold")
+        
+        # Test concurrent requests (simulating admin panel loading)
+        print("🔄 Testing concurrent API requests (simulating admin panel load)...")
+        concurrent_start = time.time()
+        
+        # Simulate admin panel loading multiple APIs at once
+        import threading
+        import queue
+        
+        results_queue = queue.Queue()
+        
+        def test_concurrent_api(endpoint, queue_obj):
+            start = time.time()
+            if endpoint == 'stats':
+                success, response = self.make_request('GET', 'stats')
+            elif endpoint == 'nodes':
+                success, response = self.make_request('GET', 'nodes?limit=50')
+            elif endpoint == 'auth':
+                success, response = self.make_request('GET', 'auth/me')
+            end = time.time()
+            queue_obj.put((endpoint, success, end - start))
+        
+        # Start concurrent requests
+        threads = []
+        for endpoint in ['stats', 'nodes', 'auth']:
+            thread = threading.Thread(target=test_concurrent_api, args=(endpoint, results_queue))
+            threads.append(thread)
+            thread.start()
+        
+        # Wait for all to complete
+        for thread in threads:
+            thread.join()
+        
+        concurrent_total_time = time.time() - concurrent_start
+        
+        # Collect results
+        concurrent_results = []
+        while not results_queue.empty():
+            concurrent_results.append(results_queue.get())
+        
+        if concurrent_total_time > 3.0:  # All concurrent requests should complete within 3 seconds
+            self.log_test("Admin Panel - Concurrent Load Performance", False, 
+                         f"Concurrent requests too slow: {concurrent_total_time:.2f}s > 3.0s threshold")
+            admin_performance_passed = False
+        else:
+            self.log_test("Admin Panel - Concurrent Load Performance", True, 
+                         f"Concurrent requests fast: {concurrent_total_time:.2f}s < 3.0s threshold")
+        
+        # ISSUE 2: ВСЕ ПИНГ ТЕСТЫ РАБОТАЮТ (All ping tests work)
+        print("\n🔍 ISSUE 2: ВСЕ ПИНГ ТЕСТЫ РАБОТАЮТ (Ping Tests Functionality)")
+        print("-" * 60)
+        
+        ping_tests_passed = True
+        
+        # Check for nodes stuck in 'checking' status
+        success, response = self.make_request('GET', 'nodes?status=checking')
+        if success and 'nodes' in response:
+            checking_nodes = response['nodes']
+            if len(checking_nodes) > 0:
+                self.log_test("Ping Tests - No Stuck Nodes", False, 
+                             f"Found {len(checking_nodes)} nodes stuck in 'checking' status")
+                ping_tests_passed = False
+                
+                # Log details of stuck nodes
+                for node in checking_nodes[:5]:  # Show first 5
+                    print(f"   ❌ Stuck node: ID={node.get('id')}, IP={node.get('ip')}")
+            else:
+                self.log_test("Ping Tests - No Stuck Nodes", True, 
+                             "No nodes stuck in 'checking' status")
+        
+        # Test manual ping test endpoint
+        if nodes_success and isinstance(nodes, list) and len(nodes) > 0:
+            # Get a few nodes for testing
+            test_node_ids = [node['id'] for node in nodes[:3] if node.get('status') == 'not_tested']
+            
+            if test_node_ids:
+                # Test manual ping endpoint
+                ping_data = {"node_ids": test_node_ids[:2]}  # Test with 2 nodes
+                
+                start_time = time.time()
+                success, response = self.make_request('POST', 'manual/ping-test', ping_data)
+                ping_duration = time.time() - start_time
+                
+                if success and 'results' in response:
+                    results = response['results']
+                    successful_pings = sum(1 for r in results if r.get('success', False))
+                    
+                    if ping_duration > 30.0:  # Ping test shouldn't take more than 30 seconds
+                        self.log_test("Ping Tests - Manual Ping Performance", False, 
+                                     f"Manual ping test too slow: {ping_duration:.2f}s > 30s threshold")
+                        ping_tests_passed = False
+                    else:
+                        self.log_test("Ping Tests - Manual Ping Performance", True, 
+                                     f"Manual ping test completed in {ping_duration:.2f}s")
+                    
+                    self.log_test("Ping Tests - Manual Ping Functionality", True, 
+                                 f"Manual ping test working: {successful_pings}/{len(test_node_ids[:2])} nodes tested")
+                    
+                    # Verify results are saved correctly
+                    time.sleep(2)  # Wait for database update
+                    for node_id in test_node_ids[:2]:
+                        success, node_response = self.make_request('GET', f'nodes/{node_id}')
+                        if success and 'status' in node_response:
+                            status = node_response['status']
+                            if status in ['ping_ok', 'ping_failed']:
+                                self.log_test(f"Ping Tests - Results Saved (Node {node_id})", True, 
+                                             f"Node status updated to: {status}")
+                            else:
+                                self.log_test(f"Ping Tests - Results Saved (Node {node_id})", False, 
+                                             f"Node status not updated, still: {status}")
+                                ping_tests_passed = False
+                else:
+                    self.log_test("Ping Tests - Manual Ping Functionality", False, 
+                                 f"Manual ping test failed: {response}")
+                    ping_tests_passed = False
+            else:
+                self.log_test("Ping Tests - Test Data Available", False, 
+                             "No 'not_tested' nodes available for ping testing")
+                ping_tests_passed = False
+        
+        # ISSUE 3: СТАТИСТИКА КОРРЕКТНА (Statistics are correct)
+        print("\n🔍 ISSUE 3: СТАТИСТИКА КОРРЕКТНА (Statistics Correctness)")
+        print("-" * 60)
+        
+        stats_correct_passed = True
+        
+        # Get detailed statistics
+        success, stats_response = self.make_request('GET', 'stats')
+        if success:
+            stats = stats_response
+            
+            # Get actual node counts by status
+            status_counts = {}
+            for status in ['not_tested', 'ping_ok', 'ping_failed', 'speed_ok', 'speed_slow', 'online', 'offline']:
+                success, response = self.make_request('GET', f'nodes?status={status}&limit=1')
+                if success and 'total' in response:
+                    status_counts[status] = response['total']
+            
+            # Verify statistics match actual counts
+            discrepancies = []
+            for status, actual_count in status_counts.items():
+                stats_count = stats.get(status, 0)
+                if stats_count != actual_count:
+                    discrepancies.append(f"{status}: stats={stats_count}, actual={actual_count}")
+            
+            if discrepancies:
+                self.log_test("Statistics - Count Accuracy", False, 
+                             f"Statistics discrepancies found: {', '.join(discrepancies)}")
+                stats_correct_passed = False
+            else:
+                self.log_test("Statistics - Count Accuracy", True, 
+                             "All status counts match between /api/stats and actual node counts")
+            
+            # Verify total count
+            total_from_stats = sum(stats.get(status, 0) for status in status_counts.keys())
+            actual_total = sum(status_counts.values())
+            
+            if total_from_stats != actual_total:
+                self.log_test("Statistics - Total Count", False, 
+                             f"Total count mismatch: stats_sum={total_from_stats}, actual_sum={actual_total}")
+                stats_correct_passed = False
+            else:
+                self.log_test("Statistics - Total Count", True, 
+                             f"Total count correct: {actual_total} nodes")
+            
+            # Print detailed statistics
+            print(f"\n📊 DETAILED STATISTICS VERIFICATION:")
+            print(f"   Total Nodes: {actual_total}")
+            for status, count in status_counts.items():
+                stats_count = stats.get(status, 0)
+                match_symbol = "✅" if count == stats_count else "❌"
+                print(f"   {match_symbol} {status}: {count} (stats: {stats_count})")
+        
+        else:
+            self.log_test("Statistics - API Availability", False, 
+                         f"Failed to get statistics: {stats_response}")
+            stats_correct_passed = False
+        
+        # FINAL SUMMARY
+        print("\n" + "=" * 80)
+        print("🏁 RUSSIAN USER FINAL VERIFICATION RESULTS")
+        print("=" * 80)
+        
+        issue1_symbol = "✅" if admin_performance_passed else "❌"
+        issue2_symbol = "✅" if ping_tests_passed else "❌"
+        issue3_symbol = "✅" if stats_correct_passed else "❌"
+        
+        print(f"{issue1_symbol} ISSUE 1: АДМИНКА БЫСТРО ЗАГРУЖАЕТСЯ - {'RESOLVED' if admin_performance_passed else 'FAILED'}")
+        print(f"{issue2_symbol} ISSUE 2: ВСЕ ПИНГ ТЕСТЫ РАБОТАЮТ - {'RESOLVED' if ping_tests_passed else 'FAILED'}")
+        print(f"{issue3_symbol} ISSUE 3: СТАТИСТИКА КОРРЕКТНА - {'RESOLVED' if stats_correct_passed else 'FAILED'}")
+        
+        all_issues_resolved = admin_performance_passed and ping_tests_passed and stats_correct_passed
+        
+        print(f"\n🎯 OVERALL RESULT: {'100% SUCCESS - ALL ISSUES RESOLVED' if all_issues_resolved else 'ISSUES REMAIN UNRESOLVED'}")
+        print(f"📊 Test Suite: {self.tests_passed}/{self.tests_run} individual tests passed")
+        print(f"📈 Success Rate: {(self.tests_passed/self.tests_run)*100:.1f}%")
+        
+        return all_issues_resolved
+
 
 if __name__ == "__main__":
     import sys
