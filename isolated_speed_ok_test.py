@@ -231,8 +231,13 @@ class IsolatedSpeedOKTester:
             self.log_test("Speed_OK Preservation - Ping Test Skipping", False, f"Manual ping test failed: {response_ping}")
         
         # Verify node still has speed_ok status after ping test attempt
-        success_final, response_final = self.make_request('GET', f'nodes/{node1_id}')
-        final_status = response_final.get('status', 'unknown') if success_final else 'unknown'
+        success_final, response_final = self.make_request('GET', 'nodes')
+        final_status = 'unknown'
+        if success_final and 'nodes' in response_final:
+            for node in response_final['nodes']:
+                if node.get('id') == node1_id:
+                    final_status = node.get('status', 'unknown')
+                    break
         
         if final_status == 'speed_ok':
             print(f"✅ Node still has speed_ok status after ping test: {final_status}")
