@@ -27,6 +27,39 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], onTestComplete })
 
   React.useEffect(() => {
     if (isOpen) {
+      // Check for saved progress state first
+      const savedState = localStorage.getItem('testingProgress');
+      
+      if (savedState) {
+        try {
+          const state = JSON.parse(savedState);
+          const isRecent = (Date.now() - state.timestamp) < 300000; // 5 minutes
+          
+          if (isRecent && state.sessionId) {
+            // Restore saved state
+            setSessionId(state.sessionId);
+            setLoading(state.loading || false);
+            setProgressData(state.progressData || null);
+            setResults(state.results || null);
+            setTestType(state.testType || 'ping');
+            setProcessedNodes(state.processedNodes || 0);
+            setTotalNodes(state.totalNodes || selectedNodeIds.length);
+            setUseNewSystem(selectedNodeIds.length > 50);
+            setIsMinimized(false);
+            
+            toast.info('Восстановлено активное тестирование');
+            return;
+          } else {
+            // Clear old saved state
+            localStorage.removeItem('testingProgress');
+          }
+        } catch (error) {
+          console.error('Error parsing saved testing state:', error);
+          localStorage.removeItem('testingProgress');
+        }
+      }
+      
+      // Reset for new testing
       setTestType('ping');
       setResults(null);
       setProgress(0);
