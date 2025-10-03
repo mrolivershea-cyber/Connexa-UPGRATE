@@ -471,8 +471,11 @@ test_plan:
   current_focus: 
     - "Fixed Start Service Status Preservation"
     - "Russian User Final Review - All Critical Fixes Testing"
+    - "Background monitoring protection for speed_ok nodes"
+    - "Complete status protection system rewrite"
   stuck_tasks:
     - "Fixed Start Service Status Preservation"
+    - "Russian User Final Review - All Critical Fixes Testing"
   test_all: false
   test_priority: "high_first"
   completed_testing:
@@ -480,7 +483,6 @@ test_plan:
     - "Manual testing workflow admin buttons"
     - "Enhanced Ping Accuracy and Real Speed Testing"
     - "Immediate Database Persistence"
-    - "Russian User Final Review - All Critical Fixes Testing"
 
 agent_communication:
   - agent: "main"
