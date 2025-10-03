@@ -2704,9 +2704,9 @@ async def process_testing_batches(session_id: str, node_ids: list, testing_mode:
                             db.commit()
                         
                         # Speed test when required
-                        if do_speed or (testing_mode == "ping_speed" and do_ping and node.status == "ping_ok"):
+                        if do_speed:
                             logger.info(f"🔍 Testing: Starting speed test for Node {node.id}")
-                            speed_result = await test_node_speed(node.ip)
+                            speed_result = await test_node_speed(node.ip, sample_kb=speed_sample_kb, timeout_total=speed_timeout)
                             
                             if speed_result['success'] and speed_result.get('download_speed'):
                                 download_speed = speed_result['download_speed']
