@@ -1,68 +1,75 @@
 <analysis>
-The trajectory details a follow-up debugging and refinement phase for the Connexa Admin Panel. After an initial fix for UI freezing, the user reported new, more nuanced issues in Russian: the ping test was now too strict, incorrectly failing many working servers; the combined ping + speed test was still hanging at 90%; and the start service function was incorrectly setting servers to PING Failed status immediately after they passed a speed test.
+The trajectory documents an exhaustive and complex debugging effort on the Connexa Admin Panel. The user reported a cascade of critical issues in Russian: UI tests freezing at 90%, inaccurate ping results failing working servers, and a critical bug where servers that passed a speed test () were immediately reverted to  upon trying to start services.
 
-The AI engineer correctly diagnosed that the previous fix, which involved aggressive timeouts, was the root cause of the new ping inaccuracy. The engineer then systematically addressed each reported problem. The core  logic was refined to be more tolerant. For the hanging combined test, a new, optimized backend endpoint () was created in , and the frontend  was updated to use it.
+The AI engineer's investigation was a deep dive into the backend logic. The initial fixes, like making the ping test less aggressive and creating a new batch testing endpoint, addressed some symptoms but failed to resolve the core status reversion problem. The engineer then embarked on a multi-stage debugging process, hypothesizing and attempting to fix several potential root causes:
 
-The most critical fix was in the start service flow. The engineer discovered that the service launch function was re-running an aggressive ping test on nodes that had already been verified (), causing them to fail unnecessarily. The logic was updated in both  and  to bypass this redundant check for already-validated servers.
+1.  **Flawed Database Transactions:** The engineer correctly identified that the  session manager in  was not committing transactions properly and that manual  calls were scattered throughout . A major refactoring was done to centralize commit logic in  and remove the manual calls.
+2.  **Unprotected Status Updates:** The engineer discovered dozens of code paths in  that would unconditionally set a node's status to  without checking its current state. A widespread effort was made to wrap these updates in  blocks.
+3.  **Rogue Background Processes:** The final and most promising hypothesis was that a background task, , was causing a race condition or improperly updating node statuses. The engineer attempted to fix this by refining its logic and even temporarily disabling it.
 
-The work concluded with a comprehensive verification phase. After resolving some transient frontend login issues, the engineer successfully ran a full suite of backend and frontend automated tests, which confirmed that all reported issues were resolved. The system is now more accurate and robust.
+Despite these extensive and logical changes, the final automated test confirmed that the fundamental bug persists. The system remains in a broken state where the status of  nodes is not reliably preserved.
 </analysis>
 
 <product_requirements>
-The Connexa Admin Panel is a tool for managing a large fleet of PPTP servers. The user's primary goal is to ensure the testing and service activation pipeline is accurate and reliable.
+The Connexa Admin Panel is a tool for managing a fleet of PPTP servers. The user's goal is to stabilize the server testing and activation pipeline, which is currently unreliable and producing incorrect results.
 
-Following an initial bug-fixing phase, the user reported that the system's testing logic had become too aggressive, leading to new problems. The updated requirements were:
-
-1.  **Improve Ping Accuracy:** The ping test algorithm was too strict, causing many functional servers to be marked as invalid. The algorithm needed to be refined to be more tolerant of servers with slightly slower response times.
-2.  **Fix Combined Ping + Speed Test:** This specific test mode continued to freeze the UI at 90% and produced inaccurate results, such as testing fewer nodes than selected. This entire process required a robust fix.
-3.  **Correct Start Service Logic:** Servers that successfully passed the Speed OK state would immediately fail with PING Failed when the user tried to activate services on them. This logic needed to be corrected to prevent valid servers from being erroneously rejected.
+The primary requirements are:
+1.  **Fix UI Freezing:** The combined ping + speed test and the standalone ping test cause the UI to hang at 90%, preventing users from seeing results.
+2.  **Improve Testing Accuracy:** The ping algorithm is too strict, incorrectly failing functional servers. The speed test must be implemented to measure and report actual download/upload speeds, not a placeholder value.
+3.  **Correct Service Activation Logic:** A critical bug causes servers that have passed a speed test (status: ) to have their status incorrectly reverted to  immediately after the Start Service function is initiated. This is the highest priority issue.
+4.  **Ensure Data Integrity:** Test results for individual servers must be saved to the database immediately upon completion, rather than waiting for an entire batch to finish. This prevents data loss if a long-running test process fails midway.
+5.  **Stabilize Server Import:** When importing new server configurations with a testing option enabled, the process should not automatically fail all servers.
 </product_requirements>
 
 <key_technical_concepts>
-- **Algorithm Refinement:** Adjusting network socket timeouts and logic in Python to balance strictness and tolerance for real-world network conditions.
-- **API Endpoint Creation:** Creating a new, optimized FastAPI endpoint for a combined operation (ping + speed test) to replace a legacy, inefficient one.
-- **Frontend/Backend Integration:** Updating a React component's API call to use a new, purpose-built backend endpoint.
-- **State-Dependent Logic:** Modifying backend logic to change its behavior based on an object's current state (e.g., skipping a ping check if a server's status is already ).
+- **FastAPI Framework:** The backend is built using FastAPI, handling all API logic.
+- **SQLAlchemy ORM:** Used for database interaction with a SQLite database ().
+- **Database Transaction Management:** A core focus of the debugging effort, specifically the dependency-injected session management () and the removal of manual  calls to prevent race conditions.
+- **Asynchronous Background Tasks:** An  background task () runs periodically to check server health, and was identified as a primary suspect for the status reversion bug.
+- **Conditional State Preservation:** The main coding pattern attempted was adding conditional checks () before updating a node's status to prevent valid states from being overwritten.
 </key_technical_concepts>
 
 <code_architecture>
-The application is a monorepo with a React frontend and a Python FastAPI backend, interacting with a MongoDB database.
+The application is a monorepo with a Python FastAPI backend and a React frontend. The recent work was exclusively focused on the backend.
 
 
 
 -   ****
-    -   **Importance**: This is the core of the backend, defining all API endpoints that the frontend consumes. It orchestrates the testing logic and database interactions.
-    -   **Summary of Changes**:
-        1.  A new endpoint, , was created to provide an optimized and reliable way to run combined ping and speed tests, fixing the 90% freeze issue.
-        2.  The logic within the  endpoint was modified. It now calls the PPTP test function with a parameter to skip the redundant ping check for servers that are already in the  state, resolving the start service bug.
+    -   **Importance**: This is the main application file, containing all API endpoints, business logic, and the background task definition. It was the central focus of the entire debugging effort.
+    -   **Summary of Changes**: This file underwent extensive modifications. Key changes include:
+        -   Adding a new endpoint () to fix the 90% freeze.
+        -   Implementing dozens of conditional checks () across numerous functions (, , import functions, etc.) to prevent the status of  nodes from being overwritten.
+        -   Removing numerous  calls after refactoring the database session management.
+        -   Modifying the  background task to be more selective and less aggressive in updating node statuses.
 
 -   ****
-    -   **Importance**: Contains the  class, which implements the low-level logic for connecting to and testing individual PPTP servers. Its accuracy is critical to the entire application.
-    -   **Summary of Changes**:
-        1.  The core  method was updated to be less aggressive, likely by adjusting timeout values or retry logic to improve accuracy.
-        2.  The method was refactored to accept a new parameter () to conditionally bypass the initial ping test. This was essential for fixing the start service workflow.
+    -   **Importance**: Defines the database models and, critically, the session management logic used throughout the application via the  dependency.
+    -   **Summary of Changes**: The  function was significantly refactored. The original implementation was flawed, lacking proper transaction handling. It was updated to use a  block to ensure that  is called on success and  is called on failure, centralizing transaction logic and fixing a potential root cause of data inconsistency.
 
 -   ****
-    -   **Importance**: This React component is the user's primary interface for initiating all types of server tests. It manages the state and API calls related to testing.
-    -   **Summary of Changes**: The component was updated to call the new  endpoint when the user selects the combined ping + speed test option. This change was crucial for resolving the UI freeze and improving performance.
+    -   **Importance**: Contains the low-level logic for testing PPTP connections and speed.
+    -   **Summary of Changes**: The ping test logic was made more tolerant to avoid false negatives. A placeholder for a real speed test using  was added, replacing the previous simulation.
+
 </code_architecture>
 
 <pending_tasks>
-- **Implement Real Speed Test:** The current speed test logic is a placeholder and needs to be replaced with a functional implementation that measures actual download/upload speeds.
-- **Implement SOCKS/OVPN Service Launch:** The core logic for provisioning SOCKS and OVPN services on servers that have reached the  status is still pending.
-- **Verify Node Selection UI:** The full UI flow for selecting nodes and enabling the Start Test button needs to be re-confirmed after the recent extensive backend changes.
+- **Fix the Core Status Reversion Bug**: The primary issue, where  nodes are incorrectly reverted to , remains unresolved despite multiple attempted fixes. This is the highest priority task.
+- **Implement Real Speed Test**: The current speed test logic is a placeholder using  and needs to be replaced with a functional implementation that measures actual download/upload speeds.
+- **Implement SOCKS/OVPN Service Launch**: The core logic for provisioning SOCKS and OVPN services is still pending.
 </pending_tasks>
 
 <current_work>
-The most recent work was a direct response to user feedback that a previous fix had made the server ping tests too aggressive and unreliable. The engineer successfully diagnosed and fixed a cascade of related issues.
+The previous engineer was engaged in a deep and persistent debugging cycle to solve the critical issue of  nodes being incorrectly reverted to . The work concluded with a failed validation, meaning the application is currently in a broken state regarding this core functionality.
 
-1.  **Improved Ping Algorithm**: The core ping testing logic in  was refined to be more tolerant, preventing functional servers from being incorrectly marked as failed.
-2.  **Fixed Combined Test**: The ping + speed test, which was causing the UI to hang at 90%, was completely overhauled. A new, optimized backend endpoint () was created in , and the frontend () was updated to use it.
-3.  **Corrected Service Launch**: A critical logic flaw was fixed where the start service function would re-run a failing ping test on servers that had already passed the speed test. The code was modified to bypass this redundant check for servers with  status.
+The final hypothesis was that a background monitoring task,  in , was causing a race condition or incorrectly updating statuses shortly after they were set. The engineer's last actions were:
+1.  Confirmed that disabling the background task temporarily resolved the issue.
+2.  Re-enabled the task with stricter logic, attempting to force it to only query and update nodes that are already in an  state. The following code was added to :
+    
+3.  Ran a final comprehensive test via the testing agent.
 
-All fixes were validated through a comprehensive suite of automated backend and frontend tests. The final tests passed, confirming that the application is now stable and the testing logic is significantly more accurate. The system is ready for user validation.
+**Result:** The test **failed**. The automated test script confirmed that newly created  nodes were still being found with a  status in the database, proving the latest fix was ineffective. The root cause remains undiscovered.
 </current_work>
 
 <optional_next_step>
-Confirm with the user (in Russian) that the reported issues have been fixed and tested, and ask if they are ready to proceed with implementing the real speed test functionality.
+Re-examine the  background task. The previous fix was insufficient. The next step is to add detailed logging inside the task to trace exactly which nodes it queries and what changes it attempts to commit, to finally uncover why it interferes with non- nodes.
 </optional_next_step>
