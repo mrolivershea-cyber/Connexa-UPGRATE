@@ -209,11 +209,9 @@ vpn2.example.com:443:client2:pass456:GB:London:`
   };
 
   const handleMinimize = () => {
-    setIsMinimized(true);
-  };
-
-  const handleRestore = () => {
-    setIsMinimized(false);
+    // Close the modal but keep the process running
+    onClose();
+    // The progress will continue in background and can be accessed via Import button
   };
 
   // Progress completion handler
