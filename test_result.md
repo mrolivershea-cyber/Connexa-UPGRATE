@@ -695,3 +695,14 @@ test_plan:
 - Speed Test: `POST /api/manual/speed-test` with node_ids  
 - Launch Services: `POST /api/manual/launch-services` with node_ids
 - UI should display Speed, SOCKS, and OVPN columns with new data
+
+test_plan:
+  current_focus:
+    - "Admin Panel Performance Optimization - UI Responsiveness Fixes"
+  stuck_tasks: []
+  test_all: false
+  test_priority: "high_first"
+
+agent_communication:
+  - agent: "main"
+    message: "🚀 PERFORMANCE OPTIMIZATION COMPLETE (2025-10-03): Resolved user-reported issue 'панель по прежнему долго реагирует на обновление или выбор конфигов' (panel still slow to respond to updates or config selection). IMPLEMENTED FIXES: 1) ✅ Added 300ms debouncing for filter changes to prevent excessive API calls, 2) ✅ Used useMemo for activeFilters and useCallback for loadNodes/loadStats to prevent unnecessary re-renders, 3) ✅ Added database indexes on provider, country, state, city, zipcode, login, protocol, status columns for faster queries, 4) ✅ Optimized backend queries with helper function apply_node_filters(), 5) ✅ Fixed duplicate API endpoint decorator that was causing request errors. VERIFIED RESULTS: Filter responsiveness excellent (IP '71.84' finds 2 results quickly), Select All works smoothly with 2336 nodes showing 'Select All (2336 selected total, 200 visible)', no UI freezing during operations. Performance significantly improved from sluggish to responsive. Request backend testing to validate API performance and frontend testing for user interaction responsiveness."
