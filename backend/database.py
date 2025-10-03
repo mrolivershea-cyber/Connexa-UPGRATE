@@ -17,13 +17,13 @@ DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./connexa.db")
 # Optimized SQLite engine for better concurrent performance
 engine = create_engine(
     DATABASE_URL,
-    # Optimize SQLite for better concurrent performance
     pool_pre_ping=True,
     pool_recycle=3600,
+    poolclass=NullPool,  # Disable pooling to avoid QueuePool timeouts with SQLite
     connect_args={
-        "check_same_thread": False,  # Allow multiple threads
-        "timeout": 30,               # 30 second timeout
-        "isolation_level": None      # Enable autocommit mode
+        "check_same_thread": False,
+        "timeout": 30,
+        "isolation_level": None
     }
 )
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
