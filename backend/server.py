@@ -2961,8 +2961,10 @@ async def manual_speed_test(
                 node.speed = f"{speed_result['download']:.1f}"
                 node.status = "speed_ok"  # Any successful speed test = speed_ok
             else:
-                # Speed test failed - preserve existing speed_ok status if node already has it
-                if node.status != "speed_ok":
+                # Speed test failed: if базовый статус уже есть, откатываемся к PING OK, иначе PING FAILED
+                if has_ping_baseline(node.status):
+                    node.status = "ping_ok"
+                else:
                     node.status = "ping_failed"
                 node.speed = None
             
