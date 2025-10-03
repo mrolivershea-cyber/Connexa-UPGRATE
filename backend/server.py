@@ -3024,12 +3024,12 @@ async def manual_launch_services(
             })
             continue
         
-        # Check if node is in correct status for service launch
-        if node.status != "speed_ok":
+        # Allow launch if node has baseline connectivity (PING OK/SPEED OK/ONLINE)
+        if not has_ping_baseline(node.status):
             results.append({
                 "node_id": node_id,
                 "success": False,
-                "message": f"Node status is '{node.status}', expected 'speed_ok'"
+                "message": f"Node status is '{node.status}', requires at least 'ping_ok' baseline"
             })
             continue
         
