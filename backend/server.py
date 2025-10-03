@@ -2730,6 +2730,12 @@ async def process_testing_batches(session_id: str, node_ids: list, testing_mode:
                         db.commit()
                         failed_tests += 1
                         
+        # Cleanup dedupe registry periodically
+        try:
+            test_dedupe_cleanup()
+        except Exception:
+            pass
+
                         if session_id in progress_store:
                             progress_store[session_id].update(global_index + 1, f"⏱️ {node.ip} - timeout")
                         
