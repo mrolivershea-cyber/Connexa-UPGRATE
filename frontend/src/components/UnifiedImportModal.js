@@ -263,7 +263,7 @@ vpn2.example.com:443:client2:pass456:GB:London:`
 
         <div className="space-y-4 mt-4">
           {/* Progress Display */}
-          {loading && progressData && (
+          {loading && (
             <Card>
               <CardHeader>
                 <CardTitle className="text-sm flex items-center justify-between">
