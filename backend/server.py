@@ -2120,7 +2120,7 @@ async def manual_ping_test(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Manual ping test - works for any node status"""
+    """Manual ping test - works for any node status but preserves speed_ok"""
     results = []
     
     for node_id in test_request.node_ids:
@@ -2133,30 +2133,46 @@ async def manual_ping_test(
             })
             continue
         
-        # Store original status for logging
+        # Store original status BEFORE any changes - CRITICAL for speed_ok preservation
         original_status = node.status
+        logger.info(f"🔍 Node {node_id} ping test - original status: {original_status}")
+        
+        # CRITICAL PROTECTION: Never test speed_ok nodes - they already passed all tests
+        if original_status == "speed_ok":
+            logger.info(f"✅ Node {node_id} has speed_ok status - SKIPPING ping test to preserve status")
+            results.append({
+                "node_id": node_id,
+                "ip": node.ip,
+                "success": True,
+                "status": "speed_ok",
+                "original_status": original_status,
+                "message": f"Node already has speed_ok status - test skipped to preserve validation"
+            })
+            continue
         
         try:
-            # Set status to checking during test
+            # Set status to checking during test (only for non-speed_ok nodes)
             node.status = "checking"
             node.last_check = datetime.utcnow()
-            node.last_update = datetime.utcnow()  # Update time when status changes
-            db.commit()
+            node.last_update = datetime.utcnow()
+            # Note: get_db() will auto-commit
             
             # Perform real ping test (use fast mode for batch requests)
             from ping_speed_test import test_node_ping
-            fast_mode = len(test_request.node_ids) > 1  # Use fast mode for multiple nodes
+            fast_mode = len(test_request.node_ids) > 1
             ping_result = await test_node_ping(node.ip, fast_mode=fast_mode)
             
             # Update status based on result
             if ping_result['success']:
                 node.status = "ping_ok"
+                logger.info(f"✅ Node {node_id} ping SUCCESS - status: {original_status} -> ping_ok")
             else:
                 node.status = "ping_failed"
+                logger.info(f"❌ Node {node_id} ping FAILED - status: {original_status} -> ping_failed")
             
             node.last_check = datetime.utcnow()
-            node.last_update = datetime.utcnow()  # Update time after test
-            db.commit()
+            node.last_update = datetime.utcnow()
+            # Note: get_db() will auto-commit
             
             results.append({
                 "node_id": node_id,
@@ -2169,16 +2185,24 @@ async def manual_ping_test(
             })
             
         except Exception as e:
-            # On error, set to ping_failed (not offline)
-            node.status = "ping_failed"
+            # On error, set to ping_failed ONLY if original status wasn't speed_ok
+            if original_status != "speed_ok":
+                node.status = "ping_failed"
+                logger.error(f"❌ Node {node_id} ping ERROR - status: {original_status} -> ping_failed - Error: {str(e)}")
+            else:
+                node.status = "speed_ok"
+                logger.error(f"❌ Node {node_id} ping ERROR but PRESERVING speed_ok - Error: {str(e)}")
+            
             node.last_check = datetime.utcnow()
-            node.last_update = datetime.utcnow()  # Update time on error
-            db.commit()
+            node.last_update = datetime.utcnow()
+            # Note: get_db() will auto-commit
             
             results.append({
                 "node_id": node_id,
                 "success": False,
-                "message": f"Ping test error: {str(e)}"
+                "status": node.status,
+                "original_status": original_status,
+                "message": f"Ping test error: {str(e)} - Status: {original_status} -> {node.status}"
             })
     
     return {"results": results}
