@@ -330,12 +330,21 @@ async def create_node(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
+    logger.info(f"Creating node with input status: {node.dict().get('status', 'not specified')}")
     db_node = Node(**node.dict())
     db_node.last_update = datetime.utcnow()  # Set current time on creation
+    logger.info(f"Node object status before add: {db_node.status}")
     db.add(db_node)
     # Remove explicit commit - let get_db() handle it
     db.flush()  # Flush to get the ID
+    logger.info(f"Node object status after flush: {db_node.status}")
     db.refresh(db_node)
+    logger.info(f"Node object status after refresh: {db_node.status}")
+    
+    # Double-check by querying the database directly
+    check_node = db.query(Node).filter(Node.id == db_node.id).first()
+    logger.info(f"Node status from direct DB query: {check_node.status if check_node else 'not found'}")
+    
     return db_node
 
 @api_router.put("/nodes/{node_id}")
