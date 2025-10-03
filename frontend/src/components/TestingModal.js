@@ -415,7 +415,7 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], onTestComplete })
               <Activity className="h-5 w-5 mr-2" />
               Тестирование Узлов
             </DialogTitle>
-            {loading && (
+            {(loading || progressData) && (
               <Button
                 variant="ghost"
                 size="sm"
