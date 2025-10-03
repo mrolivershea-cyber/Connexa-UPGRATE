@@ -680,6 +680,11 @@ async def import_nodes(
         
     except Exception as e:
         logger.error(f"Import error: {str(e)}", exc_info=True)
+        
+        # Mark progress as failed if exists
+        if session_id in progress_store:
+            progress_store[session_id].complete("failed")
+        
         return {
             "success": False, 
             "message": f"Import failed: {str(e)}",
@@ -694,7 +699,8 @@ async def import_nodes(
                 "processing_errors": 1,
                 "testing_mode": data.testing_mode,
                 "details": {"errors": [{"general": str(e)}]}
-            }
+            },
+            "session_id": session_id
         }
 
 # Import/Export Routes
