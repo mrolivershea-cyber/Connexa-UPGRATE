@@ -2306,9 +2306,13 @@ async def manual_ping_test_batch(
             }
             
         except asyncio.TimeoutError:
-            # Timeout - preserve speed_ok status
-            if node.status != "speed_ok":
+            # Timeout - NEVER downgrade speed_ok
+            if original_status != "speed_ok":
                 node.status = "ping_failed"
+                logger.warning(f"⏱️ Batch: Node {node.id} TIMEOUT - {original_status} -> ping_failed")
+            else:
+                node.status = "speed_ok"
+                logger.warning(f"⏱️ Batch: Node {node.id} TIMEOUT but PROTECTED - preserving speed_ok")
             node.last_check = datetime.utcnow()
             node.last_update = datetime.utcnow()
             
@@ -2323,9 +2327,13 @@ async def manual_ping_test_batch(
             }
             
         except Exception as e:
-            # Any other error - preserve speed_ok status
-            if node.status != "speed_ok":
+            # Any other error - NEVER downgrade speed_ok
+            if original_status != "speed_ok":
                 node.status = "ping_failed"
+                logger.error(f"❌ Batch: Node {node.id} ERROR - {original_status} -> ping_failed - {str(e)}")
+            else:
+                node.status = "speed_ok"
+                logger.error(f"❌ Batch: Node {node.id} ERROR but PROTECTED - preserving speed_ok - {str(e)}")
             node.last_check = datetime.utcnow()
             node.last_update = datetime.utcnow()
             
