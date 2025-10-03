@@ -1696,8 +1696,9 @@ async def get_stats(
     }
 
 @api_router.get("/progress/{session_id}")
-async def get_progress_stream(session_id: str, current_user: User = Depends(get_current_user)):
-    """Server-Sent Events endpoint for real-time progress updates"""
+async def get_progress_stream(session_id: str, current_user: User = Depends(get_current_user_optional)):
+    """Server-Sent Events endpoint for real-time progress updates.
+    Uses optional auth so EventSource (без заголовков) не ломает поток."""
     
     async def event_generator():
         while True:
