@@ -217,7 +217,17 @@ class PingWorkflowTester:
             time.sleep(1)  # Wait a bit for processing to start
             progress_success, progress_response = self.make_request('GET', f'progress/{session_id}')
             
-            if progress_success and 'session_id' in progress_response:
+            # Handle SSE response - look for progress data in the text
+            if progress_success and 'text' in progress_response:
+                sse_text = progress_response['text']
+                if 'session_id' in sse_text and 'progress_percent' in sse_text:
+                    self.log_test("Batch Ping - Progress Tracking", True, 
+                                 f"SSE progress stream working - contains session_id and progress_percent")
+                else:
+                    self.log_test("Batch Ping - Progress Tracking", False, 
+                                 f"SSE stream missing expected fields")
+                    return False
+            elif progress_success and 'session_id' in progress_response:
                 self.log_test("Batch Ping - Progress Tracking", True, 
                              f"Progress: {progress_response.get('progress_percent', 0)}%")
                 
