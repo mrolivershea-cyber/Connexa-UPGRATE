@@ -115,15 +115,34 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], onTestComplete })
     setProcessedNodes(0);
     setTotalNodes(selectedNodeIds.length);
     setResults(null);
+    setProgressData(null);
+    setSessionId(null);
+    
+    // Determine if we should use the new batch system (for large batches)
+    const shouldUseNewSystem = selectedNodeIds.length > 50;
+    setUseNewSystem(shouldUseNewSystem);
     
     // Declare progressInterval in the function scope so it's accessible in catch/finally blocks
     let progressInterval = null;
     
     try {
-      // Use batch endpoint for multiple nodes, single endpoint for one node
-      let endpoint = selectedNodeIds.length > 1 ? 'manual/ping-test-batch' : 'manual/ping-test';
-      if (testType === 'speed') endpoint = 'manual/speed-test';
-      if (testType === 'both') endpoint = selectedNodeIds.length > 1 ? 'manual/ping-speed-test-batch' : 'manual/ping-test';
+      let endpoint;
+      
+      if (shouldUseNewSystem) {
+        // Use new progress-enabled endpoints for large batches
+        if (testType === 'ping') {
+          endpoint = 'manual/ping-test-batch-progress';
+        } else if (testType === 'speed') {
+          endpoint = 'manual/speed-test-batch-progress';
+        } else if (testType === 'both') {
+          endpoint = 'manual/ping-speed-test-batch-progress';
+        }
+      } else {
+        // Use existing endpoints for small batches
+        endpoint = selectedNodeIds.length > 1 ? 'manual/ping-test-batch' : 'manual/ping-test';
+        if (testType === 'speed') endpoint = 'manual/speed-test';
+        if (testType === 'both') endpoint = selectedNodeIds.length > 1 ? 'manual/ping-speed-test-batch' : 'manual/ping-test';
+      }
       
       // Improved progress simulation based on node count and test type
       let expectedDuration;
