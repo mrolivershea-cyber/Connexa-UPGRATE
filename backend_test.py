@@ -11298,6 +11298,16 @@ State: California""",
             print("❌ Login failed - stopping tests")
             return False
         
+        # PRIORITY: Run critical import tests first
+        print("\n" + "="*80)
+        print("🔥 CRITICAL RUSSIAN USER IMPORT TESTING - PRIORITY TESTS")
+        print("="*80)
+        
+        self.test_import_pptp_endpoint_verification()
+        self.test_import_with_testing_ping_only()
+        self.test_import_with_testing_ping_speed()
+        self.test_import_timeout_protection()
+        
         # ========== CRITICAL SPEED_OK PROTECTION TEST (HIGHEST PRIORITY) ==========
         print("\n" + "🔥" * 25 + " CRITICAL SPEED_OK PROTECTION TEST " + "🔥" * 25)
         print("🎯 REVIEW REQUEST: FINAL COMPREHENSIVE SPEED_OK PRESERVATION TEST")
