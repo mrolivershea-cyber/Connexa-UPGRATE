@@ -76,7 +76,7 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], onTestComplete })
   React.useEffect(() => {
     let eventSource = null;
     
-    if (sessionId && loading && useNewSystem) {
+    if (sessionId && loading) {
       eventSource = new EventSource(`${API}/progress/${sessionId}`);
       
       eventSource.onmessage = (event) => {
