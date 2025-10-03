@@ -146,20 +146,16 @@ const AdminPanel = () => {
     });
   };
 
-  const getAllNodeIds = async () => {
+  const getAllNodeIds = useCallback(async () => {
     try {
-      const params = Object.fromEntries(
-        Object.entries(filters).filter(([key, value]) => value !== '' && value !== false && value !== 'all')
-      );
-      
-      const response = await axios.get(`${API}/nodes/all-ids`, { params });
+      const response = await axios.get(`${API}/nodes/all-ids`, { params: activeFilters });
       return response.data.node_ids;
     } catch (error) {
       console.error('Error getting all node IDs:', error);
       toast.error('Failed to get all node IDs');
       return [];
     }
-  };
+  }, [API, activeFilters]);
 
   const handleSelectAll = async () => {
     if (selectAllMode) {
