@@ -583,8 +583,8 @@ async def process_import_testing_batches(session_id: str, node_ids: list, testin
         
         logger.info(f"🚀 Batch Processing: Starting {total_nodes} nodes in batches of {BATCH_SIZE}")
         
-        # Import testing functions
-        from ping_speed_test import test_node_ping, test_node_speed
+        # This function is incomplete - use process_testing_batches instead
+        pass
         
         # Process nodes in batches
         for batch_start in range(0, total_nodes, BATCH_SIZE):
