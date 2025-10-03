@@ -173,7 +173,7 @@ async def monitor_online_nodes():
             try:
                 db.rollback()
                 db.close()
-            except:
+            except Exception:
                 pass
         
         # Wait 5 minutes before next check
