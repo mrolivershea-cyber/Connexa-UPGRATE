@@ -97,10 +97,15 @@ async def monitor_online_nodes():
                 
                 for node in online_nodes:
                     try:
-                        # Double-check node is still online (avoid race conditions)
+                        # Triple-check node is EXACTLY online (avoid race conditions)
                         current_node = db.query(Node).filter(Node.id == node.id).first()
                         if not current_node or current_node.status != "online":
-                            logger.info(f"Skipping node {node.id} - status changed to {current_node.status if current_node else 'deleted'}")
+                            logger.info(f"SKIPPING node {node.id} - status is {current_node.status if current_node else 'deleted'} (not online)")
+                            continue
+                            
+                        # ABSOLUTE PROTECTION: Never touch speed_ok or other successful statuses
+                        if current_node.status in ["speed_ok", "ping_ok"]:
+                            logger.info(f"PROTECTION: Node {node.id} has {current_node.status} - skipping monitoring")
                             continue
                             
                         # Check if services are still running
