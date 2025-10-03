@@ -488,6 +488,10 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], onTestComplete })
           {/* Node Selection Info */}
           <Card>
             <CardHeader>
+              {(!selectedNodeIds || selectedNodeIds.length === 0) && (
+                <div className="text-sm text-red-600">Нет выбранных узлов. Выберите узлы в таблице или используйте Select All.</div>
+              )}
+
               <CardTitle className="text-sm">Выбранные Узлы</CardTitle>
             </CardHeader>
             <CardContent>
