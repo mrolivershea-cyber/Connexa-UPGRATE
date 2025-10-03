@@ -128,16 +128,26 @@ class IsolatedSpeedOKTester:
         print("⏳ Waiting 15 seconds...")
         time.sleep(15)
         
-        success_check2, response_check2 = self.make_request('GET', f'nodes/{node1_id}')
-        status_15s = response_check2.get('status', 'unknown') if success_check2 else 'unknown'
+        success_check2, response_check2 = self.make_request('GET', 'nodes')
+        status_15s = 'unknown'
+        if success_check2 and 'nodes' in response_check2:
+            for node in response_check2['nodes']:
+                if node.get('id') == node1_id:
+                    status_15s = node.get('status', 'unknown')
+                    break
         print(f"📊 After 15 seconds: {status_15s}")
         
         # Wait another 15 seconds
         print("⏳ Waiting another 15 seconds...")
         time.sleep(15)
         
-        success_check3, response_check3 = self.make_request('GET', f'nodes/{node1_id}')
-        status_30s = response_check3.get('status', 'unknown') if success_check3 else 'unknown'
+        success_check3, response_check3 = self.make_request('GET', 'nodes')
+        status_30s = 'unknown'
+        if success_check3 and 'nodes' in response_check3:
+            for node in response_check3['nodes']:
+                if node.get('id') == node1_id:
+                    status_30s = node.get('status', 'unknown')
+                    break
         print(f"📊 After 30 seconds total: {status_30s}")
         
         if status_15s == 'speed_ok' and status_30s == 'speed_ok':
