@@ -515,6 +515,11 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], onTestComplete })
             <DialogTitle className="flex items-center">
               <Activity className="h-5 w-5 mr-2" />
               Тестирование Узлов
+              {sessionId && progressData && (
+                <Badge variant="secondary" className="ml-2">
+                  {getActiveImportSession()?.sessionId === sessionId ? 'Из импорта' : 'Ручное'}
+                </Badge>
+              )}
             </DialogTitle>
             {(loading || progressData) && (
               <Button
