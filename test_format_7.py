@@ -124,9 +124,10 @@ class Format7Tester:
         print("\n🔍 Test 2: Format Parsing Test")
         print("Testing data: '144.229.29.35:user:password123\\n76.178.64.46:admin:secret456'")
         
-        # Use unique IPs to avoid duplicates
+        # Use unique IPs to avoid duplicates (ensure valid IP)
         timestamp = str(int(time.time()))
-        test_data = f"144.229.{timestamp[-3:]}.35:user:password123\n76.178.{timestamp[-3:]}.46:admin:secret456"
+        ip_part = int(timestamp[-3:]) % 255  # Ensure IP octet is valid (0-255)
+        test_data = f"144.229.{ip_part}.35:user:password123\n76.178.{ip_part}.46:admin:secret456"
         
         import_data = {
             "data": test_data,
