@@ -92,8 +92,14 @@ class SpeedOKInvestigator:
             }
             
             # 1. PING LIGHT TEST - TCP port 1723 connectivity
-            ping_light_data = {"node_ids": [], "ips": [ip]}
-            ping_light_success, ping_light_response = self.make_request('POST', 'manual/ping-light-test', ping_light_data)
+            # First get the node ID for this IP
+            nodes_success_temp, nodes_response_temp = self.make_request('GET', f'nodes?ip={ip}')
+            if nodes_success_temp and 'nodes' in nodes_response_temp and nodes_response_temp['nodes']:
+                node_id_temp = nodes_response_temp['nodes'][0]['id']
+                ping_light_data = {"node_ids": [node_id_temp]}
+                ping_light_success, ping_light_response = self.make_request('POST', 'manual/ping-light-test', ping_light_data)
+            else:
+                ping_light_success, ping_light_response = False, {"error": "Node not found for ping light test"}
             
             if ping_light_success and 'results' in ping_light_response:
                 ping_light_result = ping_light_response['results'][0] if ping_light_response['results'] else {}
