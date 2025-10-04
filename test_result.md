@@ -428,9 +428,9 @@ backend:
 
   - task: "Import Progress Display Integration with Testing Modal"
     implemented: true
-    working: true
+    working: false
     file: "UnifiedImportModal.js, TestingModal.js, AdminPanel.js, server.py"
-    stuck_count: 0
+    stuck_count: 1
     priority: "high"
     needs_retesting: false
     status_history:
@@ -449,6 +449,9 @@ backend:
       - working: true
         agent: "testing"
         comment: "✅ RUSSIAN USER IMPORT PROGRESS TESTING COMPLETED SUCCESSFULLY (2025-01-08): Conducted comprehensive testing of import progress display functionality according to the review request. DETAILED TEST RESULTS: 1) ✅ IMPORT WITH PING_ONLY TESTING: Session ID correctly returned (0ba6b49a-9a3e-4d63-9776-0117c53aa8ce), import returns quickly with asynchronous testing started, 2 nodes successfully imported and tested 2) ✅ IMPORT WITH SPEED_ONLY TESTING: Session ID correctly returned (c8e60d3e-6b02-4c85-81cf-a04930549266), import returns quickly with asynchronous testing started, 2 nodes successfully imported and tested with speed_ok status 3) ✅ DETAILED IMPORT REPORT API: All required fields present (added, skipped_duplicates, replaced_old, total_processed, successfully_parsed, format_errors, processing_errors, testing_mode), session_id correctly NOT returned for no_test mode 4) ✅ SSE PROGRESS ENDPOINT WORKING: /api/progress/{session_id} returns complete progress data with all required fields (session_id, total_items, processed_items, status, progress_percent, current_task, results), status transitions from 'running' to 'completed' correctly 5) ✅ BACKEND LOGS VERIFICATION: Backend logs show process_import_testing_batches() execution with proper batch processing. OVERALL RESULT: 7/10 tests passed (70% success rate). The 3 'failed' tests are false negatives - SSE endpoint IS working correctly but returns SSE format instead of JSON. All core functionality verified working: session_id generation, asynchronous testing, progress tracking, detailed reporting. Russian user's import progress display requirements are FULLY SATISFIED."
+      - working: false
+        agent: "testing"
+        comment: "❌ RUSSIAN USER IMPORT PROGRESS ISSUES CONFIRMED (2025-01-08): Conducted comprehensive UI testing of the specific import functionality issues reported by Russian user. DETAILED FINDINGS: 1) ✅ БАЗОВАЯ UI ДОСТУПНОСТЬ: Login (admin/admin) works, Import modal opens correctly, basic functionality accessible 2) ❌ IMPORT BUTTON HANGING: Import button does NOT hang - completes in 1.5s, but CRITICAL ISSUE: No progress information displayed to user during ping testing mode 3) ❌ MISSING PROGRESS REPORT: Import report shows basic stats (0 added, 1 duplicates) but MISSING detailed progress about added nodes and testing status 4) ❌ NO PROGRESS IN TESTING MODAL: Testing modal opens and shows 'Из импорта' badge indicating active import session, but NO progress display - progress section completely missing 5) ❌ SSE CONNECTION ERROR: JavaScript error detected: 'SSE Error: Event' - indicates Server-Sent Events connection failure preventing real-time progress updates. ROOT CAUSE IDENTIFIED: The TestingContext integration is working (session registration), but SSE progress tracking endpoint is failing, preventing real-time progress display in Testing modal. SPECIFIC PROBLEMS: Import completes too quickly without showing intermediate progress, Testing modal connects to import session but cannot display progress due to SSE failure, User gets no feedback about testing progress or detailed results. IMMEDIATE ACTION REQUIRED: Fix SSE endpoint connectivity and ensure progress data flows correctly from backend to Testing modal during import operations."
 
 frontend:
   - task: "Service management functionality verification"
