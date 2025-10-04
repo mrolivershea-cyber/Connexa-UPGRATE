@@ -15538,6 +15538,24 @@ City: TestCity"""
             print("❌ Login failed - stopping tests")
             return False
         
+        # ========== PING LIGHT ALGORITHM TESTS (Russian User Review Request) ==========
+        print("\n" + "🔥" * 50)
+        print("🇷🇺 PING LIGHT ALGORITHM TESTING - REVIEW REQUEST")
+        print("🔥" * 50)
+        print("Testing new PING LIGHT algorithm according to requirements:")
+        print("1. Replaced complex ping test (3 attempts, 1.5s timeout) with PING LIGHT (1 attempt, 2s timeout)")
+        print("2. New logic: One TCP connection to port 1723, 2 second timeout, immediate close")
+        print("3. Quick result: OK or FAIL")
+        print("4. Performance: <2 sec per node, 3x faster than old algorithm")
+        print("=" * 50)
+        
+        self.test_ping_light_single_node_speed()
+        self.test_ping_light_nonexistent_ip_timeout()
+        self.test_ping_light_batch_multiple_nodes()
+        self.test_ping_light_performance_comparison()
+        self.test_ping_light_algorithm_verification()
+        self.test_ping_light_api_endpoints_usage()
+        
         # ========== CRITICAL CHUNKED IMPORT COMMIT FIX TEST (Review Request Priority) ==========
         print("\n" + "🔥" * 30)
         print("CRITICAL CHUNKED IMPORT COMMIT FIX TESTING")
