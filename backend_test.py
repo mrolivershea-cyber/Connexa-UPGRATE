@@ -13929,6 +13929,13 @@ City: TestCity"""
         self.test_import_with_testing_ping_speed()
         self.test_import_timeout_protection()
         
+        # ========== SOCKS SERVICE LAUNCH SYSTEM TESTS (Review Request 2025-01-08) ==========
+        print("\n" + "="*80)
+        print("🚀 SOCKS SERVICE LAUNCH SYSTEM TESTS (Review Request 2025-01-08)")
+        print("="*80)
+        
+        self.run_comprehensive_socks_tests()
+        
         # ========== NEW BATCH IMPORT SYSTEM TESTS (Review Request 2025-01-08) ==========
         print("\n" + "="*80)
         print("🔥 NEW BATCH IMPORT SYSTEM TESTS (Review Request 2025-01-08)")
