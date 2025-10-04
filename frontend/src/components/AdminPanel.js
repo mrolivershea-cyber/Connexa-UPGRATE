@@ -706,12 +706,18 @@ const AdminPanel = () => {
                   Import
                 </Button>
                 <Button 
-                  variant="outline" 
+                  variant={hasActiveSessions() ? "default" : "outline"} 
                   onClick={() => setShowTestingModal(true)}
                   data-testid="testing-btn"
+                  className={hasActiveSessions() ? "relative" : ""}
                 >
                   <Activity className="h-4 w-4 mr-2" />
                   Testing
+                  {hasActiveSessions() && (
+                    <Badge variant="destructive" className="ml-2 h-5 w-5 p-0 flex items-center justify-center text-xs">
+                      {getActiveSessionsCount()}
+                    </Badge>
+                  )}
                 </Button>
               </div>
             </div>
