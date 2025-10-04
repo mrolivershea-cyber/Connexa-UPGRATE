@@ -251,12 +251,14 @@ class EnhancedProgressTester:
         """Test cancel button functionality during chunked import"""
         print("\n🔍 Testing import cancellation functionality...")
         
-        # Generate medium-large file for cancellation test
+        # Generate medium-large file for cancellation test (ensure >500KB for chunked processing)
         test_nodes = []
-        for i in range(800):  # Generate enough nodes for cancellation test
-            test_nodes.append(f"192.168.{i//256}.{i%256}:canceluser{i}:cancelpass{i}")
+        for i in range(12000):  # Generate enough nodes for cancellation test
+            test_nodes.append(f"192.168.{i//256}.{i%256}:canceluser{i}_longer_name:cancelpass{i}_longer_password")
         
         test_data = "\n".join(test_nodes)
+        data_size = len(test_data.encode('utf-8'))
+        print(f"📊 Generated cancellation test data: {len(test_nodes)} nodes, {data_size/1024:.1f}KB")
         
         import_data = {
             "data": test_data,
