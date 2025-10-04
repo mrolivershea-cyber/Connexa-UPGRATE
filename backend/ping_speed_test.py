@@ -333,9 +333,24 @@ async def test_node_ping(ip: str, fast_mode: bool = False) -> Dict:
     """Legacy: PPTP port 1723 ping"""
     return await PPTPTester.ping_test(ip, fast_mode=fast_mode)
 
-async def test_node_speed(ip: str, sample_kb: int = 512, timeout_total: int = 15) -> Dict:
-    """Real HTTP-based speed test (or fallback) with tunable sample size and timeout"""
-    return await PPTPTester.real_speed_test(ip, sample_kb=sample_kb, timeout_total=timeout_total)
+async def test_node_speed(ip: str, sample_kb: int = 64, timeout_total: int = 5) -> Dict:
+    """БЫСТРЫЙ speed test для снижения нагрузки на сервер"""
+    # Для критической оптимизации используем минимальные образцы и быстрый fallback
+    if sample_kb > 128:
+        sample_kb = 64  # Принудительно ограничиваем размер для скорости
+    if timeout_total > 8:
+        timeout_total = 5  # Принудительно ограничиваем время
+        
+    try:
+        # Пробуем быстрый HTTP test с минимальными данными
+        result = await PPTPTester.real_speed_test(ip, sample_kb=sample_kb, timeout_total=timeout_total)
+        if result.get('success'):
+            return result
+    except Exception:
+        pass
+    
+    # Быстрый fallback без сетевых операций
+    return await PPTPTester.speed_test_fallback(ip)
 
 async def test_pptp_connection(ip: str, login: str, password: str, skip_ping_check: bool = False) -> Dict:
     """Simulated PPTP connection"""
