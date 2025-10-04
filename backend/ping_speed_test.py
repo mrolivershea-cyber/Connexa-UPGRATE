@@ -122,15 +122,13 @@ class PPTPTester:
     """Handles real PPTP ping and speed testing"""
 
     @staticmethod
-    async def ping_test(ip: str, timeout: int = 2, fast_mode: bool = True) -> Dict:
+    async def ping_light_test(ip: str, timeout: int = 2) -> Dict:
         """
-        PING LIGHT - быстрая проверка доступности PPTP порта 1723
+        PING LIGHT - быстрая проверка доступности TCP порта 1723 без авторизации
         Returns: {"success": bool, "avg_time": float, "packet_loss": float, "message": str}
         """
-        # Используем новый PING LIGHT алгоритм
         result = await ping_light_tcp_check(ip, 1723, timeout)
         
-        # Преобразуем формат для совместимости
         if result["success"]:
             return {
                 "success": True,
@@ -144,6 +142,110 @@ class PPTPTester:
                 "avg_time": 0.0,
                 "packet_loss": 100.0,
                 "message": result["message"],
+            }
+
+    @staticmethod
+    async def ping_test(ip: str, login: str, password: str, timeout: int = 10, fast_mode: bool = False) -> Dict:
+        """
+        PING OK - полная проверка PPTP с авторизацией
+        Returns: {"success": bool, "avg_time": float, "packet_loss": float, "message": str}
+        """
+        max_timeout = 8 if fast_mode else 12
+        attempts = 3 if fast_mode else 4
+        actual_timeout = min(timeout, max_timeout)
+
+        try:
+            # Сначала быстрая проверка доступности порта
+            light_result = await PPTPTester.ping_light_test(ip, 2)
+            if not light_result["success"]:
+                return {
+                    "success": False,
+                    "avg_time": 0.0,
+                    "packet_loss": 100.0,
+                    "message": "PING OK FAILED - Port 1723 unreachable",
+                }
+
+            # Теперь попытки подключения с авторизацией
+            successful_connections = 0
+            total_time = 0.0
+            last_error = None
+
+            for attempt in range(attempts):
+                try:
+                    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                    sock.settimeout(actual_timeout)
+                    start_time = time.time()
+                    
+                    # Подключение к порту 1723
+                    result = sock.connect_ex((ip, 1723))
+                    if result == 0:
+                        # Попытка отправить базовый PPTP пакет
+                        try:
+                            # PPTP Control Connection Start-Request
+                            pptp_packet = b'\x00\x9c' + b'\x01' + b'\x01' + b'\x00\x00\x00\x01'
+                            sock.send(pptp_packet)
+                            
+                            # Ожидание ответа
+                            response = sock.recv(1024)
+                            if len(response) > 0:
+                                end_time = time.time()
+                                connection_time = (end_time - start_time) * 1000.0
+                                successful_connections += 1
+                                total_time += connection_time
+                        except:
+                            pass  # PPTP handshake failed, but port was accessible
+                    
+                    sock.close()
+                except socket.timeout:
+                    last_error = "Connection timeout"
+                except socket.gaierror as e:
+                    last_error = f"DNS resolution failed: {str(e)}"
+                    break
+                except Exception as e:
+                    last_error = f"Socket error: {str(e)}"
+
+                if attempt < attempts - 1:
+                    await asyncio.sleep(0.2 if fast_mode else 0.4)
+
+            if successful_connections > 0:
+                avg_time = total_time / successful_connections
+                packet_loss = ((attempts - successful_connections) / attempts) * 100.0
+                
+                # Строгие требования для PPTP серверов
+                if packet_loss <= 25.0:
+                    return {
+                        "success": True,
+                        "avg_time": round(avg_time, 1),
+                        "packet_loss": round(packet_loss, 1),
+                        "message": f"PING OK - PPTP server responding, {avg_time:.1f}ms avg, {packet_loss:.0f}% loss",
+                    }
+                elif packet_loss <= 50.0:
+                    return {
+                        "success": False,
+                        "avg_time": round(avg_time, 1),
+                        "packet_loss": round(packet_loss, 1),
+                        "message": f"PING UNRELIABLE - {avg_time:.1f}ms avg, {packet_loss:.0f}% loss (may not work for VPN)",
+                    }
+                else:
+                    return {
+                        "success": False,
+                        "avg_time": round(avg_time, 1),
+                        "packet_loss": round(packet_loss, 1),
+                        "message": f"PING POOR - {avg_time:.1f}ms avg, {packet_loss:.0f}% loss (unreliable for VPN)",
+                    }
+            else:
+                return {
+                    "success": False,
+                    "avg_time": 0.0,
+                    "packet_loss": 100.0,
+                    "message": f"PING OK FAILED - PPTP handshake failed: {last_error}",
+                }
+        except Exception as e:
+            return {
+                "success": False,
+                "avg_time": 0.0,
+                "packet_loss": 100.0,
+                "message": f"PING OK ERROR - {str(e)}",
             }
 
     @staticmethod
@@ -283,9 +385,13 @@ class PPTPTester:
             }
 
 # Async helper functions for server integration (kept for compatibility)
-async def test_node_ping(ip: str, fast_mode: bool = True) -> Dict:
+async def test_node_ping_light(ip: str) -> Dict:
     """PING LIGHT - быстрая проверка TCP соединения к порту 1723"""
-    return await PPTPTester.ping_test(ip, timeout=2, fast_mode=fast_mode)
+    return await PPTPTester.ping_light_test(ip, timeout=2)
+
+async def test_node_ping(ip: str, login: str, password: str, fast_mode: bool = False) -> Dict:
+    """PING OK - полная проверка PPTP с авторизацией"""
+    return await PPTPTester.ping_test(ip, login, password, timeout=10, fast_mode=fast_mode)
 
 async def test_node_speed(ip: str, sample_kb: int = 32, timeout_total: int = 2) -> Dict:
     """РЕАЛЬНЫЙ speed test через HTTP запросы с быстрыми таймаутами"""
