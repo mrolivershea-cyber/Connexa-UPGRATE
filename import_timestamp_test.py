@@ -6,7 +6,7 @@ from datetime import datetime
 import time
 
 # Test import with correct format
-BASE_URL = "https://button-dedup-admin.preview.emergentagent.com"
+BASE_URL = "https://sockspanel-connect.preview.emergentagent.com"
 API_URL = f"{BASE_URL}/api"
 
 def login():

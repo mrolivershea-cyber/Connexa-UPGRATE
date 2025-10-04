@@ -5,7 +5,7 @@ import json
 
 def debug_format_errors():
     """Debug format error detection"""
-    base_url = "https://button-dedup-admin.preview.emergentagent.com"
+    base_url = "https://sockspanel-connect.preview.emergentagent.com"
     api_url = f"{base_url}/api"
     
     # Login first
