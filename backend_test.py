@@ -15777,6 +15777,25 @@ City: TestCity"""
             print("❌ Login failed - stopping tests")
             return False
         
+        # ========== PING LIGHT & PING OK TESTING (Russian User Review Request) ==========
+        print("\n" + "🔥" * 50)
+        print("🇷🇺 PING LIGHT & PING OK TESTING - REVIEW REQUEST")
+        print("🔥" * 50)
+        print("Testing two types of PING functionality:")
+        print("1. PING LIGHT - быстрая TCP проверка без авторизации (endpoint: /api/manual/ping-light-test)")
+        print("2. PING OK - полная PPTP проверка с авторизацией (endpoint: /api/manual/ping-test)")
+        print("3. Stats API должен включать ping_light: X в ответе")
+        print("4. Разница в скорости и методах:")
+        print("   - PING LIGHT: только TCP подключение к порту 1723")
+        print("   - PING OK: TCP + попытка PPTP handshake с логином/паролем")
+        print("=" * 50)
+        
+        self.test_ping_light_functionality()
+        self.test_ping_ok_functionality()
+        self.test_ping_light_vs_ping_ok_speed_difference()
+        self.test_stats_api_includes_ping_light()
+        self.test_ping_light_status_in_database()
+        
         # ========== PING LIGHT ALGORITHM TESTS (Russian User Review Request) ==========
         print("\n" + "🔥" * 50)
         print("🇷🇺 PING LIGHT ALGORITHM TESTING - REVIEW REQUEST")
