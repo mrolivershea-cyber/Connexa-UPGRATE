@@ -5118,6 +5118,152 @@ City: Broomfield""",
             self.log_test("Node Data Integrity", False, "Could not get nodes for integrity check")
             return False
 
+    def run_russian_user_socks_investigation(self):
+        """🇷🇺 RUSSIAN USER SOCKS ISSUE INVESTIGATION - Focused Testing (2025-01-08)"""
+        print("🇷🇺 RUSSIAN USER SOCKS ISSUE INVESTIGATION - FOCUSED TESTING")
+        print("=" * 80)
+        print("PROBLEM: User selected 6 nodes, clicked 'Start SOCKS', got '3 3 нет' result")
+        print("ISSUE: Proxy file shows 'Total active: 0' - no active proxies")
+        print("FOCUS: Test SOCKS functionality with different node statuses")
+        print("=" * 80)
+        
+        # Authentication
+        if not self.test_login():
+            print("❌ Login failed - cannot continue")
+            return False
+        
+        # Step 1: Get current system state
+        print("\n🔍 STEP 1: SYSTEM STATE ANALYSIS")
+        nodes = self.test_get_nodes()
+        stats = self.test_socks_stats_endpoint()
+        
+        if not nodes:
+            print("❌ No nodes found in system")
+            return False
+        
+        # Analyze node statuses
+        status_counts = {}
+        for node in nodes:
+            status = node.get('status', 'unknown')
+            status_counts[status] = status_counts.get(status, 0) + 1
+        
+        print(f"📊 Node Status Distribution:")
+        for status, count in status_counts.items():
+            print(f"   {status}: {count} nodes")
+        
+        # Step 2: Test SOCKS endpoints
+        print("\n🔍 STEP 2: SOCKS ENDPOINTS TESTING")
+        self.test_socks_stats_endpoint()
+        self.test_socks_active_proxies_endpoint()
+        self.test_socks_proxy_file_endpoint()
+        
+        # Step 3: Find nodes with different statuses for testing
+        print("\n🔍 STEP 3: NODE STATUS ANALYSIS FOR SOCKS TESTING")
+        
+        # Find nodes by status
+        ping_ok_nodes = [n for n in nodes if n.get('status') == 'ping_ok']
+        speed_ok_nodes = [n for n in nodes if n.get('status') == 'speed_ok']
+        not_tested_nodes = [n for n in nodes if n.get('status') == 'not_tested']
+        ping_failed_nodes = [n for n in nodes if n.get('status') == 'ping_failed']
+        online_nodes = [n for n in nodes if n.get('status') == 'online']
+        
+        print(f"✅ ping_ok nodes: {len(ping_ok_nodes)}")
+        print(f"✅ speed_ok nodes: {len(speed_ok_nodes)}")
+        print(f"⚠️ not_tested nodes: {len(not_tested_nodes)}")
+        print(f"❌ ping_failed nodes: {len(ping_failed_nodes)}")
+        print(f"🟢 online nodes: {len(online_nodes)}")
+        
+        # Step 4: Test SOCKS start with valid nodes (ping_ok or speed_ok)
+        print("\n🔍 STEP 4: SOCKS START WITH VALID NODES")
+        
+        valid_nodes = speed_ok_nodes[:3] + ping_ok_nodes[:3]  # Take up to 6 nodes
+        if len(valid_nodes) >= 3:
+            valid_node_ids = [n['id'] for n in valid_nodes[:6]]
+            print(f"🎯 Testing SOCKS start with {len(valid_node_ids)} valid nodes (ping_ok/speed_ok)")
+            
+            # Show node details before SOCKS start
+            print("📋 Nodes before SOCKS start:")
+            for i, node in enumerate(valid_nodes[:6], 1):
+                print(f"   {i}. Node {node['id']}: {node['ip']} - Status: {node['status']}")
+            
+            # Test SOCKS start
+            start_result = self.test_socks_start_services_valid_nodes(valid_node_ids)
+            
+            if start_result:
+                # Check nodes after SOCKS start
+                print("\n📋 Checking nodes after SOCKS start:")
+                for node_id in valid_node_ids:
+                    success, response = self.make_request('GET', f'nodes/{node_id}')
+                    if success:
+                        print(f"   Node {node_id}: {response['ip']} - Status: {response['status']} - SOCKS Port: {response.get('socks_port', 'None')}")
+                
+                # Check active proxies
+                print("\n🔍 Checking active SOCKS proxies:")
+                active_proxies = self.test_socks_active_proxies_endpoint()
+                
+                # Check proxy file
+                print("\n🔍 Checking proxy file content:")
+                self.test_socks_proxy_file_endpoint()
+                
+                # Test SOCKS stop to clean up
+                print("\n🧹 Cleaning up - stopping SOCKS services:")
+                online_nodes_after = [n['id'] for n in valid_nodes if n.get('status') == 'online']
+                if online_nodes_after:
+                    self.test_socks_stop_services_smart_restoration(online_nodes_after)
+        else:
+            print("⚠️ Not enough valid nodes (ping_ok/speed_ok) for SOCKS testing")
+        
+        # Step 5: Test SOCKS start with invalid nodes
+        print("\n🔍 STEP 5: SOCKS START WITH INVALID NODES")
+        
+        if ping_failed_nodes:
+            invalid_node_ids = [n['id'] for n in ping_failed_nodes[:3]]
+            print(f"🎯 Testing SOCKS start with {len(invalid_node_ids)} invalid nodes (ping_failed)")
+            self.test_socks_start_services_invalid_status(invalid_node_ids)
+        
+        if not_tested_nodes:
+            not_tested_ids = [n['id'] for n in not_tested_nodes[:3]]
+            print(f"🎯 Testing SOCKS start with {len(not_tested_ids)} not_tested nodes")
+            self.test_socks_start_services_invalid_status(not_tested_ids)
+        
+        # Step 6: Test edge cases
+        print("\n🔍 STEP 6: EDGE CASES TESTING")
+        self.test_socks_error_handling_invalid_node_ids()
+        self.test_socks_error_handling_empty_requests()
+        
+        # Step 7: Final system state
+        print("\n🔍 STEP 7: FINAL SYSTEM STATE")
+        final_stats = self.test_socks_stats_endpoint()
+        final_proxies = self.test_socks_active_proxies_endpoint()
+        
+        # Summary
+        print("\n" + "=" * 80)
+        print("🏁 RUSSIAN USER SOCKS INVESTIGATION COMPLETE")
+        print(f"📊 Tests Run: {self.tests_run}, Passed: {self.tests_passed}")
+        
+        if final_stats:
+            print(f"📈 Final SOCKS Stats:")
+            print(f"   Online SOCKS: {final_stats.get('online_socks', 0)}")
+            print(f"   Active Connections: {final_stats.get('active_connections', 0)}")
+            print(f"   Total Tunnels: {final_stats.get('total_tunnels', 0)}")
+        
+        print(f"🔗 Active Proxies: {len(final_proxies) if final_proxies else 0}")
+        
+        # Determine if issue is resolved
+        success_rate = (self.tests_passed / self.tests_run) * 100 if self.tests_run > 0 else 0
+        
+        if success_rate >= 75:
+            print("✅ SOCKS functionality appears to be working correctly")
+            print("💡 User issue may be related to:")
+            print("   - Nodes not having required status (ping_ok or speed_ok)")
+            print("   - Frontend UI interaction issues")
+            print("   - User workflow misunderstanding")
+        else:
+            print("❌ CRITICAL SOCKS ISSUES DETECTED")
+            print("🚨 Backend SOCKS functionality has problems")
+        
+        return success_rate >= 75
+
     def run_comprehensive_tests(self):
         """Run comprehensive test suite for SQLite optimization review"""
         print("🚀 Starting Connexa Admin Panel Comprehensive Testing - SQLite Optimization Review")
