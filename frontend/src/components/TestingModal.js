@@ -537,11 +537,11 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], onTestComplete })
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
                 <div>
                   <label className="block text-xs text-gray-600 mb-1">Параллелизм (Ping)</label>
-                  <input type="number" min={1} max={20} value={pingConcurrency} onChange={e => setPingConcurrency(parseInt(e.target.value) || 3)} className="w-full border rounded px-2 py-1" />
+                  <input type="number" min={1} max={50} value={pingConcurrency} onChange={e => setPingConcurrency(parseInt(e.target.value) || 15)} className="w-full border rounded px-2 py-1" />
                 </div>
                 <div>
                   <label className="block text-xs text-gray-600 mb-1">Параллелизм (Speed)</label>
-                  <input type="number" min={1} max={5} value={speedConcurrency} onChange={e => setSpeedConcurrency(parseInt(e.target.value) || 1)} className="w-full border rounded px-2 py-1" />
+                  <input type="number" min={1} max={20} value={speedConcurrency} onChange={e => setSpeedConcurrency(parseInt(e.target.value) || 8)} className="w-full border rounded px-2 py-1" />
                 </div>
                 <div>
                   <label className="block text-xs text-gray-600 mb-1">Таймауты Ping (сек, через запятую)</label>
