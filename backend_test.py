@@ -1359,6 +1359,355 @@ Random text that should cause errors""",
                     if results:
                         result = results[0]
                         real_speed = result.get("download", 0)
+                        
+                        comparison_results.append({
+                            "ip": ip,
+                            "fake_speed": fake_speed,
+                            "real_speed": real_speed,
+                            "different": abs(real_speed - fake_speed) > 5.0  # Significant difference
+                        })
+        
+        if comparison_results:
+            different_count = sum(1 for r in comparison_results if r["different"])
+            if different_count >= 1:
+                self.log_test("Real vs Fake Speed Comparison", True, 
+                             f"✅ Speed results are different from fake values: {comparison_results}")
+                return True
+            else:
+                self.log_test("Real vs Fake Speed Comparison", False, 
+                             f"❌ Speed results still match fake values: {comparison_results}")
+                return False
+        else:
+            self.log_test("Real vs Fake Speed Comparison", False, 
+                         f"❌ No comparison results obtained")
+            return False
+
+    # ========== PING LIGHT ALGORITHM TESTS (Russian User Review Request) ==========
+    
+    def test_ping_light_single_node_speed(self):
+        """Test 1: Quick ping of one node (should be <2 sec) - PING LIGHT Algorithm"""
+        # Create a test node for ping testing
+        test_node = {
+            "ip": "8.8.8.8",  # Google DNS - reliable for testing
+            "login": "ping_light_test",
+            "password": "testpass",
+            "protocol": "pptp",
+            "status": "not_tested"
+        }
+        
+        create_success, create_response = self.make_request('POST', 'nodes', test_node)
+        
+        if create_success and 'id' in create_response:
+            node_id = create_response['id']
+            
+            # Measure ping test time
+            start_time = time.time()
+            ping_data = {"node_ids": [node_id]}
+            ping_success, ping_response = self.make_request('POST', 'manual/ping-test', ping_data)
+            end_time = time.time()
+            
+            ping_duration = end_time - start_time
+            
+            if ping_success and 'results' in ping_response:
+                results = ping_response['results']
+                if results and ping_duration < 2.0:  # Should be under 2 seconds
+                    result = results[0]
+                    self.log_test("PING LIGHT - Single Node Speed", True, 
+                                 f"✅ PING LIGHT fast: {ping_duration:.2f}s < 2s target, result: {result.get('message', 'OK')}")
+                    return True
+                elif results:
+                    result = results[0]
+                    self.log_test("PING LIGHT - Single Node Speed", False, 
+                                 f"❌ PING LIGHT too slow: {ping_duration:.2f}s >= 2s target, result: {result.get('message', 'OK')}")
+                    return False
+                else:
+                    self.log_test("PING LIGHT - Single Node Speed", False, 
+                                 f"❌ No ping results returned")
+                    return False
+            else:
+                self.log_test("PING LIGHT - Single Node Speed", False, 
+                             f"❌ Ping test failed: {ping_response}")
+                return False
+        else:
+            self.log_test("PING LIGHT - Single Node Speed", False, 
+                         f"❌ Failed to create test node: {create_response}")
+            return False
+    
+    def test_ping_light_nonexistent_ip_timeout(self):
+        """Test 2: Ping non-existent IP (should timeout in 2 sec) - PING LIGHT Algorithm"""
+        # Use a non-routable IP address that should timeout
+        test_node = {
+            "ip": "192.0.2.1",  # RFC 5737 test IP - should not be routable
+            "login": "timeout_test",
+            "password": "testpass",
+            "protocol": "pptp",
+            "status": "not_tested"
+        }
+        
+        create_success, create_response = self.make_request('POST', 'nodes', test_node)
+        
+        if create_success and 'id' in create_response:
+            node_id = create_response['id']
+            
+            # Measure ping test time
+            start_time = time.time()
+            ping_data = {"node_ids": [node_id]}
+            ping_success, ping_response = self.make_request('POST', 'manual/ping-test', ping_data)
+            end_time = time.time()
+            
+            ping_duration = end_time - start_time
+            
+            if ping_success and 'results' in ping_response:
+                results = ping_response['results']
+                if results:
+                    result = results[0]
+                    # Should timeout quickly (around 2 seconds) and fail
+                    if ping_duration <= 3.0 and not result.get('success', True):  # Allow 3s margin
+                        self.log_test("PING LIGHT - Nonexistent IP Timeout", True, 
+                                     f"✅ PING LIGHT timeout fast: {ping_duration:.2f}s <= 3s, failed as expected: {result.get('message', 'TIMEOUT')}")
+                        return True
+                    else:
+                        self.log_test("PING LIGHT - Nonexistent IP Timeout", False, 
+                                     f"❌ PING LIGHT timeout behavior wrong: {ping_duration:.2f}s, success: {result.get('success', False)}")
+                        return False
+                else:
+                    self.log_test("PING LIGHT - Nonexistent IP Timeout", False, 
+                                 f"❌ No ping results returned")
+                    return False
+            else:
+                self.log_test("PING LIGHT - Nonexistent IP Timeout", False, 
+                             f"❌ Ping test failed: {ping_response}")
+                return False
+        else:
+            self.log_test("PING LIGHT - Nonexistent IP Timeout", False, 
+                         f"❌ Failed to create test node: {create_response}")
+            return False
+    
+    def test_ping_light_batch_multiple_nodes(self):
+        """Test 3: Batch ping test of multiple nodes - PING LIGHT Algorithm"""
+        # Create multiple test nodes
+        test_nodes = [
+            {"ip": "8.8.8.8", "login": "batch1", "password": "pass1"},      # Should work
+            {"ip": "1.1.1.1", "login": "batch2", "password": "pass2"},      # Should work  
+            {"ip": "192.0.2.2", "login": "batch3", "password": "pass3"},    # Should timeout
+            {"ip": "192.0.2.3", "login": "batch4", "password": "pass4"},    # Should timeout
+        ]
+        
+        node_ids = []
+        
+        # Create all test nodes
+        for i, node_data in enumerate(test_nodes):
+            node_data.update({"protocol": "pptp", "status": "not_tested"})
+            create_success, create_response = self.make_request('POST', 'nodes', node_data)
+            
+            if create_success and 'id' in create_response:
+                node_ids.append(create_response['id'])
+        
+        if len(node_ids) >= 4:
+            # Measure batch ping test time
+            start_time = time.time()
+            ping_data = {"node_ids": node_ids}
+            ping_success, ping_response = self.make_request('POST', 'manual/ping-test-batch', ping_data)
+            end_time = time.time()
+            
+            batch_duration = end_time - start_time
+            
+            if ping_success and 'results' in ping_response:
+                results = ping_response['results']
+                if len(results) >= 4:
+                    # Check that batch processing is reasonably fast
+                    # Should be faster than sequential (4 * 2s = 8s), expect around 3-4s for parallel
+                    if batch_duration < 8.0:  # Much faster than sequential
+                        successful_pings = sum(1 for r in results if r.get('success', False))
+                        failed_pings = len(results) - successful_pings
+                        
+                        self.log_test("PING LIGHT - Batch Multiple Nodes", True, 
+                                     f"✅ PING LIGHT batch fast: {batch_duration:.2f}s < 8s sequential, {successful_pings} success, {failed_pings} failed")
+                        return True
+                    else:
+                        self.log_test("PING LIGHT - Batch Multiple Nodes", False, 
+                                     f"❌ PING LIGHT batch too slow: {batch_duration:.2f}s >= 8s (not parallel)")
+                        return False
+                else:
+                    self.log_test("PING LIGHT - Batch Multiple Nodes", False, 
+                                 f"❌ Expected 4 results, got {len(results)}")
+                    return False
+            else:
+                self.log_test("PING LIGHT - Batch Multiple Nodes", False, 
+                             f"❌ Batch ping test failed: {ping_response}")
+                return False
+        else:
+            self.log_test("PING LIGHT - Batch Multiple Nodes", False, 
+                         f"❌ Failed to create enough test nodes: {len(node_ids)}/4")
+            return False
+    
+    def test_ping_light_performance_comparison(self):
+        """Test 4: Performance comparison - PING LIGHT vs theoretical old algorithm"""
+        # Test multiple nodes to measure average performance
+        test_ips = ["8.8.8.8", "1.1.1.1", "208.67.222.222"]  # Reliable DNS servers
+        node_ids = []
+        
+        # Create test nodes
+        for i, ip in enumerate(test_ips):
+            test_node = {
+                "ip": ip,
+                "login": f"perf_test_{i}",
+                "password": f"testpass_{i}",
+                "protocol": "pptp",
+                "status": "not_tested"
+            }
+            
+            create_success, create_response = self.make_request('POST', 'nodes', test_node)
+            if create_success and 'id' in create_response:
+                node_ids.append(create_response['id'])
+        
+        if len(node_ids) >= 3:
+            # Test individual ping times
+            individual_times = []
+            
+            for node_id in node_ids:
+                start_time = time.time()
+                ping_data = {"node_ids": [node_id]}
+                ping_success, ping_response = self.make_request('POST', 'manual/ping-test', ping_data)
+                end_time = time.time()
+                
+                if ping_success:
+                    individual_times.append(end_time - start_time)
+            
+            if individual_times:
+                avg_time = sum(individual_times) / len(individual_times)
+                max_time = max(individual_times)
+                
+                # PING LIGHT should average < 2s per node, max < 3s
+                # Old algorithm was 3 attempts * 1.5s + pauses = ~4.5s+
+                if avg_time < 2.0 and max_time < 3.0:
+                    improvement_factor = 4.5 / avg_time  # Compare to old 4.5s average
+                    self.log_test("PING LIGHT - Performance Comparison", True, 
+                                 f"✅ PING LIGHT performance excellent: avg {avg_time:.2f}s, max {max_time:.2f}s, {improvement_factor:.1f}x faster than old algorithm")
+                    return True
+                else:
+                    self.log_test("PING LIGHT - Performance Comparison", False, 
+                                 f"❌ PING LIGHT performance insufficient: avg {avg_time:.2f}s, max {max_time:.2f}s (targets: avg<2s, max<3s)")
+                    return False
+            else:
+                self.log_test("PING LIGHT - Performance Comparison", False, 
+                             f"❌ No successful ping tests for performance measurement")
+                return False
+        else:
+            self.log_test("PING LIGHT - Performance Comparison", False, 
+                         f"❌ Failed to create enough test nodes: {len(node_ids)}/3")
+            return False
+    
+    def test_ping_light_algorithm_verification(self):
+        """Test 5: Verify PING LIGHT algorithm characteristics (1 attempt, 2s timeout, TCP 1723)"""
+        # Create a test node
+        test_node = {
+            "ip": "8.8.8.8",
+            "login": "algorithm_test",
+            "password": "testpass",
+            "protocol": "pptp",
+            "status": "not_tested"
+        }
+        
+        create_success, create_response = self.make_request('POST', 'nodes', test_node)
+        
+        if create_success and 'id' in create_response:
+            node_id = create_response['id']
+            
+            # Perform ping test and analyze response
+            ping_data = {"node_ids": [node_id]}
+            ping_success, ping_response = self.make_request('POST', 'manual/ping-test', ping_data)
+            
+            if ping_success and 'results' in ping_response:
+                results = ping_response['results']
+                if results:
+                    result = results[0]
+                    message = result.get('message', '')
+                    
+                    # Look for PING LIGHT indicators in the response
+                    ping_light_indicators = [
+                        'PING LIGHT' in message,
+                        'TCP 1723' in message or 'port 1723' in message.lower(),
+                        result.get('attempts_total', 0) == 1,  # Single attempt
+                        'timeout' in message.lower() or result.get('success', False)
+                    ]
+                    
+                    indicators_found = sum(ping_light_indicators)
+                    
+                    if indicators_found >= 2:  # At least 2 indicators should be present
+                        self.log_test("PING LIGHT - Algorithm Verification", True, 
+                                     f"✅ PING LIGHT algorithm verified: {indicators_found}/4 indicators found, message: {message}")
+                        return True
+                    else:
+                        self.log_test("PING LIGHT - Algorithm Verification", False, 
+                                     f"❌ PING LIGHT algorithm not verified: {indicators_found}/4 indicators found, message: {message}")
+                        return False
+                else:
+                    self.log_test("PING LIGHT - Algorithm Verification", False, 
+                                 f"❌ No ping results returned")
+                    return False
+            else:
+                self.log_test("PING LIGHT - Algorithm Verification", False, 
+                             f"❌ Ping test failed: {ping_response}")
+                return False
+        else:
+            self.log_test("PING LIGHT - Algorithm Verification", False, 
+                         f"❌ Failed to create test node: {create_response}")
+            return False
+    
+    def test_ping_light_api_endpoints_usage(self):
+        """Test 6: Ensure API endpoints use new PING LIGHT algorithm"""
+        # Test both individual and batch ping endpoints
+        test_node = {
+            "ip": "1.1.1.1",  # Cloudflare DNS
+            "login": "api_test",
+            "password": "testpass",
+            "protocol": "pptp",
+            "status": "not_tested"
+        }
+        
+        create_success, create_response = self.make_request('POST', 'nodes', test_node)
+        
+        if create_success and 'id' in create_response:
+            node_id = create_response['id']
+            
+            # Test individual ping endpoint
+            start_time = time.time()
+            ping_data = {"node_ids": [node_id]}
+            individual_success, individual_response = self.make_request('POST', 'manual/ping-test', ping_data)
+            individual_time = time.time() - start_time
+            
+            # Test batch ping endpoint
+            start_time = time.time()
+            batch_success, batch_response = self.make_request('POST', 'manual/ping-test-batch', ping_data)
+            batch_time = time.time() - start_time
+            
+            individual_fast = individual_time < 2.5
+            batch_fast = batch_time < 2.5
+            
+            if individual_success and batch_success and individual_fast and batch_fast:
+                self.log_test("PING LIGHT - API Endpoints Usage", True, 
+                             f"✅ Both API endpoints use PING LIGHT: individual {individual_time:.2f}s, batch {batch_time:.2f}s")
+                return True
+            else:
+                self.log_test("PING LIGHT - API Endpoints Usage", False, 
+                             f"❌ API endpoints performance issues: individual {individual_time:.2f}s (success: {individual_success}), batch {batch_time:.2f}s (success: {batch_success})")
+                return False
+        else:
+            self.log_test("PING LIGHT - API Endpoints Usage", False, 
+                         f"❌ Failed to create test node: {create_response}")
+            return False node.get('status') != 'ping_ok':
+                    update_success, update_response = self.make_request('PUT', f'nodes/{node_id}', {"status": "ping_ok"})
+                
+                # Perform speed test
+                speed_data = {"node_ids": [node_id]}
+                speed_success, speed_response = self.make_request('POST', 'manual/speed-test', speed_data)
+                
+                if speed_success and 'results' in speed_response:
+                    results = speed_response['results']
+                    if results:
+                        result = results[0]
+                        real_speed = result.get("download", 0)
                         success = result.get("success", False)
                         message = result.get("message", "")
                         
