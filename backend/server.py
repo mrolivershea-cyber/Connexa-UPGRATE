@@ -681,7 +681,7 @@ async def import_nodes(
             "queued_for_verification": queued_count,
             "format_errors": format_errors_count,
             "processing_errors": processing_errors_count,
-            "testing_mode": data.testing_mode,
+            "testing_mode": "no_test",  # Always no_test in simplified mode
             "smart_summary": smart_message,
             "details": results
         }
@@ -690,7 +690,7 @@ async def import_nodes(
             "success": True,
             "message": smart_message,
             "report": report,
-            "session_id": session_id if data.testing_mode != "no_test" else None
+            "session_id": None  # No session_id in simplified mode
         }
         
     except Exception as e:
