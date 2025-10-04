@@ -227,6 +227,7 @@ const UnifiedImportModal = ({ isOpen, onClose, onComplete }) => {
             clearInterval(progressInterval);
           }
           setSubmitting(false);
+          setIsImportActive(false);
           setSessionId(null);
           toast.error('❌ Ошибка импорта: ' + (progressData.message || 'Неизвестная ошибка'));
           return;
