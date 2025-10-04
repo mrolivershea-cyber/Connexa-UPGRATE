@@ -283,9 +283,9 @@ class PPTPTester:
             }
 
 # Async helper functions for server integration (kept for compatibility)
-async def test_node_ping(ip: str, fast_mode: bool = False) -> Dict:
-    """Legacy: PPTP port 1723 ping"""
-    return await PPTPTester.ping_test(ip, fast_mode=fast_mode)
+async def test_node_ping(ip: str, fast_mode: bool = True) -> Dict:
+    """PING LIGHT - быстрая проверка TCP соединения к порту 1723"""
+    return await PPTPTester.ping_test(ip, timeout=2, fast_mode=fast_mode)
 
 async def test_node_speed(ip: str, sample_kb: int = 32, timeout_total: int = 2) -> Dict:
     """РЕАЛЬНЫЙ speed test через HTTP запросы с быстрыми таймаутами"""
