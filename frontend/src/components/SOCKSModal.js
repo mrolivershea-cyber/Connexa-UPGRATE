@@ -68,7 +68,6 @@ const SOCKSModal = ({ isOpen, onClose, selectedNodeIds = [] }) => {
   // Загрузка данных при открытии модала
   useEffect(() => {
     if (isOpen) {
-      console.log('SOCKSModal: selectedNodeIds changed:', selectedNodeIds);
       loadSOCKSData();
       loadSelectedNodesInfo();
     }

@@ -189,11 +189,9 @@ const AdminPanel = () => {
   const handleSelectNode = (nodeId) => {
     setSelectedNodes(prev => {
       const isCurrentlySelected = prev.includes(nodeId);
-      console.log('AdminPanel: selecting/deselecting node', nodeId, 'current state:', prev);
       if (isCurrentlySelected) {
         // Deselecting node
         const newSelected = prev.filter(id => id !== nodeId);
-        console.log('AdminPanel: new selectedNodes after deselect:', newSelected);
         
         // If we're in select all mode, remove from allSelectedIds too
         if (selectAllMode) {
@@ -208,7 +206,6 @@ const AdminPanel = () => {
       } else {
         // Selecting node
         const newSelected = [...prev, nodeId];
-        console.log('AdminPanel: new selectedNodes after select:', newSelected);
         
         // If we're in select all mode, add to allSelectedIds too
         if (selectAllMode) {
