@@ -222,6 +222,7 @@ const UnifiedImportModal = ({ isOpen, onClose, onComplete }) => {
           setSubmitting(false);
           setIsImportActive(false);
           setSessionId(null);
+          localStorage.removeItem('activeImportSession');
           
           if (progressData.status === 'completed') {
             setPreviewResult({
