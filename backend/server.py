@@ -3462,8 +3462,10 @@ async def start_socks_services(
             # Save previous status for proper restoration later
             node.previous_status = node.status  # Save current status (ping_ok or speed_ok)
             
-            # Update node with SOCKS data - SOCKS server runs ON THE NODE itself
-            node.socks_ip = node.ip  # Use node's actual IP for external access
+            # SOCKS server runs ON ADMIN SERVER (acts as proxy to nodes)  
+            # Architecture: Client → SOCKS(admin server) → Node(PPTP/SSH/OVPN) → Internet
+            admin_server_ip = os.environ.get('ADMIN_SERVER_IP', '127.0.0.1')  # External IP of admin server
+            node.socks_ip = admin_server_ip
             node.socks_port = socks_port
             node.socks_login = login_prefix
             node.socks_password = password
