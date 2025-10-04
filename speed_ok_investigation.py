@@ -161,7 +161,17 @@ class SpeedOKInvestigator:
                         }
                         print(f"  🚀 SPEED TEST: {'✅ PASS' if speed_result.get('success') else '❌ FAIL'} - {speed_result.get('message', '')}")
                         if speed_result.get("success"):
-                            print(f"    📊 Speed: {speed_result.get('download', 0)} Mbps down, {speed_result.get('upload', 0)} Mbps up")
+                            download = speed_result.get('download', 0)
+                            upload = speed_result.get('upload', 0)
+                            print(f"    📊 Speed: {download} Mbps down, {upload} Mbps up")
+                            # CRITICAL: Check if speeds are suspiciously zero
+                            if download == 0 and upload == 0:
+                                print(f"    🚨 CRITICAL: Zero speeds detected - possible fake speed test result!")
+                        else:
+                            print(f"    🚨 Speed test failed: {speed_result}")
+                        
+                        # Print full speed test response for debugging
+                        print(f"    🔍 Full speed response: {speed_response}")
                     else:
                         result["speed_test"] = {"success": False, "message": f"API call failed: {speed_response}"}
                         print(f"  🚀 SPEED TEST: ❌ API FAILED - {speed_response}")
