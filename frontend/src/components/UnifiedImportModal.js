@@ -164,6 +164,7 @@ const UnifiedImportModal = ({ isOpen, onClose, onComplete }) => {
       await axios.delete(`${API}/import/cancel/${sessionId}`);
       toast.info('⏹️ Импорт отменён');
       setSubmitting(false);
+      setIsImportActive(false);
       setProgress(null);
       setSessionId(null);
     } catch (error) {
