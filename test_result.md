@@ -114,6 +114,53 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
+  - task: "SOCKS Service Launch System - Frontend UI Components"
+    implemented: false
+    working: "NA"
+    file: "AdminPanel.js, SOCKSModal.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "НАЧАЛО РЕАЛИЗАЦИИ SOCKS СИСТЕМЫ (2025-01-08): Создание UI компонентов для SOCKS управления. ПЛАН: 1) Добавить кнопку 'SOCKS' после 'Testing' в AdminPanel, 2) Добавить статистику 'Socks Online' после 'Online', 3) Создать SOCKSModal с настройками маскировки, производительности и безопасности, 4) Интегрировать управление SOCKS сервисами."
+
+  - task: "SOCKS Service Launch System - Backend API"
+    implemented: false
+    working: "NA"
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Создание backend API для SOCKS управления: /api/socks/start, /api/socks/stop, /api/socks/status, /api/socks/config endpoints."
+
+  - task: "SOCKS5 Server with Traffic Masking"
+    implemented: false
+    working: "NA"
+    file: "socks_server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Реализация локального SOCKS5 сервера с обфускацией протокола, имитацией HTTP/HTTPS, рандомизацией timing patterns и шифрованием туннеля."
+
+  - task: "SOCKS Database and Monitoring System"
+    implemented: false
+    working: "NA"
+    file: "socks_database.py, monitoring.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Создание отдельной БД для SOCKS логов и статистики, система мониторинга каждые 30 секунд, автоматическое управление текстовым файлом прокси."
 user_problem_statement: "SOCKS Service Launch System Implementation: Implement complete SOCKS/OVPN service launch functionality with local SOCKS5 server, traffic masking, and management UI. Requirements: 1) Add 'SOCKS' button after 'Testing' in AdminPanel, 2) Create SOCKS modal with masking settings (obfuscation, HTTP/HTTPS imitation, timing randomization, tunnel encryption), 3) Add 'Socks Online' stats card, 4) Implement local SOCKS5 server with non-standard port, 5) Add separate SOCKS database for logs/reports, 6) Monitoring system every 30 seconds, 7) Auto-manage proxy text file, 8) Use existing SOCKS fields in nodes table (socks_ip, socks_port, socks_login, socks_password), 9) Status transitions: ping_ok/speed_ok → online (remove speed_slow status)."
 
 backend:
