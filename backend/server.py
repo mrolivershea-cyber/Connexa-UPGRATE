@@ -2856,8 +2856,8 @@ async def process_testing_batches(session_id: str, node_ids: list, testing_mode:
                 logger.error(f"❌ Testing batch commit error: {commit_error}")
                 db.rollback()
             
-            # Small delay between batches to prevent system overload
-            await asyncio.sleep(2)
+            # УВЕЛИЧЕНА задержка между батчами для предотвращения перегрузки
+            await asyncio.sleep(3)
             
             logger.info(f"✅ Testing batch {batch_start//BATCH_SIZE + 1} completed: {len(current_batch)} nodes processed")
     
