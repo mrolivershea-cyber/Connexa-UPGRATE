@@ -561,25 +561,53 @@ const SOCKSModal = ({ isOpen, onClose, selectedNodeIds = [] }) => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="flex gap-2">
-                  <Button 
-                    onClick={handleStartSocks}
-                    disabled={loading || selectedNodeIds.length === 0}
-                    className="bg-green-600 hover:bg-green-700 flex-1"
-                  >
-                    <Zap className="h-4 w-4 mr-2" />
-                    Старт SOCKS
-                  </Button>
-                  <Button 
-                    onClick={handleStopSocks}
-                    disabled={loading || selectedNodeIds.length === 0}
-                    variant="destructive"
-                    className="flex-1"
-                  >
-                    <Server className="h-4 w-4 mr-2" />
-                    Стоп SOCKS
-                  </Button>
-                </div>
+                {(() => {
+                  // Анализируем статусы выбранных узлов
+                  const validNodes = selectedNodesInfo.filter(({ data }) => 
+                    data && ['ping_ok', 'speed_ok'].includes(data.status)
+                  );
+                  const onlineNodes = selectedNodesInfo.filter(({ data }) => 
+                    data && data.status === 'online'
+                  );
+                  
+                  return (
+                    <div className="space-y-2">
+                      {/* Основные кнопки */}
+                      <div className="flex gap-2">
+                        <Button 
+                          onClick={handleStartSocks}
+                          disabled={loading || selectedNodeIds.length === 0 || validNodes.length === 0}
+                          className="bg-green-600 hover:bg-green-700 flex-1"
+                        >
+                          <Zap className="h-4 w-4 mr-2" />
+                          Старт SOCKS ({validNodes.length})
+                        </Button>
+                        <Button 
+                          onClick={handleStopSocks}
+                          disabled={loading || selectedNodeIds.length === 0}
+                          variant="destructive"
+                          className="flex-1"
+                        >
+                          <Server className="h-4 w-4 mr-2" />
+                          Стоп SOCKS
+                        </Button>
+                      </div>
+                      
+                      {/* Кнопка перезапуска для онлайн узлов */}
+                      {onlineNodes.length > 0 && (
+                        <Button 
+                          onClick={handleRestartSocks}
+                          disabled={loading || selectedNodeIds.length === 0}
+                          variant="outline"
+                          className="w-full border-blue-300 text-blue-700 hover:bg-blue-50"
+                        >
+                          <Activity className="h-4 w-4 mr-2" />
+                          Перезапуск SOCKS ({onlineNodes.length} узлов)
+                        </Button>
+                      )}
+                    </div>
+                  );
+                })()}
               </CardContent>
             </Card>
 
