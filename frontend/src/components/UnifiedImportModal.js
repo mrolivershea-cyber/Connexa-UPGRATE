@@ -113,7 +113,7 @@ const UnifiedImportModal = ({ isOpen, onClose, onComplete }) => {
             </DialogTitle>
           </div>
           <DialogDescription>
-            Вставьте данные конфигураций. Прогресс тестирования в этом окне не отображается — см. модалку Testing.
+            Вставьте данные конфигураций. Все новые узлы получат статус "Not Tested". Для тестирования используйте кнопку "Testing".
           </DialogDescription>
         </DialogHeader>
 
