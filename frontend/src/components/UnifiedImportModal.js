@@ -79,6 +79,9 @@ const UnifiedImportModal = ({ isOpen, onClose, onComplete }) => {
       return;
     }
 
+    const dataSize = new Blob([importData]).size;
+    const isLarge = dataSize > 500 * 1024; // 500KB
+
     setSubmitting(true);
     try {
       const response = await axios.post(`${API}/nodes/import`, {
@@ -87,7 +90,7 @@ const UnifiedImportModal = ({ isOpen, onClose, onComplete }) => {
         testing_mode: 'no_test'  // Always no_test in simplified mode
       });
 
-      const { success, report, message } = response.data || {};
+      const { success, report, message, session_id } = response.data || {};
 
       if (!success) {
         toast.error(message || 'Ошибка импорта');
@@ -95,15 +98,21 @@ const UnifiedImportModal = ({ isOpen, onClose, onComplete }) => {
         return;
       }
 
-      // Показать краткий отчёт импорта
+      // If chunked processing was used
+      if (session_id) {
+        setSessionId(session_id);
+        toast.success('🚀 Запущена обработка большого файла...');
+        startProgressTracking(session_id);
+        return;
+      }
+
+      // Regular processing completed
       setPreviewResult(report || null);
       setShowPreview(true);
 
-      // Простое сообщение об успешном импорте
       toast.success(`✅ Импорт завершён: ${report?.added || 0} добавлено, ${report?.skipped_duplicates || 0} дубликатов`);
       toast.info('📊 Для тестирования используйте кнопку "Testing" в админ-панели');
       
-      // Закрываем модальное окно через небольшую задержку
       setTimeout(() => {
         onClose();
       }, 2000);
@@ -114,8 +123,62 @@ const UnifiedImportModal = ({ isOpen, onClose, onComplete }) => {
       const errorMsg = error.response?.data?.message || 'Не удалось импортировать данные';
       toast.error(errorMsg);
     } finally {
-      setSubmitting(false);
+      if (!sessionId) {
+        setSubmitting(false);
+      }
     }
+  };
+
+  const startProgressTracking = (sessionId) => {
+    const trackProgress = async () => {
+      try {
+        const response = await axios.get(`${API}/import/progress/${sessionId}`);
+        const progressData = response.data;
+        
+        setProgress(progressData);
+        
+        if (progressData.status === 'completed') {
+          setSubmitting(false);
+          setPreviewResult({
+            added: progressData.added,
+            skipped_duplicates: progressData.skipped,
+            replaced_old: progressData.replaced,
+            format_errors: progressData.errors
+          });
+          setShowPreview(true);
+          
+          toast.success(`✅ Импорт большого файла завершён: ${progressData.added} добавлено, ${progressData.skipped} дубликатов`);
+          toast.info('📊 Для тестирования используйте кнопку "Testing" в админ-панели');
+          
+          setTimeout(() => {
+            onClose();
+          }, 3000);
+          
+          if (onComplete) {
+            onComplete({
+              added: progressData.added,
+              skipped_duplicates: progressData.skipped,
+              replaced_old: progressData.replaced
+            });
+          }
+          return;
+        } else if (progressData.status === 'failed') {
+          setSubmitting(false);
+          toast.error(`Ошибка импорта: ${progressData.current_operation}`);
+          return;
+        }
+        
+        // Continue tracking
+        setTimeout(trackProgress, 2000);
+      } catch (error) {
+        console.error('Progress tracking error:', error);
+        setSubmitting(false);
+        toast.error('Ошибка отслеживания прогресса импорта');
+      }
+    };
+    
+    // Start tracking after small delay
+    setTimeout(trackProgress, 1000);
   };
 
   return (
