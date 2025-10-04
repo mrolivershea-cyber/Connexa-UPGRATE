@@ -52,50 +52,39 @@ async def tcp_connect_measure(ip: str, port: int, per_attempt_timeout: float) ->
         return False, per_attempt_timeout * 1000.0, f"EXC:{str(e)}"
 
 async def multiport_tcp_ping(ip: str, ports: List[int], timeouts: List[float]) -> Dict:
-    """Reachability test across one or more ports with exactly len(timeouts) attempts total.
-    For each timeout in timeouts, run a parallel connect across provided ports with that per-attempt timeout.
-    Early-exit on sufficient success signal. This caps attempts to len(timeouts) (e.g., 3).
-    """
-    total_ok = 0
-    total_attempts = 0
-    best_ms: Optional[float] = None
-    details: Dict[int, Dict[str, Optional[float]]] = {}
-
-    probe_ports = ports[:1] if ports else [1723]  # ТОЛЬКО первый порт для максимальной скорости
-
-    for idx, t in enumerate(timeouts):
-        tasks = [tcp_connect_measure(ip, p, t) for p in probe_ports]
-        results = await asyncio.gather(*tasks)
-        any_ok_this_round = False
-        for p, (ok, elapsed, err) in zip(probe_ports, results):
-            total_attempts += 1
-            rec = details.setdefault(p, {"ok": 0, "fail": 0, "best_ms": None})
-            if ok:
-                rec["ok"] += 1
-                total_ok += 1
-                any_ok_this_round = True
-                if rec["best_ms"] is None or elapsed < float(rec["best_ms"] or 1e9):
-                    rec["best_ms"] = elapsed
-                if best_ms is None or elapsed < best_ms:
-                    best_ms = elapsed
-                # НЕМЕДЛЕННЫЙ EXIT при первом успехе для скорости
-                return {
-                    "success": True,
-                    "avg_time": round(elapsed, 1),
-                    "best_time": round(elapsed, 1),
-                    "success_rate": 100.0,
-                    "attempts_total": total_attempts,
-                    "attempts_ok": total_ok,
-                    "details": details,
-                    "message": f"TCP reachability: OK (FAST); {elapsed:.1f}ms",
-                }
-            else:
-                rec["fail"] += 1
-        # Быстрый early-exit при первом успехе
-        if total_ok >= 1:
-            break
-        if not any_ok_this_round and idx < len(timeouts) - 1:
-            await asyncio.sleep(0.02)  # Сокращено время ожидания
+    """СВЕРХ-БЫСТРЫЙ ping тест - один порт, один таймаут, немедленный результат"""
+    
+    # МАКСИМАЛЬНОЕ УПРОЩЕНИЕ: только первый порт, только первый таймаут
+    port = ports[0] if ports else 1723
+    timeout = 0.5  # АГРЕССИВНО короткий таймаут
+    
+    # ЕДИНСТВЕННАЯ попытка подключения
+    ok, elapsed, err = await tcp_connect_measure(ip, port, timeout)
+    
+    if ok:
+        # НЕМЕДЛЕННЫЙ успех
+        return {
+            "success": True,
+            "avg_time": round(elapsed, 1),
+            "best_time": round(elapsed, 1),
+            "success_rate": 100.0,
+            "attempts_total": 1,
+            "attempts_ok": 1,
+            "details": {port: {"ok": 1, "fail": 0, "best_ms": elapsed}},
+            "message": f"TCP reachability: OK (ULTRA-FAST); {elapsed:.1f}ms",
+        }
+    else:
+        # НЕМЕДЛЕННАЯ неудача
+        return {
+            "success": False,
+            "avg_time": 0.0,
+            "best_time": 0.0,
+            "success_rate": 0.0,
+            "attempts_total": 1,
+            "attempts_ok": 0,
+            "details": {port: {"ok": 0, "fail": 1, "best_ms": None}},
+            "message": f"TCP reachability: FAILED (ULTRA-FAST); {err}",
+        }
 
     success_rate = (total_ok / max(1, total_attempts)) * 100.0
     success = total_ok >= 2 or (total_ok >= 1 and success_rate >= 50.0)
