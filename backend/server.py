@@ -32,9 +32,9 @@ from services import service_manager, network_tester
 import uuid
 progress_store = {}
 
-# Global testing concurrency controls (safe defaults)
-MAX_PING_GLOBAL = 10
-MAX_SPEED_GLOBAL = 3
+# Global testing concurrency controls (CONSERVATIVE for server stability)
+MAX_PING_GLOBAL = 5   # Критически снижено для предотвращения перегрузки
+MAX_SPEED_GLOBAL = 2  # Критически снижено для стабильности
 
 global_ping_sem = asyncio.Semaphore(MAX_PING_GLOBAL)
 global_speed_sem = asyncio.Semaphore(MAX_SPEED_GLOBAL)
