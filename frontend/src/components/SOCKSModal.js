@@ -102,7 +102,9 @@ const SOCKSModal = ({ isOpen, onClose, selectedNodeIds = [] }) => {
 
   const handleStartSocks = async () => {
     if (selectedNodeIds.length === 0) {
-      toast.error('Выберите узлы для запуска SOCKS сервисов');
+      toast.error('⚠️ Выберите узлы для запуска SOCKS сервисов', {
+        description: 'Отметьте узлы в таблице перед открытием SOCKS модального окна'
+      });
       return;
     }
 
@@ -118,12 +120,28 @@ const SOCKSModal = ({ isOpen, onClose, selectedNodeIds = [] }) => {
       const results = response.data.results;
       const successCount = results.filter(r => r.success).length;
       const failCount = results.length - successCount;
+      
+      // Показываем детальную информацию об ошибках
+      const failedResults = results.filter(r => !r.success);
+      if (failedResults.length > 0) {
+        const errorMessages = failedResults.map(r => `Узел ${r.node_id}: ${r.message}`).join('\n');
+        console.log('SOCKS start failures:', errorMessages);
+      }
 
       if (successCount > 0) {
-        toast.success(`✅ SOCKS запущен для ${successCount} узлов`);
+        toast.success(`✅ SOCKS запущен для ${successCount} узлов`, {
+          description: successCount === results.length ? 'Все узлы успешно запущены' : `${failCount} узлов не удалось запустить`
+        });
       }
-      if (failCount > 0) {
-        toast.error(`❌ Не удалось запустить ${failCount} SOCKS сервисов`);
+      
+      if (failCount > 0 && successCount === 0) {
+        toast.error(`❌ Не удалось запустить SOCKS ни для одного узла`, {
+          description: 'Проверьте что узлы имеют статус "ping_ok" или "speed_ok"'
+        });
+      } else if (failCount > 0) {
+        toast.warning(`⚠️ Частично запущено: ${successCount} успешно, ${failCount} ошибок`, {
+          description: 'Некоторые узлы могут иметь неподходящий статус'
+        });
       }
 
       // Обновляем данные
@@ -131,7 +149,10 @@ const SOCKSModal = ({ isOpen, onClose, selectedNodeIds = [] }) => {
 
     } catch (error) {
       console.error('Error starting SOCKS:', error);
-      toast.error('Ошибка запуска SOCKS: ' + (error.response?.data?.detail || error.message));
+      const errorMessage = error.response?.data?.detail || error.message || 'Неизвестная ошибка';
+      toast.error('❌ Ошибка запуска SOCKS: ' + errorMessage, {
+        description: 'Проверьте подключение к серверу и статус узлов'
+      });
     } finally {
       setLoading(false);
     }
