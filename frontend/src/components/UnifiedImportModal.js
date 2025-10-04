@@ -19,6 +19,9 @@ const UnifiedImportModal = ({ isOpen, onClose, onComplete }) => {
   const [previewResult, setPreviewResult] = useState(null);
   const [showPreview, setShowPreview] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [isLargeFile, setIsLargeFile] = useState(false);
+  const [progress, setProgress] = useState(null);
+  const [sessionId, setSessionId] = useState(null);
 
   useEffect(() => {
     if (isOpen) {
