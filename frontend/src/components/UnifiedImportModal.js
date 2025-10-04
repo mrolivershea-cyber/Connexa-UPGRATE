@@ -291,18 +291,36 @@ const UnifiedImportModal = ({ isOpen, onClose, onComplete }) => {
                 </div>
               </CardHeader>
               <CardContent className="space-y-3">
-                {/* Progress Bar */}
-                <div className="space-y-1">
-                  <div className="flex justify-between text-xs text-gray-600">
-                    <span>Прогресс: {progress?.processed_chunks || 0} из {progress?.total_chunks || 0} частей</span>
-                    <span>{Math.round(((progress?.processed_chunks || 0) / (progress?.total_chunks || 1)) * 100)}%</span>
+                {/* Progress Bar with Enhanced Info */}
+                <div className="space-y-2">
+                  {/* Main Progress Display */}
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-blue-600">
+                      {Math.round(((progress?.processed_chunks || 0) / (progress?.total_chunks || 1)) * 100)}%
+                    </div>
+                    <div className="text-sm text-gray-600">
+                      Обработано {progress?.processed_chunks || 0} из {progress?.total_chunks || 0} частей
+                    </div>
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
+                  
+                  {/* Visual Progress Bar */}
+                  <div className="relative w-full bg-gray-200 rounded-full h-4 overflow-hidden">
                     <div 
-                      className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                      style={{ width: `${Math.round(((progress?.processed_chunks || 0) / (progress?.total_chunks || 1)) * 100)}%` }}
-                    ></div>
+                      className="bg-gradient-to-r from-blue-500 to-blue-600 h-4 rounded-full transition-all duration-500 ease-out flex items-center justify-end pr-2"
+                      style={{ width: `${Math.max(((progress?.processed_chunks || 0) / (progress?.total_chunks || 1)) * 100, 5)}%` }}
+                    >
+                      <span className="text-xs text-white font-semibold">
+                        {progress?.processed_chunks > 0 ? `${Math.round(((progress?.processed_chunks || 0) / (progress?.total_chunks || 1)) * 100)}%` : ''}
+                      </span>
+                    </div>
                   </div>
+                  
+                  {/* Processing Speed Info */}
+                  {progress?.processed_chunks > 0 && (
+                    <div className="text-xs text-center text-gray-500">
+                      🚀 Скорость: ~{Math.max(1, Math.round((progress.added + progress.skipped) / Math.max(1, progress.processed_chunks) * 10))} узлов/сек
+                    </div>
+                  )}
                 </div>
                 
                 {/* Statistics */}
