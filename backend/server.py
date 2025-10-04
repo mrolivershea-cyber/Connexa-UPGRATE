@@ -1005,6 +1005,8 @@ def parse_nodes_text(text: str, protocol: str = "pptp") -> dict:
                 node_data = parse_format_5(block, node_data)
             elif format_type == "format_6":
                 node_data = parse_format_6(block, node_data)
+            elif format_type == "format_7":
+                node_data = parse_format_7(block, node_data)
             else:
                 # Try regex-based smart parsing as fallback
                 node_data = parse_with_smart_regex(block, node_data)
