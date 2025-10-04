@@ -22,6 +22,7 @@ const UnifiedImportModal = ({ isOpen, onClose, onComplete }) => {
   const [isLargeFile, setIsLargeFile] = useState(false);
   const [progress, setProgress] = useState(null);
   const [sessionId, setSessionId] = useState(null);
+  const [isImportActive, setIsImportActive] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
