@@ -189,6 +189,7 @@ const AdminPanel = () => {
   const handleSelectNode = (nodeId) => {
     setSelectedNodes(prev => {
       const isCurrentlySelected = prev.includes(nodeId);
+      console.log('AdminPanel: selecting/deselecting node', nodeId, 'current state:', prev);
       if (isCurrentlySelected) {
         // Deselecting node
         const newSelected = prev.filter(id => id !== nodeId);
