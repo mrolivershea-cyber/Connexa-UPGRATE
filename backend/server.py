@@ -3546,6 +3546,12 @@ async def stop_socks_services(
                 })
                 continue
             
+            # Stop actual SOCKS5 server
+            socks_success = stop_socks_service(node_id)
+            
+            if not socks_success:
+                logger.warning(f"⚠️ Failed to stop SOCKS5 server for node {node_id}, continuing with database cleanup")
+            
             # Clear SOCKS data and revert to previous status
             node.socks_ip = None
             node.socks_port = None
