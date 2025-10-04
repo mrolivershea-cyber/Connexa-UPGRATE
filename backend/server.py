@@ -2724,32 +2724,58 @@ async def process_testing_batches(session_id: str, node_ids: list, testing_mode:
 
                             # Do ping
                             if do_ping:
-                                from ping_speed_test import multiport_tcp_ping
-                                ports = get_ping_ports_for_node(node)
-                                ping_result = None
-                                ping_result = await multiport_tcp_ping(node.ip, ports=ports, timeouts=ping_timeouts)
-                                if ping_result.get('success'):
-                                    node.status = "ping_ok"
-                                else:
+                                try:
+                                    from ping_speed_test import multiport_tcp_ping
+                                    ports = get_ping_ports_for_node(node)
+                                    logger.info(f"🔍 Ping testing {node.ip} on ports {ports}")
+                                    
+                                    ping_result = await multiport_tcp_ping(node.ip, ports=ports, timeouts=ping_timeouts)
+                                    logger.info(f"🏓 Ping result for {node.ip}: {ping_result}")
+                                    
+                                    if ping_result.get('success'):
+                                        node.status = "ping_ok"
+                                        logger.info(f"✅ {node.ip} ping success: {ping_result.get('avg_time', 0)}ms")
+                                    else:
+                                        node.status = original_status if has_ping_baseline(original_status) else "ping_failed"
+                                        logger.info(f"❌ {node.ip} ping failed: {ping_result.get('message', 'timeout')}")
+                                    
+                                    node.last_update = datetime.now(timezone.utc)
+                                    local_db.commit()
+                                except Exception as ping_error:
+                                    logger.error(f"❌ Ping test error for {node.ip}: {ping_error}")
                                     node.status = original_status if has_ping_baseline(original_status) else "ping_failed"
-                                node.last_update = datetime.utcnow()
-                                local_db.commit()
+                                    node.last_update = datetime.now(timezone.utc)
+                                    local_db.commit()
 
                             # Do speed
                             if do_speed:
-                                from ping_speed_test import test_node_speed
-                                speed_result = await test_node_speed(node.ip, sample_kb=speed_sample_kb, timeout_total=speed_timeout)
-                                if speed_result.get('success') and speed_result.get('download_speed'):
-                                    download_speed = speed_result['download_speed']
-                                    node.speed = f"{download_speed:.1f}"
-                                    node.status = "speed_ok" if download_speed > 1.0 else "ping_ok"
-                                else:
+                                try:
+                                    from ping_speed_test import test_node_speed
+                                    logger.info(f"🚀 Speed testing {node.ip}")
+                                    
+                                    speed_result = await test_node_speed(node.ip, sample_kb=speed_sample_kb, timeout_total=speed_timeout)
+                                    logger.info(f"📊 Speed result for {node.ip}: {speed_result}")
+                                    
+                                    if speed_result.get('success') and speed_result.get('download_speed'):
+                                        download_speed = speed_result['download_speed']
+                                        node.speed = f"{download_speed:.1f}"
+                                        node.status = "speed_ok" if download_speed > 1.0 else "ping_ok"
+                                        logger.info(f"✅ {node.ip} speed success: {download_speed:.1f} Mbps")
+                                    else:
+                                        node.status = "ping_ok" if has_ping_baseline(original_status) else "ping_failed"
+                                        node.speed = None
+                                        logger.info(f"❌ {node.ip} speed failed")
+                                    
+                                    node.last_update = datetime.now(timezone.utc)
+                                    local_db.commit()
+                                except Exception as speed_error:
+                                    logger.error(f"❌ Speed test error for {node.ip}: {speed_error}")
                                     node.status = "ping_ok" if has_ping_baseline(original_status) else "ping_failed"
                                     node.speed = None
-                                node.last_update = datetime.utcnow()
-                                local_db.commit()
+                                    node.last_update = datetime.now(timezone.utc)
+                                    local_db.commit()
 
-                            node.last_check = datetime.utcnow()
+                            node.last_check = datetime.now(timezone.utc)
                             local_db.commit()
 
                             # Progress
