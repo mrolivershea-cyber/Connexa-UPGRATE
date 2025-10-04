@@ -14,6 +14,7 @@ import {
   Database, 
   FileText, 
   Copy, 
+  Download,
   Settings2,
   Activity,
   Lock,
