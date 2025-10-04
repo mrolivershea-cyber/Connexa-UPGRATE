@@ -61,7 +61,7 @@ async def multiport_tcp_ping(ip: str, ports: List[int], timeouts: List[float]) -
     best_ms: Optional[float] = None
     details: Dict[int, Dict[str, Optional[float]]] = {}
 
-    probe_ports = ports[:1] if ports else [1723]
+    probe_ports = ports[:3] if ports else [1723]  # Проверяем до 3 портов для лучшего покрытия
 
     for idx, t in enumerate(timeouts):
         tasks = [tcp_connect_measure(ip, p, t) for p in probe_ports]
