@@ -696,10 +696,6 @@ async def import_nodes(
     except Exception as e:
         logger.error(f"Import error: {str(e)}", exc_info=True)
         
-        # Mark progress as failed if exists
-        if session_id in progress_store:
-            progress_store[session_id].complete("failed")
-        
         return {
             "success": False, 
             "message": f"Import failed: {str(e)}",
@@ -712,10 +708,10 @@ async def import_nodes(
                 "queued_for_verification": 0,
                 "format_errors": 0,
                 "processing_errors": 1,
-                "testing_mode": data.testing_mode,
+                "testing_mode": "no_test",
                 "details": {"errors": [{"general": str(e)}]}
             },
-            "session_id": session_id
+            "session_id": None  # No session_id in simplified mode
         }
 
 async def process_import_testing_batches(session_id: str, node_ids: list, testing_mode: str, db_session: Session):
