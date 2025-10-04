@@ -3462,8 +3462,8 @@ async def start_socks_services(
             # Save previous status for proper restoration later
             node.previous_status = node.status  # Save current status (ping_ok or speed_ok)
             
-            # Update node with SOCKS data
-            node.socks_ip = admin_server_ip
+            # Update node with SOCKS data - SOCKS server runs ON THE NODE itself
+            node.socks_ip = node.ip  # Use node's actual IP for external access
             node.socks_port = socks_port
             node.socks_login = login_prefix
             node.socks_password = password
