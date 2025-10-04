@@ -190,29 +190,37 @@ def test_dedupe_cleanup():
 # B) Keep general TCP ping (no protocol handshake) but use DB-configured ports with fallbacks
 
 def get_ping_ports_for_node(node: Node) -> list[int]:
-    """Return exactly one port per protocol (no mixing).
-    - pptp: node.port else 1723
-    - socks: socks_port else 1080
-    - ovpn: node.port else 1194
-    - ssh: node.port else 22
-    - unknown: only explicit node.port if provided; else empty
+    """Return optimal ports per protocol with common fallbacks for better success rates.
+    - pptp: node.port else [1723, 443, 80] (PPTP + common fallbacks)
+    - socks: socks_port else [1080, 8080, 3128] (SOCKS + proxy ports)
+    - ovpn: node.port else [1194, 443, 80] (OpenVPN + HTTPS fallback)
+    - ssh: node.port else [22, 2222, 443] (SSH + alt ports)
+    - unknown: node.port else [80, 443, 8080] (HTTP/HTTPS)
     """
     try:
         proto = (node.protocol or "").lower()
+        
         # Prefer explicit node.port when present
+        if node.port:
+            return [int(node.port)]
+            
+        # Protocol-specific ports with intelligent fallbacks
         if proto == "pptp":
-            return [int(node.port)] if node.port else [1723]
-        if proto == "socks":
+            return [1723, 443, 80]  # PPTP + common accessible ports
+        elif proto == "socks":
             sp = getattr(node, "socks_port", None)
-            return [int(sp)] if sp else ([int(node.port)] if node.port else [1080])
-        if proto == "ovpn":
-            return [int(node.port)] if node.port else [1194]
-        if proto == "ssh":
-            return [int(node.port)] if node.port else [22]
-        # Unknown protocol
-        return [int(node.port)] if node.port else []
+            if sp:
+                return [int(sp)]
+            return [1080, 8080, 3128]  # Common SOCKS/proxy ports
+        elif proto == "ovpn" or proto == "openvpn":
+            return [1194, 443, 80]  # OpenVPN + HTTPS fallback
+        elif proto == "ssh":
+            return [22, 2222, 443]  # SSH + common alt ports
+        else:
+            # Unknown protocol - try common accessible ports
+            return [80, 443, 8080]
     except Exception:
-        return [1723]
+        return [80, 443]  # Safe fallback to web ports
 
 
 # ===== BACKGROUND MONITORING SYSTEM =====
