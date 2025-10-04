@@ -1697,44 +1697,7 @@ Random text that should cause errors""",
             self.log_test("PING LIGHT - API Endpoints Usage", False, 
                          f"❌ Failed to create test node: {create_response}")
             return False
-                
-                if speed_success and 'results' in speed_response:
-                    results = speed_response['results']
-                    if results:
-                        result = results[0]
-                        real_speed = result.get("download", 0)
-                        success = result.get("success", False)
-                        message = result.get("message", "")
-                        
-                        # Compare with fake value
-                        is_different = abs(real_speed - fake_speed) > 0.1 or not success
-                        
-                        comparison_results.append({
-                            "ip": ip,
-                            "fake_speed": fake_speed,
-                            "real_speed": real_speed,
-                            "success": success,
-                            "message": message,
-                            "is_different": is_different
-                        })
-        
-        # Analyze comparison results
-        different_results = [r for r in comparison_results if r["is_different"]]
-        
-        if len(different_results) >= 2:  # At least 2 should be different from fake values
-            self.log_test("Real vs Fake Speed Comparison", True, 
-                         f"✅ Real speed testing confirmed: {len(different_results)}/{len(comparison_results)} results differ from fake values")
-            
-            # Log details
-            for result in comparison_results:
-                status = "DIFFERENT" if result["is_different"] else "SAME"
-                print(f"   {result['ip']}: Fake={result['fake_speed']} Mbps, Real={result['real_speed']} Mbps, Success={result['success']}, Status={status}")
-            
-            return True
-        else:
-            self.log_test("Real vs Fake Speed Comparison", False, 
-                         f"❌ Speed results still match fake values: {comparison_results}")
-            return False
+    # ========== PING LIGHT ALGORITHM TESTS (Russian User Review Request) ==========
 
     # ========== CHUNKED IMPORT TESTS (Review Request - Large File Processing) ==========
     
