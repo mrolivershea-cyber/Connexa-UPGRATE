@@ -1,32 +1,30 @@
 <analysis>
-The trajectory outlines the transition from an AI engineer's initial work on the Connexa Admin Panel to a new AI engineer taking over. The previous work focused on critical stability fixes (Syntax/Indentation errors in ,  function) and extensive optimization of ping/speed testing. This included reducing concurrency, optimizing algorithms in , and synchronizing frontend () parameters.
+The trajectory describes the transition of the Connexa Admin Panel development to a new AI engineer. Initially, the focus was on stability and performance fixes for ping/speed tests and a major Import Nodes feature implementation. The previous AI engineer successfully addressed backend SSE authentication, CORS, and frontend  integration, allowing initial progress display and import reports.
 
-The current AI engineer's task shifted from a planned SOCKS/OVPN Service Launch to an urgent bug fix. The primary issue was the Import Nodes feature not displaying testing progress in the , hanging UI, and missing import reports. The AI systematically diagnosed backend API (, ) and frontend components (, , , ).
-
-Key decisions included introducing a  for global session management, modifying backend SSE to remove authentication and add CORS headers, and refining frontend logic to auto-connect  to import-initiated test sessions. After iterative debugging, including user-reported failures, all issues related to import progress display, UI responsiveness, and reporting were successfully resolved.
+However, the user reported new issues: the import modal not auto-closing, the Import Nodes button hanging, and testing progress disappearing from  on re-opening. The current AI engineer diagnosed these as frontend integration and state management problems. Solutions involved refining  for automatic closure and adding a manual close button, and updating  to persist session states more robustly, prevent aggressive clearing, and correctly handle completed tests. All changes were validated via automated frontend testing.
 </analysis>
 
 <product_requirements>
-The Connexa Admin Panel aims for real-time management of server import and testing with a responsive UI and clear feedback. Initial requirements focused on fixing login/panel unresponsiveness, optimizing Ping/Speed test performance, ensuring testing accuracy, managing server load, and synchronizing UI defaults.
+The Connexa Admin Panel aims for real-time management of server import and testing with a responsive UI and clear feedback. Key features include:
+1.  **Correct Progress Display**: Ensure real-time testing progress for import-initiated tests in the .
+2.  **Import Report**: Display detailed import results (Added, Matched, Updated, Duplicate counts) immediately after import.
+3.  **UI Stability**: Prevent UI hangs in the Import modal and ensure it functions smoothly without premature closing.
+4.  **Backend Integrity**: Verify seamless data flow from the Import modal to the backend testing queue.
+5.  **Load Optimization**: Maintain server stability during mass imports and testing.
+6.  **Key Testing Parameters**: Adhere to optimized default testing parameters.
 
-The user's recent explicit request centered on issues with the Import nodes functionality:
-1.  **Correct Progress Display**: Ensure testing progress, initiated via the Import Nodes modal, is displayed in the main Testing modal, similar to manual tests.
-2.  **Import Report**: Immediately after import, show a report with Added, Matched, Updated, and Duplicate node counts.
-3.  **UI Stability**: Prevent the Import modal from hanging or closing prematurely after starting tests.
-4.  **Backend Integrity**: Verify data flow from Import modal to backend to testing queue, ensuring test tasks are created and processed.
-5.  **Load Optimization**: Prevent server freezes, delays, or user logout after mass import and testing, maintaining session stability.
-6.  **Key Testing Parameters**: Adhere to optimized default parameters: Ping concurrency 15, Speed concurrency 8, Ping timeout 0.5s, Speed timeout 2s, Speed sample 32KB.
+Recent user feedback highlighted two new critical issues that required immediate attention:
+1.  The Import Nodes modal should automatically close after a successful import and test initiation, instead of hanging.
+2.  Testing progress visible in the  should not disappear or collapse upon re-opening the modal, especially after repeated checks.
 </product_requirements>
 
 <key_technical_concepts>
-
--   **FastAPI**: Python framework for backend APIs (e.g., , ).
+-   **FastAPI**: Python framework for backend APIs.
 -   **React/Vite**: JavaScript library for frontend UI.
--   **Server-Sent Events (SSE)**: For real-time progress updates from backend to frontend.
--   **React Context API**: For global state management (e.g.,  for active test sessions).
+-   **Server-Sent Events (SSE)**: For real-time progress updates.
+-   **React Context API**: For global state management (e.g., ).
 -   **Asyncio/Semaphores**: For concurrent operations in Python backend.
--   **CORS (Cross-Origin Resource Sharing)**: For secure cross-domain communication, especially with SSE.
-
+-   **CORS**: For secure cross-domain communication.
 </key_technical_concepts>
 
 <code_architecture>
@@ -36,9 +34,7 @@ The application uses a monorepo structure with a Python/FastAPI backend and a Re
 
 -   ****
     -   **Importance**: Central backend for API routes, business logic, and background tasks like node import and testing.
-    -   **Summary of Changes**:
-        -   The  endpoint was modified: authentication was removed () because EventSource doesn't support authorization headers, and explicit CORS headers (, , ) were added to the  to allow cross-origin SSE connections.
-        -   The  function (implicitly, as it's called by ) was confirmed to correctly initiate testing and generate .
+    -   **Summary of Changes**: The  endpoint was modified to remove authentication and add explicit CORS headers to the  for SSE.
 -   ****
     -   **Importance**: Core logic for ping and speed tests.
     -   **Summary of Changes**: No direct changes in this trajectory, but its optimized functions are crucial for the accelerated testing performance.
@@ -47,52 +43,39 @@ The application uses a monorepo structure with a Python/FastAPI backend and a Re
     -   **Summary of Changes**: Wrapped the main  component with  to make the  available throughout the application.
 -   ****
     -   **Importance**: Main admin interface for node listing and actions.
-    -   **Summary of Changes**:
-        -   Imported  and .
-        -   Integrated  around  (though this was later moved to ).
-        -   Added logic to display an active testing indicator (a red dot) on the Testing button if  returns a value greater than 0, reflecting ongoing import tests.
+    -   **Summary of Changes**: Integrated  and . Added logic to display an active testing indicator (a red dot) on the Testing button if  returns a value greater than 0, reflecting ongoing import tests.
 -   ****
     -   **Importance**: React component for node testing, displaying real-time progress.
-    -   **Summary of Changes**:
-        -   Integrated  context to access and update active test sessions.
-        -   Modified  to check for active import sessions () and automatically connect to them, ensuring progress display upon modal opening.
-        -   Updated  to mark the relevant session in  as  or .
-        -   Updated  to register manually initiated tests with .
-        -   Added UI logic to display a badge (Из импорта) in the modal title if the current session originated from an import, indicating the source of the test.
+    -   **Summary of Changes**: Integrated  context.  modified to check for active import sessions and automatically connect.  updated to mark sessions as  or  without aggressive clearing.  updated to clear state only if no active sessions.  no longer immediately clears . UI displays a badge (Из импорта) for import-initiated tests.
 -   ****
     -   **Importance**: React component for importing nodes, including SSE-based progress.
-    -   **Summary of Changes**:
-        -   Integrated  context to register new import-initiated test sessions upon successful node import, passing , , and .
-        -   Improved the import report displayed to the user (, , , , ).
-        -   Added toast notifications for successful import and test initiation.
-        -   Ensured the modal doesn't automatically close after test initiation.
+    -   **Summary of Changes**: Integrated  context to register new import-initiated test sessions. Displays a detailed import report. The modal now automatically closes after a successful import and test initiation, and a Закрыть (Close) button was added.
 -   **** (NEW FILE)
-    -   **Importance**: Provides a global React context for managing active test sessions (both manual and import-initiated) across the application, allowing  and  to react to ongoing tests.
-    -   **Summary of Changes**: Created this new file, exporting  and  hook. It manages a state variable  (a map of  to session details) and provides functions to add, update, remove, and retrieve sessions.
-
+    -   **Importance**: Provides a global React context for managing active test sessions, allowing  and  to react to ongoing tests.
+    -   **Summary of Changes**: Created this new file, exporting  and  hook, managing  state.
 </code_architecture>
 
 <pending_tasks>
--   **Implement SOCKS/OVPN Service Launch**: The core business logic for provisioning SOCKS and OpenVPN services on managed servers, including backend API design and frontend integration.
--   **Future Automation with Auxiliary Servers**: The user mentioned automating the testing process with helper servers that would offload testing and provide reports to the admin panel.
+-   **Implement SOCKS/OVPN Service Launch**: Core business logic for provisioning SOCKS and OpenVPN services on managed servers, including backend API design and frontend integration.
+-   **Future Automation with Auxiliary Servers**: Automating the testing process with helper servers.
 </pending_tasks>
 
 <current_work>
-Immediately prior to this summary, the AI successfully resolved critical issues related to the Import nodes functionality. The user had reported that after importing nodes and initiating a test (Ping Only/Speed Only), the UI would hang, no import report would appear, and no testing progress would be displayed in the .
+Immediately prior to this summary, the AI engineer successfully addressed new critical user-reported issues concerning the Import nodes functionality and . The user reported that the import modal would hang, not close automatically, and that testing progress would disappear from the  upon re-opening.
 
-The AI conducted a thorough diagnosis, confirming that the backend correctly generated  and processed tests asynchronously, with the SSE endpoint providing real-time progress. The core problem was identified as a frontend integration gap and a backend SSE authorization issue.
+The AI engineer's work involved:
+1.  ** Fixes**:
+    *   Implemented automatic closure of the modal after successful import and test initiation, including a  for a brief display of the import report.
+    *   Added a Закрыть (Close) button to allow manual closing of the modal.
+2.  ** Fixes**:
+    *   Revised the state management logic within  to prevent the aggressive clearing of  upon receiving messages or modal closure, ensuring that active or completed session data persists.
+    *   Updated  dependencies and  to clear state only when there are no truly active testing sessions, allowing progress to remain visible upon re-opening the modal.
+    *   Adjusted  to correctly mark sessions as  or  within the  without prematurely removing them from the UI.
 
-The following comprehensive fixes were implemented:
-1.  ** (New File)**: A new React Context () was created to manage active testing sessions globally, allowing components like  to register new test sessions and  to subscribe to them.
-2.  ** Modifications**: Updated to use  to register import-initiated test sessions. The modal now displays a detailed import report (added, duplicates, replaced, errors) and does not close prematurely.
-3.  ** Modifications**: Integrated  to display an indicator (red dot) on the Testing button when active test sessions are present, signaling ongoing background tests.
-4.  ** Modifications**: Enhanced to automatically detect and connect to active import-initiated sessions stored in  upon opening. It now correctly displays real-time progress for these sessions and includes a Из импорта badge to indicate the test source. Logic for manual tests was also updated to register sessions with the context.
-5.  ** Modifications**: Wrapped the entire application in  to ensure  is accessible globally.
-6.  **Backend  Modifications**: Critical fixes for the SSE endpoint () included removing authentication (as  doesn't support headers) and adding explicit CORS headers to ensure successful cross-origin connections.
-
-After these changes, backend and frontend functionalities were fully tested and validated. The import process is now stable, provides immediate feedback, and correctly visualizes testing progress in the .
+These changes have been thoroughly tested by a frontend testing agent, confirming that the import process now closes automatically, the button no longer hangs, and the testing progress remains persistent in the  even after re-opening.
 </current_work>
 
 <optional_next_step>
-Resume work on the SOCKS/OVPN Service Launch as it was the next pending task before the urgent bug fix.
+Resume work on the SOCKS/OVPN Service Launch.
 </optional_next_step>
+
