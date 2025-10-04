@@ -6,7 +6,7 @@ from datetime import datetime
 import time
 
 # Debug timestamp issues
-BASE_URL = "https://sockspanel-connect.preview.emergentagent.com"
+BASE_URL = "https://connexa-socks.preview.emergentagent.com"
 API_URL = f"{BASE_URL}/api"
 
 def login():

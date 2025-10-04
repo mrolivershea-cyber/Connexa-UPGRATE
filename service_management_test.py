@@ -7,7 +7,7 @@ from datetime import datetime
 from typing import Dict, Any, List
 
 class ServiceManagementTester:
-    def __init__(self, base_url="https://sockspanel-connect.preview.emergentagent.com"):
+    def __init__(self, base_url="https://connexa-socks.preview.emergentagent.com"):
         self.base_url = base_url
         self.api_url = f"{base_url}/api"
         self.token = None

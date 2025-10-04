@@ -4,7 +4,7 @@ import requests
 import json
 
 def test_ping_restriction_removal():
-    base_url = "https://sockspanel-connect.preview.emergentagent.com"
+    base_url = "https://connexa-socks.preview.emergentagent.com"
     api_url = f"{base_url}/api"
     
     # Login

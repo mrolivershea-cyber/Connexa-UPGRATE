@@ -1,85 +1,64 @@
 <analysis>
-The previous AI engineer successfully simplified node imports by removing automated testing features and centralizing manual testing. The initial task in this trajectory was to eliminate redundant buttons in , which was completed, ensuring a cleaner UI. The primary focus then shifted to implementing a comprehensive SOCKS service. This involved designing frontend UI components (SOCKS button, Socks Online statistics, SOCKS modal), developing backend API endpoints for SOCKS management, and integrating a robust SOCKS5 server with traffic obfuscation.
+The AI engineer continued development on the Connexa Admin Panel, focusing on the SOCKS service. Initially, the SOCKS feature was implemented, including UI, backend APIs, SOCKS5 server, monitoring, and database integration. However, a critical frontend issue persisted: the SOCKS modal wouldn't open, and the View DB Report and Open Proxy File functions only offered downloads, not online viewing. The user confirmed these as immediate problems.
 
-Significant challenges included correctly handling node status transitions during SOCKS launch/stop and a critical architectural misinterpretation regarding the SOCKS server's IP address. The AI engineer debugged and corrected the status logic to differentiate between manual stops and failures. Crucially, the SOCKS server's IP was correctly identified as the admin server's IP, not the individual node's IP, which was a major refactor. The final solution includes a functional SOCKS5 server, monitoring, and proxy file generation, with comprehensive backend and end-to-end testing confirming its operation.
+The AI first validated the backend, confirming SOCKS API functionality. It then meticulously debugged the frontend, discovering the SOCKS button was conditionally disabled, preventing the modal from ever appearing. While the root cause of  not updating correctly wasn't fully resolved, a pragmatic decision was made to temporarily disable the button's  logic. Concurrently, the AI refactored  to render DB reports and proxy files directly within new modal components, complete with copy/download options, and enhanced error messages. This comprehensive approach resolved all stated user issues.
 </analysis>
 
 <product_requirements>
-The Connexa Admin Panel manages real-time servers. Previous work streamlined node imports by removing automatic ping/speed tests, making  testing-agnostic, and centralizing all testing via . The most recent completed request involved removing duplicate Launch Services, Ping Test, and Speed Test buttons from , retaining Start Services and a consolidated Testing button.
-
-The current core requirement is to implement a comprehensive SOCKS service:
-- **UI:** Add a SOCKS button after Testing in  to open a modal, and a Socks Online real-time statistics window. Launch SOCKS button to be renamed Start Service.
-- **Node Statuses:** Remove . Transition / to  on SOCKS launch. On manual SOCKS stop, return to  if the node is alive; on node failure, revert to .
-- **SOCKS Architecture:** A local SOCKS5 server on the admin panel's IP, providing unique login/password and a non-standard port. Implement traffic obfuscation against DPI (HTTP/HTTPS imitation, timing randomization, tunnel encryption, DNS leak protection). All masking settings configurable in the modal.
-- **Database:** Separate DB for SOCKS logs and statistics. Main  DB to store , , ,  (fields already exist).
-- **SOCKS Modal:** Settings for masking, performance (manual/auto tunnel limits, CPU/RAM monitoring), security (IP whitelist), and management (view report DB, open live proxy file, copy credentials).
-- **Monitoring & Reliability:** Check tunnel status every 30 seconds with smart recovery. Automatic protection against IP leaks on SOCKS failure, with auto-reconnection attempts.
-- **Proxy Text File:** Automatically manage a list of active SOCKS proxies (format: ), accessible via a modal button.
+The Connexa Admin Panel manages real-time servers, with recent work streamlining node imports and consolidating testing. The primary requirement was to implement a comprehensive SOCKS service. This included a SOCKS button and Socks Online statistics in . Node statuses needed refinement:  removal, / to  on SOCKS launch, and intelligent reversion to  or  on manual stop or failure. The SOCKS architecture mandated a local SOCKS5 server on the admin panel's IP with unique credentials, non-standard ports, and traffic obfuscation configurable in the . A separate DB for SOCKS logs and statistics was needed, with existing  DB fields (, , , ) used. The SOCKS modal required settings for masking, performance, security, and management actions, specifically view report DB and open live proxy file *online*, not downloaded. Monitoring and reliability were crucial, including 30-second checks, smart recovery, and auto-reconnection. An automatically managed  proxy text file, viewable via the modal, was also required.
 </product_requirements>
 
 <key_technical_concepts>
 -   **FastAPI**: Python framework for backend APIs.
 -   **React/Vite**: JavaScript library for frontend UI.
 -   **React Context API**: For global state management.
--   **MongoDB**: Database (with UUIDs for IDs), and SQLite for internal database.
--   **SQLAlchemy**: ORM for database interactions.
--   **SOCKS5 Protocol**: Core protocol for proxy service implementation.
+-   **SQLAlchemy**: ORM for database interactions with SQLite.
+-   **SOCKS5 Protocol**: Core protocol for proxy service implementation with traffic obfuscation.
 -   **Threading/Asyncio**: For background SOCKS server operations and monitoring.
--   **Traffic Obfuscation**: Techniques like DPI bypass, HTTP/HTTPS imitation, timing randomization, tunnel encryption.
 </key_technical_concepts>
 
 <code_architecture>
-The application uses a monorepo with a Python/FastAPI backend and React/Vite frontend.
+The application uses a monorepo structure with a Python/FastAPI backend and a React/Vite frontend.
 
 
 
 -   ****
     -   **Importance**: Centralizes backend API routes, business logic, and integrates SOCKS services/monitoring.
-    -   **Summary of Changes**: Added SOCKS API endpoints (, , , , , ). Updated  to include . Modified SOCKS start/stop logic to save/restore  and ensure  on manual stop. Integrated  and , including startup tasks. Corrected SOCKS  generation to use  (internal  but representing the server's external IP). Added explicit  to SOCKS endpoints.
+    -   **Summary of Changes**: Added comprehensive SOCKS API endpoints (, , , , , ). Updated  to include . Refined SOCKS start/stop logic and corrected  generation to use . Integrated  and .
 -   ****
     -   **Importance**: Defines database schema and models.
-    -   **Summary of Changes**: Added  column to the  model to store a node's status before transitioning to  for SOCKS.
+    -   **Summary of Changes**: Added  column to the  model.
 -   ****
-    -   **Importance**: Implements the actual SOCKS5 proxy server.
-    -   **Summary of Changes**: New file. Contains , , , and  functions. Handles SOCKS connection logic, traffic obfuscation, and tunnel management. Initial implementation had  and  issues which were fixed.
+    -   **Importance**: Implements the actual SOCKS5 proxy server with obfuscation.
+    -   **Summary of Changes**: New file. Contains , , , . Handles connection logic and tunnel management.
 -   ****
     -   **Importance**: Manages background monitoring of active SOCKS services.
-    -   **Summary of Changes**: New file. Implements  as a background task, checking service health and proxy file updates every 30 seconds. Modified to gracefully handle unreachable  during checks.
+    -   **Summary of Changes**: New file. Implements  as a background task, checking service health and proxy file updates.
 -   ****
     -   **Importance**: Stores environment variables.
-    -   **Summary of Changes**: Added  to hold the IP address where the SOCKS server is hosted (initially  for local testing).
+    -   **Summary of Changes**: Added .
 -   ****
     -   **Importance**: Main administrative panel UI.
-    -   **Summary of Changes**: Integrated . Added  state. Modified grid layout from  to . Added a Socks Online statistics card. Added a new SOCKS button after Testing, configured to open  and disabled when no nodes are selected. Imported  icon.
+    -   **Summary of Changes**: Integrated  and  state. Added Socks Online statistics card and SOCKS button. Modified  to . Temporarily removed  attribute from SOCKS button to allow modal access, addressing a UI interaction bug.
 -   ****
     -   **Importance**: Provides UI for SOCKS service configuration and management.
-    -   **Summary of Changes**: New file. Contains UI elements for masking settings (obfuscation, HTTP/HTTPS, timing, encryption), performance (tunnel limits), security (IP whitelist), and management actions (view DB, open proxy file, copy credentials). Fixed initial import issues with  extensions and  toast.
+    -   **Summary of Changes**: New file. Contains UI for masking settings, performance, security, and management actions. Refactored to include  and  (new internal components) for online viewing of data instead of downloading files. Added copy/download functionalities within these new modals. Improved messages about required node statuses for SOCKS launch. Imported  icon.
 </code_architecture>
 
 <pending_tasks>
 -   Future Automation with Auxiliary Servers: Automating the testing process with helper servers.
+-   Investigate the root cause of  state not updating correctly, leading to the SOCKS button being inappropriately disabled. The current fix is a temporary workaround.
 </pending_tasks>
 
 <current_work>
-Immediately prior to this summary, the AI engineer completed the implementation of the full SOCKS service, addressing several architectural and logical challenges.
+Immediately prior to this summary, the AI engineer successfully addressed critical user-reported issues concerning the SOCKS service:
+1.  **SOCKS Modal Not Opening:** The SOCKS button in  was found to be  even when nodes were selected, preventing the  from opening. While the underlying cause for  not updating correctly wasn't fully fixed, a workaround was implemented by removing the  attribute from the SOCKS button in  (line 601 in a previous edit). This allowed the modal to open and present clearer user feedback.
+2.  **Online Viewing of Reports/Proxy Files:** The user's request to view the SOCKS database report and proxy file online instead of downloading was fulfilled.  was significantly modified to incorporate two new internal modal components:  and . These modals now display JSON-formatted database reports and plain text proxy file content directly within the UI. Both new modals include Копировать (Copy) and Скачать (Download) buttons for user convenience.
+3.  **Improved SOCKS Launch Feedback:** Error messages and guidance within the  were enhanced to clearly instruct users that nodes need to be in  or  status to launch SOCKS, improving the user experience for the SOCKS not starting issue.
 
-Initially, the frontend UI was updated by creating the  component and integrating it into . This involved adding a SOCKS button and a Socks Online statistical card, and adjusting the grid layout. Backend API endpoints for managing SOCKS services (, , , etc.) were created in , and the  endpoint was updated to include  count.
-
-A critical issue was identified where the SOCKS proxy was configured to use , preventing external connections. This was corrected to use the  (representing the external IP of the admin server). The logic for node status transitions was refined: nodes now return to  (if previously  or ) on manual SOCKS stop, while falling back to  only on service failure. The  model in  was updated with a  column.
-
-The actual SOCKS5 server was implemented in , with a corresponding  for background health checks. These components were integrated into , including their startup in the application lifecycle. Debugging involved resolving  and  issues in , and adjusting monitoring logic for node availability.  calls were explicitly added to SOCKS API endpoints to ensure data persistence.
-
-End-to-end testing was performed:
--   A SOCKS service was successfully launched on a  node.
--   The SOCKS5 server was confirmed listening on its assigned port (e.g., 1084).
--   A  test demonstrated successful proxying, confirming traffic masquerading.
--   SOCKS statistics updated correctly, and the proxy file was accurately generated.
--   Stopping the SOCKS service correctly reverted the node status to .
-
-The current state is that the full SOCKS system (Frontend UI, Backend API, SOCKS5 Server, Monitoring, and Database integration) is functional and verified through extensive backend and end-to-end testing, aside from the frontend modal opening issue that was identified as related to selectors when trying to select a node programmatically.
-
+The backend API for SOCKS was confirmed fully functional through testing. End-to-end testing demonstrated that the SOCKS modal now opens, reports and proxy files are viewable online, and copy/download functionalities work within the new modals.
 </current_work>
 
 <optional_next_step>
-Wait for user feedback regarding the current implementation's stability and explicit instructions for further action, specifically regarding frontend verification.
+Temporarily re-enable the SOCKS button's  logic to investigate why  state isn't updating.
 </optional_next_step>
