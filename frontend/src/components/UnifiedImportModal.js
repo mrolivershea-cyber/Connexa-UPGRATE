@@ -259,9 +259,15 @@ const UnifiedImportModal = ({ isOpen, onClose, onComplete }) => {
             <Button type="button" variant="outline" onClick={onClose}>
               Закрыть
             </Button>
-            <Button onClick={handleImport} disabled={submitting || !importData.trim()} data-testid="import-btn">
-              {submitting ? 'Выполняется...' : 'Импортировать узлы'}
-            </Button>
+            {!showPreview ? (
+              <Button onClick={handleImport} disabled={submitting || !importData.trim()} data-testid="import-btn">
+                {submitting ? 'Выполняется...' : 'Импортировать узлы'}
+              </Button>
+            ) : (
+              <Button onClick={onClose} variant="default" data-testid="close-after-import-btn">
+                Готово
+              </Button>
+            )}
           </div>
         </DialogFooter>
       </DialogContent>
