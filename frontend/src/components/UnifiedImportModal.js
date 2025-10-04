@@ -270,18 +270,19 @@ const UnifiedImportModal = ({ isOpen, onClose, onComplete }) => {
         <div className="space-y-4 mt-4">
           {/* Progress Report для chunked импорта */}
           {(submitting || isImportActive) && sessionId && (
-            <Card className="border-blue-200 bg-blue-50">
-              <CardHeader className="pb-2">
+            <Card className="border-blue-400 bg-blue-50 shadow-lg">
+              <CardHeader className="pb-2 bg-blue-100 border-b border-blue-300">
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-sm flex items-center">
-                    <Activity className="h-4 w-4 mr-2 text-blue-600" />
-                    📂 Обработка большого файла...
+                  <CardTitle className="text-lg font-bold flex items-center text-blue-800">
+                    <Activity className="h-5 w-5 mr-2 text-blue-600" />
+                    📂 Chunked Import - Большой файл
                   </CardTitle>
                   <div className="flex space-x-2">
                     <Button 
                       variant="outline" 
                       size="sm" 
                       onClick={onClose}
+                      className="bg-white hover:bg-gray-100"
                     >
                       📋 Свернуть в фон
                     </Button>
