@@ -266,10 +266,20 @@ const UnifiedImportModal = ({ isOpen, onClose, onComplete }) => {
           {submitting && sessionId && (
             <Card className="border-blue-200 bg-blue-50">
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm flex items-center">
-                  <Activity className="h-4 w-4 mr-2 text-blue-600" />
-                  📂 Обработка большого файла...
-                </CardTitle>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-sm flex items-center">
+                    <Activity className="h-4 w-4 mr-2 text-blue-600" />
+                    📂 Обработка большого файла...
+                  </CardTitle>
+                  <Button 
+                    variant="destructive" 
+                    size="sm" 
+                    onClick={cancelImport}
+                    disabled={!sessionId}
+                  >
+                    ⏹️ Отменить
+                  </Button>
+                </div>
               </CardHeader>
               <CardContent className="space-y-3">
                 {/* Progress Bar */}
