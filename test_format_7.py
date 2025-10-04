@@ -340,7 +340,7 @@ class Format7Tester:
                 for idx in sample_indices:
                     ip_third = (idx // 256) + 100
                     ip_fourth = idx % 256
-                    ip = f"192.{timestamp[-3:]}.{ip_third}.{ip_fourth}"
+                    ip = f"192.{ip_part}.{ip_third}.{ip_fourth}"
                     
                     nodes_success, nodes_response = self.make_request('GET', f'nodes?ip={ip}')
                     if nodes_success and 'nodes' in nodes_response and nodes_response['nodes']:
