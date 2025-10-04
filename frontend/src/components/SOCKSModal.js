@@ -57,6 +57,11 @@ const SOCKSModal = ({ isOpen, onClose, selectedNodeIds = [] }) => {
   const [newAllowedIp, setNewAllowedIp] = useState('');
   const [activeProxies, setActiveProxies] = useState([]);
   const [proxyFileContent, setProxyFileContent] = useState('');
+  
+  // Состояния для онлайн просмотра
+  const [showDatabaseModal, setShowDatabaseModal] = useState(false);
+  const [showProxyFileModal, setShowProxyFileModal] = useState(false);
+  const [databaseReport, setDatabaseReport] = useState('');
 
   // Загрузка данных при открытии модала
   useEffect(() => {
