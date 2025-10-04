@@ -21,7 +21,8 @@ import {
   Play,
   Square,
   Zap,
-  Activity
+  Activity,
+  Shield
 } from 'lucide-react';
 import NodesTable from './NodesTable';
 import UnifiedImportModal from './UnifiedImportModal';
