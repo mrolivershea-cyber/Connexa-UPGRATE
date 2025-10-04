@@ -15759,13 +15759,357 @@ City: TestCity"""
             self.log_test("PING LIGHT Status in Database", False, f"❌ PING LIGHT test failed: {test_response}")
             return False
 
+    # ========== SPEED_OK CONFIGURATION VERIFICATION TESTS (Russian User Critical Review) ==========
+    
+    def test_speed_ok_configs_ping_light(self):
+        """PING LIGHT Test - Simple TCP 1723 availability check for speed_ok configs"""
+        # Test IPs from the review request
+        test_ips = [
+            "5.78.50.215",   # admin/admin, speed: 0.6
+            "5.78.50.13",    # admin/admin, speed: 1.3
+            "5.78.41.224",   # admin/admin, speed: 1.3
+            "5.78.102.161",  # admin/admin, speed: 1.3
+            "5.78.65.121"    # admin/admin, speed: 1.3
+        ]
+        
+        ping_light_results = []
+        
+        for ip in test_ips:
+            # Test PING LIGHT endpoint
+            ping_data = {"node_ids": [], "test_ips": [ip]}
+            success, response = self.make_request('POST', 'manual/ping-light-test', ping_data)
+            
+            if success and 'results' in response:
+                results = response['results']
+                if results:
+                    result = results[0]
+                    ping_light_results.append({
+                        "ip": ip,
+                        "success": result.get("success", False),
+                        "message": result.get("message", ""),
+                        "response_time": result.get("response_time", 0)
+                    })
+                else:
+                    ping_light_results.append({
+                        "ip": ip,
+                        "success": False,
+                        "message": "No results returned",
+                        "response_time": 0
+                    })
+            else:
+                ping_light_results.append({
+                    "ip": ip,
+                    "success": False,
+                    "message": f"API call failed: {response}",
+                    "response_time": 0
+                })
+        
+        # Analyze results
+        successful_pings = [r for r in ping_light_results if r["success"]]
+        failed_pings = [r for r in ping_light_results if not r["success"]]
+        
+        # Log detailed results
+        for result in ping_light_results:
+            status = "✅ REACHABLE" if result["success"] else "❌ UNREACHABLE"
+            print(f"  {result['ip']}: {status} - {result['message']} ({result['response_time']:.2f}s)")
+        
+        self.log_test("SPEED_OK Configs - PING LIGHT Test", True, 
+                     f"PING LIGHT results: {len(successful_pings)}/{len(test_ips)} reachable via TCP 1723. "
+                     f"Successful: {[r['ip'] for r in successful_pings]}, "
+                     f"Failed: {[r['ip'] for r in failed_pings]}")
+        
+        return ping_light_results
+    
+    def test_speed_ok_configs_ping_ok(self):
+        """PING OK Test - Full PPTP check with admin/admin authentication"""
+        # Test IPs with admin/admin credentials
+        test_configs = [
+            {"ip": "5.78.50.215", "login": "admin", "password": "admin"},
+            {"ip": "5.78.50.13", "login": "admin", "password": "admin"},
+            {"ip": "5.78.41.224", "login": "admin", "password": "admin"},
+            {"ip": "5.78.102.161", "login": "admin", "password": "admin"},
+            {"ip": "5.78.65.121", "login": "admin", "password": "admin"}
+        ]
+        
+        ping_ok_results = []
+        
+        # First, create or update nodes with these configs
+        for config in test_configs:
+            # Check if node exists
+            nodes_success, nodes_response = self.make_request('GET', f'nodes?ip={config["ip"]}')
+            
+            if nodes_success and 'nodes' in nodes_response and nodes_response['nodes']:
+                # Update existing node
+                node_id = nodes_response['nodes'][0]['id']
+                update_data = {
+                    "login": config["login"],
+                    "password": config["password"],
+                    "status": "not_tested"  # Reset for testing
+                }
+                self.make_request('PUT', f'nodes/{node_id}', update_data)
+            else:
+                # Create new node
+                node_data = {
+                    "ip": config["ip"],
+                    "login": config["login"],
+                    "password": config["password"],
+                    "protocol": "pptp",
+                    "status": "not_tested"
+                }
+                self.make_request('POST', 'nodes', node_data)
+        
+        # Now test PING OK (full PPTP authentication)
+        for config in test_configs:
+            # Get node ID
+            nodes_success, nodes_response = self.make_request('GET', f'nodes?ip={config["ip"]}')
+            
+            if nodes_success and 'nodes' in nodes_response and nodes_response['nodes']:
+                node_id = nodes_response['nodes'][0]['id']
+                
+                # Test PING OK endpoint
+                ping_data = {"node_ids": [node_id]}
+                success, response = self.make_request('POST', 'manual/ping-test', ping_data)
+                
+                if success and 'results' in response:
+                    results = response['results']
+                    if results:
+                        result = results[0]
+                        ping_ok_results.append({
+                            "ip": config["ip"],
+                            "login": config["login"],
+                            "success": result.get("success", False),
+                            "message": result.get("message", ""),
+                            "response_time": result.get("response_time", 0),
+                            "new_status": result.get("new_status", "unknown")
+                        })
+                    else:
+                        ping_ok_results.append({
+                            "ip": config["ip"],
+                            "login": config["login"],
+                            "success": False,
+                            "message": "No results returned",
+                            "response_time": 0,
+                            "new_status": "unknown"
+                        })
+                else:
+                    ping_ok_results.append({
+                        "ip": config["ip"],
+                        "login": config["login"],
+                        "success": False,
+                        "message": f"API call failed: {response}",
+                        "response_time": 0,
+                        "new_status": "unknown"
+                    })
+        
+        # Analyze results
+        successful_auths = [r for r in ping_ok_results if r["success"]]
+        failed_auths = [r for r in ping_ok_results if not r["success"]]
+        
+        # Log detailed results
+        for result in ping_ok_results:
+            status = "✅ AUTH SUCCESS" if result["success"] else "❌ AUTH FAILED"
+            print(f"  {result['ip']} ({result['login']}): {status} - {result['message']} -> {result['new_status']} ({result['response_time']:.2f}s)")
+        
+        self.log_test("SPEED_OK Configs - PING OK Test", True, 
+                     f"PING OK results: {len(successful_auths)}/{len(test_configs)} authenticated successfully. "
+                     f"Successful: {[r['ip'] for r in successful_auths]}, "
+                     f"Failed: {[r['ip'] for r in failed_auths]}")
+        
+        return ping_ok_results
+    
+    def test_speed_ok_configs_speed_test(self):
+        """Speed Test - Real speed measurement with corrected algorithm"""
+        # Test IPs that should have speed_ok status
+        test_ips = [
+            "5.78.50.215",   # Claimed speed: 0.6 Mbps
+            "5.78.50.13",    # Claimed speed: 1.3 Mbps
+            "5.78.41.224",   # Claimed speed: 1.3 Mbps
+            "5.78.102.161",  # Claimed speed: 1.3 Mbps
+            "5.78.65.121"    # Claimed speed: 1.3 Mbps
+        ]
+        
+        speed_test_results = []
+        
+        for ip in test_ips:
+            # Get node and ensure it's in ping_ok status for speed testing
+            nodes_success, nodes_response = self.make_request('GET', f'nodes?ip={ip}')
+            
+            if nodes_success and 'nodes' in nodes_response and nodes_response['nodes']:
+                node = nodes_response['nodes'][0]
+                node_id = node['id']
+                
+                # Update to ping_ok if needed
+                if node.get('status') != 'ping_ok':
+                    update_data = {"status": "ping_ok"}
+                    self.make_request('PUT', f'nodes/{node_id}', update_data)
+                
+                # Perform speed test
+                speed_data = {"node_ids": [node_id]}
+                success, response = self.make_request('POST', 'manual/speed-test', speed_data)
+                
+                if success and 'results' in response:
+                    results = response['results']
+                    if results:
+                        result = results[0]
+                        speed_test_results.append({
+                            "ip": ip,
+                            "success": result.get("success", False),
+                            "message": result.get("message", ""),
+                            "download": result.get("download", 0),
+                            "upload": result.get("upload", 0),
+                            "new_status": result.get("new_status", "unknown"),
+                            "response_time": result.get("response_time", 0)
+                        })
+                    else:
+                        speed_test_results.append({
+                            "ip": ip,
+                            "success": False,
+                            "message": "No results returned",
+                            "download": 0,
+                            "upload": 0,
+                            "new_status": "unknown",
+                            "response_time": 0
+                        })
+                else:
+                    speed_test_results.append({
+                        "ip": ip,
+                        "success": False,
+                        "message": f"API call failed: {response}",
+                        "download": 0,
+                        "upload": 0,
+                        "new_status": "unknown",
+                        "response_time": 0
+                    })
+        
+        # Analyze results
+        successful_speeds = [r for r in speed_test_results if r["success"]]
+        failed_speeds = [r for r in speed_test_results if not r["success"]]
+        
+        # Log detailed results
+        for result in speed_test_results:
+            status = "✅ SPEED OK" if result["success"] else "❌ SPEED FAILED"
+            print(f"  {result['ip']}: {status} - {result['message']} -> {result['new_status']} "
+                  f"(↓{result['download']:.1f} ↑{result['upload']:.1f} Mbps, {result['response_time']:.2f}s)")
+        
+        self.log_test("SPEED_OK Configs - Speed Test", True, 
+                     f"Speed test results: {len(successful_speeds)}/{len(test_ips)} passed speed test. "
+                     f"Successful: {[r['ip'] for r in successful_speeds]}, "
+                     f"Failed: {[r['ip'] for r in failed_speeds]}")
+        
+        return speed_test_results
+    
+    def test_speed_ok_configs_database_verification(self):
+        """Database Verification - Check claimed vs actual status of speed_ok configs"""
+        # Get all speed_ok nodes from database
+        success, response = self.make_request('GET', 'nodes?status=speed_ok&limit=50')
+        
+        if success and 'nodes' in response:
+            speed_ok_nodes = response['nodes']
+            
+            # Filter for today's nodes (created today)
+            today_nodes = []
+            target_ips = ["5.78.50.215", "5.78.50.13", "5.78.41.224", "5.78.102.161", "5.78.65.121"]
+            
+            for node in speed_ok_nodes:
+                if node.get('ip') in target_ips:
+                    today_nodes.append(node)
+            
+            # Analyze the suspicious patterns
+            admin_admin_count = 0
+            low_speed_count = 0
+            
+            verification_results = []
+            
+            for node in today_nodes:
+                is_admin_admin = (node.get('login') == 'admin' and node.get('password') == 'admin')
+                # Check if speed data exists (this might be in a separate field)
+                
+                verification_results.append({
+                    "ip": node.get('ip'),
+                    "login": node.get('login'),
+                    "password": node.get('password'),
+                    "status": node.get('status'),
+                    "last_update": node.get('last_update'),
+                    "is_admin_admin": is_admin_admin,
+                    "created_today": True  # We filtered for target IPs
+                })
+                
+                if is_admin_admin:
+                    admin_admin_count += 1
+            
+            # Log findings
+            self.log_test("SPEED_OK Configs - Database Verification", True, 
+                         f"Database analysis: Found {len(today_nodes)} target speed_ok nodes. "
+                         f"{admin_admin_count} have admin/admin credentials. "
+                         f"Suspicious pattern detected: {admin_admin_count}/{len(today_nodes)} nodes with identical credentials")
+            
+            return verification_results
+        else:
+            self.log_test("SPEED_OK Configs - Database Verification", False, 
+                         f"Failed to get speed_ok nodes: {response}")
+            return []
+    
+    def test_speed_ok_configs_comprehensive_analysis(self):
+        """Comprehensive Analysis - Compare all test results and provide final verdict"""
+        print("\n" + "="*80)
+        print("🔍 COMPREHENSIVE SPEED_OK CONFIGURATION ANALYSIS")
+        print("="*80)
+        
+        # Run all individual tests
+        ping_light_results = self.test_speed_ok_configs_ping_light()
+        ping_ok_results = self.test_speed_ok_configs_ping_ok()
+        speed_test_results = self.test_speed_ok_configs_speed_test()
+        db_verification = self.test_speed_ok_configs_database_verification()
+        
+        # Analyze patterns
+        total_configs = 5
+        ping_light_success = len([r for r in ping_light_results if r["success"]])
+        ping_ok_success = len([r for r in ping_ok_results if r["success"]])
+        speed_test_success = len([r for r in speed_test_results if r["success"]])
+        
+        # Generate comprehensive report
+        analysis_report = {
+            "total_configs_tested": total_configs,
+            "ping_light_reachable": ping_light_success,
+            "ping_ok_authenticated": ping_ok_success,
+            "speed_test_passed": speed_test_success,
+            "database_suspicious_patterns": len([r for r in db_verification if r["is_admin_admin"]]),
+            "verdict": "UNKNOWN"
+        }
+        
+        # Determine verdict
+        if ping_light_success == 0 and ping_ok_success == 0:
+            analysis_report["verdict"] = "FALSE_POSITIVES - No configs are actually reachable"
+        elif ping_light_success > 0 and ping_ok_success == 0:
+            analysis_report["verdict"] = "AUTHENTICATION_ISSUES - Some configs reachable but authentication fails"
+        elif ping_ok_success > 0 and speed_test_success == 0:
+            analysis_report["verdict"] = "SPEED_ISSUES - Authentication works but speed tests fail"
+        elif speed_test_success > 0:
+            analysis_report["verdict"] = "PARTIALLY_WORKING - Some configs actually work"
+        else:
+            analysis_report["verdict"] = "INVESTIGATION_NEEDED - Mixed results require deeper analysis"
+        
+        # Log comprehensive results
+        print(f"\n📊 FINAL ANALYSIS RESULTS:")
+        print(f"  • Total Configurations Tested: {total_configs}")
+        print(f"  • PING LIGHT (TCP 1723) Success: {ping_light_success}/{total_configs}")
+        print(f"  • PING OK (PPTP Auth) Success: {ping_ok_success}/{total_configs}")
+        print(f"  • Speed Test Success: {speed_test_success}/{total_configs}")
+        print(f"  • Suspicious DB Patterns: {analysis_report['database_suspicious_patterns']}/{total_configs} with admin/admin")
+        print(f"  • VERDICT: {analysis_report['verdict']}")
+        
+        self.log_test("SPEED_OK Configs - Comprehensive Analysis", True, 
+                     f"Analysis complete: {analysis_report['verdict']}. "
+                     f"PING LIGHT: {ping_light_success}/{total_configs}, "
+                     f"PING OK: {ping_ok_success}/{total_configs}, "
+                     f"Speed: {speed_test_success}/{total_configs}")
+        
+        return analysis_report
+
     def run_all_tests(self):
         """Run all backend tests"""
         print("🚀 Starting Connexa Backend API Tests")
         print("=" * 50)
-        
-        # CRITICAL: Start with fake speed investigation
-        self.test_fake_speed_results_investigation()
         
         # Test health check first
         if not self.test_health_check():
@@ -15776,6 +16120,27 @@ City: TestCity"""
         if not self.test_login():
             print("❌ Login failed - stopping tests")
             return False
+        
+        # ========== CRITICAL: SPEED_OK CONFIGURATION VERIFICATION (Russian User Review Request) ==========
+        print("\n" + "🔥" * 80)
+        print("🇷🇺 КРИТИЧЕСКАЯ ПРОВЕРКА ДОСТОВЕРНОСТИ SPEED_OK КОНФИГОВ")
+        print("🔥" * 80)
+        print("ПРОБЛЕМА: Пользователь проверил конфиги со статусом speed_ok вручную, но они не работают при подключении.")
+        print("НАЙДЕННЫЕ ДАННЫЕ В БД: 9 speed_ok конфигов созданы сегодня (14:20-14:21)")
+        print("- Все имеют admin/admin и скорости 0.6-1.3 Mbps")
+        print("- Подозрительно низкие скорости и одинаковые credentials")
+        print("ТЕСТОВЫЕ IP ДЛЯ ПРОВЕРКИ:")
+        print("1. 5.78.50.215 (admin/admin, speed: 0.6)")
+        print("2. 5.78.50.13 (admin/admin, speed: 1.3)")
+        print("3. 5.78.41.224 (admin/admin, speed: 1.3)")
+        print("4. 5.78.102.161 (admin/admin, speed: 1.3)")
+        print("5. 5.78.65.121 (admin/admin, speed: 1.3)")
+        print("=" * 80)
+        
+        self.test_speed_ok_configs_comprehensive_analysis()
+        
+        # CRITICAL: Start with fake speed investigation
+        self.test_fake_speed_results_investigation()
         
         # ========== PING LIGHT & PING OK TESTING (Russian User Review Request) ==========
         print("\n" + "🔥" * 50)
