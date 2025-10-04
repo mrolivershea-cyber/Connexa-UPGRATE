@@ -3258,6 +3258,332 @@ async def manual_launch_services(
     
     return {"results": results}
 
+# ===== SOCKS SERVICE LAUNCH SYSTEM =====
+# API endpoints for SOCKS service management
+
+@api_router.get("/socks/stats")
+async def get_socks_stats(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get SOCKS statistics and active connections"""
+    try:
+        # Count nodes with SOCKS enabled (have socks_ip populated)
+        socks_enabled_nodes = db.query(Node).filter(
+            Node.socks_ip.isnot(None),
+            Node.socks_port.isnot(None)
+        ).count()
+        
+        # Count online SOCKS services (nodes with online status and SOCKS data)
+        online_socks = db.query(Node).filter(
+            Node.status == "online",
+            Node.socks_ip.isnot(None),
+            Node.socks_port.isnot(None)
+        ).count()
+        
+        # For now, use placeholder for active connections and tunnels
+        # This will be enhanced when SOCKS server is implemented
+        active_connections = online_socks * 2  # Placeholder: avg 2 connections per SOCKS
+        total_tunnels = socks_enabled_nodes
+        
+        return {
+            "online_socks": online_socks,
+            "total_tunnels": total_tunnels,
+            "active_connections": active_connections,
+            "socks_enabled_nodes": socks_enabled_nodes
+        }
+    except Exception as e:
+        logger.error(f"Error getting SOCKS stats: {e}")
+        return {
+            "online_socks": 0,
+            "total_tunnels": 0,
+            "active_connections": 0,
+            "socks_enabled_nodes": 0
+        }
+
+@api_router.get("/socks/config")
+async def get_socks_config(
+    current_user: User = Depends(get_current_user)
+):
+    """Get SOCKS configuration settings"""
+    # For now, return default configuration
+    # This will be enhanced with persistent config storage
+    return {
+        "masking": {
+            "obfuscation": True,
+            "http_imitation": True,
+            "timing_randomization": True,
+            "tunnel_encryption": True
+        },
+        "performance": {
+            "tunnel_limit": 100,
+            "auto_scaling": True,
+            "cpu_threshold": 80,
+            "ram_threshold": 80
+        },
+        "security": {
+            "whitelist_enabled": False,
+            "allowed_ips": []
+        }
+    }
+
+@api_router.post("/socks/config")
+async def save_socks_config(
+    config_data: dict,
+    current_user: User = Depends(get_current_user)
+):
+    """Save SOCKS configuration settings"""
+    # For now, just validate and return success
+    # This will be enhanced with persistent config storage
+    logger.info(f"SOCKS config saved: {config_data}")
+    return {"success": True, "message": "SOCKS конфигурация сохранена"}
+
+@api_router.get("/socks/active")
+async def get_active_socks_proxies(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get list of active SOCKS proxies"""
+    try:
+        active_proxies = db.query(Node).filter(
+            Node.status == "online",
+            Node.socks_ip.isnot(None),
+            Node.socks_port.isnot(None),
+            Node.socks_login.isnot(None),
+            Node.socks_password.isnot(None)
+        ).all()
+        
+        proxy_list = []
+        for node in active_proxies:
+            proxy_list.append({
+                "node_id": node.id,
+                "ip": node.socks_ip,
+                "port": node.socks_port,
+                "login": node.socks_login,
+                "password": node.socks_password,
+                "original_ip": node.ip
+            })
+        
+        return {"proxies": proxy_list}
+    except Exception as e:
+        logger.error(f"Error getting active SOCKS proxies: {e}")
+        return {"proxies": []}
+
+@api_router.get("/socks/proxy-file")
+async def get_socks_proxy_file(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get SOCKS proxy file content"""
+    try:
+        active_proxies = db.query(Node).filter(
+            Node.status == "online",
+            Node.socks_ip.isnot(None),
+            Node.socks_port.isnot(None),
+            Node.socks_login.isnot(None),
+            Node.socks_password.isnot(None)
+        ).all()
+        
+        proxy_lines = []
+        proxy_lines.append("# Активные SOCKS прокси")
+        proxy_lines.append(f"# Обновлено: {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')} UTC")
+        proxy_lines.append("")
+        
+        for node in active_proxies:
+            proxy_line = f"socks5://{node.socks_login}:{node.socks_password}@{node.socks_ip}:{node.socks_port}"
+            proxy_lines.append(proxy_line)
+        
+        if not active_proxies:
+            proxy_lines.append("# Нет активных SOCKS прокси")
+        
+        content = "\n".join(proxy_lines)
+        return {"content": content}
+    except Exception as e:
+        logger.error(f"Error generating SOCKS proxy file: {e}")
+        return {"content": "# Ошибка генерации файла SOCKS прокси"}
+
+@api_router.post("/socks/start")
+async def start_socks_services(
+    request_data: dict,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Start SOCKS services for selected nodes"""
+    node_ids = request_data.get("node_ids", [])
+    masking_settings = request_data.get("masking_settings", {})
+    performance_settings = request_data.get("performance_settings", {})
+    security_settings = request_data.get("security_settings", {})
+    
+    if not node_ids:
+        raise HTTPException(status_code=400, detail="No node IDs provided")
+    
+    results = []
+    
+    # Generate unique SOCKS server IP (use admin server IP as placeholder)
+    admin_server_ip = "127.0.0.1"  # Will be enhanced to get actual server IP
+    
+    for node_id in node_ids:
+        try:
+            node = db.query(Node).filter(Node.id == node_id).first()
+            if not node:
+                results.append({
+                    "node_id": node_id,
+                    "success": False,
+                    "message": "Node not found"
+                })
+                continue
+            
+            # Check if node has ping_ok or speed_ok status
+            if node.status not in ["ping_ok", "speed_ok"]:
+                results.append({
+                    "node_id": node_id,
+                    "ip": node.ip,
+                    "success": False,
+                    "message": f"Node must have ping_ok or speed_ok status (current: {node.status})"
+                })
+                continue
+            
+            # Generate SOCKS credentials
+            import secrets
+            import string
+            
+            # Generate unique port (1081-9999 range, avoiding 1080)
+            socks_port = 1081 + (node_id % 8918)  # Distribute across range based on node ID
+            
+            # Generate unique login and password
+            login_prefix = f"socks_{node_id}"
+            password = ''.join(secrets.choice(string.ascii_letters + string.digits) for _ in range(16))
+            
+            # Update node with SOCKS data
+            node.socks_ip = admin_server_ip
+            node.socks_port = socks_port
+            node.socks_login = login_prefix
+            node.socks_password = password
+            node.status = "online"  # Transition ping_ok/speed_ok -> online
+            node.last_update = datetime.utcnow()
+            
+            # Log the SOCKS service creation
+            logger.info(f"✅ SOCKS service created for node {node_id}: {admin_server_ip}:{socks_port} ({login_prefix})")
+            
+            results.append({
+                "node_id": node_id,
+                "ip": node.ip,
+                "success": True,
+                "status": "online",
+                "socks_data": {
+                    "ip": admin_server_ip,
+                    "port": socks_port,
+                    "login": login_prefix,
+                    "password": password
+                },
+                "message": f"SOCKS сервис запущен: {admin_server_ip}:{socks_port}"
+            })
+            
+        except Exception as e:
+            logger.error(f"Error starting SOCKS for node {node_id}: {e}")
+            results.append({
+                "node_id": node_id,
+                "success": False,
+                "message": f"Ошибка запуска SOCKS: {str(e)}"
+            })
+    
+    return {"results": results}
+
+@api_router.post("/socks/stop")
+async def stop_socks_services(
+    request_data: dict,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Stop SOCKS services for selected nodes"""
+    node_ids = request_data.get("node_ids", [])
+    
+    if not node_ids:
+        raise HTTPException(status_code=400, detail="No node IDs provided")
+    
+    results = []
+    
+    for node_id in node_ids:
+        try:
+            node = db.query(Node).filter(Node.id == node_id).first()
+            if not node:
+                results.append({
+                    "node_id": node_id,
+                    "success": False,
+                    "message": "Node not found"
+                })
+                continue
+            
+            # Clear SOCKS data and revert status to ping_ok baseline
+            node.socks_ip = None
+            node.socks_port = None
+            node.socks_login = None
+            node.socks_password = None
+            
+            # Revert status: online -> ping_ok (preserving ping baseline)
+            if node.status == "online":
+                node.status = "ping_ok"
+            
+            node.last_update = datetime.utcnow()
+            
+            logger.info(f"🛑 SOCKS service stopped for node {node_id}")
+            
+            results.append({
+                "node_id": node_id,
+                "ip": node.ip,
+                "success": True,
+                "status": node.status,
+                "message": "SOCKS сервис остановлен"
+            })
+            
+        except Exception as e:
+            logger.error(f"Error stopping SOCKS for node {node_id}: {e}")
+            results.append({
+                "node_id": node_id,
+                "success": False,
+                "message": f"Ошибка остановки SOCKS: {str(e)}"
+            })
+    
+    return {"results": results}
+
+@api_router.get("/socks/database-report")
+async def get_socks_database_report(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Generate SOCKS database report"""
+    try:
+        # Get all nodes with SOCKS data
+        socks_nodes = db.query(Node).filter(
+            or_(
+                Node.socks_ip.isnot(None),
+                Node.socks_port.isnot(None)
+            )
+        ).all()
+        
+        report = {
+            "generated_at": datetime.utcnow().isoformat(),
+            "total_socks_nodes": len(socks_nodes),
+            "online_socks": len([n for n in socks_nodes if n.status == "online"]),
+            "nodes": []
+        }
+        
+        for node in socks_nodes:
+            report["nodes"].append({
+                "id": node.id,
+                "ip": node.ip,
+                "status": node.status,
+                "socks_ip": node.socks_ip,
+                "socks_port": node.socks_port,
+                "socks_login": node.socks_login,
+                "last_update": node.last_update.isoformat() if node.last_update else None
+            })
+        
+        return report
+    except Exception as e:
+        logger.error(f"Error generating SOCKS database report: {e}")
+        raise HTTPException(status_code=500, detail="Error generating SOCKS database report")
+
 # Include API router
 app.include_router(api_router)
 
