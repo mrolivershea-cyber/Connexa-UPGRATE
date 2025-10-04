@@ -52,10 +52,20 @@ const UnifiedImportModal = ({ isOpen, onClose, onComplete }) => {
     const file = event.target.files[0];
     if (!file) return;
 
+    // Check file size
+    const fileSizeKB = file.size / 1024;
+    const isLarge = fileSizeKB > 500; // 500KB threshold
+    
+    setIsLargeFile(isLarge);
+    
     const reader = new FileReader();
     reader.onload = (e) => {
       setImportData(e.target.result);
-      toast.success('Файл загружен');
+      if (isLarge) {
+        toast.warning(`📦 Большой файл (${fileSizeKB.toFixed(1)}KB) - будет использована потоковая обработка`);
+      } else {
+        toast.success('Файл загружен');
+      }
     };
     reader.onerror = () => {
       toast.error('Не удалось прочитать файл');
