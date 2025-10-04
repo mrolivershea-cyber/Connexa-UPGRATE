@@ -171,6 +171,7 @@ const UnifiedImportModal = ({ isOpen, onClose, onComplete }) => {
   };
 
   const startProgressTracking = (sessionId) => {
+    console.log('Starting progress tracking for session:', sessionId);
     let progressInterval;
     
     const trackProgress = async () => {
@@ -178,6 +179,7 @@ const UnifiedImportModal = ({ isOpen, onClose, onComplete }) => {
         const response = await axios.get(`${API}/import/progress/${sessionId}`);
         const progressData = response.data;
         
+        console.log('Progress update:', progressData);
         setProgress(progressData);
         
         if (progressData.status === 'completed' || progressData.status === 'cancelled') {
