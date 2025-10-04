@@ -912,7 +912,7 @@ async def cancel_import_session(session_id: str, current_user: User = Depends(ge
     })
     import_progress[session_id] = progress_data
     
-    logger.info(f"Import session {session_id} cancelled by user {current_user.email}")
+    logger.info(f"Import session {session_id} cancelled by user {current_user.username}")
     
     return {
         "message": f"Import session {session_id} cancelled successfully",

@@ -85,7 +85,7 @@ class ChunkedImportTester:
             self.log_test("Admin Login", False, f"Login failed: {response}")
             return False
 
-    def generate_large_test_data(self, size_kb: int) -> str:
+    def generate_large_test_data(self, size_kb: int, ip_prefix: str = "172.16") -> str:
         """Generate test data of specified size in KB using Format 7 (IP:Login:Pass)"""
         lines = []
         current_size = 0
@@ -93,12 +93,11 @@ class ChunkedImportTester:
         
         i = 0
         while current_size < target_size:
-            # Generate IP in 10.x.x.x range to avoid conflicts
-            ip_second = (i // 65536) % 256
+            # Generate IP in specified range to avoid conflicts
             ip_third = (i // 256) % 256
             ip_fourth = i % 256
             
-            line = f"10.{ip_second}.{ip_third}.{ip_fourth}:testuser{i}:testpass{i}"
+            line = f"{ip_prefix}.{ip_third}.{ip_fourth}:testuser{i}:testpass{i}"
             lines.append(line)
             current_size += len(line) + 1  # +1 for newline
             i += 1
