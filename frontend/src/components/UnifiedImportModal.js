@@ -256,7 +256,7 @@ const UnifiedImportModal = ({ isOpen, onClose, onComplete }) => {
         </DialogHeader>
 
         <div className="space-y-4 mt-4">
-          {/* Progress Report - показать когда есть активный импорт */}
+          {/* Progress Report для chunked импорта */}
           {submitting && sessionId && (
             <Card className="border-blue-200 bg-blue-50">
               <CardHeader className="pb-2">
