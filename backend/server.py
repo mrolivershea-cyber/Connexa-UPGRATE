@@ -1249,6 +1249,16 @@ def parse_format_6(block: str, node_data: dict) -> dict:
             node_data['zipcode'] = line.split(':', 1)[1].strip()
     return node_data
 
+def parse_format_7(block: str, node_data: dict) -> dict:
+    """Format 7: Simple IP:Login:Pass"""
+    parts = block.split(':')
+    if len(parts) == 3:
+        node_data['ip'] = parts[0].strip()
+        node_data['login'] = parts[1].strip()
+        node_data['password'] = parts[2].strip()
+    return node_data
+
+
 def normalize_state_country(state_code: str, country: str = "") -> str:
     """Convert state codes to full names for multiple countries"""
     
