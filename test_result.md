@@ -205,6 +205,19 @@
         comment: "✅ SOCKS МОНИТОРИНГ И АВТОМАТИЗАЦИЯ ПОЛНОСТЬЮ РЕАЛИЗОВАНЫ: 1) ✅ Мониторинг каждые 30 секунд: проверка портов SOCKS серверов, обнаружение падений, автоматическая очистка, 2) ✅ Умное управление сбоями: ручная остановка → speed_ok, автоматическое падение → ping_ok, 3) ✅ Автоматический файл прокси: /tmp/active_socks_proxies.txt обновляется каждые 30 сек с форматом socks5://login:pass@ip:port, 4) ✅ Статистика в реальном времени: active_connections, total_connections, bytes_transferred, online_socks, 5) ✅ Система запускается с backend при старте, работает в фоне, логирует все события, 6) ✅ ПРОТЕСТИРОВАНО: файл прокси генерируется корректно, мониторинг обнаруживает активные сервисы, статистика обновляется при подключениях. Система полностью автономна."
 user_problem_statement: "SOCKS Service Launch System Implementation: Implement complete SOCKS/OVPN service launch functionality with local SOCKS5 server, traffic masking, and management UI. Requirements: 1) Add 'SOCKS' button after 'Testing' in AdminPanel, 2) Create SOCKS modal with masking settings (obfuscation, HTTP/HTTPS imitation, timing randomization, tunnel encryption), 3) Add 'Socks Online' stats card, 4) Implement local SOCKS5 server with non-standard port, 5) Add separate SOCKS database for logs/reports, 6) Monitoring system every 30 seconds, 7) Auto-manage proxy text file, 8) Use existing SOCKS fields in nodes table (socks_ip, socks_port, socks_login, socks_password), 9) Status transitions: ping_ok/speed_ok → online (remove speed_slow status)."
 
+
+  - task: "Add Format 7 support for IP:Login:Pass import"
+    implemented: true
+    working: "NA"
+    file: "server.py, UnifiedImportModal.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "RUSSIAN USER REQUEST (2025-10-04): User attached file TEST 3.txt (65,536 nodes) with simple IP:Login:Pass format (e.g. '5.78.0.0:admin:admin'). This format is NOT currently supported. IMPLEMENTED FORMAT 7: 1) Added detect_format() logic to recognize exactly 2 colons with valid IP at start, 2) Created parse_format_7() function to parse IP:Login:Pass (3 parts only), 3) Updated single-line detection in parse_nodes_text to extract Format 7 before Format 4, 4) Added Format 7 example to UnifiedImportModal.js sample text. Backend restarted successfully. Testing required with user's file to verify 65K+ nodes can be imported."
+
 backend:
   - task: "Fixed critical import status assignment bug"
     implemented: true
