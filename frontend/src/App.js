@@ -12,24 +12,26 @@ import './App.css';
 function App() {
   return (
     <AuthProvider>
-      <Router>
-        <div className="App">
-          <Routes>
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/change-password" element={
-              <ProtectedRoute>
-                <ChangePasswordPage />
-              </ProtectedRoute>
-            } />
-            <Route path="/" element={
-              <ProtectedRoute>
-                <AdminPanel />
-              </ProtectedRoute>
-            } />
-          </Routes>
-          <Toaster />
-        </div>
-      </Router>
+      <TestingProvider>
+        <Router>
+          <div className="App">
+            <Routes>
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/change-password" element={
+                <ProtectedRoute>
+                  <ChangePasswordPage />
+                </ProtectedRoute>
+              } />
+              <Route path="/" element={
+                <ProtectedRoute>
+                  <AdminPanel />
+                </ProtectedRoute>
+              } />
+            </Routes>
+            <Toaster />
+          </div>
+        </Router>
+      </TestingProvider>
     </AuthProvider>
   );
 }
