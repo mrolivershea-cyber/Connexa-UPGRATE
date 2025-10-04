@@ -2577,6 +2577,97 @@ async def stop_single_node_services(
 # ping_ok → speed_test → speed_ok/ping_failed
 # speed_ok → launch_services → online
 
+@api_router.post("/manual/ping-light-test")
+async def manual_ping_light_test(
+    data: dict,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Manual PING LIGHT testing - быстрая проверка TCP порта без авторизации"""
+    node_ids = data.get('node_ids', [])
+    if not node_ids:
+        raise HTTPException(status_code=400, detail="No node IDs provided")
+    
+    results = []
+    
+    for node_id in node_ids:
+        # Проверка дедупликации
+        if test_dedupe_should_skip(node_id, "ping_light"):
+            results.append({
+                "node_id": node_id,
+                "status": "skipped",
+                "message": "Recently tested, skipping to avoid spam",
+                "success": False,
+                "avg_time": 0.0,
+                "packet_loss": 0.0,
+                "original_status": None,
+                "new_status": None
+            })
+            continue
+
+        # Получить узел
+        node = db.query(Node).filter(Node.id == node_id).first()
+        if not node:
+            results.append({
+                "node_id": node_id,
+                "status": "error",
+                "message": "Node not found",
+                "success": False,
+                "avg_time": 0.0,
+                "packet_loss": 0.0,
+                "original_status": None,
+                "new_status": None
+            })
+            continue
+
+        test_dedupe_mark_enqueued(node_id, "ping_light")
+        
+        try:
+            original_status = node.status
+            node.last_update = datetime.utcnow()
+            
+            # Выполнить PING LIGHT тест
+            from ping_speed_test import test_node_ping_light
+            ping_result = await test_node_ping_light(node.ip)
+            
+            # Обновить статус на основе результата
+            if ping_result['success']:
+                node.status = "ping_light"
+                logger.info(f"✅ Node {node_id} PING LIGHT SUCCESS - status: {original_status} -> ping_light")
+            else:
+                node.status = "ping_failed"
+                logger.info(f"❌ Node {node_id} PING LIGHT FAILED - status: {original_status} -> ping_failed")
+            
+            node.last_check = datetime.utcnow()
+            node.last_update = datetime.utcnow()
+            
+            results.append({
+                "node_id": node_id,
+                "status": "completed",
+                "message": ping_result.get('message', ''),
+                "success": ping_result.get('success', False),
+                "avg_time": ping_result.get('avg_time', 0.0),
+                "packet_loss": ping_result.get('packet_loss', 0.0),
+                "original_status": original_status,
+                "new_status": node.status
+            })
+            
+        except Exception as e:
+            logger.error(f"Error in PING LIGHT test for node {node_id}: {str(e)}")
+            results.append({
+                "node_id": node_id,
+                "status": "error",
+                "message": f"PING LIGHT test error: {str(e)}",
+                "success": False,
+                "avg_time": 0.0,
+                "packet_loss": 0.0,
+                "original_status": original_status if 'original_status' in locals() else None,
+                "new_status": None
+            })
+        finally:
+            test_dedupe_mark_finished(node_id, "ping_light")
+    
+    return {"results": results}
 @api_router.post("/manual/ping-test")
 async def manual_ping_test(
     test_request: TestRequest,
