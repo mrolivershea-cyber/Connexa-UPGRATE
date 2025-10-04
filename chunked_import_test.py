@@ -414,7 +414,7 @@ class ChunkedImportTester:
         # This test verifies that large imports return immediately with session_id
         # instead of blocking until completion
         
-        test_data = self.generate_large_test_data(700)  # 700KB
+        test_data = self.generate_large_test_data(700, "172.23")  # 700KB
         data_size_kb = len(test_data.encode('utf-8')) / 1024
         
         import_data = {
