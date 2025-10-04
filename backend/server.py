@@ -3479,7 +3479,7 @@ async def start_socks_services(
                 "success": True,
                 "status": "online",
                 "socks_data": {
-                    "ip": admin_server_ip,
+                    "ip": node.ip,
                     "port": socks_port,
                     "login": login_prefix,
                     "password": password
