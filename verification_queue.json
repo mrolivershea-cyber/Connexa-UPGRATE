@@ -99180,5 +99180,6963 @@
       18617
     ],
     "status": "pending"
+  },
+  {
+    "id": 1759580453,
+    "timestamp": "2025-10-04T12:20:53.323697",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.1",
+      "login": "admin",
+      "password": "password101"
+    },
+    "conflicting_node_ids": [
+      18119
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580453,
+    "timestamp": "2025-10-04T12:20:53.406491",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.2",
+      "login": "admin",
+      "password": "password102"
+    },
+    "conflicting_node_ids": [
+      18120
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580453,
+    "timestamp": "2025-10-04T12:20:53.510211",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.3",
+      "login": "admin",
+      "password": "password103"
+    },
+    "conflicting_node_ids": [
+      18121
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580453,
+    "timestamp": "2025-10-04T12:20:53.590264",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.4",
+      "login": "admin",
+      "password": "password104"
+    },
+    "conflicting_node_ids": [
+      18122
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580453,
+    "timestamp": "2025-10-04T12:20:53.669535",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.5",
+      "login": "admin",
+      "password": "password105"
+    },
+    "conflicting_node_ids": [
+      18123
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580453,
+    "timestamp": "2025-10-04T12:20:53.748564",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.6",
+      "login": "admin",
+      "password": "password106"
+    },
+    "conflicting_node_ids": [
+      18124
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580453,
+    "timestamp": "2025-10-04T12:20:53.828529",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.7",
+      "login": "admin",
+      "password": "password107"
+    },
+    "conflicting_node_ids": [
+      18125
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580453,
+    "timestamp": "2025-10-04T12:20:53.928600",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.8",
+      "login": "admin",
+      "password": "password108"
+    },
+    "conflicting_node_ids": [
+      18126
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580454,
+    "timestamp": "2025-10-04T12:20:54.007690",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.9",
+      "login": "admin",
+      "password": "password109"
+    },
+    "conflicting_node_ids": [
+      18127
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580454,
+    "timestamp": "2025-10-04T12:20:54.086711",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.10",
+      "login": "admin",
+      "password": "password1010"
+    },
+    "conflicting_node_ids": [
+      18128
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580454,
+    "timestamp": "2025-10-04T12:20:54.166284",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.11",
+      "login": "admin",
+      "password": "password1011"
+    },
+    "conflicting_node_ids": [
+      18129
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580454,
+    "timestamp": "2025-10-04T12:20:54.268720",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.12",
+      "login": "admin",
+      "password": "password1012"
+    },
+    "conflicting_node_ids": [
+      18130
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580454,
+    "timestamp": "2025-10-04T12:20:54.347968",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.13",
+      "login": "admin",
+      "password": "password1013"
+    },
+    "conflicting_node_ids": [
+      18131
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580454,
+    "timestamp": "2025-10-04T12:20:54.427052",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.14",
+      "login": "admin",
+      "password": "password1014"
+    },
+    "conflicting_node_ids": [
+      18132
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580454,
+    "timestamp": "2025-10-04T12:20:54.505982",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.15",
+      "login": "admin",
+      "password": "password1015"
+    },
+    "conflicting_node_ids": [
+      18133
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580454,
+    "timestamp": "2025-10-04T12:20:54.584970",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.16",
+      "login": "admin",
+      "password": "password1016"
+    },
+    "conflicting_node_ids": [
+      18134
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580454,
+    "timestamp": "2025-10-04T12:20:54.685451",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.17",
+      "login": "admin",
+      "password": "password1017"
+    },
+    "conflicting_node_ids": [
+      18135
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580454,
+    "timestamp": "2025-10-04T12:20:54.764864",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.18",
+      "login": "admin",
+      "password": "password1018"
+    },
+    "conflicting_node_ids": [
+      18136
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580454,
+    "timestamp": "2025-10-04T12:20:54.844660",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.19",
+      "login": "admin",
+      "password": "password1019"
+    },
+    "conflicting_node_ids": [
+      18137
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580454,
+    "timestamp": "2025-10-04T12:20:54.924136",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.20",
+      "login": "admin",
+      "password": "password1020"
+    },
+    "conflicting_node_ids": [
+      18138
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580455,
+    "timestamp": "2025-10-04T12:20:55.026213",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.21",
+      "login": "admin",
+      "password": "password1021"
+    },
+    "conflicting_node_ids": [
+      18139
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580455,
+    "timestamp": "2025-10-04T12:20:55.106114",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.22",
+      "login": "admin",
+      "password": "password1022"
+    },
+    "conflicting_node_ids": [
+      18140
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580455,
+    "timestamp": "2025-10-04T12:20:55.186037",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.23",
+      "login": "admin",
+      "password": "password1023"
+    },
+    "conflicting_node_ids": [
+      18141
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580455,
+    "timestamp": "2025-10-04T12:20:55.265491",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.24",
+      "login": "admin",
+      "password": "password1024"
+    },
+    "conflicting_node_ids": [
+      18142
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580455,
+    "timestamp": "2025-10-04T12:20:55.345558",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.25",
+      "login": "admin",
+      "password": "password1025"
+    },
+    "conflicting_node_ids": [
+      18143
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580455,
+    "timestamp": "2025-10-04T12:20:55.446930",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.26",
+      "login": "admin",
+      "password": "password1026"
+    },
+    "conflicting_node_ids": [
+      18144
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580455,
+    "timestamp": "2025-10-04T12:20:55.526936",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.27",
+      "login": "admin",
+      "password": "password1027"
+    },
+    "conflicting_node_ids": [
+      18145
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580455,
+    "timestamp": "2025-10-04T12:20:55.606925",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.28",
+      "login": "admin",
+      "password": "password1028"
+    },
+    "conflicting_node_ids": [
+      18146
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580455,
+    "timestamp": "2025-10-04T12:20:55.686224",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.29",
+      "login": "admin",
+      "password": "password1029"
+    },
+    "conflicting_node_ids": [
+      18147
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580455,
+    "timestamp": "2025-10-04T12:20:55.787993",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.30",
+      "login": "admin",
+      "password": "password1030"
+    },
+    "conflicting_node_ids": [
+      18148
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580455,
+    "timestamp": "2025-10-04T12:20:55.868200",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.31",
+      "login": "admin",
+      "password": "password1031"
+    },
+    "conflicting_node_ids": [
+      18149
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580455,
+    "timestamp": "2025-10-04T12:20:55.948328",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.32",
+      "login": "admin",
+      "password": "password1032"
+    },
+    "conflicting_node_ids": [
+      18150
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580456,
+    "timestamp": "2025-10-04T12:20:56.028307",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.33",
+      "login": "admin",
+      "password": "password1033"
+    },
+    "conflicting_node_ids": [
+      18151
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580456,
+    "timestamp": "2025-10-04T12:20:56.130702",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.34",
+      "login": "admin",
+      "password": "password1034"
+    },
+    "conflicting_node_ids": [
+      18152
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580456,
+    "timestamp": "2025-10-04T12:20:56.210840",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.35",
+      "login": "admin",
+      "password": "password1035"
+    },
+    "conflicting_node_ids": [
+      18153
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580456,
+    "timestamp": "2025-10-04T12:20:56.290617",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.36",
+      "login": "admin",
+      "password": "password1036"
+    },
+    "conflicting_node_ids": [
+      18154
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580456,
+    "timestamp": "2025-10-04T12:20:56.370145",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.37",
+      "login": "admin",
+      "password": "password1037"
+    },
+    "conflicting_node_ids": [
+      18155
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580456,
+    "timestamp": "2025-10-04T12:20:56.450337",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.38",
+      "login": "admin",
+      "password": "password1038"
+    },
+    "conflicting_node_ids": [
+      18156
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580456,
+    "timestamp": "2025-10-04T12:20:56.552597",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.39",
+      "login": "admin",
+      "password": "password1039"
+    },
+    "conflicting_node_ids": [
+      18157
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580456,
+    "timestamp": "2025-10-04T12:20:56.633037",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.40",
+      "login": "admin",
+      "password": "password1040"
+    },
+    "conflicting_node_ids": [
+      18158
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580456,
+    "timestamp": "2025-10-04T12:20:56.713496",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.41",
+      "login": "admin",
+      "password": "password1041"
+    },
+    "conflicting_node_ids": [
+      18159
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580456,
+    "timestamp": "2025-10-04T12:20:56.793393",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.42",
+      "login": "admin",
+      "password": "password1042"
+    },
+    "conflicting_node_ids": [
+      18160
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580456,
+    "timestamp": "2025-10-04T12:20:56.898509",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.43",
+      "login": "admin",
+      "password": "password1043"
+    },
+    "conflicting_node_ids": [
+      18161
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580456,
+    "timestamp": "2025-10-04T12:20:56.978640",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.44",
+      "login": "admin",
+      "password": "password1044"
+    },
+    "conflicting_node_ids": [
+      18162
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580457,
+    "timestamp": "2025-10-04T12:20:57.058540",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.45",
+      "login": "admin",
+      "password": "password1045"
+    },
+    "conflicting_node_ids": [
+      18163
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580457,
+    "timestamp": "2025-10-04T12:20:57.138427",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.46",
+      "login": "admin",
+      "password": "password1046"
+    },
+    "conflicting_node_ids": [
+      18164
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580457,
+    "timestamp": "2025-10-04T12:20:57.218371",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.47",
+      "login": "admin",
+      "password": "password1047"
+    },
+    "conflicting_node_ids": [
+      18165
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580457,
+    "timestamp": "2025-10-04T12:20:57.319826",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.48",
+      "login": "admin",
+      "password": "password1048"
+    },
+    "conflicting_node_ids": [
+      18166
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580457,
+    "timestamp": "2025-10-04T12:20:57.400130",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.49",
+      "login": "admin",
+      "password": "password1049"
+    },
+    "conflicting_node_ids": [
+      18167
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580457,
+    "timestamp": "2025-10-04T12:20:57.480047",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.50",
+      "login": "admin",
+      "password": "password1050"
+    },
+    "conflicting_node_ids": [
+      18168
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580457,
+    "timestamp": "2025-10-04T12:20:57.560208",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.51",
+      "login": "admin",
+      "password": "password1051"
+    },
+    "conflicting_node_ids": [
+      18169
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580457,
+    "timestamp": "2025-10-04T12:20:57.662708",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.52",
+      "login": "admin",
+      "password": "password1052"
+    },
+    "conflicting_node_ids": [
+      18170
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580457,
+    "timestamp": "2025-10-04T12:20:57.742757",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.53",
+      "login": "admin",
+      "password": "password1053"
+    },
+    "conflicting_node_ids": [
+      18171
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580457,
+    "timestamp": "2025-10-04T12:20:57.823255",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.54",
+      "login": "admin",
+      "password": "password1054"
+    },
+    "conflicting_node_ids": [
+      18172
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580457,
+    "timestamp": "2025-10-04T12:20:57.903646",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.55",
+      "login": "admin",
+      "password": "password1055"
+    },
+    "conflicting_node_ids": [
+      18173
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580457,
+    "timestamp": "2025-10-04T12:20:57.983640",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.56",
+      "login": "admin",
+      "password": "password1056"
+    },
+    "conflicting_node_ids": [
+      18174
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580458,
+    "timestamp": "2025-10-04T12:20:58.087565",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.57",
+      "login": "admin",
+      "password": "password1057"
+    },
+    "conflicting_node_ids": [
+      18175
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580458,
+    "timestamp": "2025-10-04T12:20:58.167944",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.58",
+      "login": "admin",
+      "password": "password1058"
+    },
+    "conflicting_node_ids": [
+      18176
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580458,
+    "timestamp": "2025-10-04T12:20:58.248873",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.59",
+      "login": "admin",
+      "password": "password1059"
+    },
+    "conflicting_node_ids": [
+      18177
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580458,
+    "timestamp": "2025-10-04T12:20:58.329601",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.60",
+      "login": "admin",
+      "password": "password1060"
+    },
+    "conflicting_node_ids": [
+      18178
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580458,
+    "timestamp": "2025-10-04T12:20:58.432157",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.61",
+      "login": "admin",
+      "password": "password1061"
+    },
+    "conflicting_node_ids": [
+      18179
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580458,
+    "timestamp": "2025-10-04T12:20:58.512745",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.62",
+      "login": "admin",
+      "password": "password1062"
+    },
+    "conflicting_node_ids": [
+      18180
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580458,
+    "timestamp": "2025-10-04T12:20:58.593299",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.63",
+      "login": "admin",
+      "password": "password1063"
+    },
+    "conflicting_node_ids": [
+      18181
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580458,
+    "timestamp": "2025-10-04T12:20:58.673447",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.64",
+      "login": "admin",
+      "password": "password1064"
+    },
+    "conflicting_node_ids": [
+      18182
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580458,
+    "timestamp": "2025-10-04T12:20:58.754121",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.65",
+      "login": "admin",
+      "password": "password1065"
+    },
+    "conflicting_node_ids": [
+      18183
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580458,
+    "timestamp": "2025-10-04T12:20:58.856406",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.66",
+      "login": "admin",
+      "password": "password1066"
+    },
+    "conflicting_node_ids": [
+      18184
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580458,
+    "timestamp": "2025-10-04T12:20:58.936481",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.67",
+      "login": "admin",
+      "password": "password1067"
+    },
+    "conflicting_node_ids": [
+      18185
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580459,
+    "timestamp": "2025-10-04T12:20:59.017097",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.68",
+      "login": "admin",
+      "password": "password1068"
+    },
+    "conflicting_node_ids": [
+      18186
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580459,
+    "timestamp": "2025-10-04T12:20:59.098128",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.69",
+      "login": "admin",
+      "password": "password1069"
+    },
+    "conflicting_node_ids": [
+      18187
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580459,
+    "timestamp": "2025-10-04T12:20:59.201756",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.70",
+      "login": "admin",
+      "password": "password1070"
+    },
+    "conflicting_node_ids": [
+      18188
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580459,
+    "timestamp": "2025-10-04T12:20:59.282478",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.71",
+      "login": "admin",
+      "password": "password1071"
+    },
+    "conflicting_node_ids": [
+      18189
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580459,
+    "timestamp": "2025-10-04T12:20:59.363365",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.72",
+      "login": "admin",
+      "password": "password1072"
+    },
+    "conflicting_node_ids": [
+      18190
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580459,
+    "timestamp": "2025-10-04T12:20:59.444068",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.73",
+      "login": "admin",
+      "password": "password1073"
+    },
+    "conflicting_node_ids": [
+      18191
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580459,
+    "timestamp": "2025-10-04T12:20:59.549489",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.74",
+      "login": "admin",
+      "password": "password1074"
+    },
+    "conflicting_node_ids": [
+      18192
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580459,
+    "timestamp": "2025-10-04T12:20:59.630142",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.75",
+      "login": "admin",
+      "password": "password1075"
+    },
+    "conflicting_node_ids": [
+      18193
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580459,
+    "timestamp": "2025-10-04T12:20:59.710798",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.76",
+      "login": "admin",
+      "password": "password1076"
+    },
+    "conflicting_node_ids": [
+      18194
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580459,
+    "timestamp": "2025-10-04T12:20:59.791401",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.77",
+      "login": "admin",
+      "password": "password1077"
+    },
+    "conflicting_node_ids": [
+      18195
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580459,
+    "timestamp": "2025-10-04T12:20:59.871936",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.78",
+      "login": "admin",
+      "password": "password1078"
+    },
+    "conflicting_node_ids": [
+      18196
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580459,
+    "timestamp": "2025-10-04T12:20:59.975593",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.79",
+      "login": "admin",
+      "password": "password1079"
+    },
+    "conflicting_node_ids": [
+      18197
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580460,
+    "timestamp": "2025-10-04T12:21:00.056812",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.80",
+      "login": "admin",
+      "password": "password1080"
+    },
+    "conflicting_node_ids": [
+      18198
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580460,
+    "timestamp": "2025-10-04T12:21:00.137371",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.81",
+      "login": "admin",
+      "password": "password1081"
+    },
+    "conflicting_node_ids": [
+      18199
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580460,
+    "timestamp": "2025-10-04T12:21:00.218326",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.82",
+      "login": "admin",
+      "password": "password1082"
+    },
+    "conflicting_node_ids": [
+      18200
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580460,
+    "timestamp": "2025-10-04T12:21:00.320383",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.83",
+      "login": "admin",
+      "password": "password1083"
+    },
+    "conflicting_node_ids": [
+      18201
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580460,
+    "timestamp": "2025-10-04T12:21:00.402035",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.84",
+      "login": "admin",
+      "password": "password1084"
+    },
+    "conflicting_node_ids": [
+      18202
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580460,
+    "timestamp": "2025-10-04T12:21:00.483047",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.85",
+      "login": "admin",
+      "password": "password1085"
+    },
+    "conflicting_node_ids": [
+      18203
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580460,
+    "timestamp": "2025-10-04T12:21:00.564183",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.86",
+      "login": "admin",
+      "password": "password1086"
+    },
+    "conflicting_node_ids": [
+      18204
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580460,
+    "timestamp": "2025-10-04T12:21:00.645396",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.87",
+      "login": "admin",
+      "password": "password1087"
+    },
+    "conflicting_node_ids": [
+      18205
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580460,
+    "timestamp": "2025-10-04T12:21:00.748223",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.88",
+      "login": "admin",
+      "password": "password1088"
+    },
+    "conflicting_node_ids": [
+      18206
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580460,
+    "timestamp": "2025-10-04T12:21:00.829396",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.89",
+      "login": "admin",
+      "password": "password1089"
+    },
+    "conflicting_node_ids": [
+      18207
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580460,
+    "timestamp": "2025-10-04T12:21:00.910396",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.90",
+      "login": "admin",
+      "password": "password1090"
+    },
+    "conflicting_node_ids": [
+      18208
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580460,
+    "timestamp": "2025-10-04T12:21:00.991285",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.91",
+      "login": "admin",
+      "password": "password1091"
+    },
+    "conflicting_node_ids": [
+      18209
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580461,
+    "timestamp": "2025-10-04T12:21:01.096483",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.92",
+      "login": "admin",
+      "password": "password1092"
+    },
+    "conflicting_node_ids": [
+      18210
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580461,
+    "timestamp": "2025-10-04T12:21:01.177526",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.93",
+      "login": "admin",
+      "password": "password1093"
+    },
+    "conflicting_node_ids": [
+      18211
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580461,
+    "timestamp": "2025-10-04T12:21:01.258797",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.94",
+      "login": "admin",
+      "password": "password1094"
+    },
+    "conflicting_node_ids": [
+      18212
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580461,
+    "timestamp": "2025-10-04T12:21:01.339680",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.95",
+      "login": "admin",
+      "password": "password1095"
+    },
+    "conflicting_node_ids": [
+      18213
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580461,
+    "timestamp": "2025-10-04T12:21:01.421011",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.96",
+      "login": "admin",
+      "password": "password1096"
+    },
+    "conflicting_node_ids": [
+      18214
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580461,
+    "timestamp": "2025-10-04T12:21:01.525664",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.97",
+      "login": "admin",
+      "password": "password1097"
+    },
+    "conflicting_node_ids": [
+      18215
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580461,
+    "timestamp": "2025-10-04T12:21:01.607760",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.98",
+      "login": "admin",
+      "password": "password1098"
+    },
+    "conflicting_node_ids": [
+      18216
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580461,
+    "timestamp": "2025-10-04T12:21:01.689196",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.99",
+      "login": "admin",
+      "password": "password1099"
+    },
+    "conflicting_node_ids": [
+      18217
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580461,
+    "timestamp": "2025-10-04T12:21:01.770456",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.100",
+      "login": "admin",
+      "password": "password10100"
+    },
+    "conflicting_node_ids": [
+      18218
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580461,
+    "timestamp": "2025-10-04T12:21:01.874546",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.101",
+      "login": "admin",
+      "password": "password10101"
+    },
+    "conflicting_node_ids": [
+      18219
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580461,
+    "timestamp": "2025-10-04T12:21:01.956926",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.102",
+      "login": "admin",
+      "password": "password10102"
+    },
+    "conflicting_node_ids": [
+      18220
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580462,
+    "timestamp": "2025-10-04T12:21:02.038839",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.103",
+      "login": "admin",
+      "password": "password10103"
+    },
+    "conflicting_node_ids": [
+      18221
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580462,
+    "timestamp": "2025-10-04T12:21:02.120140",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.104",
+      "login": "admin",
+      "password": "password10104"
+    },
+    "conflicting_node_ids": [
+      18222
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580462,
+    "timestamp": "2025-10-04T12:21:02.225639",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.105",
+      "login": "admin",
+      "password": "password10105"
+    },
+    "conflicting_node_ids": [
+      18223
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580462,
+    "timestamp": "2025-10-04T12:21:02.307613",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.106",
+      "login": "admin",
+      "password": "password10106"
+    },
+    "conflicting_node_ids": [
+      18224
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580462,
+    "timestamp": "2025-10-04T12:21:02.389636",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.107",
+      "login": "admin",
+      "password": "password10107"
+    },
+    "conflicting_node_ids": [
+      18225
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580462,
+    "timestamp": "2025-10-04T12:21:02.471377",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.108",
+      "login": "admin",
+      "password": "password10108"
+    },
+    "conflicting_node_ids": [
+      18226
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580462,
+    "timestamp": "2025-10-04T12:21:02.553537",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.109",
+      "login": "admin",
+      "password": "password10109"
+    },
+    "conflicting_node_ids": [
+      18227
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580462,
+    "timestamp": "2025-10-04T12:21:02.656709",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.110",
+      "login": "admin",
+      "password": "password10110"
+    },
+    "conflicting_node_ids": [
+      18228
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580462,
+    "timestamp": "2025-10-04T12:21:02.739016",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.111",
+      "login": "admin",
+      "password": "password10111"
+    },
+    "conflicting_node_ids": [
+      18229
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580462,
+    "timestamp": "2025-10-04T12:21:02.820869",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.112",
+      "login": "admin",
+      "password": "password10112"
+    },
+    "conflicting_node_ids": [
+      18230
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580462,
+    "timestamp": "2025-10-04T12:21:02.903368",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.113",
+      "login": "admin",
+      "password": "password10113"
+    },
+    "conflicting_node_ids": [
+      18231
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580463,
+    "timestamp": "2025-10-04T12:21:03.006666",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.114",
+      "login": "admin",
+      "password": "password10114"
+    },
+    "conflicting_node_ids": [
+      18232
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580463,
+    "timestamp": "2025-10-04T12:21:03.089180",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.115",
+      "login": "admin",
+      "password": "password10115"
+    },
+    "conflicting_node_ids": [
+      18233
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580463,
+    "timestamp": "2025-10-04T12:21:03.171391",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.116",
+      "login": "admin",
+      "password": "password10116"
+    },
+    "conflicting_node_ids": [
+      18234
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580463,
+    "timestamp": "2025-10-04T12:21:03.253643",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.117",
+      "login": "admin",
+      "password": "password10117"
+    },
+    "conflicting_node_ids": [
+      18235
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580463,
+    "timestamp": "2025-10-04T12:21:03.335570",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.118",
+      "login": "admin",
+      "password": "password10118"
+    },
+    "conflicting_node_ids": [
+      18236
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580463,
+    "timestamp": "2025-10-04T12:21:03.439326",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.119",
+      "login": "admin",
+      "password": "password10119"
+    },
+    "conflicting_node_ids": [
+      18237
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580463,
+    "timestamp": "2025-10-04T12:21:03.521990",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.120",
+      "login": "admin",
+      "password": "password10120"
+    },
+    "conflicting_node_ids": [
+      18238
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580463,
+    "timestamp": "2025-10-04T12:21:03.604291",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.121",
+      "login": "admin",
+      "password": "password10121"
+    },
+    "conflicting_node_ids": [
+      18239
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580463,
+    "timestamp": "2025-10-04T12:21:03.687095",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.122",
+      "login": "admin",
+      "password": "password10122"
+    },
+    "conflicting_node_ids": [
+      18240
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580463,
+    "timestamp": "2025-10-04T12:21:03.793070",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.123",
+      "login": "admin",
+      "password": "password10123"
+    },
+    "conflicting_node_ids": [
+      18241
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580463,
+    "timestamp": "2025-10-04T12:21:03.875486",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.124",
+      "login": "admin",
+      "password": "password10124"
+    },
+    "conflicting_node_ids": [
+      18242
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580463,
+    "timestamp": "2025-10-04T12:21:03.958137",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.125",
+      "login": "admin",
+      "password": "password10125"
+    },
+    "conflicting_node_ids": [
+      18243
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580464,
+    "timestamp": "2025-10-04T12:21:04.040547",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.126",
+      "login": "admin",
+      "password": "password10126"
+    },
+    "conflicting_node_ids": [
+      18244
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580464,
+    "timestamp": "2025-10-04T12:21:04.123095",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.127",
+      "login": "admin",
+      "password": "password10127"
+    },
+    "conflicting_node_ids": [
+      18245
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580464,
+    "timestamp": "2025-10-04T12:21:04.226197",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.128",
+      "login": "admin",
+      "password": "password10128"
+    },
+    "conflicting_node_ids": [
+      18246
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580464,
+    "timestamp": "2025-10-04T12:21:04.308728",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.129",
+      "login": "admin",
+      "password": "password10129"
+    },
+    "conflicting_node_ids": [
+      18247
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580464,
+    "timestamp": "2025-10-04T12:21:04.391816",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.130",
+      "login": "admin",
+      "password": "password10130"
+    },
+    "conflicting_node_ids": [
+      18248
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580464,
+    "timestamp": "2025-10-04T12:21:04.474025",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.131",
+      "login": "admin",
+      "password": "password10131"
+    },
+    "conflicting_node_ids": [
+      18249
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580464,
+    "timestamp": "2025-10-04T12:21:04.579904",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.132",
+      "login": "admin",
+      "password": "password10132"
+    },
+    "conflicting_node_ids": [
+      18250
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580464,
+    "timestamp": "2025-10-04T12:21:04.662544",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.133",
+      "login": "admin",
+      "password": "password10133"
+    },
+    "conflicting_node_ids": [
+      18251
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580464,
+    "timestamp": "2025-10-04T12:21:04.745737",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.134",
+      "login": "admin",
+      "password": "password10134"
+    },
+    "conflicting_node_ids": [
+      18252
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580464,
+    "timestamp": "2025-10-04T12:21:04.827987",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.135",
+      "login": "admin",
+      "password": "password10135"
+    },
+    "conflicting_node_ids": [
+      18253
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580464,
+    "timestamp": "2025-10-04T12:21:04.934122",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.136",
+      "login": "admin",
+      "password": "password10136"
+    },
+    "conflicting_node_ids": [
+      18254
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580465,
+    "timestamp": "2025-10-04T12:21:05.016723",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.137",
+      "login": "admin",
+      "password": "password10137"
+    },
+    "conflicting_node_ids": [
+      18255
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580465,
+    "timestamp": "2025-10-04T12:21:05.099467",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.138",
+      "login": "admin",
+      "password": "password10138"
+    },
+    "conflicting_node_ids": [
+      18256
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580465,
+    "timestamp": "2025-10-04T12:21:05.181629",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.139",
+      "login": "admin",
+      "password": "password10139"
+    },
+    "conflicting_node_ids": [
+      18257
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580465,
+    "timestamp": "2025-10-04T12:21:05.264221",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.140",
+      "login": "admin",
+      "password": "password10140"
+    },
+    "conflicting_node_ids": [
+      18258
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580465,
+    "timestamp": "2025-10-04T12:21:05.368815",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.141",
+      "login": "admin",
+      "password": "password10141"
+    },
+    "conflicting_node_ids": [
+      18259
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580465,
+    "timestamp": "2025-10-04T12:21:05.451447",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.142",
+      "login": "admin",
+      "password": "password10142"
+    },
+    "conflicting_node_ids": [
+      18260
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580465,
+    "timestamp": "2025-10-04T12:21:05.534354",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.143",
+      "login": "admin",
+      "password": "password10143"
+    },
+    "conflicting_node_ids": [
+      18261
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580465,
+    "timestamp": "2025-10-04T12:21:05.618071",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.144",
+      "login": "admin",
+      "password": "password10144"
+    },
+    "conflicting_node_ids": [
+      18262
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580465,
+    "timestamp": "2025-10-04T12:21:05.723442",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.145",
+      "login": "admin",
+      "password": "password10145"
+    },
+    "conflicting_node_ids": [
+      18263
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580465,
+    "timestamp": "2025-10-04T12:21:05.806339",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.146",
+      "login": "admin",
+      "password": "password10146"
+    },
+    "conflicting_node_ids": [
+      18264
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580465,
+    "timestamp": "2025-10-04T12:21:05.888903",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.147",
+      "login": "admin",
+      "password": "password10147"
+    },
+    "conflicting_node_ids": [
+      18265
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580465,
+    "timestamp": "2025-10-04T12:21:05.971448",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.148",
+      "login": "admin",
+      "password": "password10148"
+    },
+    "conflicting_node_ids": [
+      18266
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580466,
+    "timestamp": "2025-10-04T12:21:06.054196",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.149",
+      "login": "admin",
+      "password": "password10149"
+    },
+    "conflicting_node_ids": [
+      18267
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580466,
+    "timestamp": "2025-10-04T12:21:06.158242",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.150",
+      "login": "admin",
+      "password": "password10150"
+    },
+    "conflicting_node_ids": [
+      18268
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580466,
+    "timestamp": "2025-10-04T12:21:06.241113",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.151",
+      "login": "admin",
+      "password": "password10151"
+    },
+    "conflicting_node_ids": [
+      18269
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580466,
+    "timestamp": "2025-10-04T12:21:06.323960",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.152",
+      "login": "admin",
+      "password": "password10152"
+    },
+    "conflicting_node_ids": [
+      18270
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580466,
+    "timestamp": "2025-10-04T12:21:06.407213",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.153",
+      "login": "admin",
+      "password": "password10153"
+    },
+    "conflicting_node_ids": [
+      18271
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580466,
+    "timestamp": "2025-10-04T12:21:06.512008",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.154",
+      "login": "admin",
+      "password": "password10154"
+    },
+    "conflicting_node_ids": [
+      18272
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580466,
+    "timestamp": "2025-10-04T12:21:06.594765",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.155",
+      "login": "admin",
+      "password": "password10155"
+    },
+    "conflicting_node_ids": [
+      18273
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580466,
+    "timestamp": "2025-10-04T12:21:06.678040",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.156",
+      "login": "admin",
+      "password": "password10156"
+    },
+    "conflicting_node_ids": [
+      18274
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580466,
+    "timestamp": "2025-10-04T12:21:06.760885",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.157",
+      "login": "admin",
+      "password": "password10157"
+    },
+    "conflicting_node_ids": [
+      18275
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580466,
+    "timestamp": "2025-10-04T12:21:06.844361",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.158",
+      "login": "admin",
+      "password": "password10158"
+    },
+    "conflicting_node_ids": [
+      18276
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580466,
+    "timestamp": "2025-10-04T12:21:06.948479",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.159",
+      "login": "admin",
+      "password": "password10159"
+    },
+    "conflicting_node_ids": [
+      18277
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580467,
+    "timestamp": "2025-10-04T12:21:07.031924",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.160",
+      "login": "admin",
+      "password": "password10160"
+    },
+    "conflicting_node_ids": [
+      18278
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580467,
+    "timestamp": "2025-10-04T12:21:07.116199",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.161",
+      "login": "admin",
+      "password": "password10161"
+    },
+    "conflicting_node_ids": [
+      18279
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580467,
+    "timestamp": "2025-10-04T12:21:07.199184",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.162",
+      "login": "admin",
+      "password": "password10162"
+    },
+    "conflicting_node_ids": [
+      18280
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580467,
+    "timestamp": "2025-10-04T12:21:07.303674",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.163",
+      "login": "admin",
+      "password": "password10163"
+    },
+    "conflicting_node_ids": [
+      18281
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580467,
+    "timestamp": "2025-10-04T12:21:07.386836",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.164",
+      "login": "admin",
+      "password": "password10164"
+    },
+    "conflicting_node_ids": [
+      18282
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580467,
+    "timestamp": "2025-10-04T12:21:07.470501",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.165",
+      "login": "admin",
+      "password": "password10165"
+    },
+    "conflicting_node_ids": [
+      18283
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580467,
+    "timestamp": "2025-10-04T12:21:07.553457",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.166",
+      "login": "admin",
+      "password": "password10166"
+    },
+    "conflicting_node_ids": [
+      18284
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580467,
+    "timestamp": "2025-10-04T12:21:07.659133",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.167",
+      "login": "admin",
+      "password": "password10167"
+    },
+    "conflicting_node_ids": [
+      18285
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580467,
+    "timestamp": "2025-10-04T12:21:07.742812",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.168",
+      "login": "admin",
+      "password": "password10168"
+    },
+    "conflicting_node_ids": [
+      18286
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580467,
+    "timestamp": "2025-10-04T12:21:07.826190",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.169",
+      "login": "admin",
+      "password": "password10169"
+    },
+    "conflicting_node_ids": [
+      18287
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580467,
+    "timestamp": "2025-10-04T12:21:07.909407",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.170",
+      "login": "admin",
+      "password": "password10170"
+    },
+    "conflicting_node_ids": [
+      18288
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580467,
+    "timestamp": "2025-10-04T12:21:07.992584",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.171",
+      "login": "admin",
+      "password": "password10171"
+    },
+    "conflicting_node_ids": [
+      18289
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580468,
+    "timestamp": "2025-10-04T12:21:08.097771",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.172",
+      "login": "admin",
+      "password": "password10172"
+    },
+    "conflicting_node_ids": [
+      18290
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580468,
+    "timestamp": "2025-10-04T12:21:08.181187",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.173",
+      "login": "admin",
+      "password": "password10173"
+    },
+    "conflicting_node_ids": [
+      18291
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580468,
+    "timestamp": "2025-10-04T12:21:08.263991",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.174",
+      "login": "admin",
+      "password": "password10174"
+    },
+    "conflicting_node_ids": [
+      18292
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580468,
+    "timestamp": "2025-10-04T12:21:08.347330",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.175",
+      "login": "admin",
+      "password": "password10175"
+    },
+    "conflicting_node_ids": [
+      18293
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580468,
+    "timestamp": "2025-10-04T12:21:08.453351",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.176",
+      "login": "admin",
+      "password": "password10176"
+    },
+    "conflicting_node_ids": [
+      18294
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580468,
+    "timestamp": "2025-10-04T12:21:08.536660",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.177",
+      "login": "admin",
+      "password": "password10177"
+    },
+    "conflicting_node_ids": [
+      18295
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580468,
+    "timestamp": "2025-10-04T12:21:08.619442",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.178",
+      "login": "admin",
+      "password": "password10178"
+    },
+    "conflicting_node_ids": [
+      18296
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580468,
+    "timestamp": "2025-10-04T12:21:08.702869",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.179",
+      "login": "admin",
+      "password": "password10179"
+    },
+    "conflicting_node_ids": [
+      18297
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580468,
+    "timestamp": "2025-10-04T12:21:08.786377",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.180",
+      "login": "admin",
+      "password": "password10180"
+    },
+    "conflicting_node_ids": [
+      18298
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580468,
+    "timestamp": "2025-10-04T12:21:08.892629",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.181",
+      "login": "admin",
+      "password": "password10181"
+    },
+    "conflicting_node_ids": [
+      18299
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580468,
+    "timestamp": "2025-10-04T12:21:08.975999",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.182",
+      "login": "admin",
+      "password": "password10182"
+    },
+    "conflicting_node_ids": [
+      18300
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580469,
+    "timestamp": "2025-10-04T12:21:09.060082",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.183",
+      "login": "admin",
+      "password": "password10183"
+    },
+    "conflicting_node_ids": [
+      18301
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580469,
+    "timestamp": "2025-10-04T12:21:09.143277",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.184",
+      "login": "admin",
+      "password": "password10184"
+    },
+    "conflicting_node_ids": [
+      18302
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580469,
+    "timestamp": "2025-10-04T12:21:09.249312",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.185",
+      "login": "admin",
+      "password": "password10185"
+    },
+    "conflicting_node_ids": [
+      18303
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580469,
+    "timestamp": "2025-10-04T12:21:09.332626",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.186",
+      "login": "admin",
+      "password": "password10186"
+    },
+    "conflicting_node_ids": [
+      18304
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580469,
+    "timestamp": "2025-10-04T12:21:09.417019",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.187",
+      "login": "admin",
+      "password": "password10187"
+    },
+    "conflicting_node_ids": [
+      18305
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580469,
+    "timestamp": "2025-10-04T12:21:09.500453",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.188",
+      "login": "admin",
+      "password": "password10188"
+    },
+    "conflicting_node_ids": [
+      18306
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580469,
+    "timestamp": "2025-10-04T12:21:09.583960",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.189",
+      "login": "admin",
+      "password": "password10189"
+    },
+    "conflicting_node_ids": [
+      18307
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580469,
+    "timestamp": "2025-10-04T12:21:09.689361",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.190",
+      "login": "admin",
+      "password": "password10190"
+    },
+    "conflicting_node_ids": [
+      18308
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580469,
+    "timestamp": "2025-10-04T12:21:09.776654",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.191",
+      "login": "admin",
+      "password": "password10191"
+    },
+    "conflicting_node_ids": [
+      18309
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580469,
+    "timestamp": "2025-10-04T12:21:09.862781",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.192",
+      "login": "admin",
+      "password": "password10192"
+    },
+    "conflicting_node_ids": [
+      18310
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580469,
+    "timestamp": "2025-10-04T12:21:09.946265",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.193",
+      "login": "admin",
+      "password": "password10193"
+    },
+    "conflicting_node_ids": [
+      18311
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580470,
+    "timestamp": "2025-10-04T12:21:10.051563",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.194",
+      "login": "admin",
+      "password": "password10194"
+    },
+    "conflicting_node_ids": [
+      18312
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580470,
+    "timestamp": "2025-10-04T12:21:10.135280",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.195",
+      "login": "admin",
+      "password": "password10195"
+    },
+    "conflicting_node_ids": [
+      18313
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580470,
+    "timestamp": "2025-10-04T12:21:10.218507",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.196",
+      "login": "admin",
+      "password": "password10196"
+    },
+    "conflicting_node_ids": [
+      18314
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580470,
+    "timestamp": "2025-10-04T12:21:10.302314",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.197",
+      "login": "admin",
+      "password": "password10197"
+    },
+    "conflicting_node_ids": [
+      18315
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580470,
+    "timestamp": "2025-10-04T12:21:10.411800",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.198",
+      "login": "admin",
+      "password": "password10198"
+    },
+    "conflicting_node_ids": [
+      18316
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580470,
+    "timestamp": "2025-10-04T12:21:10.496158",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.199",
+      "login": "admin",
+      "password": "password10199"
+    },
+    "conflicting_node_ids": [
+      18317
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580470,
+    "timestamp": "2025-10-04T12:21:10.579641",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.200",
+      "login": "admin",
+      "password": "password10200"
+    },
+    "conflicting_node_ids": [
+      18318
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580470,
+    "timestamp": "2025-10-04T12:21:10.663592",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.201",
+      "login": "admin",
+      "password": "password10201"
+    },
+    "conflicting_node_ids": [
+      18319
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580470,
+    "timestamp": "2025-10-04T12:21:10.747203",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.202",
+      "login": "admin",
+      "password": "password10202"
+    },
+    "conflicting_node_ids": [
+      18320
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580470,
+    "timestamp": "2025-10-04T12:21:10.852461",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.203",
+      "login": "admin",
+      "password": "password10203"
+    },
+    "conflicting_node_ids": [
+      18321
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580470,
+    "timestamp": "2025-10-04T12:21:10.936021",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.204",
+      "login": "admin",
+      "password": "password10204"
+    },
+    "conflicting_node_ids": [
+      18322
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580471,
+    "timestamp": "2025-10-04T12:21:11.019816",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.205",
+      "login": "admin",
+      "password": "password10205"
+    },
+    "conflicting_node_ids": [
+      18323
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580471,
+    "timestamp": "2025-10-04T12:21:11.103666",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.206",
+      "login": "admin",
+      "password": "password10206"
+    },
+    "conflicting_node_ids": [
+      18324
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580471,
+    "timestamp": "2025-10-04T12:21:11.209115",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.207",
+      "login": "admin",
+      "password": "password10207"
+    },
+    "conflicting_node_ids": [
+      18325
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580471,
+    "timestamp": "2025-10-04T12:21:11.292632",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.208",
+      "login": "admin",
+      "password": "password10208"
+    },
+    "conflicting_node_ids": [
+      18326
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580471,
+    "timestamp": "2025-10-04T12:21:11.375962",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.209",
+      "login": "admin",
+      "password": "password10209"
+    },
+    "conflicting_node_ids": [
+      18327
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580471,
+    "timestamp": "2025-10-04T12:21:11.460082",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.210",
+      "login": "admin",
+      "password": "password10210"
+    },
+    "conflicting_node_ids": [
+      18328
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580471,
+    "timestamp": "2025-10-04T12:21:11.567899",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.211",
+      "login": "admin",
+      "password": "password10211"
+    },
+    "conflicting_node_ids": [
+      18329
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580471,
+    "timestamp": "2025-10-04T12:21:11.652029",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.212",
+      "login": "admin",
+      "password": "password10212"
+    },
+    "conflicting_node_ids": [
+      18330
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580471,
+    "timestamp": "2025-10-04T12:21:11.735783",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.213",
+      "login": "admin",
+      "password": "password10213"
+    },
+    "conflicting_node_ids": [
+      18331
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580471,
+    "timestamp": "2025-10-04T12:21:11.820362",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.214",
+      "login": "admin",
+      "password": "password10214"
+    },
+    "conflicting_node_ids": [
+      18332
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580471,
+    "timestamp": "2025-10-04T12:21:11.904245",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.215",
+      "login": "admin",
+      "password": "password10215"
+    },
+    "conflicting_node_ids": [
+      18333
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580472,
+    "timestamp": "2025-10-04T12:21:12.011371",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.216",
+      "login": "admin",
+      "password": "password10216"
+    },
+    "conflicting_node_ids": [
+      18334
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580472,
+    "timestamp": "2025-10-04T12:21:12.095855",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.217",
+      "login": "admin",
+      "password": "password10217"
+    },
+    "conflicting_node_ids": [
+      18335
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580472,
+    "timestamp": "2025-10-04T12:21:12.180492",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.218",
+      "login": "admin",
+      "password": "password10218"
+    },
+    "conflicting_node_ids": [
+      18336
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580472,
+    "timestamp": "2025-10-04T12:21:12.264194",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.219",
+      "login": "admin",
+      "password": "password10219"
+    },
+    "conflicting_node_ids": [
+      18337
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580472,
+    "timestamp": "2025-10-04T12:21:12.370650",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.220",
+      "login": "admin",
+      "password": "password10220"
+    },
+    "conflicting_node_ids": [
+      18338
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580472,
+    "timestamp": "2025-10-04T12:21:12.454712",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.221",
+      "login": "admin",
+      "password": "password10221"
+    },
+    "conflicting_node_ids": [
+      18339
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580472,
+    "timestamp": "2025-10-04T12:21:12.538569",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.222",
+      "login": "admin",
+      "password": "password10222"
+    },
+    "conflicting_node_ids": [
+      18340
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580472,
+    "timestamp": "2025-10-04T12:21:12.621976",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.223",
+      "login": "admin",
+      "password": "password10223"
+    },
+    "conflicting_node_ids": [
+      18341
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580472,
+    "timestamp": "2025-10-04T12:21:12.729559",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.224",
+      "login": "admin",
+      "password": "password10224"
+    },
+    "conflicting_node_ids": [
+      18342
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580472,
+    "timestamp": "2025-10-04T12:21:12.813087",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.225",
+      "login": "admin",
+      "password": "password10225"
+    },
+    "conflicting_node_ids": [
+      18343
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580472,
+    "timestamp": "2025-10-04T12:21:12.896579",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.226",
+      "login": "admin",
+      "password": "password10226"
+    },
+    "conflicting_node_ids": [
+      18344
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580472,
+    "timestamp": "2025-10-04T12:21:12.980385",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.227",
+      "login": "admin",
+      "password": "password10227"
+    },
+    "conflicting_node_ids": [
+      18345
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580473,
+    "timestamp": "2025-10-04T12:21:13.063988",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.228",
+      "login": "admin",
+      "password": "password10228"
+    },
+    "conflicting_node_ids": [
+      18346
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580473,
+    "timestamp": "2025-10-04T12:21:13.169263",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.229",
+      "login": "admin",
+      "password": "password10229"
+    },
+    "conflicting_node_ids": [
+      18347
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580473,
+    "timestamp": "2025-10-04T12:21:13.253781",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.230",
+      "login": "admin",
+      "password": "password10230"
+    },
+    "conflicting_node_ids": [
+      18348
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580473,
+    "timestamp": "2025-10-04T12:21:13.337865",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.231",
+      "login": "admin",
+      "password": "password10231"
+    },
+    "conflicting_node_ids": [
+      18349
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580473,
+    "timestamp": "2025-10-04T12:21:13.469524",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.232",
+      "login": "admin",
+      "password": "password10232"
+    },
+    "conflicting_node_ids": [
+      18350
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580473,
+    "timestamp": "2025-10-04T12:21:13.576494",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.233",
+      "login": "admin",
+      "password": "password10233"
+    },
+    "conflicting_node_ids": [
+      18351
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580473,
+    "timestamp": "2025-10-04T12:21:13.660445",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.234",
+      "login": "admin",
+      "password": "password10234"
+    },
+    "conflicting_node_ids": [
+      18352
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580473,
+    "timestamp": "2025-10-04T12:21:13.744659",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.235",
+      "login": "admin",
+      "password": "password10235"
+    },
+    "conflicting_node_ids": [
+      18353
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580473,
+    "timestamp": "2025-10-04T12:21:13.828804",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.236",
+      "login": "admin",
+      "password": "password10236"
+    },
+    "conflicting_node_ids": [
+      18354
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580473,
+    "timestamp": "2025-10-04T12:21:13.937801",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.237",
+      "login": "admin",
+      "password": "password10237"
+    },
+    "conflicting_node_ids": [
+      18355
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580474,
+    "timestamp": "2025-10-04T12:21:14.021644",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.238",
+      "login": "admin",
+      "password": "password10238"
+    },
+    "conflicting_node_ids": [
+      18356
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580474,
+    "timestamp": "2025-10-04T12:21:14.107186",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.239",
+      "login": "admin",
+      "password": "password10239"
+    },
+    "conflicting_node_ids": [
+      18357
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580474,
+    "timestamp": "2025-10-04T12:21:14.191247",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.240",
+      "login": "admin",
+      "password": "password10240"
+    },
+    "conflicting_node_ids": [
+      18358
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580474,
+    "timestamp": "2025-10-04T12:21:14.299293",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.241",
+      "login": "admin",
+      "password": "password10241"
+    },
+    "conflicting_node_ids": [
+      18359
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580474,
+    "timestamp": "2025-10-04T12:21:14.383871",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.242",
+      "login": "admin",
+      "password": "password10242"
+    },
+    "conflicting_node_ids": [
+      18360
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580474,
+    "timestamp": "2025-10-04T12:21:14.468356",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.243",
+      "login": "admin",
+      "password": "password10243"
+    },
+    "conflicting_node_ids": [
+      18361
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580474,
+    "timestamp": "2025-10-04T12:21:14.553660",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.244",
+      "login": "admin",
+      "password": "password10244"
+    },
+    "conflicting_node_ids": [
+      18362
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580474,
+    "timestamp": "2025-10-04T12:21:14.638142",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.245",
+      "login": "admin",
+      "password": "password10245"
+    },
+    "conflicting_node_ids": [
+      18363
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580474,
+    "timestamp": "2025-10-04T12:21:14.743707",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.246",
+      "login": "admin",
+      "password": "password10246"
+    },
+    "conflicting_node_ids": [
+      18364
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580474,
+    "timestamp": "2025-10-04T12:21:14.827961",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.247",
+      "login": "admin",
+      "password": "password10247"
+    },
+    "conflicting_node_ids": [
+      18365
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580474,
+    "timestamp": "2025-10-04T12:21:14.912008",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.248",
+      "login": "admin",
+      "password": "password10248"
+    },
+    "conflicting_node_ids": [
+      18366
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580475,
+    "timestamp": "2025-10-04T12:21:15.074071",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.249",
+      "login": "admin",
+      "password": "password10249"
+    },
+    "conflicting_node_ids": [
+      18367
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580475,
+    "timestamp": "2025-10-04T12:21:15.181678",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.250",
+      "login": "admin",
+      "password": "password10250"
+    },
+    "conflicting_node_ids": [
+      18368
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580475,
+    "timestamp": "2025-10-04T12:21:15.265929",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.251",
+      "login": "admin",
+      "password": "password10251"
+    },
+    "conflicting_node_ids": [
+      18369
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580475,
+    "timestamp": "2025-10-04T12:21:15.350478",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.252",
+      "login": "admin",
+      "password": "password10252"
+    },
+    "conflicting_node_ids": [
+      18370
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580475,
+    "timestamp": "2025-10-04T12:21:15.435127",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.253",
+      "login": "admin",
+      "password": "password10253"
+    },
+    "conflicting_node_ids": [
+      18371
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580475,
+    "timestamp": "2025-10-04T12:21:15.542293",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.10.254",
+      "login": "admin",
+      "password": "password10254"
+    },
+    "conflicting_node_ids": [
+      18372
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580475,
+    "timestamp": "2025-10-04T12:21:15.626581",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.1",
+      "login": "admin",
+      "password": "password111"
+    },
+    "conflicting_node_ids": [
+      18375
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580475,
+    "timestamp": "2025-10-04T12:21:15.710611",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.2",
+      "login": "admin",
+      "password": "password112"
+    },
+    "conflicting_node_ids": [
+      18376
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580475,
+    "timestamp": "2025-10-04T12:21:15.794732",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.3",
+      "login": "admin",
+      "password": "password113"
+    },
+    "conflicting_node_ids": [
+      18377
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580475,
+    "timestamp": "2025-10-04T12:21:15.878530",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.4",
+      "login": "admin",
+      "password": "password114"
+    },
+    "conflicting_node_ids": [
+      18378
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580475,
+    "timestamp": "2025-10-04T12:21:15.984493",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.5",
+      "login": "admin",
+      "password": "password115"
+    },
+    "conflicting_node_ids": [
+      18379
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580476,
+    "timestamp": "2025-10-04T12:21:16.068835",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.6",
+      "login": "admin",
+      "password": "password116"
+    },
+    "conflicting_node_ids": [
+      18380
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580476,
+    "timestamp": "2025-10-04T12:21:16.153171",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.7",
+      "login": "admin",
+      "password": "password117"
+    },
+    "conflicting_node_ids": [
+      18381
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580476,
+    "timestamp": "2025-10-04T12:21:16.237518",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.8",
+      "login": "admin",
+      "password": "password118"
+    },
+    "conflicting_node_ids": [
+      18382
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580476,
+    "timestamp": "2025-10-04T12:21:16.344233",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.9",
+      "login": "admin",
+      "password": "password119"
+    },
+    "conflicting_node_ids": [
+      18383
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580476,
+    "timestamp": "2025-10-04T12:21:16.429296",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.10",
+      "login": "admin",
+      "password": "password1110"
+    },
+    "conflicting_node_ids": [
+      18384
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580476,
+    "timestamp": "2025-10-04T12:21:16.513402",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.11",
+      "login": "admin",
+      "password": "password1111"
+    },
+    "conflicting_node_ids": [
+      18385
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580476,
+    "timestamp": "2025-10-04T12:21:16.597990",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.12",
+      "login": "admin",
+      "password": "password1112"
+    },
+    "conflicting_node_ids": [
+      18386
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580476,
+    "timestamp": "2025-10-04T12:21:16.705720",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.13",
+      "login": "admin",
+      "password": "password1113"
+    },
+    "conflicting_node_ids": [
+      18387
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580476,
+    "timestamp": "2025-10-04T12:21:16.790083",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.14",
+      "login": "admin",
+      "password": "password1114"
+    },
+    "conflicting_node_ids": [
+      18388
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580476,
+    "timestamp": "2025-10-04T12:21:16.874427",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.15",
+      "login": "admin",
+      "password": "password1115"
+    },
+    "conflicting_node_ids": [
+      18389
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580476,
+    "timestamp": "2025-10-04T12:21:16.959010",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.16",
+      "login": "admin",
+      "password": "password1116"
+    },
+    "conflicting_node_ids": [
+      18390
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580477,
+    "timestamp": "2025-10-04T12:21:17.067955",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.17",
+      "login": "admin",
+      "password": "password1117"
+    },
+    "conflicting_node_ids": [
+      18391
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580477,
+    "timestamp": "2025-10-04T12:21:17.152517",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.18",
+      "login": "admin",
+      "password": "password1118"
+    },
+    "conflicting_node_ids": [
+      18392
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580477,
+    "timestamp": "2025-10-04T12:21:17.237199",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.19",
+      "login": "admin",
+      "password": "password1119"
+    },
+    "conflicting_node_ids": [
+      18393
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580477,
+    "timestamp": "2025-10-04T12:21:17.322004",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.20",
+      "login": "admin",
+      "password": "password1120"
+    },
+    "conflicting_node_ids": [
+      18394
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580477,
+    "timestamp": "2025-10-04T12:21:17.406973",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.21",
+      "login": "admin",
+      "password": "password1121"
+    },
+    "conflicting_node_ids": [
+      18395
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580477,
+    "timestamp": "2025-10-04T12:21:17.514037",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.22",
+      "login": "admin",
+      "password": "password1122"
+    },
+    "conflicting_node_ids": [
+      18396
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580477,
+    "timestamp": "2025-10-04T12:21:17.598612",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.23",
+      "login": "admin",
+      "password": "password1123"
+    },
+    "conflicting_node_ids": [
+      18397
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580477,
+    "timestamp": "2025-10-04T12:21:17.683746",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.24",
+      "login": "admin",
+      "password": "password1124"
+    },
+    "conflicting_node_ids": [
+      18398
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580477,
+    "timestamp": "2025-10-04T12:21:17.768883",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.25",
+      "login": "admin",
+      "password": "password1125"
+    },
+    "conflicting_node_ids": [
+      18399
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580477,
+    "timestamp": "2025-10-04T12:21:17.878273",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.26",
+      "login": "admin",
+      "password": "password1126"
+    },
+    "conflicting_node_ids": [
+      18400
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580477,
+    "timestamp": "2025-10-04T12:21:17.963154",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.27",
+      "login": "admin",
+      "password": "password1127"
+    },
+    "conflicting_node_ids": [
+      18401
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580478,
+    "timestamp": "2025-10-04T12:21:18.048031",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.28",
+      "login": "admin",
+      "password": "password1128"
+    },
+    "conflicting_node_ids": [
+      18402
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580478,
+    "timestamp": "2025-10-04T12:21:18.132716",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.29",
+      "login": "admin",
+      "password": "password1129"
+    },
+    "conflicting_node_ids": [
+      18403
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580478,
+    "timestamp": "2025-10-04T12:21:18.241848",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.30",
+      "login": "admin",
+      "password": "password1130"
+    },
+    "conflicting_node_ids": [
+      18404
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580478,
+    "timestamp": "2025-10-04T12:21:18.326606",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.31",
+      "login": "admin",
+      "password": "password1131"
+    },
+    "conflicting_node_ids": [
+      18405
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580478,
+    "timestamp": "2025-10-04T12:21:18.412171",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.32",
+      "login": "admin",
+      "password": "password1132"
+    },
+    "conflicting_node_ids": [
+      18406
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580478,
+    "timestamp": "2025-10-04T12:21:18.497337",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.33",
+      "login": "admin",
+      "password": "password1133"
+    },
+    "conflicting_node_ids": [
+      18407
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580478,
+    "timestamp": "2025-10-04T12:21:18.581926",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.34",
+      "login": "admin",
+      "password": "password1134"
+    },
+    "conflicting_node_ids": [
+      18408
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580478,
+    "timestamp": "2025-10-04T12:21:18.687572",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.35",
+      "login": "admin",
+      "password": "password1135"
+    },
+    "conflicting_node_ids": [
+      18409
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580478,
+    "timestamp": "2025-10-04T12:21:18.772501",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.36",
+      "login": "admin",
+      "password": "password1136"
+    },
+    "conflicting_node_ids": [
+      18410
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580478,
+    "timestamp": "2025-10-04T12:21:18.857413",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.37",
+      "login": "admin",
+      "password": "password1137"
+    },
+    "conflicting_node_ids": [
+      18411
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580478,
+    "timestamp": "2025-10-04T12:21:18.942563",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.38",
+      "login": "admin",
+      "password": "password1138"
+    },
+    "conflicting_node_ids": [
+      18412
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580479,
+    "timestamp": "2025-10-04T12:21:19.051162",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.39",
+      "login": "admin",
+      "password": "password1139"
+    },
+    "conflicting_node_ids": [
+      18413
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580479,
+    "timestamp": "2025-10-04T12:21:19.136239",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.40",
+      "login": "admin",
+      "password": "password1140"
+    },
+    "conflicting_node_ids": [
+      18414
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580479,
+    "timestamp": "2025-10-04T12:21:19.221075",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.41",
+      "login": "admin",
+      "password": "password1141"
+    },
+    "conflicting_node_ids": [
+      18415
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580479,
+    "timestamp": "2025-10-04T12:21:19.306592",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.42",
+      "login": "admin",
+      "password": "password1142"
+    },
+    "conflicting_node_ids": [
+      18416
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580479,
+    "timestamp": "2025-10-04T12:21:19.415645",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.43",
+      "login": "admin",
+      "password": "password1143"
+    },
+    "conflicting_node_ids": [
+      18417
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580479,
+    "timestamp": "2025-10-04T12:21:19.500669",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.44",
+      "login": "admin",
+      "password": "password1144"
+    },
+    "conflicting_node_ids": [
+      18418
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580479,
+    "timestamp": "2025-10-04T12:21:19.585772",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.45",
+      "login": "admin",
+      "password": "password1145"
+    },
+    "conflicting_node_ids": [
+      18419
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580479,
+    "timestamp": "2025-10-04T12:21:19.671142",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.46",
+      "login": "admin",
+      "password": "password1146"
+    },
+    "conflicting_node_ids": [
+      18420
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580479,
+    "timestamp": "2025-10-04T12:21:19.781677",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.47",
+      "login": "admin",
+      "password": "password1147"
+    },
+    "conflicting_node_ids": [
+      18421
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580479,
+    "timestamp": "2025-10-04T12:21:19.866726",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.48",
+      "login": "admin",
+      "password": "password1148"
+    },
+    "conflicting_node_ids": [
+      18422
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580479,
+    "timestamp": "2025-10-04T12:21:19.951721",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.49",
+      "login": "admin",
+      "password": "password1149"
+    },
+    "conflicting_node_ids": [
+      18423
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580480,
+    "timestamp": "2025-10-04T12:21:20.036810",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.50",
+      "login": "admin",
+      "password": "password1150"
+    },
+    "conflicting_node_ids": [
+      18424
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580480,
+    "timestamp": "2025-10-04T12:21:20.122383",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.51",
+      "login": "admin",
+      "password": "password1151"
+    },
+    "conflicting_node_ids": [
+      18425
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580480,
+    "timestamp": "2025-10-04T12:21:20.229592",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.52",
+      "login": "admin",
+      "password": "password1152"
+    },
+    "conflicting_node_ids": [
+      18426
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580480,
+    "timestamp": "2025-10-04T12:21:20.314423",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.53",
+      "login": "admin",
+      "password": "password1153"
+    },
+    "conflicting_node_ids": [
+      18427
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580480,
+    "timestamp": "2025-10-04T12:21:20.399505",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.54",
+      "login": "admin",
+      "password": "password1154"
+    },
+    "conflicting_node_ids": [
+      18428
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580480,
+    "timestamp": "2025-10-04T12:21:20.484625",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.55",
+      "login": "admin",
+      "password": "password1155"
+    },
+    "conflicting_node_ids": [
+      18429
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580480,
+    "timestamp": "2025-10-04T12:21:20.591154",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.56",
+      "login": "admin",
+      "password": "password1156"
+    },
+    "conflicting_node_ids": [
+      18430
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580480,
+    "timestamp": "2025-10-04T12:21:20.676974",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.57",
+      "login": "admin",
+      "password": "password1157"
+    },
+    "conflicting_node_ids": [
+      18431
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580480,
+    "timestamp": "2025-10-04T12:21:20.763151",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.58",
+      "login": "admin",
+      "password": "password1158"
+    },
+    "conflicting_node_ids": [
+      18432
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580480,
+    "timestamp": "2025-10-04T12:21:20.848468",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.59",
+      "login": "admin",
+      "password": "password1159"
+    },
+    "conflicting_node_ids": [
+      18433
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580480,
+    "timestamp": "2025-10-04T12:21:20.956980",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.60",
+      "login": "admin",
+      "password": "password1160"
+    },
+    "conflicting_node_ids": [
+      18434
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580481,
+    "timestamp": "2025-10-04T12:21:21.043102",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.61",
+      "login": "admin",
+      "password": "password1161"
+    },
+    "conflicting_node_ids": [
+      18435
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580481,
+    "timestamp": "2025-10-04T12:21:21.127980",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.62",
+      "login": "admin",
+      "password": "password1162"
+    },
+    "conflicting_node_ids": [
+      18436
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580481,
+    "timestamp": "2025-10-04T12:21:21.213182",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.63",
+      "login": "admin",
+      "password": "password1163"
+    },
+    "conflicting_node_ids": [
+      18437
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580481,
+    "timestamp": "2025-10-04T12:21:21.298461",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.64",
+      "login": "admin",
+      "password": "password1164"
+    },
+    "conflicting_node_ids": [
+      18438
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580481,
+    "timestamp": "2025-10-04T12:21:21.406127",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.65",
+      "login": "admin",
+      "password": "password1165"
+    },
+    "conflicting_node_ids": [
+      18439
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580481,
+    "timestamp": "2025-10-04T12:21:21.491790",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.66",
+      "login": "admin",
+      "password": "password1166"
+    },
+    "conflicting_node_ids": [
+      18440
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580481,
+    "timestamp": "2025-10-04T12:21:21.577502",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.67",
+      "login": "admin",
+      "password": "password1167"
+    },
+    "conflicting_node_ids": [
+      18441
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580481,
+    "timestamp": "2025-10-04T12:21:21.662756",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.68",
+      "login": "admin",
+      "password": "password1168"
+    },
+    "conflicting_node_ids": [
+      18442
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580481,
+    "timestamp": "2025-10-04T12:21:21.772831",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.69",
+      "login": "admin",
+      "password": "password1169"
+    },
+    "conflicting_node_ids": [
+      18443
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580481,
+    "timestamp": "2025-10-04T12:21:21.858303",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.70",
+      "login": "admin",
+      "password": "password1170"
+    },
+    "conflicting_node_ids": [
+      18444
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580481,
+    "timestamp": "2025-10-04T12:21:21.943387",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.71",
+      "login": "admin",
+      "password": "password1171"
+    },
+    "conflicting_node_ids": [
+      18445
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580482,
+    "timestamp": "2025-10-04T12:21:22.028934",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.72",
+      "login": "admin",
+      "password": "password1172"
+    },
+    "conflicting_node_ids": [
+      18446
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580482,
+    "timestamp": "2025-10-04T12:21:22.139325",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.73",
+      "login": "admin",
+      "password": "password1173"
+    },
+    "conflicting_node_ids": [
+      18447
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580482,
+    "timestamp": "2025-10-04T12:21:22.224976",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.74",
+      "login": "admin",
+      "password": "password1174"
+    },
+    "conflicting_node_ids": [
+      18448
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580482,
+    "timestamp": "2025-10-04T12:21:22.310198",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.75",
+      "login": "admin",
+      "password": "password1175"
+    },
+    "conflicting_node_ids": [
+      18449
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580482,
+    "timestamp": "2025-10-04T12:21:22.395635",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.76",
+      "login": "admin",
+      "password": "password1176"
+    },
+    "conflicting_node_ids": [
+      18450
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580482,
+    "timestamp": "2025-10-04T12:21:22.481505",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.77",
+      "login": "admin",
+      "password": "password1177"
+    },
+    "conflicting_node_ids": [
+      18451
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580482,
+    "timestamp": "2025-10-04T12:21:22.589095",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.78",
+      "login": "admin",
+      "password": "password1178"
+    },
+    "conflicting_node_ids": [
+      18452
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580482,
+    "timestamp": "2025-10-04T12:21:22.674238",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.79",
+      "login": "admin",
+      "password": "password1179"
+    },
+    "conflicting_node_ids": [
+      18453
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580482,
+    "timestamp": "2025-10-04T12:21:22.760445",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.80",
+      "login": "admin",
+      "password": "password1180"
+    },
+    "conflicting_node_ids": [
+      18454
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580482,
+    "timestamp": "2025-10-04T12:21:22.845631",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.81",
+      "login": "admin",
+      "password": "password1181"
+    },
+    "conflicting_node_ids": [
+      18455
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580482,
+    "timestamp": "2025-10-04T12:21:22.954898",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.82",
+      "login": "admin",
+      "password": "password1182"
+    },
+    "conflicting_node_ids": [
+      18456
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580483,
+    "timestamp": "2025-10-04T12:21:23.040027",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.83",
+      "login": "admin",
+      "password": "password1183"
+    },
+    "conflicting_node_ids": [
+      18457
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580483,
+    "timestamp": "2025-10-04T12:21:23.125339",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.84",
+      "login": "admin",
+      "password": "password1184"
+    },
+    "conflicting_node_ids": [
+      18458
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580483,
+    "timestamp": "2025-10-04T12:21:23.210721",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.85",
+      "login": "admin",
+      "password": "password1185"
+    },
+    "conflicting_node_ids": [
+      18459
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580483,
+    "timestamp": "2025-10-04T12:21:23.318973",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.86",
+      "login": "admin",
+      "password": "password1186"
+    },
+    "conflicting_node_ids": [
+      18460
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580483,
+    "timestamp": "2025-10-04T12:21:23.404579",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.87",
+      "login": "admin",
+      "password": "password1187"
+    },
+    "conflicting_node_ids": [
+      18461
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580483,
+    "timestamp": "2025-10-04T12:21:23.490129",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.88",
+      "login": "admin",
+      "password": "password1188"
+    },
+    "conflicting_node_ids": [
+      18462
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580483,
+    "timestamp": "2025-10-04T12:21:23.576204",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.89",
+      "login": "admin",
+      "password": "password1189"
+    },
+    "conflicting_node_ids": [
+      18463
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580483,
+    "timestamp": "2025-10-04T12:21:23.685331",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.90",
+      "login": "admin",
+      "password": "password1190"
+    },
+    "conflicting_node_ids": [
+      18464
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580483,
+    "timestamp": "2025-10-04T12:21:23.771355",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.91",
+      "login": "admin",
+      "password": "password1191"
+    },
+    "conflicting_node_ids": [
+      18465
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580483,
+    "timestamp": "2025-10-04T12:21:23.857327",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.92",
+      "login": "admin",
+      "password": "password1192"
+    },
+    "conflicting_node_ids": [
+      18466
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580483,
+    "timestamp": "2025-10-04T12:21:23.943355",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.93",
+      "login": "admin",
+      "password": "password1193"
+    },
+    "conflicting_node_ids": [
+      18467
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580484,
+    "timestamp": "2025-10-04T12:21:24.028908",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.94",
+      "login": "admin",
+      "password": "password1194"
+    },
+    "conflicting_node_ids": [
+      18468
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580484,
+    "timestamp": "2025-10-04T12:21:24.140426",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.95",
+      "login": "admin",
+      "password": "password1195"
+    },
+    "conflicting_node_ids": [
+      18469
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580484,
+    "timestamp": "2025-10-04T12:21:24.226082",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.96",
+      "login": "admin",
+      "password": "password1196"
+    },
+    "conflicting_node_ids": [
+      18470
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580484,
+    "timestamp": "2025-10-04T12:21:24.311891",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.97",
+      "login": "admin",
+      "password": "password1197"
+    },
+    "conflicting_node_ids": [
+      18471
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580484,
+    "timestamp": "2025-10-04T12:21:24.396814",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.98",
+      "login": "admin",
+      "password": "password1198"
+    },
+    "conflicting_node_ids": [
+      18472
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580484,
+    "timestamp": "2025-10-04T12:21:24.506618",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.99",
+      "login": "admin",
+      "password": "password1199"
+    },
+    "conflicting_node_ids": [
+      18473
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580484,
+    "timestamp": "2025-10-04T12:21:24.592555",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.100",
+      "login": "admin",
+      "password": "password11100"
+    },
+    "conflicting_node_ids": [
+      18474
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580484,
+    "timestamp": "2025-10-04T12:21:24.679403",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.101",
+      "login": "admin",
+      "password": "password11101"
+    },
+    "conflicting_node_ids": [
+      18475
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580484,
+    "timestamp": "2025-10-04T12:21:24.765185",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.102",
+      "login": "admin",
+      "password": "password11102"
+    },
+    "conflicting_node_ids": [
+      18476
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580484,
+    "timestamp": "2025-10-04T12:21:24.874237",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.103",
+      "login": "admin",
+      "password": "password11103"
+    },
+    "conflicting_node_ids": [
+      18477
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580484,
+    "timestamp": "2025-10-04T12:21:24.960253",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.104",
+      "login": "admin",
+      "password": "password11104"
+    },
+    "conflicting_node_ids": [
+      18478
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580485,
+    "timestamp": "2025-10-04T12:21:25.045733",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.105",
+      "login": "admin",
+      "password": "password11105"
+    },
+    "conflicting_node_ids": [
+      18479
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580485,
+    "timestamp": "2025-10-04T12:21:25.131512",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.106",
+      "login": "admin",
+      "password": "password11106"
+    },
+    "conflicting_node_ids": [
+      18480
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580485,
+    "timestamp": "2025-10-04T12:21:25.217103",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.107",
+      "login": "admin",
+      "password": "password11107"
+    },
+    "conflicting_node_ids": [
+      18481
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580485,
+    "timestamp": "2025-10-04T12:21:25.323762",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.108",
+      "login": "admin",
+      "password": "password11108"
+    },
+    "conflicting_node_ids": [
+      18482
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580485,
+    "timestamp": "2025-10-04T12:21:25.409550",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.109",
+      "login": "admin",
+      "password": "password11109"
+    },
+    "conflicting_node_ids": [
+      18483
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580485,
+    "timestamp": "2025-10-04T12:21:25.495334",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.110",
+      "login": "admin",
+      "password": "password11110"
+    },
+    "conflicting_node_ids": [
+      18484
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580485,
+    "timestamp": "2025-10-04T12:21:25.581513",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.111",
+      "login": "admin",
+      "password": "password11111"
+    },
+    "conflicting_node_ids": [
+      18485
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580485,
+    "timestamp": "2025-10-04T12:21:25.691792",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.112",
+      "login": "admin",
+      "password": "password11112"
+    },
+    "conflicting_node_ids": [
+      18486
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580485,
+    "timestamp": "2025-10-04T12:21:25.778932",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.113",
+      "login": "admin",
+      "password": "password11113"
+    },
+    "conflicting_node_ids": [
+      18487
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580485,
+    "timestamp": "2025-10-04T12:21:25.864899",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.114",
+      "login": "admin",
+      "password": "password11114"
+    },
+    "conflicting_node_ids": [
+      18488
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580485,
+    "timestamp": "2025-10-04T12:21:25.951020",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.115",
+      "login": "admin",
+      "password": "password11115"
+    },
+    "conflicting_node_ids": [
+      18489
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580486,
+    "timestamp": "2025-10-04T12:21:26.060338",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.116",
+      "login": "admin",
+      "password": "password11116"
+    },
+    "conflicting_node_ids": [
+      18490
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580486,
+    "timestamp": "2025-10-04T12:21:26.146316",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.117",
+      "login": "admin",
+      "password": "password11117"
+    },
+    "conflicting_node_ids": [
+      18491
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580486,
+    "timestamp": "2025-10-04T12:21:26.232670",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.118",
+      "login": "admin",
+      "password": "password11118"
+    },
+    "conflicting_node_ids": [
+      18492
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580486,
+    "timestamp": "2025-10-04T12:21:26.318329",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.119",
+      "login": "admin",
+      "password": "password11119"
+    },
+    "conflicting_node_ids": [
+      18493
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580486,
+    "timestamp": "2025-10-04T12:21:26.429934",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.120",
+      "login": "admin",
+      "password": "password11120"
+    },
+    "conflicting_node_ids": [
+      18494
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580486,
+    "timestamp": "2025-10-04T12:21:26.516258",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.121",
+      "login": "admin",
+      "password": "password11121"
+    },
+    "conflicting_node_ids": [
+      18495
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580486,
+    "timestamp": "2025-10-04T12:21:26.601737",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.122",
+      "login": "admin",
+      "password": "password11122"
+    },
+    "conflicting_node_ids": [
+      18496
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580486,
+    "timestamp": "2025-10-04T12:21:26.687957",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.123",
+      "login": "admin",
+      "password": "password11123"
+    },
+    "conflicting_node_ids": [
+      18497
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580486,
+    "timestamp": "2025-10-04T12:21:26.773868",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.124",
+      "login": "admin",
+      "password": "password11124"
+    },
+    "conflicting_node_ids": [
+      18498
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580486,
+    "timestamp": "2025-10-04T12:21:26.884193",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.125",
+      "login": "admin",
+      "password": "password11125"
+    },
+    "conflicting_node_ids": [
+      18499
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580486,
+    "timestamp": "2025-10-04T12:21:26.971025",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.126",
+      "login": "admin",
+      "password": "password11126"
+    },
+    "conflicting_node_ids": [
+      18500
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580487,
+    "timestamp": "2025-10-04T12:21:27.056943",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.127",
+      "login": "admin",
+      "password": "password11127"
+    },
+    "conflicting_node_ids": [
+      18501
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580487,
+    "timestamp": "2025-10-04T12:21:27.143226",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.128",
+      "login": "admin",
+      "password": "password11128"
+    },
+    "conflicting_node_ids": [
+      18502
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580487,
+    "timestamp": "2025-10-04T12:21:27.251682",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.129",
+      "login": "admin",
+      "password": "password11129"
+    },
+    "conflicting_node_ids": [
+      18503
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580487,
+    "timestamp": "2025-10-04T12:21:27.337225",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.130",
+      "login": "admin",
+      "password": "password11130"
+    },
+    "conflicting_node_ids": [
+      18504
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580487,
+    "timestamp": "2025-10-04T12:21:27.423443",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.131",
+      "login": "admin",
+      "password": "password11131"
+    },
+    "conflicting_node_ids": [
+      18505
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580487,
+    "timestamp": "2025-10-04T12:21:27.509640",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.132",
+      "login": "admin",
+      "password": "password11132"
+    },
+    "conflicting_node_ids": [
+      18506
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580487,
+    "timestamp": "2025-10-04T12:21:27.621154",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.133",
+      "login": "admin",
+      "password": "password11133"
+    },
+    "conflicting_node_ids": [
+      18507
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580487,
+    "timestamp": "2025-10-04T12:21:27.707369",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.134",
+      "login": "admin",
+      "password": "password11134"
+    },
+    "conflicting_node_ids": [
+      18508
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580487,
+    "timestamp": "2025-10-04T12:21:27.793272",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.135",
+      "login": "admin",
+      "password": "password11135"
+    },
+    "conflicting_node_ids": [
+      18509
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580487,
+    "timestamp": "2025-10-04T12:21:27.879459",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.136",
+      "login": "admin",
+      "password": "password11136"
+    },
+    "conflicting_node_ids": [
+      18510
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580487,
+    "timestamp": "2025-10-04T12:21:27.964906",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.137",
+      "login": "admin",
+      "password": "password11137"
+    },
+    "conflicting_node_ids": [
+      18511
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580488,
+    "timestamp": "2025-10-04T12:21:28.072980",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.138",
+      "login": "admin",
+      "password": "password11138"
+    },
+    "conflicting_node_ids": [
+      18512
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580488,
+    "timestamp": "2025-10-04T12:21:28.158809",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.139",
+      "login": "admin",
+      "password": "password11139"
+    },
+    "conflicting_node_ids": [
+      18513
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580488,
+    "timestamp": "2025-10-04T12:21:28.244958",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.140",
+      "login": "admin",
+      "password": "password11140"
+    },
+    "conflicting_node_ids": [
+      18514
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580488,
+    "timestamp": "2025-10-04T12:21:28.331161",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.141",
+      "login": "admin",
+      "password": "password11141"
+    },
+    "conflicting_node_ids": [
+      18515
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580488,
+    "timestamp": "2025-10-04T12:21:28.440070",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.142",
+      "login": "admin",
+      "password": "password11142"
+    },
+    "conflicting_node_ids": [
+      18516
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580488,
+    "timestamp": "2025-10-04T12:21:28.527130",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.143",
+      "login": "admin",
+      "password": "password11143"
+    },
+    "conflicting_node_ids": [
+      18517
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580488,
+    "timestamp": "2025-10-04T12:21:28.612668",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.144",
+      "login": "admin",
+      "password": "password11144"
+    },
+    "conflicting_node_ids": [
+      18518
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580488,
+    "timestamp": "2025-10-04T12:21:28.698478",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.145",
+      "login": "admin",
+      "password": "password11145"
+    },
+    "conflicting_node_ids": [
+      18519
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580488,
+    "timestamp": "2025-10-04T12:21:28.808228",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.146",
+      "login": "admin",
+      "password": "password11146"
+    },
+    "conflicting_node_ids": [
+      18520
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580488,
+    "timestamp": "2025-10-04T12:21:28.893805",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.147",
+      "login": "admin",
+      "password": "password11147"
+    },
+    "conflicting_node_ids": [
+      18521
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580488,
+    "timestamp": "2025-10-04T12:21:28.979796",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.148",
+      "login": "admin",
+      "password": "password11148"
+    },
+    "conflicting_node_ids": [
+      18522
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580489,
+    "timestamp": "2025-10-04T12:21:29.066006",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.149",
+      "login": "admin",
+      "password": "password11149"
+    },
+    "conflicting_node_ids": [
+      18523
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580489,
+    "timestamp": "2025-10-04T12:21:29.178049",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.150",
+      "login": "admin",
+      "password": "password11150"
+    },
+    "conflicting_node_ids": [
+      18524
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580489,
+    "timestamp": "2025-10-04T12:21:29.264090",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.151",
+      "login": "admin",
+      "password": "password11151"
+    },
+    "conflicting_node_ids": [
+      18525
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580489,
+    "timestamp": "2025-10-04T12:21:29.350330",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.152",
+      "login": "admin",
+      "password": "password11152"
+    },
+    "conflicting_node_ids": [
+      18526
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580489,
+    "timestamp": "2025-10-04T12:21:29.436414",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.153",
+      "login": "admin",
+      "password": "password11153"
+    },
+    "conflicting_node_ids": [
+      18527
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580489,
+    "timestamp": "2025-10-04T12:21:29.522571",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.154",
+      "login": "admin",
+      "password": "password11154"
+    },
+    "conflicting_node_ids": [
+      18528
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580489,
+    "timestamp": "2025-10-04T12:21:29.633716",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.155",
+      "login": "admin",
+      "password": "password11155"
+    },
+    "conflicting_node_ids": [
+      18529
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580489,
+    "timestamp": "2025-10-04T12:21:29.720172",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.156",
+      "login": "admin",
+      "password": "password11156"
+    },
+    "conflicting_node_ids": [
+      18530
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580489,
+    "timestamp": "2025-10-04T12:21:29.806791",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.157",
+      "login": "admin",
+      "password": "password11157"
+    },
+    "conflicting_node_ids": [
+      18531
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580489,
+    "timestamp": "2025-10-04T12:21:29.894394",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.158",
+      "login": "admin",
+      "password": "password11158"
+    },
+    "conflicting_node_ids": [
+      18532
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580490,
+    "timestamp": "2025-10-04T12:21:30.004026",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.159",
+      "login": "admin",
+      "password": "password11159"
+    },
+    "conflicting_node_ids": [
+      18533
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580490,
+    "timestamp": "2025-10-04T12:21:30.090974",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.160",
+      "login": "admin",
+      "password": "password11160"
+    },
+    "conflicting_node_ids": [
+      18534
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580490,
+    "timestamp": "2025-10-04T12:21:30.177130",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.161",
+      "login": "admin",
+      "password": "password11161"
+    },
+    "conflicting_node_ids": [
+      18535
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580490,
+    "timestamp": "2025-10-04T12:21:30.263738",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.162",
+      "login": "admin",
+      "password": "password11162"
+    },
+    "conflicting_node_ids": [
+      18536
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580490,
+    "timestamp": "2025-10-04T12:21:30.375053",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.163",
+      "login": "admin",
+      "password": "password11163"
+    },
+    "conflicting_node_ids": [
+      18537
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580490,
+    "timestamp": "2025-10-04T12:21:30.461617",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.164",
+      "login": "admin",
+      "password": "password11164"
+    },
+    "conflicting_node_ids": [
+      18538
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580490,
+    "timestamp": "2025-10-04T12:21:30.548380",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.165",
+      "login": "admin",
+      "password": "password11165"
+    },
+    "conflicting_node_ids": [
+      18539
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580490,
+    "timestamp": "2025-10-04T12:21:30.635042",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.166",
+      "login": "admin",
+      "password": "password11166"
+    },
+    "conflicting_node_ids": [
+      18540
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580490,
+    "timestamp": "2025-10-04T12:21:30.721364",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.167",
+      "login": "admin",
+      "password": "password11167"
+    },
+    "conflicting_node_ids": [
+      18541
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580490,
+    "timestamp": "2025-10-04T12:21:30.830223",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.168",
+      "login": "admin",
+      "password": "password11168"
+    },
+    "conflicting_node_ids": [
+      18542
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580490,
+    "timestamp": "2025-10-04T12:21:30.917630",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.169",
+      "login": "admin",
+      "password": "password11169"
+    },
+    "conflicting_node_ids": [
+      18543
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580491,
+    "timestamp": "2025-10-04T12:21:31.004051",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.170",
+      "login": "admin",
+      "password": "password11170"
+    },
+    "conflicting_node_ids": [
+      18544
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580491,
+    "timestamp": "2025-10-04T12:21:31.090372",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.171",
+      "login": "admin",
+      "password": "password11171"
+    },
+    "conflicting_node_ids": [
+      18545
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580491,
+    "timestamp": "2025-10-04T12:21:31.201316",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.172",
+      "login": "admin",
+      "password": "password11172"
+    },
+    "conflicting_node_ids": [
+      18546
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580491,
+    "timestamp": "2025-10-04T12:21:31.288023",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.173",
+      "login": "admin",
+      "password": "password11173"
+    },
+    "conflicting_node_ids": [
+      18547
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580491,
+    "timestamp": "2025-10-04T12:21:31.374651",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.174",
+      "login": "admin",
+      "password": "password11174"
+    },
+    "conflicting_node_ids": [
+      18548
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580491,
+    "timestamp": "2025-10-04T12:21:31.461377",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.175",
+      "login": "admin",
+      "password": "password11175"
+    },
+    "conflicting_node_ids": [
+      18549
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580491,
+    "timestamp": "2025-10-04T12:21:31.572159",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.176",
+      "login": "admin",
+      "password": "password11176"
+    },
+    "conflicting_node_ids": [
+      18550
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580491,
+    "timestamp": "2025-10-04T12:21:31.658978",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.177",
+      "login": "admin",
+      "password": "password11177"
+    },
+    "conflicting_node_ids": [
+      18551
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580491,
+    "timestamp": "2025-10-04T12:21:31.745804",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.178",
+      "login": "admin",
+      "password": "password11178"
+    },
+    "conflicting_node_ids": [
+      18552
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580491,
+    "timestamp": "2025-10-04T12:21:31.832503",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.179",
+      "login": "admin",
+      "password": "password11179"
+    },
+    "conflicting_node_ids": [
+      18553
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580491,
+    "timestamp": "2025-10-04T12:21:31.943554",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.180",
+      "login": "admin",
+      "password": "password11180"
+    },
+    "conflicting_node_ids": [
+      18554
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580492,
+    "timestamp": "2025-10-04T12:21:32.029514",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.181",
+      "login": "admin",
+      "password": "password11181"
+    },
+    "conflicting_node_ids": [
+      18555
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580492,
+    "timestamp": "2025-10-04T12:21:32.115833",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.182",
+      "login": "admin",
+      "password": "password11182"
+    },
+    "conflicting_node_ids": [
+      18556
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580492,
+    "timestamp": "2025-10-04T12:21:32.201889",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.183",
+      "login": "admin",
+      "password": "password11183"
+    },
+    "conflicting_node_ids": [
+      18557
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580492,
+    "timestamp": "2025-10-04T12:21:32.288038",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.184",
+      "login": "admin",
+      "password": "password11184"
+    },
+    "conflicting_node_ids": [
+      18558
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580492,
+    "timestamp": "2025-10-04T12:21:32.398600",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.185",
+      "login": "admin",
+      "password": "password11185"
+    },
+    "conflicting_node_ids": [
+      18559
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580492,
+    "timestamp": "2025-10-04T12:21:32.485624",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.186",
+      "login": "admin",
+      "password": "password11186"
+    },
+    "conflicting_node_ids": [
+      18560
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580492,
+    "timestamp": "2025-10-04T12:21:32.572228",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.187",
+      "login": "admin",
+      "password": "password11187"
+    },
+    "conflicting_node_ids": [
+      18561
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580492,
+    "timestamp": "2025-10-04T12:21:32.659296",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.188",
+      "login": "admin",
+      "password": "password11188"
+    },
+    "conflicting_node_ids": [
+      18562
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580492,
+    "timestamp": "2025-10-04T12:21:32.769881",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.189",
+      "login": "admin",
+      "password": "password11189"
+    },
+    "conflicting_node_ids": [
+      18563
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580492,
+    "timestamp": "2025-10-04T12:21:32.856680",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.190",
+      "login": "admin",
+      "password": "password11190"
+    },
+    "conflicting_node_ids": [
+      18564
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580492,
+    "timestamp": "2025-10-04T12:21:32.943517",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.191",
+      "login": "admin",
+      "password": "password11191"
+    },
+    "conflicting_node_ids": [
+      18565
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580493,
+    "timestamp": "2025-10-04T12:21:33.030310",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.192",
+      "login": "admin",
+      "password": "password11192"
+    },
+    "conflicting_node_ids": [
+      18566
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580493,
+    "timestamp": "2025-10-04T12:21:33.141129",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.193",
+      "login": "admin",
+      "password": "password11193"
+    },
+    "conflicting_node_ids": [
+      18567
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580493,
+    "timestamp": "2025-10-04T12:21:33.228143",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.194",
+      "login": "admin",
+      "password": "password11194"
+    },
+    "conflicting_node_ids": [
+      18568
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580493,
+    "timestamp": "2025-10-04T12:21:33.314864",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.195",
+      "login": "admin",
+      "password": "password11195"
+    },
+    "conflicting_node_ids": [
+      18569
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580493,
+    "timestamp": "2025-10-04T12:21:33.401539",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.196",
+      "login": "admin",
+      "password": "password11196"
+    },
+    "conflicting_node_ids": [
+      18570
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580493,
+    "timestamp": "2025-10-04T12:21:33.512387",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.197",
+      "login": "admin",
+      "password": "password11197"
+    },
+    "conflicting_node_ids": [
+      18571
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580493,
+    "timestamp": "2025-10-04T12:21:33.599895",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.198",
+      "login": "admin",
+      "password": "password11198"
+    },
+    "conflicting_node_ids": [
+      18572
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580493,
+    "timestamp": "2025-10-04T12:21:33.686845",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.199",
+      "login": "admin",
+      "password": "password11199"
+    },
+    "conflicting_node_ids": [
+      18573
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580493,
+    "timestamp": "2025-10-04T12:21:33.773742",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.200",
+      "login": "admin",
+      "password": "password11200"
+    },
+    "conflicting_node_ids": [
+      18574
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580493,
+    "timestamp": "2025-10-04T12:21:33.884350",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.201",
+      "login": "admin",
+      "password": "password11201"
+    },
+    "conflicting_node_ids": [
+      18575
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580493,
+    "timestamp": "2025-10-04T12:21:33.971280",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.202",
+      "login": "admin",
+      "password": "password11202"
+    },
+    "conflicting_node_ids": [
+      18576
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580494,
+    "timestamp": "2025-10-04T12:21:34.057972",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.203",
+      "login": "admin",
+      "password": "password11203"
+    },
+    "conflicting_node_ids": [
+      18577
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580494,
+    "timestamp": "2025-10-04T12:21:34.144721",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.204",
+      "login": "admin",
+      "password": "password11204"
+    },
+    "conflicting_node_ids": [
+      18578
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580494,
+    "timestamp": "2025-10-04T12:21:34.257476",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.205",
+      "login": "admin",
+      "password": "password11205"
+    },
+    "conflicting_node_ids": [
+      18579
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580494,
+    "timestamp": "2025-10-04T12:21:34.344201",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.206",
+      "login": "admin",
+      "password": "password11206"
+    },
+    "conflicting_node_ids": [
+      18580
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580494,
+    "timestamp": "2025-10-04T12:21:34.430711",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.207",
+      "login": "admin",
+      "password": "password11207"
+    },
+    "conflicting_node_ids": [
+      18581
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580494,
+    "timestamp": "2025-10-04T12:21:34.517490",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.208",
+      "login": "admin",
+      "password": "password11208"
+    },
+    "conflicting_node_ids": [
+      18582
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580494,
+    "timestamp": "2025-10-04T12:21:34.603621",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.209",
+      "login": "admin",
+      "password": "password11209"
+    },
+    "conflicting_node_ids": [
+      18583
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580494,
+    "timestamp": "2025-10-04T12:21:34.710528",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.210",
+      "login": "admin",
+      "password": "password11210"
+    },
+    "conflicting_node_ids": [
+      18584
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580494,
+    "timestamp": "2025-10-04T12:21:34.797462",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.211",
+      "login": "admin",
+      "password": "password11211"
+    },
+    "conflicting_node_ids": [
+      18585
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580494,
+    "timestamp": "2025-10-04T12:21:34.884180",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.212",
+      "login": "admin",
+      "password": "password11212"
+    },
+    "conflicting_node_ids": [
+      18586
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580494,
+    "timestamp": "2025-10-04T12:21:34.970759",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.213",
+      "login": "admin",
+      "password": "password11213"
+    },
+    "conflicting_node_ids": [
+      18587
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580495,
+    "timestamp": "2025-10-04T12:21:35.082927",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.214",
+      "login": "admin",
+      "password": "password11214"
+    },
+    "conflicting_node_ids": [
+      18588
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580495,
+    "timestamp": "2025-10-04T12:21:35.169747",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.215",
+      "login": "admin",
+      "password": "password11215"
+    },
+    "conflicting_node_ids": [
+      18589
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580495,
+    "timestamp": "2025-10-04T12:21:35.257118",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.216",
+      "login": "admin",
+      "password": "password11216"
+    },
+    "conflicting_node_ids": [
+      18590
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580495,
+    "timestamp": "2025-10-04T12:21:35.343632",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.217",
+      "login": "admin",
+      "password": "password11217"
+    },
+    "conflicting_node_ids": [
+      18591
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580495,
+    "timestamp": "2025-10-04T12:21:35.454108",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.218",
+      "login": "admin",
+      "password": "password11218"
+    },
+    "conflicting_node_ids": [
+      18592
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580495,
+    "timestamp": "2025-10-04T12:21:35.541891",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.219",
+      "login": "admin",
+      "password": "password11219"
+    },
+    "conflicting_node_ids": [
+      18593
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580495,
+    "timestamp": "2025-10-04T12:21:35.629154",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.220",
+      "login": "admin",
+      "password": "password11220"
+    },
+    "conflicting_node_ids": [
+      18594
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580495,
+    "timestamp": "2025-10-04T12:21:35.715725",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.221",
+      "login": "admin",
+      "password": "password11221"
+    },
+    "conflicting_node_ids": [
+      18595
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580495,
+    "timestamp": "2025-10-04T12:21:35.826944",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.222",
+      "login": "admin",
+      "password": "password11222"
+    },
+    "conflicting_node_ids": [
+      18596
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580495,
+    "timestamp": "2025-10-04T12:21:35.912827",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.223",
+      "login": "admin",
+      "password": "password11223"
+    },
+    "conflicting_node_ids": [
+      18597
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580495,
+    "timestamp": "2025-10-04T12:21:35.999177",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.224",
+      "login": "admin",
+      "password": "password11224"
+    },
+    "conflicting_node_ids": [
+      18598
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580496,
+    "timestamp": "2025-10-04T12:21:36.086552",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.225",
+      "login": "admin",
+      "password": "password11225"
+    },
+    "conflicting_node_ids": [
+      18599
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580496,
+    "timestamp": "2025-10-04T12:21:36.198095",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.226",
+      "login": "admin",
+      "password": "password11226"
+    },
+    "conflicting_node_ids": [
+      18600
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580496,
+    "timestamp": "2025-10-04T12:21:36.286095",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.227",
+      "login": "admin",
+      "password": "password11227"
+    },
+    "conflicting_node_ids": [
+      18601
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580496,
+    "timestamp": "2025-10-04T12:21:36.373397",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.228",
+      "login": "admin",
+      "password": "password11228"
+    },
+    "conflicting_node_ids": [
+      18602
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580496,
+    "timestamp": "2025-10-04T12:21:36.460232",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.229",
+      "login": "admin",
+      "password": "password11229"
+    },
+    "conflicting_node_ids": [
+      18603
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580496,
+    "timestamp": "2025-10-04T12:21:36.572741",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.230",
+      "login": "admin",
+      "password": "password11230"
+    },
+    "conflicting_node_ids": [
+      18604
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580496,
+    "timestamp": "2025-10-04T12:21:36.660133",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.231",
+      "login": "admin",
+      "password": "password11231"
+    },
+    "conflicting_node_ids": [
+      18605
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580496,
+    "timestamp": "2025-10-04T12:21:36.746998",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.232",
+      "login": "admin",
+      "password": "password11232"
+    },
+    "conflicting_node_ids": [
+      18606
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580496,
+    "timestamp": "2025-10-04T12:21:36.833785",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.233",
+      "login": "admin",
+      "password": "password11233"
+    },
+    "conflicting_node_ids": [
+      18607
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580496,
+    "timestamp": "2025-10-04T12:21:36.947455",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.234",
+      "login": "admin",
+      "password": "password11234"
+    },
+    "conflicting_node_ids": [
+      18608
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580497,
+    "timestamp": "2025-10-04T12:21:37.034416",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.235",
+      "login": "admin",
+      "password": "password11235"
+    },
+    "conflicting_node_ids": [
+      18609
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580497,
+    "timestamp": "2025-10-04T12:21:37.121822",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.236",
+      "login": "admin",
+      "password": "password11236"
+    },
+    "conflicting_node_ids": [
+      18610
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580497,
+    "timestamp": "2025-10-04T12:21:37.209103",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.237",
+      "login": "admin",
+      "password": "password11237"
+    },
+    "conflicting_node_ids": [
+      18611
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580497,
+    "timestamp": "2025-10-04T12:21:37.296196",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.238",
+      "login": "admin",
+      "password": "password11238"
+    },
+    "conflicting_node_ids": [
+      18612
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580497,
+    "timestamp": "2025-10-04T12:21:37.405724",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.239",
+      "login": "admin",
+      "password": "password11239"
+    },
+    "conflicting_node_ids": [
+      18613
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580497,
+    "timestamp": "2025-10-04T12:21:37.493070",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.240",
+      "login": "admin",
+      "password": "password11240"
+    },
+    "conflicting_node_ids": [
+      18614
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580497,
+    "timestamp": "2025-10-04T12:21:37.580392",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.241",
+      "login": "admin",
+      "password": "password11241"
+    },
+    "conflicting_node_ids": [
+      18615
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580497,
+    "timestamp": "2025-10-04T12:21:37.667656",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.242",
+      "login": "admin",
+      "password": "password11242"
+    },
+    "conflicting_node_ids": [
+      18616
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 1759580497,
+    "timestamp": "2025-10-04T12:21:37.776916",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "192.168.11.243",
+      "login": "admin",
+      "password": "password11243"
+    },
+    "conflicting_node_ids": [
+      18617
+    ],
+    "status": "pending"
   }
 ]
