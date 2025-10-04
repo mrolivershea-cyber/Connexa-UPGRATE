@@ -3473,20 +3473,21 @@ async def start_socks_services(
             node.last_update = datetime.utcnow()
             
             # Log the SOCKS service creation
-            logger.info(f"✅ SOCKS service created for node {node_id}: {node.ip}:{socks_port} ({login_prefix})")
+            logger.info(f"✅ SOCKS service created for node {node_id} via {admin_server_ip}:{socks_port} → {node.ip} ({login_prefix})")
             
             results.append({
                 "node_id": node_id,
-                "ip": node.ip,
+                "ip": node.ip,  # Original node IP (for reference)
                 "success": True,
                 "status": "online",
                 "socks_data": {
-                    "ip": node.ip,
+                    "ip": admin_server_ip,  # SOCKS server IP (admin server)
                     "port": socks_port,
                     "login": login_prefix,
-                    "password": password
+                    "password": password,
+                    "target_node_ip": node.ip  # Target node IP for routing
                 },
-                "message": f"SOCKS сервис запущен: {node.ip}:{socks_port}"
+                "message": f"SOCKS сервис запущен: {admin_server_ip}:{socks_port} → {node.ip}"
             })
             
         except Exception as e:
