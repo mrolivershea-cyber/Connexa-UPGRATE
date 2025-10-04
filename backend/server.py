@@ -878,7 +878,13 @@ def detect_format(block: str) -> str:
     if ' - ' in single_line and (' | ' in single_line or re.search(r'\d{4}-\d{2}-\d{2}', single_line)):
         return "format_3"
     
-    # Format 4: Colon separated (5+ colons)
+    # Format 7: Simple IP:Login:Pass (exactly 2 colons)
+    if single_line.count(':') == 2:
+        parts = single_line.split(':')
+        if len(parts) == 3 and is_valid_ip(parts[0].strip()):
+            return "format_7"
+    
+    # Format 4: Colon separated (5+ colons for full format)
     if single_line.count(':') >= 4:
         return "format_4"
     
