@@ -85250,5 +85250,19 @@
       18017
     ],
     "status": "pending"
+  },
+  {
+    "id": 1759579357,
+    "timestamp": "2025-10-04T12:02:37.337597",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "5.78.0.0",
+      "login": "admin",
+      "password": "admin"
+    },
+    "conflicting_node_ids": [
+      2341
+    ],
+    "status": "pending"
   }
 ]
