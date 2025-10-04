@@ -7,7 +7,7 @@ import time
 from datetime import datetime
 
 class WorkflowTester:
-    def __init__(self, base_url="https://connexa-import.preview.emergentagent.com"):
+    def __init__(self, base_url="https://cleaner-admin-ui.preview.emergentagent.com"):
         self.base_url = base_url
         self.api_url = f"{base_url}/api"
         self.token = None
