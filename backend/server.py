@@ -3484,7 +3484,7 @@ async def start_socks_services(
                     "login": login_prefix,
                     "password": password
                 },
-                "message": f"SOCKS сервис запущен: {admin_server_ip}:{socks_port}"
+                "message": f"SOCKS сервис запущен: {node.ip}:{socks_port}"
             })
             
         except Exception as e:
