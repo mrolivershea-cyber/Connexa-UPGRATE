@@ -17222,6 +17222,10 @@ if __name__ == "__main__":
             tester = ConnexaAPITester()
             success = tester.run_russian_user_final_verification()
             sys.exit(0 if success else 1)
+        elif sys.argv[1] == "--socks-investigation":
+            tester = ConnexaAPITester()
+            success = tester.run_russian_user_socks_investigation()
+            sys.exit(0 if success else 1)
         elif sys.argv[1] == "--comprehensive":
             tester = ConnexaAPITester()
             success = tester.run_comprehensive_tests()
