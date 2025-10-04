@@ -35,51 +35,66 @@ async def tcp_connect_measure(ip: str, port: int, per_attempt_timeout: float) ->
     except Exception as e:
         return False, per_attempt_timeout * 1000.0, f"EXC:{str(e)}"
 
-async def multiport_tcp_ping(ip: str, ports: List[int], timeouts: List[float]) -> Dict:
-    """Более строгий ping тест с множественными попытками для точности"""
+async def ping_light_tcp_check(ip: str, port: int = 1723, timeout: float = 2.0) -> Dict:
+    """PING LIGHT - быстрая проверка TCP соединения без авторизации"""
     
-    port = ports[0] if ports else 1723
-    attempts = 3  # Минимум 3 попытки для достоверности
-    successful_attempts = 0
-    total_time = 0.0
+    start_time = time.time()
     
-    for attempt in range(attempts):
-        ok, elapsed, err = await tcp_connect_measure(ip, port, 1.5)  # Увеличен таймаут
-        if ok:
-            successful_attempts += 1
-            total_time += elapsed
-            
-        # Небольшая пауза между попытками
-        if attempt < attempts - 1:
-            await asyncio.sleep(0.3)
-    
-    # Требуем минимум 2 из 3 успешных попыток
-    success_rate = (successful_attempts / attempts) * 100.0
-    success = successful_attempts >= 2
-    
-    if success:
-        avg_time = total_time / successful_attempts
+    try:
+        # Одна попытка TCP соединения с коротким таймаутом
+        future = asyncio.open_connection(ip, port)
+        reader, writer = await asyncio.wait_for(future, timeout=timeout)
+        
+        # Сразу закрываем соединение
+        writer.close()
+        await writer.wait_closed()
+        
+        elapsed_ms = (time.time() - start_time) * 1000.0
+        
         return {
             "success": True,
-            "avg_time": round(avg_time, 1),
-            "best_time": round(avg_time, 1),
-            "success_rate": round(success_rate, 1),
-            "attempts_total": attempts,
-            "attempts_ok": successful_attempts,
-            "details": {port: {"ok": successful_attempts, "fail": attempts - successful_attempts, "best_ms": avg_time}},
-            "message": f"PPTP port accessible: {successful_attempts}/{attempts} attempts OK; {avg_time:.1f}ms avg",
+            "avg_time": round(elapsed_ms, 1),
+            "best_time": round(elapsed_ms, 1),
+            "success_rate": 100.0,
+            "attempts_total": 1,
+            "attempts_ok": 1,
+            "details": {port: {"ok": 1, "fail": 0, "best_ms": elapsed_ms}},
+            "message": f"PING LIGHT OK - TCP {port} accessible in {elapsed_ms:.1f}ms",
         }
-    else:
+        
+    except asyncio.TimeoutError:
+        elapsed_ms = (time.time() - start_time) * 1000.0
         return {
             "success": False,
             "avg_time": 0.0,
             "best_time": 0.0,
-            "success_rate": round(success_rate, 1),
-            "attempts_total": attempts,
-            "attempts_ok": successful_attempts,
-            "details": {port: {"ok": successful_attempts, "fail": attempts - successful_attempts, "best_ms": None}},
-            "message": f"PPTP port unreliable: {successful_attempts}/{attempts} attempts failed; likely not a working PPTP server",
+            "success_rate": 0.0,
+            "attempts_total": 1,
+            "attempts_ok": 0,
+            "details": {port: {"ok": 0, "fail": 1, "best_ms": None}},
+            "message": f"PING LIGHT TIMEOUT - TCP {port} unreachable (>{timeout}s)",
         }
+        
+    except Exception as e:
+        elapsed_ms = (time.time() - start_time) * 1000.0
+        error_type = type(e).__name__
+        return {
+            "success": False,
+            "avg_time": 0.0,
+            "best_time": 0.0,
+            "success_rate": 0.0,
+            "attempts_total": 1,
+            "attempts_ok": 0,
+            "details": {port: {"ok": 0, "fail": 1, "best_ms": None}},
+            "message": f"PING LIGHT FAILED - TCP {port} error: {error_type}",
+        }
+
+async def multiport_tcp_ping(ip: str, ports: List[int], timeouts: List[float]) -> Dict:
+    """Обертка для совместимости - использует PING LIGHT"""
+    port = ports[0] if ports else 1723
+    timeout = timeouts[0] if timeouts else 2.0
+    
+    return await ping_light_tcp_check(ip, port, timeout)
 
     success_rate = (total_ok / max(1, total_attempts)) * 100.0
     success = total_ok >= 2 or (total_ok >= 1 and success_rate >= 50.0)
