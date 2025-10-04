@@ -2529,8 +2529,8 @@ async def manual_ping_test_batch(
     # Start background batch testing
     asyncio.create_task(process_testing_batches(
         session_id, [n.id for n in nodes], "ping_only", db,
-        ping_concurrency=test_request.ping_concurrency or 50,
-        speed_concurrency=test_request.speed_concurrency or 8,
+        ping_concurrency=test_request.ping_concurrency or 3,  # Критически снижено
+        speed_concurrency=test_request.speed_concurrency or 1,  # По одному для стабильности
         ping_timeouts=test_request.ping_timeouts or [0.8,1.2,1.6],
         speed_sample_kb=test_request.speed_sample_kb or 512,
         speed_timeout=test_request.speed_timeout or 15
@@ -2568,8 +2568,8 @@ async def manual_ping_test_batch_progress(
     # Start background batch testing
     asyncio.create_task(process_testing_batches(
         session_id, [n.id for n in nodes], "ping_only", db,
-        ping_concurrency=test_request.ping_concurrency or 50,
-        speed_concurrency=test_request.speed_concurrency or 8,
+        ping_concurrency=test_request.ping_concurrency or 3,  # Критически снижено
+        speed_concurrency=test_request.speed_concurrency or 1,  # По одному для стабильности
         ping_timeouts=test_request.ping_timeouts or [0.8,1.2,1.6],
         speed_sample_kb=test_request.speed_sample_kb or 512,
         speed_timeout=test_request.speed_timeout or 15
@@ -2605,8 +2605,8 @@ async def manual_speed_test_batch_progress(
     # Start background batch testing
     asyncio.create_task(process_testing_batches(
         session_id, [n.id for n in nodes], "speed_only", db,
-        ping_concurrency=test_request.ping_concurrency or 50,
-        speed_concurrency=test_request.speed_concurrency or 8,
+        ping_concurrency=test_request.ping_concurrency or 3,  # Критически снижено
+        speed_concurrency=test_request.speed_concurrency or 1,  # По одному для стабильности
         ping_timeouts=test_request.ping_timeouts or [0.8,1.2,1.6],
         speed_sample_kb=test_request.speed_sample_kb or 512,
         speed_timeout=test_request.speed_timeout or 15
@@ -2634,8 +2634,8 @@ async def manual_ping_speed_test_batch_progress(
     progress.update(0, f"Запуск speed-тестирования {len(nodes)} узлов (замена ping+speed)")
     asyncio.create_task(process_testing_batches(
         session_id, [n.id for n in nodes], "speed_only", db,
-        ping_concurrency=test_request.ping_concurrency or 50,
-        speed_concurrency=test_request.speed_concurrency or 8,
+        ping_concurrency=test_request.ping_concurrency or 3,  # Критически снижено
+        speed_concurrency=test_request.speed_concurrency or 1,  # По одному для стабильности
         ping_timeouts=test_request.ping_timeouts or [0.8,1.2,1.6],
         speed_sample_kb=test_request.speed_sample_kb or 512,
         speed_timeout=test_request.speed_timeout or 15
