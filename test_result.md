@@ -430,11 +430,11 @@ backend:
 
   - task: "Import Progress Display Integration with Testing Modal"
     implemented: true
-    working: true
+    working: false
     file: "UnifiedImportModal.js, TestingModal.js, AdminPanel.js, server.py"
-    stuck_count: 1
+    stuck_count: 2
     priority: "high"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
       - working: false
         agent: "main"
