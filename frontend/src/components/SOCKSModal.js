@@ -203,20 +203,16 @@ const SOCKSModal = ({ isOpen, onClose, selectedNodeIds = [] }) => {
   const handleViewDatabase = async () => {
     try {
       const response = await axios.get(`${API}/socks/database-report`);
-      // Здесь можно открыть новое модальное окно или скачать отчет
-      const blob = new Blob([response.data], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `socks_database_report_${new Date().toISOString().split('T')[0]}.json`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      toast.success('📊 Отчет БД SOCKS скачан');
+      // Показываем отчет в модальном окне вместо скачивания
+      const reportText = typeof response.data === 'object' 
+        ? JSON.stringify(response.data, null, 2) 
+        : response.data;
+      setDatabaseReport(reportText);
+      setShowDatabaseModal(true);
+      toast.success('📊 Отчет БД SOCKS загружен');
     } catch (error) {
-      console.error('Error downloading database report:', error);
-      toast.error('Ошибка скачивания отчета БД');
+      console.error('Error loading database report:', error);
+      toast.error('Ошибка загрузки отчета БД: ' + (error.response?.data?.detail || error.message));
     }
   };
 
