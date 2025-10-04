@@ -167,6 +167,10 @@ async def startup_event():
     # Start background monitoring with improved protection
     start_background_monitoring()
     logger.info("✅ Background monitoring RE-ENABLED with enhanced speed_ok protection")
+    
+    # Start SOCKS monitoring system
+    start_socks_monitoring()
+    logger.info("✅ SOCKS monitoring service started - checking every 30 seconds")
 
 # Deduplication registry to avoid duplicate tests and reduce load
 TEST_DEDUPE_TTL = 180  # seconds
