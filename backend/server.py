@@ -727,6 +727,57 @@ async def import_nodes(
             "session_id": None  # No session_id in simplified mode
         }
 
+@api_router.post("/nodes/import-chunked")
+async def import_nodes_chunked(
+    data: ImportNodesSchema,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Chunked import for large files with progress tracking"""
+    import asyncio
+    
+    # Create unique session for this import
+    import uuid
+    session_id = str(uuid.uuid4())
+    
+    # Split data into chunks by lines for processing
+    lines = data.data.strip().split('\n')
+    chunk_size = 1000  # Process 1000 lines at a time
+    chunks = [lines[i:i + chunk_size] for i in range(0, len(lines), chunk_size)]
+    
+    total_chunks = len(chunks)
+    total_lines = len(lines)
+    
+    logger.info(f"Starting chunked import - {total_lines} lines in {total_chunks} chunks, session: {session_id}")
+    
+    # Initialize progress tracking
+    progress_data = {
+        'session_id': session_id,
+        'total_chunks': total_chunks,
+        'processed_chunks': 0,
+        'total_nodes': 0,
+        'added': 0,
+        'skipped': 0,
+        'replaced': 0,
+        'errors': 0,
+        'status': 'processing',
+        'current_operation': 'Preparing import...'
+    }
+    
+    # Store progress in memory (you could use Redis for production)
+    import_progress[session_id] = progress_data
+    
+    # Start background processing
+    asyncio.create_task(process_chunks_async(chunks, data.protocol, session_id, current_user.id))
+    
+    return {
+        'success': True,
+        'session_id': session_id,
+        'total_chunks': total_chunks,
+        'message': f'Large file import started. Processing {total_lines} lines in {total_chunks} chunks.',
+        'progress_url': f'/api/import/progress/{session_id}'
+    }
+
 async def process_import_testing_batches(session_id: str, node_ids: list, testing_mode: str, db_session: Session):
     """Process node testing in batches to prevent hanging and preserve results"""
     
