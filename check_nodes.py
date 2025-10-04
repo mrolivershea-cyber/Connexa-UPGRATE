@@ -4,7 +4,7 @@ import requests
 import json
 
 def check_nodes():
-    base_url = "https://testing-modal-fix.preview.emergentagent.com"
+    base_url = "https://connexa-import.preview.emergentagent.com"
     api_url = f"{base_url}/api"
     
     # Login
