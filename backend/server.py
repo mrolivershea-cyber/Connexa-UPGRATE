@@ -2678,6 +2678,9 @@ async def process_testing_batches(session_id: str, node_ids: list, testing_mode:
                 break
             
             # Process current batch with concurrency
+            # Choose global semaphore by mode
+            global_sem = global_ping_sem if testing_mode == "ping_only" else global_speed_sem
+            
             # Combine global limiter + session limiter
             session_sem = asyncio.Semaphore(ping_concurrency if testing_mode == "ping_only" else speed_concurrency)
             sem = session_sem
@@ -2687,13 +2690,11 @@ async def process_testing_batches(session_id: str, node_ids: list, testing_mode:
                 async with global_sem:
                     async with sem:
                         local_db = SessionLocal()
-                    try:
-                        node = local_db.query(Node).filter(Node.id == node_id).first()
-                        if not node:
-                            logger.warning(f"❌ Testing batch: Node {node_id} not found in database")
-                            return False
-            # Choose global semaphore by mode
-            global_sem = global_ping_sem if testing_mode == "ping_only" else global_speed_sem
+                        try:
+                            node = local_db.query(Node).filter(Node.id == node_id).first()
+                            if not node:
+                                logger.warning(f"❌ Testing batch: Node {node_id} not found in database")
+                                return False
 
 
                         # Dedupe check is done before scheduling; optional extra safety
