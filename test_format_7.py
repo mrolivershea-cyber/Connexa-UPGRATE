@@ -92,7 +92,7 @@ class Format7Tester:
             report = response['report']
             if report.get('added', 0) >= 1:
                 # Verify the node was created correctly with Format 7 parsing
-                ip = f"5.78.{timestamp[-3:]}.1"
+                ip = f"5.78.{ip_part}.1"
                 nodes_success, nodes_response = self.make_request('GET', f'nodes?ip={ip}')
                 if nodes_success and 'nodes' in nodes_response and nodes_response['nodes']:
                     node = nodes_response['nodes'][0]
