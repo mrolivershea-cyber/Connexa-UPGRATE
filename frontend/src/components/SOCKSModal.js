@@ -104,7 +104,7 @@ const SOCKSModal = ({ isOpen, onClose, selectedNodeIds = [] }) => {
   const handleStartSocks = async () => {
     if (selectedNodeIds.length === 0) {
       toast.error('⚠️ Выберите узлы для запуска SOCKS сервисов', {
-        description: 'Отметьте узлы в таблице перед открытием SOCKS модального окна'
+        description: 'Сначала закройте это окно, отметьте узлы со статусом "ping_ok" или "speed_ok" в таблице, затем откройте SOCKS снова'
       });
       return;
     }
