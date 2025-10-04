@@ -15,10 +15,9 @@ const UnifiedImportModal = ({ isOpen, onClose, onComplete }) => {
   const { API } = useAuth();
   const { addSession } = useTesting();
 
-  // Import form state
+  // Import form state - simplified (no testing options)
   const [importData, setImportData] = useState('');
   const [protocol, setProtocol] = useState('pptp');
-  const [testingMode, setTestingMode] = useState('no_test'); // ping_only | speed_only | no_test
   const [previewResult, setPreviewResult] = useState(null);
   const [showPreview, setShowPreview] = useState(false);
   const [submitting, setSubmitting] = useState(false);
