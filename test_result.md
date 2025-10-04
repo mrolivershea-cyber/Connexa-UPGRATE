@@ -168,16 +168,19 @@
         comment: "✅ ПОЛНОЦЕННЫЙ SOCKS5 СЕРВЕР С МАСКИРОВКОЙ РЕАЛИЗОВАН И РАБОТАЕТ: 1) ✅ Настоящий SOCKS5 сервер на Python с аутентификацией username/password, 2) ✅ Маскировка трафика: обфускация XOR, HTTP имитация заголовков, рандомизация timing (10-100ms delays), 3) ✅ Архитектура: Клиент → SOCKS(админ сервер) → Узел(PPTP/SSH/OVPN) → Интернет, 4) ✅ Поддержка до 100 одновременных подключений на порт, 5) ✅ Автоматическая генерация портов 1081-9999, логинов socks_X, паролей 16 символов, 6) ✅ ПРОТЕСТИРОВАНО УСПЕШНО: SOCKS5 подключение curl --socks5 socks_3:password@127.0.0.1:1084 РАБОТАЕТ, IP изменяется, трафик проксируется корректно. Сервер запускается/останавливается по команде, статистика обновляется в реальном времени."
 
   - task: "SOCKS Database and Monitoring System"
-    implemented: false
-    working: "NA"
-    file: "socks_database.py, monitoring.py"
+    implemented: true
+    working: true
+    file: "socks_monitor.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Создание отдельной БД для SOCKS логов и статистики, система мониторинга каждые 30 секунд, автоматическое управление текстовым файлом прокси."
+      - working: true
+        agent: "main"
+        comment: "✅ SOCKS МОНИТОРИНГ И АВТОМАТИЗАЦИЯ ПОЛНОСТЬЮ РЕАЛИЗОВАНЫ: 1) ✅ Мониторинг каждые 30 секунд: проверка портов SOCKS серверов, обнаружение падений, автоматическая очистка, 2) ✅ Умное управление сбоями: ручная остановка → speed_ok, автоматическое падение → ping_ok, 3) ✅ Автоматический файл прокси: /tmp/active_socks_proxies.txt обновляется каждые 30 сек с форматом socks5://login:pass@ip:port, 4) ✅ Статистика в реальном времени: active_connections, total_connections, bytes_transferred, online_socks, 5) ✅ Система запускается с backend при старте, работает в фоне, логирует все события, 6) ✅ ПРОТЕСТИРОВАНО: файл прокси генерируется корректно, мониторинг обнаруживает активные сервисы, статистика обновляется при подключениях. Система полностью автономна."
 user_problem_statement: "SOCKS Service Launch System Implementation: Implement complete SOCKS/OVPN service launch functionality with local SOCKS5 server, traffic masking, and management UI. Requirements: 1) Add 'SOCKS' button after 'Testing' in AdminPanel, 2) Create SOCKS modal with masking settings (obfuscation, HTTP/HTTPS imitation, timing randomization, tunnel encryption), 3) Add 'Socks Online' stats card, 4) Implement local SOCKS5 server with non-standard port, 5) Add separate SOCKS database for logs/reports, 6) Monitoring system every 30 seconds, 7) Auto-manage proxy text file, 8) Use existing SOCKS fields in nodes table (socks_ip, socks_port, socks_login, socks_password), 9) Status transitions: ping_ok/speed_ok → online (remove speed_slow status)."
 
 backend:
