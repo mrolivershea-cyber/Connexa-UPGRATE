@@ -1154,12 +1154,12 @@ Random text that should cause errors""",
         """Test 2: Large file import (>500KB) - should automatically redirect to chunked processing"""
         # Create large test data (>500KB) using Format 7
         test_nodes = []
-        # Generate ~2000 lines to exceed 500KB
-        for i in range(2000):
+        # Generate ~15000 lines to definitely exceed 500KB (each line ~35 chars = ~525KB total)
+        for i in range(15000):
             ip_second = (i // 256) + 1
             ip_third = (i // 256) + 1  
             ip_fourth = i % 256
-            test_nodes.append(f"172.{ip_second}.{ip_third}.{ip_fourth}:largeuser{i}:largepass{i}")
+            test_nodes.append(f"172.{ip_second}.{ip_third}.{ip_fourth}:largeuser{i}:largepassword{i}")
         
         test_data = "\n".join(test_nodes)
         data_size = len(test_data.encode('utf-8'))
