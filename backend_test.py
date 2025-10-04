@@ -14732,10 +14732,174 @@ City: TestCity"""
                          f"❌ CRITICAL ISSUE: Only {verified_nodes}/5 nodes verified in DB, {persistent_nodes}/5 persistent. Data loss detected - commit fix may not be working!")
             return False
 
+    def test_fake_speed_results_investigation(self):
+        """CRITICAL INVESTIGATION: Test fake speed results issue reported by Russian user"""
+        print("\n🔥 CRITICAL INVESTIGATION: FAKE SPEED RESULTS")
+        print("=" * 80)
+        
+        # Test specific IPs from the review request
+        test_ips = [
+            {"ip": "76.178.64.46", "login": "admin", "password": "admin"},
+            {"ip": "144.229.29.35", "login": "admin", "password": "admin"},
+            {"ip": "5.78.107.168", "login": "admin", "password": "admin"}
+        ]
+        
+        real_pptp_working = 0
+        fake_speed_detected = 0
+        
+        for test_node in test_ips:
+            ip = test_node["ip"]
+            login = test_node["login"]
+            password = test_node["password"]
+            
+            print(f"\n🔍 Testing {ip}:{login}:{password}")
+            
+            # Test 1: Real PPTP port 1723 connectivity
+            try:
+                import socket
+                import time
+                
+                sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                sock.settimeout(10)
+                start_time = time.time()
+                result = sock.connect_ex((ip, 1723))
+                end_time = time.time()
+                sock.close()
+                
+                if result == 0:
+                    connection_time = (end_time - start_time) * 1000
+                    print(f"  ✅ PPTP Port 1723: ACCESSIBLE ({connection_time:.1f}ms)")
+                    real_pptp_working += 1
+                else:
+                    print(f"  ❌ PPTP Port 1723: NOT ACCESSIBLE (error code: {result})")
+                    
+            except Exception as e:
+                print(f"  ❌ PPTP Port 1723: CONNECTION FAILED ({str(e)})")
+            
+            # Test 2: Check if this IP has fake speed_ok status in database
+            nodes_success, nodes_response = self.make_request('GET', f'nodes?ip={ip}')
+            if nodes_success and 'nodes' in nodes_response and nodes_response['nodes']:
+                node = nodes_response['nodes'][0]
+                status = node.get('status', 'unknown')
+                print(f"  📊 Database Status: {status}")
+                
+                if status == 'speed_ok':
+                    fake_speed_detected += 1
+                    print(f"  🚨 FAKE SPEED_OK DETECTED: Node has speed_ok status but may not be real PPTP server")
+            else:
+                print(f"  📊 Database Status: NOT FOUND")
+            
+            # Test 3: Try to create/import this node and test it
+            import_data = {
+                "data": f"{ip} {login} {password} TestState",
+                "protocol": "pptp"
+            }
+            
+            import_success, import_response = self.make_request('POST', 'nodes/import', import_data)
+            if import_success and 'report' in import_response:
+                report = import_response['report']
+                if report.get('added', 0) > 0 or report.get('skipped_duplicates', 0) > 0:
+                    print(f"  ✅ Node imported/exists in database")
+                    
+                    # Now try manual ping test
+                    ping_test_data = {"node_ids": []}
+                    
+                    # Get the node ID
+                    nodes_success, nodes_response = self.make_request('GET', f'nodes?ip={ip}')
+                    if nodes_success and 'nodes' in nodes_response and nodes_response['nodes']:
+                        node_id = nodes_response['nodes'][0]['id']
+                        ping_test_data["node_ids"] = [node_id]
+                        
+                        # Test manual ping
+                        ping_success, ping_response = self.make_request('POST', 'manual/ping-test', ping_test_data)
+                        if ping_success:
+                            print(f"  🔍 Manual Ping Test: {ping_response.get('message', 'No message')}")
+                        else:
+                            print(f"  ❌ Manual Ping Test Failed: {ping_response}")
+                        
+                        # Test manual speed test if ping was successful
+                        if ping_success and 'results' in ping_response:
+                            results = ping_response.get('results', [])
+                            if results and results[0].get('success'):
+                                speed_success, speed_response = self.make_request('POST', 'manual/speed-test', ping_test_data)
+                                if speed_success:
+                                    print(f"  🔍 Manual Speed Test: {speed_response.get('message', 'No message')}")
+                                    
+                                    # Check if speed results look fake (deterministic based on IP)
+                                    if 'results' in speed_response and speed_response['results']:
+                                        speed_result = speed_response['results'][0]
+                                        download = speed_result.get('download', 0)
+                                        upload = speed_result.get('upload', 0)
+                                        
+                                        # Test if results are deterministic (fake)
+                                        # Run speed test again and see if results are identical
+                                        speed_success2, speed_response2 = self.make_request('POST', 'manual/speed-test', ping_test_data)
+                                        if speed_success2 and 'results' in speed_response2 and speed_response2['results']:
+                                            speed_result2 = speed_response2['results'][0]
+                                            download2 = speed_result2.get('download', 0)
+                                            upload2 = speed_result2.get('upload', 0)
+                                            
+                                            if download == download2 and upload == upload2:
+                                                print(f"  🚨 FAKE SPEED DETECTED: Identical results on repeat test (Download: {download}, Upload: {upload})")
+                                                print(f"      This indicates deterministic/fake speed calculation based on IP hash")
+                                            else:
+                                                print(f"  ✅ Speed results vary: Test1({download}/{upload}) vs Test2({download2}/{upload2})")
+                                else:
+                                    print(f"  ❌ Manual Speed Test Failed: {speed_response}")
+            else:
+                print(f"  ❌ Failed to import node: {import_response}")
+        
+        # Summary
+        print(f"\n📊 INVESTIGATION SUMMARY:")
+        print(f"   Real PPTP servers accessible: {real_pptp_working}/{len(test_ips)}")
+        print(f"   Nodes with fake speed_ok status: {fake_speed_detected}/{len(test_ips)}")
+        
+        if real_pptp_working < len(test_ips):
+            print(f"   🚨 CRITICAL ISSUE: {len(test_ips) - real_pptp_working} IPs are NOT accessible on PPTP port 1723")
+            print(f"      These should NOT have speed_ok status if they're not working PPTP servers")
+        
+        if fake_speed_detected > 0:
+            print(f"   🚨 FAKE SPEED ISSUE CONFIRMED: {fake_speed_detected} nodes have speed_ok status")
+            print(f"      Need to investigate ping_speed_test.py for fake speed generation")
+        
+        # Test the fake speed generation directly
+        print(f"\n🔍 TESTING FAKE SPEED GENERATION:")
+        try:
+            import hashlib
+            import random
+            
+            for test_node in test_ips:
+                ip = test_node["ip"]
+                
+                # Replicate the fake speed calculation from ping_speed_test.py
+                ip_hash = int(hashlib.md5(ip.encode()).hexdigest()[:8], 16)
+                random.seed(ip_hash)
+                
+                fake_download = round(random.uniform(1.0, 50.0), 2)
+                fake_upload = round(fake_download * random.uniform(0.5, 0.8), 2)
+                fake_ping = round(random.uniform(20, 200), 1)
+                
+                print(f"   {ip}: Fake speeds would be {fake_download} Mbps down, {fake_upload} Mbps up, {fake_ping}ms ping")
+                print(f"      (Generated deterministically from MD5 hash: {hashlib.md5(ip.encode()).hexdigest()[:8]})")
+        
+        except Exception as e:
+            print(f"   ❌ Error testing fake speed generation: {e}")
+        
+        # Final verdict
+        success = real_pptp_working == len(test_ips) and fake_speed_detected == 0
+        
+        self.log_test("CRITICAL: Fake Speed Results Investigation", success, 
+                     f"Real PPTP working: {real_pptp_working}/{len(test_ips)}, Fake speed_ok detected: {fake_speed_detected}")
+        
+        return success
+
     def run_all_tests(self):
         """Run all backend tests"""
         print("🚀 Starting Connexa Backend API Tests")
         print("=" * 50)
+        
+        # CRITICAL: Start with fake speed investigation
+        self.test_fake_speed_results_investigation()
         
         # Test health check first
         if not self.test_health_check():
