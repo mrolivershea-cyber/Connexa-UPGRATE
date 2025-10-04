@@ -1947,6 +1947,7 @@ async def get_stats(
     return {
         "total": total_nodes,
         "not_tested": status_dict.get("not_tested", 0),
+        "ping_light": status_dict.get("ping_light", 0),
         "ping_failed": status_dict.get("ping_failed", 0),
         "ping_ok": status_dict.get("ping_ok", 0),
         "speed_ok": status_dict.get("speed_ok", 0),
