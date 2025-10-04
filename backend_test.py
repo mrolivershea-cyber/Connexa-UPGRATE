@@ -1114,6 +1114,300 @@ Random text that should cause errors""",
             self.log_test("Format 7 Large File Simulation", False, f"Failed to import large Format 7 file: {response}")
             return False
 
+    # ========== CHUNKED IMPORT TESTS (Review Request - Large File Processing) ==========
+    
+    def test_chunked_import_small_file_regular_processing(self):
+        """Test 1: Small file import (<500KB) - should use regular processing"""
+        # Create small test data (well under 500KB)
+        test_nodes = []
+        for i in range(10):
+            test_nodes.append(f"10.1.{i}.1:smalluser{i}:smallpass{i}")
+        
+        test_data = "\n".join(test_nodes)
+        data_size = len(test_data.encode('utf-8'))
+        
+        import_data = {
+            "data": test_data,
+            "protocol": "pptp"
+        }
+        
+        success, response = self.make_request('POST', 'nodes/import', import_data)
+        
+        if success and 'report' in response:
+            # Should NOT have session_id (regular processing)
+            session_id = response.get('session_id')
+            report = response['report']
+            
+            if session_id is None and report.get('added', 0) >= 10:
+                self.log_test("Chunked Import - Small File Regular Processing", True, 
+                             f"✅ Small file ({data_size} bytes < 500KB) processed via regular import, no session_id, {report['added']} nodes added")
+                return True
+            else:
+                self.log_test("Chunked Import - Small File Regular Processing", False, 
+                             f"❌ Expected regular processing (no session_id), got session_id={session_id}, added={report.get('added', 0)}")
+                return False
+        else:
+            self.log_test("Chunked Import - Small File Regular Processing", False, f"Failed to import small file: {response}")
+            return False
+    
+    def test_chunked_import_large_file_automatic_redirect(self):
+        """Test 2: Large file import (>500KB) - should automatically redirect to chunked processing"""
+        # Create large test data (>500KB) using Format 7
+        test_nodes = []
+        # Generate ~2000 lines to exceed 500KB
+        for i in range(2000):
+            ip_second = (i // 256) + 1
+            ip_third = (i // 256) + 1  
+            ip_fourth = i % 256
+            test_nodes.append(f"172.{ip_second}.{ip_third}.{ip_fourth}:largeuser{i}:largepass{i}")
+        
+        test_data = "\n".join(test_nodes)
+        data_size = len(test_data.encode('utf-8'))
+        
+        print(f"🔍 Large file test data size: {data_size/1024:.1f}KB")
+        
+        import_data = {
+            "data": test_data,
+            "protocol": "pptp"
+        }
+        
+        success, response = self.make_request('POST', 'nodes/import', import_data)
+        
+        if success:
+            # Should have session_id (chunked processing)
+            session_id = response.get('session_id')
+            total_chunks = response.get('total_chunks')
+            
+            if session_id and total_chunks:
+                self.log_test("Chunked Import - Large File Automatic Redirect", True, 
+                             f"✅ Large file ({data_size/1024:.1f}KB > 500KB) automatically redirected to chunked processing, session_id={session_id}, {total_chunks} chunks")
+                return session_id
+            else:
+                self.log_test("Chunked Import - Large File Automatic Redirect", False, 
+                             f"❌ Expected chunked processing (session_id), got session_id={session_id}, total_chunks={total_chunks}")
+                return None
+        else:
+            self.log_test("Chunked Import - Large File Automatic Redirect", False, f"Failed to import large file: {response}")
+            return None
+    
+    def test_chunked_import_direct_endpoint(self):
+        """Test 3: Test /api/nodes/import-chunked endpoint directly"""
+        # Create test data for direct chunked import
+        test_nodes = []
+        for i in range(100):
+            test_nodes.append(f"10.2.{i//256}.{i%256}:directuser{i}:directpass{i}")
+        
+        test_data = "\n".join(test_nodes)
+        
+        import_data = {
+            "data": test_data,
+            "protocol": "pptp"
+        }
+        
+        success, response = self.make_request('POST', 'nodes/import-chunked', import_data)
+        
+        if success:
+            session_id = response.get('session_id')
+            total_chunks = response.get('total_chunks')
+            progress_url = response.get('progress_url')
+            
+            if session_id and total_chunks and progress_url:
+                self.log_test("Chunked Import - Direct Endpoint", True, 
+                             f"✅ Direct chunked import successful, session_id={session_id}, {total_chunks} chunks, progress_url={progress_url}")
+                return session_id
+            else:
+                self.log_test("Chunked Import - Direct Endpoint", False, 
+                             f"❌ Missing required fields: session_id={session_id}, total_chunks={total_chunks}, progress_url={progress_url}")
+                return None
+        else:
+            self.log_test("Chunked Import - Direct Endpoint", False, f"Failed direct chunked import: {response}")
+            return None
+    
+    def test_chunked_import_progress_tracking(self, session_id: str = None):
+        """Test 4: Test /api/import/progress/{session_id} endpoint for progress tracking"""
+        if not session_id:
+            # Create a chunked import first
+            session_id = self.test_chunked_import_direct_endpoint()
+            if not session_id:
+                self.log_test("Chunked Import - Progress Tracking", False, "No session_id available for progress tracking")
+                return False
+        
+        # Wait a moment for processing to start
+        time.sleep(2)
+        
+        # Test progress endpoint
+        success, response = self.make_request('GET', f'import/progress/{session_id}')
+        
+        if success:
+            required_fields = ['session_id', 'total_chunks', 'processed_chunks', 'status', 'current_operation']
+            missing_fields = [field for field in required_fields if field not in response]
+            
+            if not missing_fields:
+                status = response.get('status')
+                processed_chunks = response.get('processed_chunks', 0)
+                total_chunks = response.get('total_chunks', 0)
+                current_operation = response.get('current_operation', '')
+                
+                self.log_test("Chunked Import - Progress Tracking", True, 
+                             f"✅ Progress tracking working: status={status}, {processed_chunks}/{total_chunks} chunks, operation='{current_operation}'")
+                return True
+            else:
+                self.log_test("Chunked Import - Progress Tracking", False, 
+                             f"❌ Missing required fields: {missing_fields}")
+                return False
+        else:
+            self.log_test("Chunked Import - Progress Tracking", False, f"Failed to get progress: {response}")
+            return False
+    
+    def test_chunked_import_format_7_processing(self):
+        """Test 5: Verify chunked processing works with Format 7 (IP:Login:Pass) data"""
+        # Create Format 7 test data for chunked processing
+        test_nodes = []
+        for i in range(500):  # Medium size to ensure chunked processing
+            ip_third = (i // 256) + 10
+            ip_fourth = i % 256
+            test_nodes.append(f"192.168.{ip_third}.{ip_fourth}:fmt7user{i}:fmt7pass{i}")
+        
+        test_data = "\n".join(test_nodes)
+        
+        import_data = {
+            "data": test_data,
+            "protocol": "pptp"
+        }
+        
+        success, response = self.make_request('POST', 'nodes/import-chunked', import_data)
+        
+        if success:
+            session_id = response.get('session_id')
+            
+            if session_id:
+                # Wait for processing to complete
+                max_wait = 60  # 60 seconds max wait
+                wait_time = 0
+                
+                while wait_time < max_wait:
+                    time.sleep(2)
+                    wait_time += 2
+                    
+                    progress_success, progress_response = self.make_request('GET', f'import/progress/{session_id}')
+                    
+                    if progress_success:
+                        status = progress_response.get('status')
+                        if status == 'completed':
+                            added = progress_response.get('added', 0)
+                            
+                            # Verify some Format 7 nodes were created correctly
+                            sample_ips = ['192.168.10.0', '192.168.10.100', '192.168.11.0']
+                            verified_samples = 0
+                            
+                            for ip in sample_ips:
+                                nodes_success, nodes_response = self.make_request('GET', f'nodes?ip={ip}')
+                                if nodes_success and 'nodes' in nodes_response and nodes_response['nodes']:
+                                    node = nodes_response['nodes'][0]
+                                    # Verify Format 7 characteristics: IP, login, password but no location fields
+                                    if (node.get('ip') == ip and 
+                                        node.get('login') and node.get('login').startswith('fmt7user') and
+                                        node.get('password') and node.get('password').startswith('fmt7pass') and
+                                        not node.get('country') and not node.get('state') and not node.get('zipcode')):
+                                        verified_samples += 1
+                            
+                            if verified_samples >= 2:
+                                self.log_test("Chunked Import - Format 7 Processing", True, 
+                                             f"✅ Chunked Format 7 processing successful: {added} nodes added, {verified_samples} samples verified with correct Format 7 characteristics")
+                                return True
+                            else:
+                                self.log_test("Chunked Import - Format 7 Processing", False, 
+                                             f"❌ Format 7 verification failed: only {verified_samples} samples verified correctly")
+                                return False
+                        elif status == 'failed':
+                            self.log_test("Chunked Import - Format 7 Processing", False, 
+                                         f"❌ Chunked processing failed: {progress_response.get('current_operation', 'Unknown error')}")
+                            return False
+                
+                self.log_test("Chunked Import - Format 7 Processing", False, 
+                             f"❌ Timeout waiting for chunked processing to complete after {max_wait}s")
+                return False
+            else:
+                self.log_test("Chunked Import - Format 7 Processing", False, "❌ No session_id returned from chunked import")
+                return False
+        else:
+            self.log_test("Chunked Import - Format 7 Processing", False, f"Failed to start chunked Format 7 import: {response}")
+            return False
+    
+    def test_chunked_import_completion_status(self):
+        """Test 6: Monitor progress tracking and verify completion status"""
+        # Create a small chunked import to monitor completion
+        test_nodes = []
+        for i in range(50):
+            test_nodes.append(f"10.3.{i//256}.{i%256}:completeuser{i}:completepass{i}")
+        
+        test_data = "\n".join(test_nodes)
+        
+        import_data = {
+            "data": test_data,
+            "protocol": "pptp"
+        }
+        
+        success, response = self.make_request('POST', 'nodes/import-chunked', import_data)
+        
+        if success:
+            session_id = response.get('session_id')
+            
+            if session_id:
+                # Monitor progress from start to completion
+                progress_history = []
+                max_wait = 30  # 30 seconds max wait
+                wait_time = 0
+                
+                while wait_time < max_wait:
+                    time.sleep(1)
+                    wait_time += 1
+                    
+                    progress_success, progress_response = self.make_request('GET', f'import/progress/{session_id}')
+                    
+                    if progress_success:
+                        status = progress_response.get('status')
+                        processed_chunks = progress_response.get('processed_chunks', 0)
+                        total_chunks = progress_response.get('total_chunks', 0)
+                        current_operation = progress_response.get('current_operation', '')
+                        
+                        progress_entry = {
+                            'time': wait_time,
+                            'status': status,
+                            'progress': f"{processed_chunks}/{total_chunks}",
+                            'operation': current_operation
+                        }
+                        progress_history.append(progress_entry)
+                        
+                        if status == 'completed':
+                            added = progress_response.get('added', 0)
+                            skipped = progress_response.get('skipped', 0)
+                            errors = progress_response.get('errors', 0)
+                            
+                            # Verify final results
+                            if added >= 50:
+                                self.log_test("Chunked Import - Completion Status", True, 
+                                             f"✅ Progress monitoring successful: completed in {wait_time}s, {added} added, {skipped} skipped, {errors} errors. Progress history: {len(progress_history)} updates")
+                                return True
+                            else:
+                                self.log_test("Chunked Import - Completion Status", False, 
+                                             f"❌ Completion status incorrect: expected 50+ nodes, got {added}")
+                                return False
+                        elif status == 'failed':
+                            self.log_test("Chunked Import - Completion Status", False, 
+                                         f"❌ Import failed: {current_operation}")
+                            return False
+                
+                self.log_test("Chunked Import - Completion Status", False, 
+                             f"❌ Timeout waiting for completion. Last status: {progress_history[-1] if progress_history else 'No progress updates'}")
+                return False
+            else:
+                self.log_test("Chunked Import - Completion Status", False, "❌ No session_id returned")
+                return False
+        else:
+            self.log_test("Chunked Import - Completion Status", False, f"Failed to start chunked import: {response}")
+            return False
+
     def test_critical_format_4_block_splitting_fix(self):
         """CRITICAL RE-TEST - Fixed Smart Block Splitting for Format 4 (Review Request)"""
         # Exact user data from review request - this should create exactly 10 nodes
