@@ -345,9 +345,27 @@ const UnifiedImportModal = ({ isOpen, onClose, onComplete }) => {
                   </div>
                 </div>
                 
-                {/* Current Operation */}
-                <div className="text-xs text-gray-600 bg-gray-100 p-2 rounded">
-                  <strong>Текущая операция:</strong> {progress?.current_operation || 'Инициализация обработки...'}
+                {/* Current Operation with Timestamp */}
+                <div className="bg-gray-50 border border-gray-200 p-3 rounded-lg">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-semibold text-gray-700">💼 Текущая операция</span>
+                    <span className="text-xs text-gray-500">
+                      {new Date().toLocaleTimeString()}
+                    </span>
+                  </div>
+                  <div className="text-sm text-gray-800 bg-white p-2 rounded border">
+                    {progress?.current_operation || 'Инициализация обработки...'}
+                  </div>
+                  
+                  {/* Progress Status Indicator */}
+                  <div className="flex items-center mt-2 space-x-2">
+                    <div className="flex space-x-1">
+                      <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></div>
+                      <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+                      <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                    </div>
+                    <span className="text-xs text-blue-600 font-medium">Активная обработка</span>
+                  </div>
                 </div>
               </CardContent>
             </Card>
