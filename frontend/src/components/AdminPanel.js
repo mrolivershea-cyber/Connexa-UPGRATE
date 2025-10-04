@@ -37,6 +37,7 @@ import axios from 'axios';
 
 const AdminPanel = () => {
   const { user, logout, API } = useAuth();
+  const { hasActiveSessions, getActiveSessionsCount, getActiveImportSession } = useTesting();
   const [nodes, setNodes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedNodes, setSelectedNodes] = useState([]);
