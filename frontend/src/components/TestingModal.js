@@ -605,10 +605,16 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], onTestComplete })
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="ping_light">
+                      <div className="flex items-center">
+                        <Zap className="h-4 w-4 mr-2 text-yellow-500" />
+                        PING LIGHT (быстро)
+                      </div>
+                    </SelectItem>
                     <SelectItem value="ping">
                       <div className="flex items-center">
                         <Wifi className="h-4 w-4 mr-2" />
-                        Только Ping
+                        PING OK (с авторизацией)
                       </div>
                     </SelectItem>
                     <SelectItem value="speed">
