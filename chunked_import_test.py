@@ -359,7 +359,7 @@ class ChunkedImportTester:
         print("\n🔍 Testing Direct Chunked Import Endpoint")
         
         # Generate medium test data
-        test_data = self.generate_large_test_data(300)  # 300KB
+        test_data = self.generate_large_test_data(300, "172.22")  # 300KB
         data_size_kb = len(test_data.encode('utf-8')) / 1024
         
         import_data = {
