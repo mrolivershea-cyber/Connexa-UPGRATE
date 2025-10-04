@@ -262,6 +262,52 @@ const SOCKSModal = ({ isOpen, onClose, selectedNodeIds = [] }) => {
     }
   };
 
+  const handleCopyDatabaseReport = async () => {
+    try {
+      await navigator.clipboard.writeText(databaseReport);
+      toast.success('📋 Отчет БД скопирован в буфер обмена');
+    } catch (error) {
+      console.error('Error copying database report:', error);
+      toast.error('Ошибка копирования отчета');
+    }
+  };
+
+  const handleDownloadDatabaseReport = () => {
+    const blob = new Blob([databaseReport], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `socks_database_report_${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast.success('📥 Отчет БД скачан');
+  };
+
+  const handleCopyProxyFile = async () => {
+    try {
+      await navigator.clipboard.writeText(proxyFileContent);
+      toast.success('📋 Содержимое файла прокси скопировано');
+    } catch (error) {
+      console.error('Error copying proxy file:', error);
+      toast.error('Ошибка копирования файла');
+    }
+  };
+
+  const handleDownloadProxyFile = () => {
+    const blob = new Blob([proxyFileContent], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'active_proxies.txt';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast.success('📥 Файл прокси скачан');
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
