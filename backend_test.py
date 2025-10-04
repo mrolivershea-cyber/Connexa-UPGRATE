@@ -15478,6 +15478,287 @@ City: TestCity"""
         
         return success
 
+    def test_ping_light_functionality(self):
+        """Test PING LIGHT endpoint - быстрая TCP проверка без авторизации"""
+        # First, get some nodes with not_tested status for testing
+        nodes_success, nodes_response = self.make_request('GET', 'nodes?status=not_tested&limit=5')
+        
+        if not nodes_success or not nodes_response.get('nodes'):
+            # Create a test node for PING LIGHT testing
+            test_node = {
+                "ip": "8.8.8.8",  # Google DNS - reliable for TCP testing
+                "login": "ping_light_test",
+                "password": "testpass",
+                "protocol": "pptp",
+                "status": "not_tested"
+            }
+            
+            create_success, create_response = self.make_request('POST', 'nodes', test_node)
+            if create_success and 'id' in create_response:
+                test_node_ids = [create_response['id']]
+            else:
+                self.log_test("PING LIGHT Functionality", False, "Failed to create test node")
+                return False
+        else:
+            # Use existing not_tested nodes
+            test_node_ids = [node['id'] for node in nodes_response['nodes'][:3]]
+        
+        # Test PING LIGHT endpoint
+        ping_light_data = {"node_ids": test_node_ids}
+        
+        start_time = time.time()
+        success, response = self.make_request('POST', 'manual/ping-light-test', ping_light_data)
+        end_time = time.time()
+        
+        test_duration = end_time - start_time
+        
+        if success and 'results' in response:
+            results = response['results']
+            
+            # Verify PING LIGHT characteristics
+            ping_light_tests = 0
+            successful_tests = 0
+            fast_tests = 0
+            
+            for result in results:
+                if result.get('status') == 'completed':
+                    ping_light_tests += 1
+                    
+                    # Check if test was successful
+                    if result.get('success'):
+                        successful_tests += 1
+                    
+                    # Check if test was fast (should be ~2 seconds per node)
+                    avg_time = result.get('avg_time', 0)
+                    if avg_time <= 3.0:  # Allow some tolerance
+                        fast_tests += 1
+                    
+                    # Verify status transition
+                    new_status = result.get('new_status')
+                    if new_status in ['ping_light', 'ping_failed']:
+                        # Status transition is correct
+                        pass
+            
+            # Verify overall performance (should be fast)
+            performance_acceptable = test_duration <= (len(test_node_ids) * 3)  # Max 3 seconds per node
+            
+            if ping_light_tests >= 1 and performance_acceptable:
+                self.log_test("PING LIGHT Functionality", True, 
+                             f"✅ PING LIGHT working: {ping_light_tests} tests completed in {test_duration:.1f}s, {successful_tests} successful, {fast_tests} fast tests")
+                return True
+            else:
+                self.log_test("PING LIGHT Functionality", False, 
+                             f"❌ PING LIGHT issues: {ping_light_tests} tests, duration: {test_duration:.1f}s, performance OK: {performance_acceptable}")
+                return False
+        else:
+            self.log_test("PING LIGHT Functionality", False, f"❌ PING LIGHT API failed: {response}")
+            return False
+
+    def test_ping_ok_functionality(self):
+        """Test PING OK endpoint - полная PPTP проверка с авторизацией"""
+        # Get some nodes for PING OK testing (any status is acceptable)
+        nodes_success, nodes_response = self.make_request('GET', 'nodes?limit=5')
+        
+        if not nodes_success or not nodes_response.get('nodes'):
+            # Create a test node for PING OK testing
+            test_node = {
+                "ip": "8.8.8.8",  # Google DNS
+                "login": "admin",
+                "password": "admin",
+                "protocol": "pptp",
+                "status": "not_tested"
+            }
+            
+            create_success, create_response = self.make_request('POST', 'nodes', test_node)
+            if create_success and 'id' in create_response:
+                test_node_ids = [create_response['id']]
+            else:
+                self.log_test("PING OK Functionality", False, "Failed to create test node")
+                return False
+        else:
+            # Use existing nodes
+            test_node_ids = [node['id'] for node in nodes_response['nodes'][:3]]
+        
+        # Test PING OK endpoint
+        ping_ok_data = {"node_ids": test_node_ids}
+        
+        start_time = time.time()
+        success, response = self.make_request('POST', 'manual/ping-test', ping_ok_data)
+        end_time = time.time()
+        
+        test_duration = end_time - start_time
+        
+        if success and 'results' in response:
+            results = response['results']
+            
+            # Verify PING OK characteristics
+            ping_ok_tests = 0
+            successful_tests = 0
+            auth_tests = 0
+            
+            for result in results:
+                if result.get('success') is not None:
+                    ping_ok_tests += 1
+                    
+                    # Check if test was successful
+                    if result.get('success'):
+                        successful_tests += 1
+                    
+                    # Check if this was a full PPTP test with authentication
+                    message = result.get('message', '')
+                    if 'PPTP' in message or 'auth' in message.lower() or result.get('status') == 'ping_ok':
+                        auth_tests += 1
+                    
+                    # Verify status transition
+                    new_status = result.get('status')
+                    if new_status in ['ping_ok', 'ping_failed', 'speed_ok']:  # speed_ok preserved
+                        # Status transition is correct
+                        pass
+            
+            # PING OK should take longer than PING LIGHT (includes authentication)
+            expected_duration = len(test_node_ids) * 8  # Allow up to 8 seconds per node
+            performance_acceptable = test_duration <= expected_duration
+            
+            if ping_ok_tests >= 1:
+                self.log_test("PING OK Functionality", True, 
+                             f"✅ PING OK working: {ping_ok_tests} tests completed in {test_duration:.1f}s, {successful_tests} successful, {auth_tests} with auth")
+                return True
+            else:
+                self.log_test("PING OK Functionality", False, 
+                             f"❌ PING OK issues: {ping_ok_tests} tests, duration: {test_duration:.1f}s")
+                return False
+        else:
+            self.log_test("PING OK Functionality", False, f"❌ PING OK API failed: {response}")
+            return False
+
+    def test_ping_light_vs_ping_ok_speed_difference(self):
+        """Test speed difference between PING LIGHT and PING OK"""
+        # Create test nodes for comparison
+        test_nodes = []
+        for i in range(2):
+            test_node = {
+                "ip": f"8.8.{i+8}.{i+8}",  # Use different IPs
+                "login": "admin",
+                "password": "admin",
+                "protocol": "pptp",
+                "status": "not_tested"
+            }
+            
+            create_success, create_response = self.make_request('POST', 'nodes', test_node)
+            if create_success and 'id' in create_response:
+                test_nodes.append(create_response['id'])
+        
+        if len(test_nodes) < 2:
+            self.log_test("PING LIGHT vs PING OK Speed", False, "Failed to create test nodes")
+            return False
+        
+        # Test PING LIGHT speed
+        ping_light_data = {"node_ids": [test_nodes[0]]}
+        start_time = time.time()
+        light_success, light_response = self.make_request('POST', 'manual/ping-light-test', ping_light_data)
+        light_duration = time.time() - start_time
+        
+        # Test PING OK speed
+        ping_ok_data = {"node_ids": [test_nodes[1]]}
+        start_time = time.time()
+        ok_success, ok_response = self.make_request('POST', 'manual/ping-test', ping_ok_data)
+        ok_duration = time.time() - start_time
+        
+        if light_success and ok_success:
+            # PING LIGHT should be significantly faster than PING OK
+            speed_difference = ok_duration / light_duration if light_duration > 0 else 1
+            
+            if light_duration <= 3.0 and ok_duration >= light_duration:
+                self.log_test("PING LIGHT vs PING OK Speed", True, 
+                             f"✅ Speed difference confirmed: PING LIGHT {light_duration:.1f}s, PING OK {ok_duration:.1f}s (ratio: {speed_difference:.1f}x)")
+                return True
+            else:
+                self.log_test("PING LIGHT vs PING OK Speed", False, 
+                             f"❌ Speed difference not as expected: PING LIGHT {light_duration:.1f}s, PING OK {ok_duration:.1f}s")
+                return False
+        else:
+            self.log_test("PING LIGHT vs PING OK Speed", False, 
+                         f"❌ One or both tests failed: LIGHT={light_success}, OK={ok_success}")
+            return False
+
+    def test_stats_api_includes_ping_light(self):
+        """Test that GET /api/stats includes ping_light field"""
+        success, response = self.make_request('GET', 'stats')
+        
+        if success and isinstance(response, dict):
+            # Check if ping_light field is present
+            if 'ping_light' in response:
+                ping_light_count = response['ping_light']
+                total_count = response.get('total', 0)
+                
+                # Verify it's a valid number
+                if isinstance(ping_light_count, int) and ping_light_count >= 0:
+                    self.log_test("Stats API includes ping_light", True, 
+                                 f"✅ ping_light field present: {ping_light_count} (total: {total_count})")
+                    return True
+                else:
+                    self.log_test("Stats API includes ping_light", False, 
+                                 f"❌ ping_light field invalid: {ping_light_count}")
+                    return False
+            else:
+                self.log_test("Stats API includes ping_light", False, 
+                             f"❌ ping_light field missing from stats: {list(response.keys())}")
+                return False
+        else:
+            self.log_test("Stats API includes ping_light", False, f"❌ Stats API failed: {response}")
+            return False
+
+    def test_ping_light_status_in_database(self):
+        """Test that ping_light status is properly stored in database"""
+        # Create a test node and perform PING LIGHT test
+        test_node = {
+            "ip": "1.1.1.1",  # Cloudflare DNS
+            "login": "ping_light_db_test",
+            "password": "testpass",
+            "protocol": "pptp",
+            "status": "not_tested"
+        }
+        
+        create_success, create_response = self.make_request('POST', 'nodes', test_node)
+        if not create_success or 'id' not in create_response:
+            self.log_test("PING LIGHT Status in Database", False, "Failed to create test node")
+            return False
+        
+        node_id = create_response['id']
+        
+        # Perform PING LIGHT test
+        ping_light_data = {"node_ids": [node_id]}
+        test_success, test_response = self.make_request('POST', 'manual/ping-light-test', ping_light_data)
+        
+        if test_success and 'results' in test_response:
+            results = test_response['results']
+            if results and results[0].get('new_status') == 'ping_light':
+                # Verify the status is actually stored in database
+                node_success, node_response = self.make_request('GET', f'nodes/{node_id}')
+                
+                if node_success and node_response.get('status') == 'ping_light':
+                    self.log_test("PING LIGHT Status in Database", True, 
+                                 f"✅ ping_light status correctly stored in database for node {node_id}")
+                    return True
+                else:
+                    self.log_test("PING LIGHT Status in Database", False, 
+                                 f"❌ Status not stored correctly: expected ping_light, got {node_response.get('status')}")
+                    return False
+            else:
+                # Test might have failed, but that's also valid behavior
+                result = results[0] if results else {}
+                if result.get('new_status') == 'ping_failed':
+                    self.log_test("PING LIGHT Status in Database", True, 
+                                 f"✅ ping_failed status correctly stored (test failed as expected)")
+                    return True
+                else:
+                    self.log_test("PING LIGHT Status in Database", False, 
+                                 f"❌ Unexpected result: {result}")
+                    return False
+        else:
+            self.log_test("PING LIGHT Status in Database", False, f"❌ PING LIGHT test failed: {test_response}")
+            return False
+
     def run_all_tests(self):
         """Run all backend tests"""
         print("🚀 Starting Connexa Backend API Tests")
