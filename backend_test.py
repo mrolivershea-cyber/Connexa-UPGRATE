@@ -1696,12 +1696,7 @@ Random text that should cause errors""",
         else:
             self.log_test("PING LIGHT - API Endpoints Usage", False, 
                          f"❌ Failed to create test node: {create_response}")
-            return False node.get('status') != 'ping_ok':
-                    update_success, update_response = self.make_request('PUT', f'nodes/{node_id}', {"status": "ping_ok"})
-                
-                # Perform speed test
-                speed_data = {"node_ids": [node_id]}
-                speed_success, speed_response = self.make_request('POST', 'manual/speed-test', speed_data)
+            return False
                 
                 if speed_success and 'results' in speed_response:
                     results = speed_response['results']
