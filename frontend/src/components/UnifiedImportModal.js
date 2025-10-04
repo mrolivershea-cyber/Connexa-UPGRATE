@@ -57,6 +57,8 @@ const UnifiedImportModal = ({ isOpen, onClose, onComplete }) => {
       setIsLargeFile(false);
       setProgress(null);
       setSessionId(null);
+      setIsImportActive(false);
+      localStorage.removeItem('activeImportSession');
     }
   }, [isOpen]);
 
