@@ -1388,6 +1388,515 @@ ZIP: 78701"""
             self.log_test("Single Node Service Stop", False, f"Failed to stop service for single node: {response}")
             return False
 
+    # ========== SOCKS SERVICE LAUNCH SYSTEM TESTS (Review Request 2025-01-08) ==========
+    
+    def test_socks_stats_endpoint(self):
+        """Test /api/socks/stats endpoint"""
+        success, response = self.make_request('GET', 'socks/stats')
+        
+        if success and all(key in response for key in ['online_socks', 'total_tunnels', 'active_connections', 'socks_enabled_nodes']):
+            self.log_test("SOCKS Stats Endpoint", True, 
+                         f"Stats: online_socks={response['online_socks']}, total_tunnels={response['total_tunnels']}, active_connections={response['active_connections']}")
+            return response
+        else:
+            self.log_test("SOCKS Stats Endpoint", False, f"Failed to get SOCKS stats: {response}")
+            return None
+    
+    def test_socks_config_get_endpoint(self):
+        """Test /api/socks/config GET endpoint"""
+        success, response = self.make_request('GET', 'socks/config')
+        
+        expected_keys = ['masking', 'performance', 'security']
+        if success and all(key in response for key in expected_keys):
+            masking = response['masking']
+            performance = response['performance']
+            security = response['security']
+            
+            # Verify structure
+            masking_valid = all(key in masking for key in ['obfuscation', 'http_imitation', 'timing_randomization', 'tunnel_encryption'])
+            performance_valid = all(key in performance for key in ['tunnel_limit', 'auto_scaling', 'cpu_threshold', 'ram_threshold'])
+            security_valid = all(key in security for key in ['whitelist_enabled', 'allowed_ips'])
+            
+            if masking_valid and performance_valid and security_valid:
+                self.log_test("SOCKS Config GET", True, 
+                             f"Config structure valid: masking, performance, security settings present")
+                return response
+            else:
+                self.log_test("SOCKS Config GET", False, f"Config structure invalid")
+                return None
+        else:
+            self.log_test("SOCKS Config GET", False, f"Failed to get SOCKS config: {response}")
+            return None
+    
+    def test_socks_config_post_endpoint(self):
+        """Test /api/socks/config POST endpoint"""
+        test_config = {
+            "masking": {
+                "obfuscation": False,
+                "http_imitation": True,
+                "timing_randomization": False,
+                "tunnel_encryption": True
+            },
+            "performance": {
+                "tunnel_limit": 50,
+                "auto_scaling": False,
+                "cpu_threshold": 70,
+                "ram_threshold": 85
+            },
+            "security": {
+                "whitelist_enabled": True,
+                "allowed_ips": ["192.168.1.0/24", "10.0.0.0/8"]
+            }
+        }
+        
+        success, response = self.make_request('POST', 'socks/config', test_config)
+        
+        if success and response.get('success') == True:
+            self.log_test("SOCKS Config POST", True, 
+                         f"Config saved successfully: {response.get('message', 'No message')}")
+            return True
+        else:
+            self.log_test("SOCKS Config POST", False, f"Failed to save SOCKS config: {response}")
+            return False
+    
+    def test_socks_active_proxies_endpoint(self):
+        """Test /api/socks/active endpoint"""
+        success, response = self.make_request('GET', 'socks/active')
+        
+        if success and 'proxies' in response:
+            proxies = response['proxies']
+            self.log_test("SOCKS Active Proxies", True, 
+                         f"Retrieved {len(proxies)} active SOCKS proxies")
+            return proxies
+        else:
+            self.log_test("SOCKS Active Proxies", False, f"Failed to get active proxies: {response}")
+            return []
+    
+    def test_socks_proxy_file_endpoint(self):
+        """Test /api/socks/proxy-file endpoint"""
+        success, response = self.make_request('GET', 'socks/proxy-file')
+        
+        if success and 'content' in response:
+            content = response['content']
+            lines = content.split('\n')
+            
+            # Check for proper format
+            has_header = any('Активные SOCKS прокси' in line for line in lines)
+            has_timestamp = any('Обновлено:' in line for line in lines)
+            
+            self.log_test("SOCKS Proxy File", True, 
+                         f"Proxy file generated: {len(lines)} lines, header={has_header}, timestamp={has_timestamp}")
+            return content
+        else:
+            self.log_test("SOCKS Proxy File", False, f"Failed to get proxy file: {response}")
+            return None
+    
+    def test_socks_database_report_endpoint(self):
+        """Test /api/socks/database-report endpoint"""
+        success, response = self.make_request('GET', 'socks/database-report')
+        
+        if success and all(key in response for key in ['generated_at', 'total_socks_nodes', 'online_socks', 'nodes']):
+            self.log_test("SOCKS Database Report", True, 
+                         f"Report generated: {response['total_socks_nodes']} total nodes, {response['online_socks']} online")
+            return response
+        else:
+            self.log_test("SOCKS Database Report", False, f"Failed to get database report: {response}")
+            return None
+    
+    def test_create_test_nodes_for_socks(self):
+        """Create test nodes with different statuses for SOCKS testing"""
+        test_nodes = [
+            {
+                "ip": "192.168.100.1",
+                "login": "sockstest1",
+                "password": "testpass123",
+                "protocol": "pptp",
+                "status": "ping_ok",
+                "provider": "SOCKSTestProvider",
+                "country": "United States",
+                "state": "California",
+                "city": "Los Angeles",
+                "comment": "SOCKS test node - ping_ok status"
+            },
+            {
+                "ip": "192.168.100.2", 
+                "login": "sockstest2",
+                "password": "testpass456",
+                "protocol": "pptp",
+                "status": "speed_ok",
+                "provider": "SOCKSTestProvider",
+                "country": "United States",
+                "state": "Texas",
+                "city": "Houston",
+                "comment": "SOCKS test node - speed_ok status"
+            },
+            {
+                "ip": "192.168.100.3",
+                "login": "sockstest3", 
+                "password": "testpass789",
+                "protocol": "pptp",
+                "status": "not_tested",
+                "provider": "SOCKSTestProvider",
+                "country": "United States",
+                "state": "New York",
+                "city": "New York",
+                "comment": "SOCKS test node - not_tested status (should fail)"
+            }
+        ]
+        
+        created_nodes = []
+        for node_data in test_nodes:
+            success, response = self.make_request('POST', 'nodes', node_data)
+            if success and 'id' in response:
+                created_nodes.append(response['id'])
+            else:
+                self.log_test("Create SOCKS Test Nodes", False, f"Failed to create test node: {response}")
+                return []
+        
+        if len(created_nodes) == 3:
+            self.log_test("Create SOCKS Test Nodes", True, 
+                         f"Created 3 test nodes with IDs: {created_nodes}")
+            return created_nodes
+        else:
+            self.log_test("Create SOCKS Test Nodes", False, 
+                         f"Only created {len(created_nodes)}/3 test nodes")
+            return created_nodes
+    
+    def test_socks_start_services_valid_nodes(self, node_ids):
+        """Test /api/socks/start with valid ping_ok/speed_ok nodes"""
+        if not node_ids or len(node_ids) < 2:
+            self.log_test("SOCKS Start Services (Valid)", False, "Need at least 2 test nodes")
+            return []
+        
+        # Test with first 2 nodes (ping_ok and speed_ok)
+        start_data = {
+            "node_ids": node_ids[:2],
+            "masking_settings": {
+                "obfuscation": True,
+                "http_imitation": True
+            },
+            "performance_settings": {
+                "tunnel_limit": 100
+            },
+            "security_settings": {
+                "whitelist_enabled": False
+            }
+        }
+        
+        success, response = self.make_request('POST', 'socks/start', start_data)
+        
+        if success and 'results' in response:
+            results = response['results']
+            successful_starts = [r for r in results if r.get('success') == True]
+            
+            # Verify each successful start
+            validation_results = []
+            for result in successful_starts:
+                node_id = result['node_id']
+                
+                # Check node status changed to online
+                node_success, node_response = self.make_request('GET', f'nodes/{node_id}')
+                if node_success:
+                    node = node_response
+                    
+                    # Verify status transition
+                    status_correct = node.get('status') == 'online'
+                    
+                    # Verify SOCKS data populated
+                    socks_data_valid = all([
+                        node.get('socks_ip') is not None,
+                        node.get('socks_port') is not None,
+                        node.get('socks_login') is not None,
+                        node.get('socks_password') is not None
+                    ])
+                    
+                    # Verify port range (1081-9999)
+                    port_valid = 1081 <= int(node.get('socks_port', 0)) <= 9999
+                    
+                    # Verify password length (16 characters)
+                    password_valid = len(node.get('socks_password', '')) == 16
+                    
+                    # Verify login format (socks_{node_id})
+                    login_valid = node.get('socks_login') == f'socks_{node_id}'
+                    
+                    validation_results.append({
+                        'node_id': node_id,
+                        'status_correct': status_correct,
+                        'socks_data_valid': socks_data_valid,
+                        'port_valid': port_valid,
+                        'password_valid': password_valid,
+                        'login_valid': login_valid,
+                        'socks_port': node.get('socks_port'),
+                        'socks_password': node.get('socks_password'),
+                        'socks_login': node.get('socks_login')
+                    })
+            
+            # Check if all validations passed
+            all_valid = all(
+                v['status_correct'] and v['socks_data_valid'] and 
+                v['port_valid'] and v['password_valid'] and v['login_valid']
+                for v in validation_results
+            )
+            
+            if all_valid and len(successful_starts) == 2:
+                self.log_test("SOCKS Start Services (Valid)", True, 
+                             f"✅ All validations passed: {len(successful_starts)} nodes started, status→online, ports in range 1081-9999, passwords 16 chars, login format correct")
+                return [r['node_id'] for r in successful_starts]
+            else:
+                failed_validations = [v for v in validation_results if not (v['status_correct'] and v['socks_data_valid'] and v['port_valid'] and v['password_valid'] and v['login_valid'])]
+                self.log_test("SOCKS Start Services (Valid)", False, 
+                             f"❌ Validation failed for nodes: {failed_validations}")
+                return []
+        else:
+            self.log_test("SOCKS Start Services (Valid)", False, f"Failed to start SOCKS services: {response}")
+            return []
+    
+    def test_socks_start_services_invalid_status(self, node_ids):
+        """Test /api/socks/start with invalid status node (not_tested)"""
+        if not node_ids or len(node_ids) < 3:
+            self.log_test("SOCKS Start Services (Invalid Status)", False, "Need at least 3 test nodes")
+            return False
+        
+        # Test with third node (not_tested status - should fail)
+        start_data = {
+            "node_ids": [node_ids[2]]  # not_tested node
+        }
+        
+        success, response = self.make_request('POST', 'socks/start', start_data)
+        
+        if success and 'results' in response:
+            results = response['results']
+            
+            # Should have 1 result that failed
+            if len(results) == 1 and results[0].get('success') == False:
+                error_message = results[0].get('message', '')
+                if 'ping_ok or speed_ok' in error_message:
+                    self.log_test("SOCKS Start Services (Invalid Status)", True, 
+                                 f"✅ Correctly rejected not_tested node: {error_message}")
+                    return True
+                else:
+                    self.log_test("SOCKS Start Services (Invalid Status)", False, 
+                                 f"Wrong error message: {error_message}")
+                    return False
+            else:
+                self.log_test("SOCKS Start Services (Invalid Status)", False, 
+                             f"Expected failure but got: {results}")
+                return False
+        else:
+            self.log_test("SOCKS Start Services (Invalid Status)", False, f"Request failed: {response}")
+            return False
+    
+    def test_socks_stop_services_smart_restoration(self, online_node_ids):
+        """Test /api/socks/stop with smart status restoration"""
+        if not online_node_ids:
+            self.log_test("SOCKS Stop Services (Smart Restoration)", False, "No online SOCKS nodes to test")
+            return False
+        
+        # Get current status of nodes before stopping
+        node_statuses_before = {}
+        for node_id in online_node_ids:
+            node_success, node_response = self.make_request('GET', f'nodes/{node_id}')
+            if node_success:
+                node_statuses_before[node_id] = {
+                    'status': node_response.get('status'),
+                    'previous_status': node_response.get('previous_status'),
+                    'has_socks_data': all([
+                        node_response.get('socks_ip') is not None,
+                        node_response.get('socks_port') is not None,
+                        node_response.get('socks_login') is not None,
+                        node_response.get('socks_password') is not None
+                    ])
+                }
+        
+        # Stop SOCKS services
+        stop_data = {
+            "node_ids": online_node_ids
+        }
+        
+        success, response = self.make_request('POST', 'socks/stop', stop_data)
+        
+        if success and 'results' in response:
+            results = response['results']
+            successful_stops = [r for r in results if r.get('success') == True]
+            
+            # Verify smart restoration for each node
+            restoration_results = []
+            for result in successful_stops:
+                node_id = result['node_id']
+                
+                # Check node status after stop
+                node_success, node_response = self.make_request('GET', f'nodes/{node_id}')
+                if node_success:
+                    node = node_response
+                    
+                    # Verify status restored to speed_ok (smart restoration)
+                    status_restored = node.get('status') == 'speed_ok'
+                    
+                    # Verify SOCKS data cleared
+                    socks_data_cleared = all([
+                        node.get('socks_ip') is None,
+                        node.get('socks_port') is None,
+                        node.get('socks_login') is None,
+                        node.get('socks_password') is None
+                    ])
+                    
+                    # Verify previous_status cleared
+                    previous_status_cleared = node.get('previous_status') is None
+                    
+                    restoration_results.append({
+                        'node_id': node_id,
+                        'status_restored': status_restored,
+                        'socks_data_cleared': socks_data_cleared,
+                        'previous_status_cleared': previous_status_cleared,
+                        'final_status': node.get('status')
+                    })
+            
+            # Check if all restorations were successful
+            all_restored = all(
+                r['status_restored'] and r['socks_data_cleared'] and r['previous_status_cleared']
+                for r in restoration_results
+            )
+            
+            if all_restored and len(successful_stops) == len(online_node_ids):
+                self.log_test("SOCKS Stop Services (Smart Restoration)", True, 
+                             f"✅ Smart restoration successful: {len(successful_stops)} nodes online→speed_ok, SOCKS data cleared, previous_status cleared")
+                return True
+            else:
+                failed_restorations = [r for r in restoration_results if not (r['status_restored'] and r['socks_data_cleared'] and r['previous_status_cleared'])]
+                self.log_test("SOCKS Stop Services (Smart Restoration)", False, 
+                             f"❌ Restoration failed for nodes: {failed_restorations}")
+                return False
+        else:
+            self.log_test("SOCKS Stop Services (Smart Restoration)", False, f"Failed to stop SOCKS services: {response}")
+            return False
+    
+    def test_socks_integration_with_main_stats(self):
+        """Test that /api/stats includes socks_online field"""
+        success, response = self.make_request('GET', 'stats')
+        
+        if success and 'socks_online' in response:
+            socks_online = response['socks_online']
+            self.log_test("SOCKS Integration with Main Stats", True, 
+                         f"✅ Main stats includes socks_online: {socks_online}")
+            return True
+        else:
+            self.log_test("SOCKS Integration with Main Stats", False, 
+                         f"❌ Main stats missing socks_online field: {response}")
+            return False
+    
+    def test_socks_error_handling_invalid_node_ids(self):
+        """Test SOCKS endpoints with invalid node IDs"""
+        invalid_node_ids = [99999, 88888]  # Non-existent node IDs
+        
+        # Test start with invalid IDs
+        start_data = {"node_ids": invalid_node_ids}
+        success, response = self.make_request('POST', 'socks/start', start_data)
+        
+        start_handled_correctly = False
+        if success and 'results' in response:
+            results = response['results']
+            failed_results = [r for r in results if r.get('success') == False and 'not found' in r.get('message', '').lower()]
+            start_handled_correctly = len(failed_results) == len(invalid_node_ids)
+        
+        # Test stop with invalid IDs
+        stop_data = {"node_ids": invalid_node_ids}
+        success, response = self.make_request('POST', 'socks/stop', stop_data)
+        
+        stop_handled_correctly = False
+        if success and 'results' in response:
+            results = response['results']
+            failed_results = [r for r in results if r.get('success') == False and 'not found' in r.get('message', '').lower()]
+            stop_handled_correctly = len(failed_results) == len(invalid_node_ids)
+        
+        if start_handled_correctly and stop_handled_correctly:
+            self.log_test("SOCKS Error Handling (Invalid Node IDs)", True, 
+                         f"✅ Both start and stop correctly handle invalid node IDs")
+            return True
+        else:
+            self.log_test("SOCKS Error Handling (Invalid Node IDs)", False, 
+                         f"❌ Error handling failed: start={start_handled_correctly}, stop={stop_handled_correctly}")
+            return False
+    
+    def test_socks_error_handling_empty_requests(self):
+        """Test SOCKS endpoints with empty node_ids"""
+        # Test start with empty node_ids
+        start_success, start_response = self.make_request('POST', 'socks/start', {"node_ids": []}, expected_status=400)
+        
+        # Test stop with empty node_ids  
+        stop_success, stop_response = self.make_request('POST', 'socks/stop', {"node_ids": []}, expected_status=400)
+        
+        if start_success and stop_success:
+            self.log_test("SOCKS Error Handling (Empty Requests)", True, 
+                         f"✅ Both endpoints correctly return 400 for empty node_ids")
+            return True
+        else:
+            self.log_test("SOCKS Error Handling (Empty Requests)", False, 
+                         f"❌ Empty request handling failed: start={start_success}, stop={stop_success}")
+            return False
+    
+    def cleanup_socks_test_nodes(self, node_ids):
+        """Clean up test nodes created for SOCKS testing"""
+        if not node_ids:
+            return True
+        
+        delete_data = {"node_ids": node_ids}
+        success, response = self.make_request('DELETE', 'nodes', delete_data)
+        
+        if success:
+            self.log_test("Cleanup SOCKS Test Nodes", True, f"Cleaned up {len(node_ids)} test nodes")
+            return True
+        else:
+            self.log_test("Cleanup SOCKS Test Nodes", False, f"Failed to cleanup: {response}")
+            return False
+    
+    def run_comprehensive_socks_tests(self):
+        """Run all SOCKS Service Launch System tests"""
+        print("\n" + "="*80)
+        print("🚀 COMPREHENSIVE SOCKS SERVICE LAUNCH SYSTEM TESTING")
+        print("="*80)
+        
+        # Test 1: Basic endpoint functionality
+        print("\n📋 Phase 1: Basic Endpoint Testing")
+        self.test_socks_stats_endpoint()
+        self.test_socks_config_get_endpoint()
+        self.test_socks_config_post_endpoint()
+        self.test_socks_active_proxies_endpoint()
+        self.test_socks_proxy_file_endpoint()
+        self.test_socks_database_report_endpoint()
+        
+        # Test 2: Integration with main stats
+        print("\n📋 Phase 2: Integration Testing")
+        self.test_socks_integration_with_main_stats()
+        
+        # Test 3: Create test nodes and test service management
+        print("\n📋 Phase 3: Service Management Testing")
+        test_node_ids = self.test_create_test_nodes_for_socks()
+        
+        if test_node_ids:
+            # Test starting SOCKS services
+            online_node_ids = self.test_socks_start_services_valid_nodes(test_node_ids)
+            
+            # Test invalid status handling
+            self.test_socks_start_services_invalid_status(test_node_ids)
+            
+            # Test stopping SOCKS services with smart restoration
+            if online_node_ids:
+                self.test_socks_stop_services_smart_restoration(online_node_ids)
+        
+        # Test 4: Error handling
+        print("\n📋 Phase 4: Error Handling Testing")
+        self.test_socks_error_handling_invalid_node_ids()
+        self.test_socks_error_handling_empty_requests()
+        
+        # Test 5: Cleanup
+        print("\n📋 Phase 5: Cleanup")
+        if test_node_ids:
+            self.cleanup_socks_test_nodes(test_node_ids)
+        
+        print("\n" + "="*80)
+        print("✅ SOCKS SERVICE LAUNCH SYSTEM TESTING COMPLETE")
+        print("="*80)
+
     # ========== NEW BATCH IMPORT SYSTEM TESTS (Review Request 2025-01-08) ==========
     
     def test_batch_import_with_ping_only(self):
