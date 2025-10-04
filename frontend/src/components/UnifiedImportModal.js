@@ -26,6 +26,28 @@ const UnifiedImportModal = ({ isOpen, onClose, onComplete }) => {
 
   useEffect(() => {
     if (isOpen) {
+      // Check for active import session in localStorage
+      const activeImport = localStorage.getItem('activeImportSession');
+      if (activeImport) {
+        try {
+          const importData = JSON.parse(activeImport);
+          if (importData.sessionId && importData.timestamp > Date.now() - 30 * 60 * 1000) { // 30 minutes
+            console.log('Resuming active import session:', importData.sessionId);
+            setSessionId(importData.sessionId);
+            setIsImportActive(true);
+            setSubmitting(false); // Not submitting anymore, just monitoring
+            startProgressTracking(importData.sessionId);
+            toast.info('📂 Обнаружена активная сессия импорта. Продолжаем...');
+            return;
+          } else {
+            // Clean up old session
+            localStorage.removeItem('activeImportSession');
+          }
+        } catch (e) {
+          localStorage.removeItem('activeImportSession');
+        }
+      }
+      
       // Reset form for new import
       setImportData('');
       setProtocol('pptp');
