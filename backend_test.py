@@ -13101,6 +13101,24 @@ State: California""",
         self.test_batch_system_no_hanging()
         self.test_results_saved_after_each_batch()
         
+        # ========== RUSSIAN USER IMPORT PROGRESS DISPLAY TESTS (Review Request 2025-01-08) ==========
+        print("\n" + "="*80)
+        print("🇷🇺 RUSSIAN USER IMPORT PROGRESS DISPLAY TESTING - REVIEW REQUEST")
+        print("="*80)
+        print("Testing import progress display in Testing Modal according to requirements:")
+        print("1. Import with ping_only testing mode")
+        print("2. Import with speed_only testing mode") 
+        print("3. Check import report API returns detailed report")
+        print("4. Check SSE endpoint /api/progress/{session_id}")
+        print("5. Check backend logs show process_import_testing_batches()")
+        print("="*80)
+        
+        self.test_import_progress_display_ping_only()
+        self.test_import_progress_display_speed_only()
+        self.test_import_report_details()
+        self.test_backend_logs_verification()
+        self.test_stats_api_after_import()
+        
         # ========== CRITICAL SPEED_OK PROTECTION TEST (HIGHEST PRIORITY) ==========
         print("\n" + "🔥" * 25 + " CRITICAL SPEED_OK PROTECTION TEST " + "🔥" * 25)
         print("🎯 REVIEW REQUEST: FINAL COMPREHENSIVE SPEED_OK PRESERVATION TEST")
