@@ -14,40 +14,24 @@ from typing import Dict, Optional, Tuple, List
 
 # ==== Fast multi-port TCP reachability helpers (service-aware, no protocol handshake) ====
 async def tcp_connect_measure(ip: str, port: int, per_attempt_timeout: float) -> Tuple[bool, float, str]:
-    """Attempt TCP connect to ip:port within per_attempt_timeout seconds.
-    Returns (success, elapsed_ms, error_code_text). Non-blocking with select.
-    """
+    """СВЕРХ-БЫСТРЫЙ TCP connect с минимальными операциями"""
+    start = time.time()
     try:
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.settimeout(per_attempt_timeout)
-        sock.setblocking(False)
-        start = time.time()
-        result = sock.connect_ex((ip, port))
-        if result == 0:
-            elapsed = (time.time() - start) * 1000.0
-            sock.close()
-            return True, elapsed, "OK"
-        elif result in [115, 11]:  # EINPROGRESS / EWOULDBLOCK
-            import select
-            ready = select.select([], [sock], [], per_attempt_timeout)
-            if ready[1]:
-                err = sock.getsockopt(socket.SOL_SOCKET, socket.SO_ERROR)
-                if err == 0:
-                    elapsed = (time.time() - start) * 1000.0
-                    sock.close()
-                    return True, elapsed, "OK"
-                else:
-                    sock.close()
-                    return False, (time.time() - start) * 1000.0, f"SO_ERROR:{err}"
-            else:
-                sock.close()
-                return False, per_attempt_timeout * 1000.0, "timeout"
-        else:
-            # Immediate failure (e.g., ECONNREFUSED)
-            sock.close()
-            return False, (time.time() - start) * 1000.0, f"ERR:{result}"
-    except socket.timeout:
-        return False, per_attempt_timeout * 1000.0, "timeout"
+        # Используем asyncio для максимальной скорости
+        future = asyncio.open_connection(ip, port)
+        reader, writer = await asyncio.wait_for(future, timeout=per_attempt_timeout)
+        
+        elapsed = (time.time() - start) * 1000.0
+        writer.close()
+        await writer.wait_closed()
+        return True, elapsed, "OK"
+        
+    except asyncio.TimeoutError:
+        elapsed = (time.time() - start) * 1000.0  
+        return False, elapsed, "timeout"
+    except Exception as e:
+        elapsed = (time.time() - start) * 1000.0
+        return False, elapsed, f"ERR:{type(e).__name__}"
     except Exception as e:
         return False, per_attempt_timeout * 1000.0, f"EXC:{str(e)}"
 
