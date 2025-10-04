@@ -425,14 +425,14 @@ const AdminPanel = () => {
           </Card>
           <Card>
             <CardContent className="pt-6">
-              <div className="text-2xl font-bold text-yellow-600">{stats.ping_light || 0}</div>
-              <p className="text-xs text-muted-foreground">🟡 PING LIGHT</p>
+              <div className="text-2xl font-bold text-red-600">{stats.ping_failed || 0}</div>
+              <p className="text-xs text-muted-foreground">🔴 PING Failed</p>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="pt-6">
-              <div className="text-2xl font-bold text-red-600">{stats.ping_failed || 0}</div>
-              <p className="text-xs text-muted-foreground">🔴 PING Failed</p>
+              <div className="text-2xl font-bold text-yellow-600">{stats.ping_light || 0}</div>
+              <p className="text-xs text-muted-foreground">🟡 PING LIGHT</p>
             </CardContent>
           </Card>
           <Card>
