@@ -719,9 +719,34 @@ frontend:
 
 metadata:
   created_by: "main_agent"
-  version: "1.0"
+  version: "1.1"
   test_sequence: 1
   run_ui: false
+
+backend:
+  - task: "Large File Import Processing - Chunked Processing Implementation"
+    implemented: false
+    working: false
+    file: "server.py, UnifiedImportModal.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "CRITICAL USER ISSUE (2025-01-08): Russian user reports large files (TEST 3.txt, 1.51MB with 65,536 nodes) cause system freezing/hanging during import, preventing login. PROBLEM ANALYSIS: 1) parse_nodes_text processes entire file synchronously in single thread, 2) Frontend has no progress indication during large imports, 3) No chunked processing or streaming support, 4) UI blocks completely during processing. SOLUTION PLAN: 1) Implement chunked processing backend endpoint, 2) Add progress tracking with SSE, 3) Frontend streaming with progress indicators, 4) Prevent UI freezing during large imports."
+
+  - task: "SOCKS Modal selectedNodes State Management Fix"
+    implemented: false
+    working: false
+    file: "AdminPanel.js, SOCKSModal.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "PENDING ISSUE: selectedNodes state not updating correctly in SOCKS UI. Problems: 1) Selected nodes not appearing in SOCKSModal during automated tests, 2) SOCKS button disabled logic was temporarily removed, 3) State management issues between AdminPanel and SOCKSModal. INVESTIGATION PLAN: 1) Analyze current state flow between components, 2) Fix selectedNodes state persistence, 3) Re-enable proper disabled logic for SOCKS button, 4) Ensure UI displays selected nodes correctly."
 
   - task: "Speed_slow status removal verification"
     implemented: true
