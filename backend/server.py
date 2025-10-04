@@ -2887,6 +2887,9 @@ async def process_testing_batches(session_id: str, node_ids: list, testing_mode:
         
         db.close()
         
+        # КРИТИЧНО: Очистка активной сессии для предотвращения блокировок
+        active_sessions.discard(session_id)
+        
         logger.info(f"📊 Testing batch processing completed: {processed_nodes} processed, {failed_tests} failed")
 
 @api_router.post("/manual/ping-speed-test-batch")
