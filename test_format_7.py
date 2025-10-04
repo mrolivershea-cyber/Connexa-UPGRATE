@@ -236,9 +236,10 @@ class Format7Tester:
         print("\n🔍 Test 4: Format Differentiation Test")
         print("Testing both Format 7 (2 colons) and Format 4 (5+ colons) in same import")
         
-        # Use unique IPs to avoid duplicates
+        # Use unique IPs to avoid duplicates (ensure valid IP)
         timestamp = str(int(time.time()))
-        test_data = f"5.{timestamp[-3:]}.0.0:admin:admin\n70.{timestamp[-3:]}.218.52:admin:admin:US:Arizona:85001"
+        ip_part = int(timestamp[-3:]) % 255  # Ensure IP octet is valid (0-255)
+        test_data = f"5.{ip_part}.0.0:admin:admin\n70.{ip_part}.218.52:admin:admin:US:Arizona:85001"
         
         import_data = {
             "data": test_data,
