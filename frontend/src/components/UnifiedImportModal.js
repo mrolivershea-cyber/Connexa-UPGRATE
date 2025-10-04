@@ -27,7 +27,6 @@ const UnifiedImportModal = ({ isOpen, onClose, onComplete }) => {
       // Reset form for new import
       setImportData('');
       setProtocol('pptp');
-      setTestingMode('no_test');
       setPreviewResult(null);
       setShowPreview(false);
       setSubmitting(false);
