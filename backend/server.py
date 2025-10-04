@@ -858,6 +858,15 @@ async def get_import_progress(
     
     return progress_data
 
+@api_router.delete("/import/progress/all")
+async def clear_all_import_sessions(current_user: User = Depends(get_current_user)):
+    """Clear all import sessions - emergency recovery"""
+    global import_progress
+    count = len(import_progress)
+    import_progress.clear()
+    logger.info(f"Cleared {count} import sessions for recovery")
+    return {"message": f"Cleared {count} import sessions", "success": True}
+
 async def process_import_testing_batches(session_id: str, node_ids: list, testing_mode: str, db_session: Session):
     """Process node testing in batches to prevent hanging and preserve results"""
     
