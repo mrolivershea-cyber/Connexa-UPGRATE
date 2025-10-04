@@ -233,7 +233,7 @@ const SOCKSModal = ({ isOpen, onClose, selectedNodeIds = [] }) => {
         toast.success(`🛑 SOCKS остановлен для ${successCount} узлов`);
       }
 
-      await loadSOCKSData();
+      await Promise.all([loadSOCKSData(), loadSelectedNodesInfo()]);
 
     } catch (error) {
       console.error('Error stopping SOCKS:', error);
