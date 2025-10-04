@@ -15291,6 +15291,20 @@ City: TestCity"""
         self.test_service_status_preservation_critical()
         print("🔥" * 70)
         
+        # ========== FIXED SPEED TEST FUNCTIONALITY TESTS (Russian User Review Request) ==========
+        print("\n" + "🔥" * 20 + " FIXED SPEED TEST FUNCTIONALITY TESTS " + "🔥" * 20)
+        print("🎯 REVIEW REQUEST: Testing fixed speed test functionality")
+        print("🔍 CONTEXT: Replaced fake MD5 algorithm with real HTTP testing using aiohttp")
+        print("📋 TESTING: Real speed measurement vs previous fake results")
+        print("="*80)
+        
+        self.test_fixed_speed_test_real_http_testing()
+        self.test_fixed_speed_test_aiohttp_implementation()
+        self.test_speed_ok_nodes_reset_verification()
+        self.test_real_vs_fake_speed_comparison()
+        
+        print("🔥" * 70)
+        
         # ========== CRITICAL ENHANCED PING AND SPEED TESTING (Review Request) ==========
         print("\n" + "🔥" * 20 + " CRITICAL ENHANCED PING AND SPEED TESTING " + "🔥" * 20)
         self.test_enhanced_ping_accuracy()
