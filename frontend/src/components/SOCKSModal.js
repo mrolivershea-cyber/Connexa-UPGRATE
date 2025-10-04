@@ -217,16 +217,9 @@ const SOCKSModal = ({ isOpen, onClose, selectedNodeIds = [] }) => {
   };
 
   const handleOpenProxyFile = () => {
-    const blob = new Blob([proxyFileContent], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'active_proxies.txt';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    toast.success('📄 Файл прокси скачан');
+    // Показываем содержимое файла в модальном окне вместо скачивания
+    setShowProxyFileModal(true);
+    toast.success('📄 Файл прокси открыт для просмотра');
   };
 
   const handleCopyCredentials = async () => {
