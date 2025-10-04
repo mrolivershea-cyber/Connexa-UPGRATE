@@ -70,7 +70,7 @@ const UnifiedImportModal = ({ isOpen, onClose, onComplete }) => {
       const response = await axios.post(`${API}/nodes/import`, {
         data: importData,
         protocol,
-        testing_mode: testingMode
+        testing_mode: 'no_test'  // Always no_test in simplified mode
       });
 
       const { success, report, session_id, message } = response.data || {};
