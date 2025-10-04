@@ -2699,62 +2699,62 @@ async def process_testing_batches(session_id: str, node_ids: list, testing_mode:
                             # Dedupe check is done before scheduling; optional extra safety
                             mode_key = "ping" if testing_mode in ["ping_only", "ping_speed"] else ("speed" if testing_mode in ["speed_only"] else testing_mode)
 
-                        # Update progress: starting this node
-                        if session_id in progress_store:
-                            progress_store[session_id].update(global_index, f"Тестирование {node.ip} ({global_index+1}/{total_nodes})")
+                            # Update progress: starting this node
+                            if session_id in progress_store:
+                                progress_store[session_id].update(global_index, f"Тестирование {node.ip} ({global_index+1}/{total_nodes})")
 
-                        original_status = node.status
-                        logger.info(f"🔍 Testing batch: Node {node.id} ({node.ip}) original status: {original_status}")
+                            original_status = node.status
+                            logger.info(f"🔍 Testing batch: Node {node.id} ({node.ip}) original status: {original_status}")
 
-                        # Decide actions
-                        do_ping = False
-                        do_speed = False
-                        if testing_mode == "ping_only":
-                            do_ping = not has_ping_baseline(original_status)
-                        elif testing_mode == "speed_only":
-                            do_speed = (original_status != "ping_failed")
-                        else:
-                            # Treat any other as skip
-                            return True
-
-                        # Skip if no action
-                        if not (do_ping or do_speed):
-                            progress_increment(session_id, f"⏭️ {node.ip} - skipped ({original_status})", {"node_id": node.id, "ip": node.ip, "status": original_status, "success": True})
-                            return True
-
-                        # Do ping
-                        if do_ping:
-                            from ping_speed_test import multiport_tcp_ping
-                            ports = get_ping_ports_for_node(node)
-                            ping_result = None
-                            ping_result = await multiport_tcp_ping(node.ip, ports=ports, timeouts=ping_timeouts)
-                            if ping_result.get('success'):
-                                node.status = "ping_ok"
+                            # Decide actions
+                            do_ping = False
+                            do_speed = False
+                            if testing_mode == "ping_only":
+                                do_ping = not has_ping_baseline(original_status)
+                            elif testing_mode == "speed_only":
+                                do_speed = (original_status != "ping_failed")
                             else:
-                                node.status = original_status if has_ping_baseline(original_status) else "ping_failed"
-                            node.last_update = datetime.utcnow()
+                                # Treat any other as skip
+                                return True
+
+                            # Skip if no action
+                            if not (do_ping or do_speed):
+                                progress_increment(session_id, f"⏭️ {node.ip} - skipped ({original_status})", {"node_id": node.id, "ip": node.ip, "status": original_status, "success": True})
+                                return True
+
+                            # Do ping
+                            if do_ping:
+                                from ping_speed_test import multiport_tcp_ping
+                                ports = get_ping_ports_for_node(node)
+                                ping_result = None
+                                ping_result = await multiport_tcp_ping(node.ip, ports=ports, timeouts=ping_timeouts)
+                                if ping_result.get('success'):
+                                    node.status = "ping_ok"
+                                else:
+                                    node.status = original_status if has_ping_baseline(original_status) else "ping_failed"
+                                node.last_update = datetime.utcnow()
+                                local_db.commit()
+
+                            # Do speed
+                            if do_speed:
+                                from ping_speed_test import test_node_speed
+                                speed_result = await test_node_speed(node.ip, sample_kb=speed_sample_kb, timeout_total=speed_timeout)
+                                if speed_result.get('success') and speed_result.get('download_speed'):
+                                    download_speed = speed_result['download_speed']
+                                    node.speed = f"{download_speed:.1f}"
+                                    node.status = "speed_ok" if download_speed > 1.0 else "ping_ok"
+                                else:
+                                    node.status = "ping_ok" if has_ping_baseline(original_status) else "ping_failed"
+                                    node.speed = None
+                                node.last_update = datetime.utcnow()
+                                local_db.commit()
+
+                            node.last_check = datetime.utcnow()
                             local_db.commit()
 
-                        # Do speed
-                        if do_speed:
-                            from ping_speed_test import test_node_speed
-                            speed_result = await test_node_speed(node.ip, sample_kb=speed_sample_kb, timeout_total=speed_timeout)
-                            if speed_result.get('success') and speed_result.get('download_speed'):
-                                download_speed = speed_result['download_speed']
-                                node.speed = f"{download_speed:.1f}"
-                                node.status = "speed_ok" if download_speed > 1.0 else "ping_ok"
-                            else:
-                                node.status = "ping_ok" if has_ping_baseline(original_status) else "ping_failed"
-                                node.speed = None
-                            node.last_update = datetime.utcnow()
-                            local_db.commit()
-
-                        node.last_check = datetime.utcnow()
-                        local_db.commit()
-
-                        # Progress
-                        progress_increment(session_id, f"✅ {node.ip} - {node.status}", {"node_id": node.id, "ip": node.ip, "status": node.status, "success": True})
-                        return True
+                            # Progress
+                            progress_increment(session_id, f"✅ {node.ip} - {node.status}", {"node_id": node.id, "ip": node.ip, "status": node.status, "success": True})
+                            return True
                     except Exception as e:
                         logger.error(f"❌ Testing: Node {node_id} error: {e}")
                         return False
