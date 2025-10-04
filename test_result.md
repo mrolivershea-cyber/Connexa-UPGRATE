@@ -619,9 +619,9 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Service-aware multiport ping implementation"
-    - "Manual Ping Test endpoint regression"
-  stuck_tasks: []
+    - "Import Progress Display Integration with Testing Modal"
+  stuck_tasks:
+    - "Import Progress Display Integration with Testing Modal"
   test_all: false
   test_priority: "high_first"
   completed_testing:
