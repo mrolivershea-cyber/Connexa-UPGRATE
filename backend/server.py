@@ -2667,11 +2667,11 @@ async def manual_ping_speed_test_batch_progress(
     return {"session_id": session_id, "message": f"Запущено тестирование {len(nodes)} узлов (speed)", "started": True}
 
 async def process_testing_batches(session_id: str, node_ids: list, testing_mode: str, db_session, *,
-                                  ping_concurrency: int = 3,    # КОНСЕРВАТИВНО для стабильности
-                                  speed_concurrency: int = 1,   # По ОДНОМУ для предотвращения перегрузки
+                                  ping_concurrency: int = 15,   # АГРЕССИВНО увеличено для скорости
+                                  speed_concurrency: int = 8,   # АГРЕССИВНО увеличено для скорости  
                                   ping_timeouts: list[float] | None = None,
-                                  speed_sample_kb: int = 128,   # Минимизировано для скорости
-                                  speed_timeout: int = 8):      # Агрессивно снижен
+                                  speed_sample_kb: int = 32,    # МИНИМИЗИРОВАНО для максимальной скорости
+                                  speed_timeout: int = 2):      # ЭКСТРЕМАЛЬНО быстро
     """Process testing in batches for any test type with concurrency controls"""
     
     total_nodes = len(node_ids)
