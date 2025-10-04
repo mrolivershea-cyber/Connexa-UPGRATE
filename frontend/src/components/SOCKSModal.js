@@ -591,6 +591,86 @@ const SOCKSModal = ({ isOpen, onClose, selectedNodeIds = [] }) => {
           </Button>
         </div>
       </DialogContent>
+      
+      {/* Модальное окно для просмотра отчета БД */}
+      <Dialog open={showDatabaseModal} onOpenChange={setShowDatabaseModal}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Database className="h-5 w-5 text-blue-600" />
+              Отчет База Данных SOCKS
+            </DialogTitle>
+            <DialogDescription>
+              Просмотр отчета базы данных SOCKS в режиме онлайн
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="flex-1 overflow-hidden flex flex-col">
+            <div className="flex gap-2 mb-4">
+              <Button variant="outline" size="sm" onClick={handleCopyDatabaseReport}>
+                <Copy className="h-4 w-4 mr-2" />
+                Копировать
+              </Button>
+              <Button variant="outline" size="sm" onClick={handleDownloadDatabaseReport}>
+                <Download className="h-4 w-4 mr-2" />
+                Скачать
+              </Button>
+            </div>
+            
+            <div className="flex-1 border rounded-lg bg-gray-50 overflow-auto">
+              <pre className="p-4 text-sm font-mono whitespace-pre-wrap">
+                {databaseReport || 'Загрузка отчета...'}
+              </pre>
+            </div>
+          </div>
+          
+          <div className="flex justify-end">
+            <Button variant="outline" onClick={() => setShowDatabaseModal(false)}>
+              Закрыть
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Модальное окно для просмотра файла прокси */}
+      <Dialog open={showProxyFileModal} onOpenChange={setShowProxyFileModal}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <FileText className="h-5 w-5 text-green-600" />
+              Текстовый Файл Прокси
+            </DialogTitle>
+            <DialogDescription>
+              Просмотр активных SOCKS прокси в режиме онлайн
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="flex-1 overflow-hidden flex flex-col">
+            <div className="flex gap-2 mb-4">
+              <Button variant="outline" size="sm" onClick={handleCopyProxyFile}>
+                <Copy className="h-4 w-4 mr-2" />
+                Копировать
+              </Button>
+              <Button variant="outline" size="sm" onClick={handleDownloadProxyFile}>
+                <Download className="h-4 w-4 mr-2" />
+                Скачать
+              </Button>
+            </div>
+            
+            <div className="flex-1 border rounded-lg bg-gray-50 overflow-auto">
+              <pre className="p-4 text-sm font-mono whitespace-pre-wrap">
+                {proxyFileContent || '# Файл прокси пуст\n# Запустите SOCKS сервисы для появления активных прокси'}
+              </pre>
+            </div>
+          </div>
+          
+          <div className="flex justify-end">
+            <Button variant="outline" onClick={() => setShowProxyFileModal(false)}>
+              Закрыть
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </Dialog>
   );
 };
