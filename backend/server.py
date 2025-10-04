@@ -3463,8 +3463,26 @@ async def start_socks_services(
             # Save previous status for proper restoration later
             node.previous_status = node.status  # Save current status (ping_ok or speed_ok)
             
-            # SOCKS server runs ON ADMIN SERVER (acts as proxy to nodes)  
-            # Architecture: Client → SOCKS(admin server) → Node(PPTP/SSH/OVPN) → Internet
+            # Start actual SOCKS5 server
+            socks_success = start_socks_service(
+                node_id=node_id,
+                node_ip=node.ip,  # Target node IP for routing
+                port=socks_port,
+                username=login_prefix,
+                password=password,
+                masking_config=masking_settings
+            )
+            
+            if not socks_success:
+                results.append({
+                    "node_id": node_id,
+                    "ip": node.ip,
+                    "success": False,
+                    "message": f"Не удалось запустить SOCKS5 сервер на порту {socks_port}"
+                })
+                continue
+            
+            # Update node with SOCKS data
             admin_server_ip = os.environ.get('ADMIN_SERVER_IP', '127.0.0.1')  # External IP of admin server
             node.socks_ip = admin_server_ip
             node.socks_port = socks_port
@@ -3474,7 +3492,7 @@ async def start_socks_services(
             node.last_update = datetime.utcnow()
             
             # Log the SOCKS service creation
-            logger.info(f"✅ SOCKS service created for node {node_id} via {admin_server_ip}:{socks_port} → {node.ip} ({login_prefix})")
+            logger.info(f"✅ SOCKS5 server started for node {node_id}: {admin_server_ip}:{socks_port} → {node.ip} ({login_prefix})")
             
             results.append({
                 "node_id": node_id,
