@@ -3271,35 +3271,37 @@ async def manual_launch_services(
 # API endpoints for SOCKS service management
 
 @api_router.get("/socks/stats")
-async def get_socks_stats(
+async def get_socks_stats_endpoint(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     """Get SOCKS statistics and active connections"""
     try:
-        # Count nodes with SOCKS enabled (have socks_ip populated)
+        # Get real-time statistics from SOCKS server
+        socks_server_stats = get_socks_stats()
+        
+        # Count nodes with SOCKS enabled in database
         socks_enabled_nodes = db.query(Node).filter(
             Node.socks_ip.isnot(None),
             Node.socks_port.isnot(None)
         ).count()
         
-        # Count online SOCKS services (nodes with online status and SOCKS data)
-        online_socks = db.query(Node).filter(
+        # Count online SOCKS services in database  
+        online_socks_db = db.query(Node).filter(
             Node.status == "online",
             Node.socks_ip.isnot(None),
             Node.socks_port.isnot(None)
         ).count()
         
-        # For now, use placeholder for active connections and tunnels
-        # This will be enhanced when SOCKS server is implemented
-        active_connections = online_socks * 2  # Placeholder: avg 2 connections per SOCKS
-        total_tunnels = socks_enabled_nodes
-        
+        # Combine database and real-time server statistics
         return {
-            "online_socks": online_socks,
-            "total_tunnels": total_tunnels,
-            "active_connections": active_connections,
-            "socks_enabled_nodes": socks_enabled_nodes
+            "online_socks": socks_server_stats.get('online_socks', 0),
+            "total_tunnels": socks_server_stats.get('total_tunnels', 0), 
+            "active_connections": socks_server_stats.get('active_connections', 0),
+            "total_connections": socks_server_stats.get('total_connections', 0),
+            "bytes_transferred": socks_server_stats.get('bytes_transferred', 0),
+            "socks_enabled_nodes": socks_enabled_nodes,
+            "db_online_socks": online_socks_db  # For verification
         }
     except Exception as e:
         logger.error(f"Error getting SOCKS stats: {e}")
@@ -3307,7 +3309,10 @@ async def get_socks_stats(
             "online_socks": 0,
             "total_tunnels": 0,
             "active_connections": 0,
-            "socks_enabled_nodes": 0
+            "total_connections": 0,
+            "bytes_transferred": 0,
+            "socks_enabled_nodes": 0,
+            "db_online_socks": 0
         }
 
 @api_router.get("/socks/config")
