@@ -16792,6 +16792,24 @@ City: TestCity"""
         self.test_both_service_endpoints_comparison()
         self.test_status_validation_before_after()
         
+        # ========== ENHANCED PROGRESS INTERFACE TESTS (Russian User Review Request) ==========
+        print("\n" + "🎯" * 20 + " ENHANCED PROGRESS INTERFACE TESTING " + "🎯" * 20)
+        print("🇷🇺 ТЕСТИРОВАНИЕ УЛУЧШЕННОГО ПРОГРЕСС-ИНТЕРФЕЙСА")
+        print("ОБНОВЛЕНИЯ:")
+        print("1. Большой процентный индикатор: 2xl размер шрифта для % в центре карточки")
+        print("2. Улучшенный прогресс-бар: Градиент, анимация, процент внутри бара")
+        print("3. Скорость обработки: Показывает узлов/сек для понимания скорости")
+        print("4. Детальная статистика: 4 колонки с большими цифрами (Добавлено/Пропущено/Ошибок/Всего)")
+        print("5. Активный индикатор: Анимированные точки показывают что процесс идет")
+        print("6. Кнопка отмены: Перемещена в заголовок для легкого доступа")
+        print("🎯" * 80)
+        
+        self.test_enhanced_progress_chunked_import_large_file()
+        self.test_enhanced_progress_regular_import_small_file()
+        self.test_enhanced_progress_cancel_functionality()
+        self.test_enhanced_progress_statistics_accuracy()
+        self.test_enhanced_progress_processing_speed_display()
+        
         # Print summary
         print("\n" + "=" * 50)
         print(f"📊 Test Summary: {self.tests_passed}/{self.tests_run} tests passed")
