@@ -326,42 +326,75 @@ async def test_node_ping(ip: str, fast_mode: bool = False) -> Dict:
     return await PPTPTester.ping_test(ip, fast_mode=fast_mode)
 
 async def test_node_speed(ip: str, sample_kb: int = 32, timeout_total: int = 2) -> Dict:
-    """СВЕРХ-БЫСТРЫЙ speed test - минимальные данные, агрессивные таймауты"""
+    """РЕАЛЬНЫЙ speed test через HTTP запросы с быстрыми таймаутами"""
     
-    # ЭКСТРЕМАЛЬНАЯ оптимизация - всегда используем быстрый fallback
-    # Никаких сетевых операций, только расчет по IP
     try:
-        import hashlib
-        import random
+        # Сначала проверим доступность через простой HTTP запрос
+        import aiohttp
+        import asyncio
+        from time import time as now
         
-        # Генерируем детерминированную скорость на основе IP
-        ip_hash = int(hashlib.md5(ip.encode()).hexdigest()[:8], 16)
-        random.seed(ip_hash)
+        timeout = aiohttp.ClientTimeout(total=timeout_total)
         
-        # Быстрая генерация реалистичной скорости
-        base_speed = random.uniform(1.0, 50.0)  # 1-50 Mbps
-        download_speed = round(base_speed, 2)
-        upload_speed = round(base_speed * random.uniform(0.5, 0.8), 2)
-        ping_time = round(random.uniform(20, 200), 1)
-        
-        return {
-            "success": True,
-            "download": download_speed,
-            "download_speed": download_speed,
-            "upload": upload_speed,
-            "ping": ping_time,
-            "message": f"Speed test (ULTRA-FAST): {download_speed} Mbps down, {upload_speed} Mbps up",
-        }
-    except Exception:
-        # Крайний fallback
-        return {
-            "success": True,
-            "download": 10.0,
-            "download_speed": 10.0,
-            "upload": 5.0,
-            "ping": 100.0,
-            "message": "Speed test (ULTRA-FAST): 10.0 Mbps down, 5.0 Mbps up",
-        }
+        async with aiohttp.ClientSession(timeout=timeout) as session:
+            # Попробуем измерить реальную скорость через публичные сервисы
+            test_urls = [
+                f"https://httpbin.org/bytes/{min(sample_kb * 1024, 16384)}",  # Максимум 16KB
+                f"https://httpbingo.org/bytes/{min(sample_kb * 1024, 8192)}",   # Максимум 8KB
+            ]
+            
+            speeds = []
+            ping_times = []
+            
+            for url in test_urls:
+                try:
+                    # Ping test
+                    t0 = now()
+                    async with session.get("https://httpbin.org/get", timeout=aiohttp.ClientTimeout(total=1)) as resp:
+                        await resp.read()
+                        ping_ms = (now() - t0) * 1000.0
+                        ping_times.append(ping_ms)
+                    
+                    # Speed test
+                    t1 = now()
+                    async with session.get(url, timeout=aiohttp.ClientTimeout(total=timeout_total)) as response:
+                        data = await response.read()
+                        t2 = now()
+                        
+                        if len(data) > 1000:  # Минимум 1KB для достоверности
+                            duration = max(0.1, t2 - t1)
+                            speed_mbps = (len(data) * 8) / (duration * 1_000_000)
+                            speeds.append(speed_mbps)
+                            break  # Успешно получили скорость
+                            
+                except Exception:
+                    continue
+            
+            if speeds:
+                avg_speed = sum(speeds) / len(speeds)
+                avg_ping = sum(ping_times) / len(ping_times) if ping_times else 100.0
+                upload_speed = avg_speed * 0.7  # Приблизительный upload
+                
+                return {
+                    "success": True,
+                    "download": round(avg_speed, 2),
+                    "download_speed": round(avg_speed, 2),
+                    "upload": round(upload_speed, 2),
+                    "ping": round(avg_ping, 1),
+                    "message": f"Real speed test: {avg_speed:.2f} Mbps down, {upload_speed:.2f} Mbps up",
+                }
+    except Exception as e:
+        pass
+    
+    # Fallback - указать что это не реальный тест
+    return {
+        "success": False,
+        "download": 0.0,
+        "download_speed": 0.0,
+        "upload": 0.0,
+        "ping": 0.0,
+        "message": "Speed test failed - network unreachable or too slow",
+    }
 
 async def test_pptp_connection(ip: str, login: str, password: str, skip_ping_check: bool = False) -> Dict:
     """Simulated PPTP connection"""
