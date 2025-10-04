@@ -72,6 +72,27 @@ const SOCKSModal = ({ isOpen, onClose, selectedNodeIds = [] }) => {
     }
   }, [isOpen]);
 
+  const loadSelectedNodesInfo = async () => {
+    if (selectedNodeIds.length === 0) {
+      setSelectedNodesInfo([]);
+      return;
+    }
+
+    try {
+      const responses = await Promise.all(
+        selectedNodeIds.map(id => 
+          axios.get(`${API}/nodes/${id}`)
+            .then(response => ({ id, data: response.data, error: null }))
+            .catch(error => ({ id, data: null, error: error.message }))
+        )
+      );
+      setSelectedNodesInfo(responses);
+    } catch (error) {
+      console.error('Error loading selected nodes info:', error);
+      setSelectedNodesInfo([]);
+    }
+  };
+
   const loadSOCKSData = async () => {
     try {
       // Загрузка статистики SOCKS
