@@ -3532,15 +3532,11 @@ async def stop_socks_services(
             node.socks_password = None
             
             # SMART STATUS RESTORATION: 
-            # Manual stop -> restore previous status (speed_ok or ping_ok)
-            # If previous_status available, restore it; otherwise fallback to ping_ok
+            # Manual stop -> node remains speed_ok (live and validated)
+            # Logic: if SOCKS was successfully running, node is proven to be working -> speed_ok
             if node.status == "online":
-                if node.previous_status and node.previous_status in ["ping_ok", "speed_ok"]:
-                    node.status = node.previous_status  # Restore to speed_ok or ping_ok
-                    logger.info(f"🔄 SOCKS manual stop: restoring node {node_id} to {node.previous_status}")
-                else:
-                    node.status = "ping_ok"  # Safe fallback
-                    logger.info(f"🔄 SOCKS manual stop: fallback node {node_id} to ping_ok")
+                node.status = "speed_ok"  # Node is live and validated if SOCKS was running
+                logger.info(f"🔄 SOCKS manual stop: node {node_id} validated as speed_ok (live and working)")
             
             # Clear previous status after restoration
             node.previous_status = None
