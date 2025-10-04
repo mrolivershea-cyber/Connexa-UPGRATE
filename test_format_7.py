@@ -303,12 +303,13 @@ class Format7Tester:
         
         # Generate 200 test nodes in Format 7 (middle of 100-500 range)
         timestamp = str(int(time.time()))
+        ip_part = int(timestamp[-3:]) % 255  # Ensure IP octet is valid (0-255)
         test_nodes = []
         for i in range(200):
             # Use different IP ranges to avoid conflicts
             ip_third = (i // 256) + 100
             ip_fourth = i % 256
-            test_nodes.append(f"192.{timestamp[-3:]}.{ip_third}.{ip_fourth}:bulkuser{i}:bulkpass{i}")
+            test_nodes.append(f"192.{ip_part}.{ip_third}.{ip_fourth}:bulkuser{i}:bulkpass{i}")
         
         test_data = "\n".join(test_nodes)
         
