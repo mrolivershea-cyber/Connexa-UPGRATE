@@ -243,6 +243,60 @@ const SOCKSModal = ({ isOpen, onClose, selectedNodeIds = [] }) => {
     }
   };
 
+  const handleRestartSocks = async () => {
+    if (selectedNodeIds.length === 0) {
+      toast.error('Выберите узлы для перезапуска SOCKS сервисов');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // Сначала останавливаем
+      const stopResponse = await axios.post(`${API}/socks/stop`, {
+        node_ids: selectedNodeIds
+      });
+
+      const stopResults = stopResponse.data.results;
+      const stopSuccessCount = stopResults.filter(r => r.success).length;
+
+      if (stopSuccessCount > 0) {
+        // Небольшая пауза для корректной остановки
+        await new Promise(resolve => setTimeout(resolve, 1000));
+
+        // Затем запускаем снова
+        const startResponse = await axios.post(`${API}/socks/start`, {
+          node_ids: selectedNodeIds,
+          masking_settings: maskingSettings,
+          performance_settings: performanceSettings,
+          security_settings: securitySettings
+        });
+
+        const startResults = startResponse.data.results;
+        const startSuccessCount = startResults.filter(r => r.success).length;
+
+        if (startSuccessCount > 0) {
+          toast.success(`🔄 SOCKS перезапущен для ${startSuccessCount} узлов`, {
+            description: `Остановлено: ${stopSuccessCount}, Запущено: ${startSuccessCount}`
+          });
+        } else {
+          toast.warning(`⚠️ Остановлено ${stopSuccessCount} узлов, но запуск не удался`, {
+            description: 'Проверьте статус узлов после остановки'
+          });
+        }
+      } else {
+        toast.error('❌ Не удалось остановить ни одного узла для перезапуска');
+      }
+
+      await Promise.all([loadSOCKSData(), loadSelectedNodesInfo()]);
+
+    } catch (error) {
+      console.error('Error restarting SOCKS:', error);
+      toast.error('Ошибка перезапуска SOCKS: ' + (error.response?.data?.detail || error.message));
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSaveConfig = async () => {
     setLoading(true);
     try {
