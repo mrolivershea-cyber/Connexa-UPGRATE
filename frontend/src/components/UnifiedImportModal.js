@@ -98,10 +98,17 @@ const UnifiedImportModal = ({ isOpen, onClose, onComplete }) => {
           report.details.replaced.forEach(node => nodeIds.push(node.id));
         }
         
+        console.log('Registering import testing session:', { 
+          session_id, 
+          nodeIds: nodeIds.length, 
+          testingMode 
+        });
+        
         // Регистрируем сессию в глобальном состоянии
         addSession(session_id, 'import', nodeIds, testingMode === 'ping_only' ? 'ping' : 'speed');
         
-        toast.info(`Тестирование запущено для ${nodeIds.length} узлов. Откройте окно Testing для просмотра прогресса.`);
+        toast.success(`✅ Импорт завершён: ${report?.added || 0} добавлено, ${report?.skipped_duplicates || 0} дубликатов. Тестирование запущено для ${nodeIds.length} узлов.`);
+        toast.info('📊 Откройте окно Testing для просмотра прогресса тестирования.');
       } else {
         toast.success(message || 'Импорт завершён');
       }
