@@ -340,7 +340,11 @@ const UnifiedImportModal = ({ isOpen, onClose, onComplete }) => {
             </Button>
             {!showPreview ? (
               <Button onClick={handleImport} disabled={submitting || !importData.trim()} data-testid="import-btn">
-                {submitting ? 'Выполняется...' : 'Импортировать узлы'}
+                {submitting ? (
+                  progress ? 
+                    `Обработка... (${progress.processed_chunks}/${progress.total_chunks})` : 
+                    'Выполняется...'
+                ) : 'Импортировать узлы'}
               </Button>
             ) : (
               <Button onClick={onClose} variant="default" data-testid="close-after-import-btn">
