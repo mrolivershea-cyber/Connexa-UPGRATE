@@ -28,6 +28,7 @@ import UnifiedImportModal from './UnifiedImportModal';
 import ExportModal from './ExportModal';
 import OptionsModal from './OptionsModal';
 import TestingModal from './TestingModal';
+import SOCKSModal from './SOCKSModal';
 import axios from 'axios';
 
 const AdminPanel = () => {
