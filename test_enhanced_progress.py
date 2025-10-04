@@ -90,10 +90,11 @@ class EnhancedProgressTester:
         
         # Generate large file data (>500KB, approximately 1000+ nodes)
         test_nodes = []
-        for i in range(1200):  # Generate 1200 nodes to ensure >500KB
+        for i in range(15000):  # Generate 15000 nodes to ensure >500KB
             ip_third = (i // 256) + 100
             ip_fourth = i % 256
-            test_nodes.append(f"10.{ip_third}.{ip_fourth}.1:progressuser{i}:progresspass{i}")
+            # Make each line longer to reach 500KB threshold
+            test_nodes.append(f"10.{ip_third}.{ip_fourth}.1:progressuser{i}_with_longer_name:progresspass{i}_with_longer_password")
         
         test_data = "\n".join(test_nodes)
         data_size = len(test_data.encode('utf-8'))
