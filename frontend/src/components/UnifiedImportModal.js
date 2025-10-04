@@ -104,6 +104,7 @@ const UnifiedImportModal = ({ isOpen, onClose, onComplete }) => {
         if (session_id) {
           console.log('Chunked processing started, session_id:', session_id);
           setSessionId(session_id);
+          setIsImportActive(true);
           toast.success('🚀 Запущена chunked обработка большого файла...');
           startProgressTracking(session_id);
           return;
