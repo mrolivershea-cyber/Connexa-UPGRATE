@@ -623,22 +623,22 @@ async def import_nodes(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Enhanced import with comprehensive parsing and deduplication"""
+    """Simplified import - always assigns 'not_tested' status, no automatic testing"""
     
-    # Generate session ID for progress tracking
-    session_id = str(uuid.uuid4())
+    # Force no_test mode - user will run tests manually through Testing modal
+    testing_mode = "no_test"
     
     try:
-        logger.info(f"Import request with testing_mode: {data.testing_mode}, session_id: {session_id}")
+        logger.info(f"Import request - simplified mode (no automatic testing)")
         
         # Parse text data with enhanced parser
         parsed_data = parse_nodes_text(data.data, data.protocol)
         
-        # Process nodes with deduplication logic
-        results = process_parsed_nodes(db, parsed_data, data.testing_mode)
+        # Process nodes with deduplication logic - always use no_test
+        results = process_parsed_nodes(db, parsed_data, testing_mode)
         
-        # Perform testing if requested  
-        if data.testing_mode != "no_test" and (results['added'] or results['replaced']):
+        # No automatic testing - user will start tests manually
+        # Removed automatic testing logic
             # Get node IDs to test
             nodes_to_test = []
             for added_node in results['added']:
