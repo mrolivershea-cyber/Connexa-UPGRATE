@@ -15782,20 +15782,46 @@ City: TestCity"""
     def test_speed_ok_configs_ping_light(self):
         """PING LIGHT Test - Simple TCP 1723 availability check for speed_ok configs"""
         # Test IPs from the review request
-        test_ips = [
-            "5.78.50.215",   # admin/admin, speed: 0.6
-            "5.78.50.13",    # admin/admin, speed: 1.3
-            "5.78.41.224",   # admin/admin, speed: 1.3
-            "5.78.102.161",  # admin/admin, speed: 1.3
-            "5.78.65.121"    # admin/admin, speed: 1.3
+        test_configs = [
+            {"ip": "5.78.50.215", "login": "admin", "password": "admin"},   # speed: 0.6
+            {"ip": "5.78.50.13", "login": "admin", "password": "admin"},    # speed: 1.3
+            {"ip": "5.78.41.224", "login": "admin", "password": "admin"},   # speed: 1.3
+            {"ip": "5.78.102.161", "login": "admin", "password": "admin"},  # speed: 1.3
+            {"ip": "5.78.65.121", "login": "admin", "password": "admin"}    # speed: 1.3
         ]
         
         ping_light_results = []
+        node_ids = []
         
-        for ip in test_ips:
-            # Test PING LIGHT endpoint
-            ping_data = {"node_ids": [], "test_ips": [ip]}
-            success, response = self.make_request('POST', 'manual/ping-light-test', ping_data)
+        # First, create or find nodes with these IPs
+        for config in test_configs:
+            # Check if node exists
+            nodes_success, nodes_response = self.make_request('GET', f'nodes?ip={config["ip"]}')
+            
+            if nodes_success and 'nodes' in nodes_response and nodes_response['nodes']:
+                # Use existing node
+                node_id = nodes_response['nodes'][0]['id']
+                node_ids.append(node_id)
+            else:
+                # Create new node
+                node_data = {
+                    "ip": config["ip"],
+                    "login": config["login"],
+                    "password": config["password"],
+                    "protocol": "pptp",
+                    "status": "not_tested"
+                }
+                create_success, create_response = self.make_request('POST', 'nodes', node_data)
+                if create_success and 'id' in create_response:
+                    node_ids.append(create_response['id'])
+        
+        if not node_ids:
+            self.log_test("SPEED_OK Configs - PING LIGHT Test", False, "No nodes available for testing")
+            return []
+        
+        # Now test PING LIGHT endpoint with node IDs
+        ping_data = {"node_ids": node_ids}
+        success, response = self.make_request('POST', 'manual/ping-light-test', ping_data)
             
             if success and 'results' in response:
                 results = response['results']
