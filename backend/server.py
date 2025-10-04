@@ -351,6 +351,8 @@ async def login(login_request: LoginRequest, request: Request, db: Session = Dep
     request.session["user_id"] = user.id
     request.session["username"] = user.username
     
+    return {"access_token": access_token, "token_type": "bearer"}
+
 # Safety: ensure admin exists if empty users table during login
 def ensure_admin_user(db: Session):
     admin_user = db.query(User).filter(User.username == "admin").first()
@@ -359,8 +361,6 @@ def ensure_admin_user(db: Session):
         db.add(admin_user)
         db.commit()
         logger.info("✅ Admin user auto-created during login path")
-
-    return {"access_token": access_token, "token_type": "bearer"}
 
 @api_router.post("/auth/logout")
 async def logout(request: Request):
