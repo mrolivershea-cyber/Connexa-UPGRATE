@@ -15823,26 +15823,21 @@ City: TestCity"""
         ping_data = {"node_ids": node_ids}
         success, response = self.make_request('POST', 'manual/ping-light-test', ping_data)
             
-            if success and 'results' in response:
-                results = response['results']
-                if results:
-                    result = results[0]
-                    ping_light_results.append({
-                        "ip": ip,
-                        "success": result.get("success", False),
-                        "message": result.get("message", ""),
-                        "response_time": result.get("response_time", 0)
-                    })
-                else:
-                    ping_light_results.append({
-                        "ip": ip,
-                        "success": False,
-                        "message": "No results returned",
-                        "response_time": 0
-                    })
-            else:
+        if success and 'results' in response:
+            results = response['results']
+            for i, result in enumerate(results):
+                config = test_configs[i] if i < len(test_configs) else {"ip": "unknown"}
                 ping_light_results.append({
-                    "ip": ip,
+                    "ip": config["ip"],
+                    "success": result.get("success", False),
+                    "message": result.get("message", ""),
+                    "response_time": result.get("avg_time", 0)
+                })
+        else:
+            # If API call failed, create failure results for all IPs
+            for config in test_configs:
+                ping_light_results.append({
+                    "ip": config["ip"],
                     "success": False,
                     "message": f"API call failed: {response}",
                     "response_time": 0
