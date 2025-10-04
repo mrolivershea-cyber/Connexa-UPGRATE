@@ -357,6 +357,15 @@ const SOCKSModal = ({ isOpen, onClose, selectedNodeIds = [] }) => {
                 <CardTitle>Старт Сервис</CardTitle>
                 <CardDescription>
                   Выбрано узлов: {selectedNodeIds.length}
+                  {selectedNodeIds.length > 0 ? (
+                    <div className="mt-2 text-xs text-blue-600">
+                      💡 Для запуска SOCKS узлы должны иметь статус "ping_ok" или "speed_ok"
+                    </div>
+                  ) : (
+                    <div className="mt-2 text-xs text-amber-600">
+                      ⚠️ Выберите узлы в таблице перед запуском SOCKS
+                    </div>
+                  )}
                 </CardDescription>
               </CardHeader>
               <CardContent>
