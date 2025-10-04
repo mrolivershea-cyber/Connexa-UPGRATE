@@ -49,51 +49,53 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], onTestComplete })
           toast.success(`Подключено к активному тестированию из импорта (${activeImportSession.nodeIds.length} узлов)`);
           return;
         }
-      }, 100);
-      
-      
-      // Check for saved progress state from manual testing
-      const savedState = localStorage.getItem('testingProgress');
-      
-      if (savedState) {
-        try {
-          const state = JSON.parse(savedState);
-          const isRecent = (Date.now() - state.timestamp) < 300000; // 5 minutes
-          
-          if (isRecent && state.sessionId) {
-            // Restore saved state
-            setSessionId(state.sessionId);
-            setLoading(state.loading || false);
-            setProgressData(state.progressData || null);
-            setResults(state.results || null);
-            setTestType(state.testType || 'ping');
-            setProcessedNodes(state.processedNodes || 0);
-            setTotalNodes(state.totalNodes || selectedNodeIds.length);
-            setUseNewSystem(true);
-            setIsMinimized(false);
+        
+        // Check for saved progress state from manual testing
+        const savedState = localStorage.getItem('testingProgress');
+        
+        if (savedState) {
+          try {
+            const state = JSON.parse(savedState);
+            const isRecent = (Date.now() - state.timestamp) < 300000; // 5 minutes
             
-            toast.info('Восстановлено активное тестирование');
-            return;
-          } else {
-            // Clear old saved state
+            if (isRecent && state.sessionId) {
+              console.log('Restoring saved testing session:', state.sessionId);
+              // Restore saved state
+              setSessionId(state.sessionId);
+              setLoading(state.loading || false);
+              setProgressData(state.progressData || null);
+              setResults(state.results || null);
+              setTestType(state.testType || 'ping');
+              setProcessedNodes(state.processedNodes || 0);
+              setTotalNodes(state.totalNodes || selectedNodeIds.length);
+              setUseNewSystem(true);
+              setIsMinimized(false);
+              
+              toast.info('Восстановлено активное тестирование');
+              return;
+            } else {
+              // Clear old saved state only if it's really old
+              console.log('Clearing old testing state');
+              localStorage.removeItem('testingProgress');
+            }
+          } catch (error) {
+            console.error('Error parsing saved testing state:', error);
             localStorage.removeItem('testingProgress');
           }
-        } catch (error) {
-          console.error('Error parsing saved testing state:', error);
-          localStorage.removeItem('testingProgress');
         }
-      }
-      
-      // Reset for new testing
-      setTestType('ping');
-      setResults(null);
-      setProgress(0);
-      setIsMinimized(false);
-      setProcessedNodes(0);
-      setTotalNodes(selectedNodeIds.length);
-      setProgressData(null);
-      setSessionId(null);
-      setUseNewSystem(false);
+        
+        // Reset for new testing only if no active sessions found
+        console.log('No active sessions found, resetting to default state');
+        setTestType('ping');
+        setResults(null);
+        setProgress(0);
+        setIsMinimized(false);
+        setProcessedNodes(0);
+        setTotalNodes(selectedNodeIds.length);
+        setProgressData(null);
+        setSessionId(null);
+        setUseNewSystem(false);
+      }, 100);
     }
   }, [isOpen, selectedNodeIds.length, getActiveImportSession]);
 
