@@ -207,24 +207,37 @@ const UnifiedImportModal = ({ isOpen, onClose, onComplete }) => {
               replaced_old: progressData.replaced
             });
           }
-          return;
-        } else if (progressData.status === 'failed') {
-          setSubmitting(false);
-          toast.error(`Ошибка импорта: ${progressData.current_operation}`);
+          } else if (progressData.status === 'cancelled') {
+            toast.info('⏹️ Импорт отменён пользователем');
+          }
           return;
         }
         
-        // Continue tracking
-        setTimeout(trackProgress, 2000);
+        if (progressData.status === 'error') {
+          if (progressInterval) {
+            clearInterval(progressInterval);
+          }
+          setSubmitting(false);
+          setSessionId(null);
+          toast.error('❌ Ошибка импорта: ' + (progressData.message || 'Неизвестная ошибка'));
+          return;
+        }
       } catch (error) {
         console.error('Progress tracking error:', error);
+        if (progressInterval) {
+          clearInterval(progressInterval);
+        }
         setSubmitting(false);
-        toast.error('Ошибка отслеживания прогресса импорта');
+        setSessionId(null);
+        toast.error('❌ Ошибка отслеживания прогресса');
       }
     };
     
-    // Start tracking after small delay
-    setTimeout(trackProgress, 1000);
+    // Initial call
+    trackProgress();
+    
+    // Set up interval for regular updates
+    progressInterval = setInterval(trackProgress, 2000); // Update every 2 seconds
   };
 
   return (
