@@ -300,9 +300,12 @@ const UnifiedImportModal = ({ isOpen, onClose, onComplete }) => {
                 {/* Progress Bar with Enhanced Info */}
                 <div className="space-y-2">
                   {/* Main Progress Display */}
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-blue-600">
+                  <div className="text-center bg-white p-4 rounded-lg border-2 border-blue-300">
+                    <div className="text-5xl font-extrabold text-blue-600 mb-2">
                       {Math.round(((progress?.processed_chunks || 0) / (progress?.total_chunks || 1)) * 100)}%
+                    </div>
+                    <div className="text-lg font-semibold text-gray-700 mb-1">
+                      Прогресс импорта
                     </div>
                     <div className="text-sm text-gray-600">
                       Обработано {progress?.processed_chunks || 0} из {progress?.total_chunks || 0} частей
