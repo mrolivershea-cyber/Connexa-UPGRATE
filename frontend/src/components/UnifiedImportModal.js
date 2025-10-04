@@ -87,9 +87,21 @@ const UnifiedImportModal = ({ isOpen, onClose, onComplete }) => {
       setPreviewResult(report || null);
       setShowPreview(true);
 
-      // Если выбран режим тестирования (≠ no_test) и пришёл session_id — просто сообщаем
+      // Если выбран режим тестирования (≠ no_test) и пришёл session_id — регистрируем сессию
       if (testingMode !== 'no_test' && session_id) {
-        toast.info('Тестирование запущено. Прогресс доступен в окне Testing.');
+        // Получаем ID узлов из отчета для отслеживания
+        const nodeIds = [];
+        if (report?.details?.added) {
+          report.details.added.forEach(node => nodeIds.push(node.id));
+        }
+        if (report?.details?.replaced) {
+          report.details.replaced.forEach(node => nodeIds.push(node.id));
+        }
+        
+        // Регистрируем сессию в глобальном состоянии
+        addSession(session_id, 'import', nodeIds, testingMode === 'ping_only' ? 'ping' : 'speed');
+        
+        toast.info(`Тестирование запущено для ${nodeIds.length} узлов. Откройте окно Testing для просмотра прогресса.`);
       } else {
         toast.success(message || 'Импорт завершён');
       }
