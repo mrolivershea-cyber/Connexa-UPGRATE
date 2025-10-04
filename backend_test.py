@@ -14855,6 +14855,25 @@ City: TestCity"""
         self.test_format_7_vs_format_4_differentiation()
         self.test_format_7_large_file_simulation()
         
+        # ========== CHUNKED IMPORT TESTS (Review Request - Large File Processing) ==========
+        print("\n🚀 CHUNKED IMPORT TESTS - Large File Processing (Review Request)")
+        print("=" * 70)
+        print("Testing chunked import functionality for large files (>500KB)")
+        print("1. Small file (<500KB) - should use regular processing")
+        print("2. Large file (>500KB) - should automatically redirect to chunked processing")
+        print("3. Direct /api/nodes/import-chunked endpoint")
+        print("4. Progress tracking via /api/import/progress/{session_id}")
+        print("5. Format 7 processing in chunked mode")
+        print("6. Completion status monitoring")
+        print("=" * 70)
+        
+        self.test_chunked_import_small_file_regular_processing()
+        large_session_id = self.test_chunked_import_large_file_automatic_redirect()
+        direct_session_id = self.test_chunked_import_direct_endpoint()
+        self.test_chunked_import_progress_tracking(large_session_id or direct_session_id)
+        self.test_chunked_import_format_7_processing()
+        self.test_chunked_import_completion_status()
+        
         # CRITICAL TEST - Format 4 Block Splitting Fix (Review Request)
         print("\n🚨 CRITICAL RE-TEST - Fixed Smart Block Splitting for Format 4")
         print("=" * 60)
