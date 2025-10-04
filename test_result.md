@@ -424,13 +424,13 @@ backend:
         agent: "testing"
         comment: "✅ IMPROVED PING WORKFLOW COMPREHENSIVE TESTING COMPLETED (2025-01-08): Conducted thorough testing of all improved ping workflow features as per review request. DETAILED RESULTS: 1) ✅ /api/manual/ping-test - Mixed node protocols working correctly, PPTP nodes with/without ports use proper fallbacks, ping_result includes all required fields (success, avg_time, success_rate, packet_loss) ✅ 2) ✅ /api/manual/ping-test-batch-progress - Batch processing runs correctly, SSE progress emitted properly, statuses saved correctly, no nodes left in 'checking' status ✅ 3) ✅ Regression Tests - /api/manual/speed-test and /api/manual/launch-services still work correctly, speed_ok protection remains intact ✅ 4) ✅ Performance Tests - Single-node ping completes under 2s target (0.23s), batch API responds quickly with session_id (0.25s < 1s target) ✅. SPECIFIC VALIDATIONS: Speed_ok node protection working (ping test skipped with message 'Node already has speed_ok status - test skipped to preserve validation'), SSE progress tracking functional, all required ping_result fields present, status transitions working correctly. OVERALL RESULT: 8/10 tests passed (80% success rate). Minor performance variations observed but core functionality working as designed. All review request requirements satisfied."
 
-  - task: "Current Russian User Issues Resolution - October 2025"
-    implemented: true
-    working: true
-    file: "server.py, AdminPanel.js, ping_speed_test.py, database.py"
-    stuck_count: 1
+  - task: "Import Progress Display Integration with Testing Modal"
+    implemented: false
+    working: false
+    file: "UnifiedImportModal.js, TestingModal.js, AdminPanel.js, server.py"
+    stuck_count: 0
     priority: "high"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
       - working: false
         agent: "main"
