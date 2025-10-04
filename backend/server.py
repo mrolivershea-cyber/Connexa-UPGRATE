@@ -643,7 +643,7 @@ async def import_nodes(
     testing_mode = "no_test"
     
     try:
-        logger.info(f"Import request - simplified mode (no automatic testing)")
+        logger.info("Import request - simplified mode (no automatic testing)")
         
         # Parse text data with enhanced parser
         parsed_data = parse_nodes_text(data.data, data.protocol)
