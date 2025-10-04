@@ -631,6 +631,13 @@ async def import_nodes(
 ):
     """Simplified import - always assigns 'not_tested' status, no automatic testing"""
     
+    # Check file size and decide processing method
+    data_size = len(data.data.encode('utf-8'))  # Get size in bytes
+    
+    # If file is large (>500KB), redirect to chunked processing
+    if data_size > 500 * 1024:  # 500KB threshold
+        return await import_nodes_chunked(data, current_user, db)
+    
     # Force no_test mode - user will run tests manually through Testing modal
     testing_mode = "no_test"
     
