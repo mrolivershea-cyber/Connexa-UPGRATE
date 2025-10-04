@@ -3525,15 +3525,25 @@ async def stop_socks_services(
                 })
                 continue
             
-            # Clear SOCKS data and revert status to ping_ok baseline
+            # Clear SOCKS data and revert to previous status
             node.socks_ip = None
             node.socks_port = None
             node.socks_login = None
             node.socks_password = None
             
-            # Revert status: online -> ping_ok (preserving ping baseline)
+            # SMART STATUS RESTORATION: 
+            # Manual stop -> restore previous status (speed_ok or ping_ok)
+            # If previous_status available, restore it; otherwise fallback to ping_ok
             if node.status == "online":
-                node.status = "ping_ok"
+                if node.previous_status and node.previous_status in ["ping_ok", "speed_ok"]:
+                    node.status = node.previous_status  # Restore to speed_ok or ping_ok
+                    logger.info(f"🔄 SOCKS manual stop: restoring node {node_id} to {node.previous_status}")
+                else:
+                    node.status = "ping_ok"  # Safe fallback
+                    logger.info(f"🔄 SOCKS manual stop: fallback node {node_id} to ping_ok")
+            
+            # Clear previous status after restoration
+            node.previous_status = None
             
             node.last_update = datetime.utcnow()
             
