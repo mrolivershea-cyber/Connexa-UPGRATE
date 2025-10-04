@@ -33,6 +33,7 @@ from socks_monitor import start_socks_monitoring, get_proxy_file_content, get_mo
 # Progress Tracking System
 import uuid
 progress_store = {}
+import_progress = {}  # For chunked import progress tracking
 
 # Global testing concurrency controls (АГРЕССИВНО увеличено для скорости)
 MAX_PING_GLOBAL = 20   # МАКСИМАЛЬНО увеличено для скорости ping
