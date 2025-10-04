@@ -196,6 +196,7 @@ const UnifiedImportModal = ({ isOpen, onClose, onComplete }) => {
       setIsImportActive(false);
       setProgress(null);
       setSessionId(null);
+      localStorage.removeItem('activeImportSession');
     } catch (error) {
       console.error('Cancel error:', error);
       toast.error('Не удалось отменить импорт');
