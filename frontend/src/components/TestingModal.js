@@ -556,7 +556,7 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], onTestComplete })
                   <input type="number" min={1} max={10} value={speedTimeout} onChange={e => setSpeedTimeout(parseInt(e.target.value) || 2)} className="w-full border rounded px-2 py-1" />
                 </div>
               </div>
-              <div className="text-xs text-gray-500 mt-2">По умолчанию: Ping=3, Speed=1, Ping таймауты=1.0/1.5, Speed=128KB, 8с (оптимизировано для производительности)</div>
+              <div className="text-xs text-gray-500 mt-2">По умолчанию: Ping=15, Speed=8, Ping таймаут=0.5с, Speed=32KB, 2с (ЭКСТРЕМАЛЬНО оптимизировано для максимальной скорости)</div>
             </CardContent>
           </Card>
 
