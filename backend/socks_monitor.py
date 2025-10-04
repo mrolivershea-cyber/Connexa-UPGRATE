@@ -74,10 +74,11 @@ class SOCKSMonitor:
                         logger.warning(f"⚠️ SOCKS server on port {node.socks_port} (node {node.id}) not responding")
                         await self._handle_socks_failure(node, db)
                     
-                    # Check if target node is reachable (ping test)
-                    elif not self._is_node_reachable(node.ip):
-                        logger.warning(f"⚠️ Target node {node.ip} (node {node.id}) unreachable")
-                        await self._handle_node_unreachable(node, db)
+                    # Skip node reachability check for now - PPTP/SSH nodes may not respond to ping
+                    # TODO: Implement proper connectivity check through PPTP/SSH tunnel
+                    # elif not self._is_node_reachable(node.ip):
+                    #     logger.warning(f"⚠️ Target node {node.ip} (node {node.id}) unreachable")
+                    #     await self._handle_node_unreachable(node, db)
                     
                 except Exception as e:
                     logger.error(f"Error checking SOCKS health for node {node.id}: {e}")
