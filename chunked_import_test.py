@@ -219,7 +219,7 @@ class ChunkedImportTester:
         print("\n🔍 СЦЕНАРИЙ 2 - Testing Import Cancellation During Processing")
         
         # Generate large test data to ensure we have time to cancel
-        test_data = self.generate_large_test_data(800)  # 800KB file
+        test_data = self.generate_large_test_data(800, "172.21")  # 800KB file
         data_size_kb = len(test_data.encode('utf-8')) / 1024
         
         print(f"   Generated test data: {data_size_kb:.1f}KB for cancellation test")
