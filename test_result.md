@@ -556,6 +556,18 @@ frontend:
         comment: "FIXED: Removed redundant 'Total nodes: X' text display (line 470) while keeping the statistics card that shows 'Total Nodes'. User was correct that this was duplicate information."
 
 frontend:
+  - task: "Admin Panel Duplicate Button Removal"
+    implemented: true
+    working: true
+    file: "AdminPanel.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ ADMIN PANEL DUPLICATE BUTTON REMOVAL VERIFIED WORKING: Comprehensive testing completed successfully with 100% pass rate. VERIFIED REQUIREMENTS: 1) ✅ REMAINING BUTTONS FUNCTIONAL: Start Services button (green) present and functional, Stop Services button (red) present and functional, Testing button opens TestingModal with ping and speed options, Import button opens import modal successfully 2) ✅ DUPLICATE BUTTONS REMOVED: Launch Services button successfully removed (0 instances found), Ping Test button successfully removed from main panel (0 instances found), Speed Test button successfully removed from main panel (0 instances found) 3) ✅ TESTINGMODAL FUNCTIONALITY: Testing button opens modal with correct title 'Тестирование Узлов', Ping test option ('Только Ping') available, Speed test option ('Только Скорость') available in dropdown, Modal closes properly with close button and Escape key 4) ✅ UI INTEGRITY MAINTAINED: Admin panel loads correctly, No JavaScript errors detected, Layout intact after button removal, All core functionality preserved. All 4 main requirements successfully verified - the duplicate button removal implementation is working perfectly."
+
   - task: "Manual testing workflow admin buttons"
     implemented: true
     working: true
