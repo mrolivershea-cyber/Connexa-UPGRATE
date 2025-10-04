@@ -73,7 +73,7 @@ const UnifiedImportModal = ({ isOpen, onClose, onComplete }) => {
         testing_mode: 'no_test'  // Always no_test in simplified mode
       });
 
-      const { success, report, session_id, message } = response.data || {};
+      const { success, report, message } = response.data || {};
 
       if (!success) {
         toast.error(message || 'Ошибка импорта');
@@ -85,41 +85,14 @@ const UnifiedImportModal = ({ isOpen, onClose, onComplete }) => {
       setPreviewResult(report || null);
       setShowPreview(true);
 
-      // Если выбран режим тестирования (≠ no_test) и пришёл session_id — регистрируем сессию
-      if (testingMode !== 'no_test' && session_id) {
-        // Получаем ID узлов из отчета для отслеживания
-        const nodeIds = [];
-        if (report?.details?.added) {
-          report.details.added.forEach(node => nodeIds.push(node.id));
-        }
-        if (report?.details?.replaced) {
-          report.details.replaced.forEach(node => nodeIds.push(node.id));
-        }
-        
-        console.log('Registering import testing session:', { 
-          session_id, 
-          nodeIds: nodeIds.length, 
-          testingMode 
-        });
-        
-        // Регистрируем сессию в глобальном состоянии
-        addSession(session_id, 'import', nodeIds, testingMode === 'ping_only' ? 'ping' : 'speed');
-        
-        toast.success(`✅ Импорт завершён: ${report?.added || 0} добавлено, ${report?.skipped_duplicates || 0} дубликатов. Тестирование запущено для ${nodeIds.length} узлов.`);
-        toast.info('📊 Откройте окно Testing для просмотра прогресса тестирования.');
-        
-        // Закрываем модальное окно через небольшую задержку, чтобы пользователь увидел отчет
-        setTimeout(() => {
-          onClose();
-        }, 3000);
-      } else {
-        toast.success(message || 'Импорт завершён');
-        
-        // Закрываем модальное окно через небольшую задержку для обычного импорта
-        setTimeout(() => {
-          onClose();
-        }, 2000);
-      }
+      // Простое сообщение об успешном импорте
+      toast.success(`✅ Импорт завершён: ${report?.added || 0} добавлено, ${report?.skipped_duplicates || 0} дубликатов`);
+      toast.info('📊 Для тестирования используйте кнопку "Testing" в админ-панели');
+      
+      // Закрываем модальное окно через небольшую задержку
+      setTimeout(() => {
+        onClose();
+      }, 2000);
 
       if (onComplete) onComplete(report);
     } catch (error) {
