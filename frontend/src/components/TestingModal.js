@@ -205,18 +205,19 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], onTestComplete })
               
               // Keep completed results visible for longer before cleanup
               const completedState = {
-                sessionId,
-                loading: false,
-                progressData: data,
-                results: testResults,
+                sessionId: null,
+                testRunning: false,
                 testType,
-                selectedNodeIds,
-                processedNodes: data.processed_items || processedNodes,
-                totalNodes: data.total_items || totalNodes,
+                totalNodes,
                 timestamp: Date.now(),
                 completed: true
+                // REMOVED large objects to prevent localStorage overflow
               };
-              localStorage.setItem('testingProgress', JSON.stringify(completedState));
+              try {
+                localStorage.setItem('testingProgress', JSON.stringify(completedState));
+              } catch (e) {
+                console.warn('Failed to save completed state to localStorage:', e.message);
+              }
               
               // Remove session after longer delay to show completion
               setTimeout(() => {
