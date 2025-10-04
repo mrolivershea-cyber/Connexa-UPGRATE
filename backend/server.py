@@ -3427,8 +3427,9 @@ async def start_socks_services(
     
     results = []
     
-    # Generate unique SOCKS server IP (use admin server IP as placeholder)
-    admin_server_ip = "127.0.0.1"  # Will be enhanced to get actual server IP
+    # SOCKS server runs ON THE NODE itself (use node's IP)
+    # This allows external clients to connect to the node's SOCKS service
+    socks_server_ip = node.ip  # Use node's actual IP for external access
     
     for node_id in node_ids:
         try:
