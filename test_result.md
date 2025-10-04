@@ -143,6 +143,9 @@
       - working: true
         agent: "main"
         comment: "✅ BACKEND API ПОЛНОСТЬЮ РЕАЛИЗОВАН И ПРОТЕСТИРОВАН: 1) ✅ /api/socks/stats - статистика (online_socks, total_tunnels, active_connections), 2) ✅ /api/socks/config - управление настройками маскировки/производительности/безопасности, 3) ✅ /api/socks/active - список активных SOCKS прокси, 4) ✅ /api/socks/proxy-file - автогенерируемый файл прокси в формате socks5://login:pass@ip:port, 5) ✅ /api/socks/start - запуск SOCKS (генерация уникальных портов 1081-9999, логинов socks_X, паролей 16 символов, переход ping_ok/speed_ok→online), 6) ✅ /api/socks/stop - остановка SOCKS (очистка данных, переход online→ping_ok), 7) ✅ /api/stats обновлен с socks_online счетчиком. ПРОТЕСТИРОВАНО: узел 2 успешно ping_ok→online→ping_ok, статистика корректна, файл прокси генерируется."
+      - working: true
+        agent: "main"
+        comment: "✅ УЛУЧШЕНА ЛОГИКА СТАТУСОВ (УМНОЕ ВОССТАНОВЛЕНИЕ): Добавлено поле previous_status в БД и реализована умная логика: 1) ✅ РУЧНАЯ ОСТАНОВКА SOCKS → восстановление предыдущего статуса (speed_ok остается speed_ok, ping_ok остается ping_ok), 2) ✅ ПАДЕНИЕ/ОШИБКА SOCKS → безопасный fallback в ping_ok. ПРОТЕСТИРОВАНО: узел 2 (ping_ok→online→ping_ok), узел 3 (speed_ok→online→speed_ok). previous_status корректно сохраняется при запуске и очищается при остановке. SQLite миграция выполнена успешно."
 
   - task: "SOCKS5 Server with Traffic Masking"
     implemented: false
