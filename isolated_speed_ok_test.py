@@ -7,7 +7,7 @@ import subprocess
 
 class IsolatedSpeedOKTester:
     def __init__(self):
-        self.base_url = "https://connexa-socks.preview.emergentagent.com/api"
+        self.base_url = "https://socks-control.preview.emergentagent.com/api"
         self.token = None
         self.test_results = []
         self.tests_passed = 0

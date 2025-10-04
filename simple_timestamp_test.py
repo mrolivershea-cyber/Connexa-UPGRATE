@@ -6,7 +6,7 @@ from datetime import datetime
 import time
 
 def test_timestamp_update():
-    base_url = "https://connexa-socks.preview.emergentagent.com"
+    base_url = "https://socks-control.preview.emergentagent.com"
     api_url = f"{base_url}/api"
     
     # Login
