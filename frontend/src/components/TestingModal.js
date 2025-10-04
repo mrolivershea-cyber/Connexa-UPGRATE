@@ -150,6 +150,9 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], onTestComplete })
               // Clear saved state when completed
               localStorage.removeItem('testingProgress');
               
+              // Update session status in global state
+              updateSession(sessionId, { status: 'completed' });
+              
               // Convert progress results to expected format
               const testResults = data.results?.map(result => ({
                 node_id: result.node_id,
@@ -169,11 +172,20 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], onTestComplete })
               setResults(testResults);
               toast.success(`Тестирование завершено: ${testResults.filter(r => r.success).length} успешно`);
               
+              // Remove session after short delay to show completion
+              setTimeout(() => {
+                removeSession(sessionId);
+              }, 5000);
+              
               if (onTestComplete) {
                 onTestComplete();
               }
             } else if (data.status === 'failed') {
               localStorage.removeItem('testingProgress');
+              updateSession(sessionId, { status: 'failed' });
+              setTimeout(() => {
+                removeSession(sessionId);
+              }, 3000);
               toast.error('Ошибка при тестировании');
             }
           }
