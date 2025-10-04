@@ -127,6 +127,13 @@ const UnifiedImportModal = ({ isOpen, onClose, onComplete }) => {
           console.log('Chunked processing started, session_id:', session_id);
           setSessionId(session_id);
           setIsImportActive(true);
+          
+          // Save session to localStorage for recovery
+          localStorage.setItem('activeImportSession', JSON.stringify({
+            sessionId: session_id,
+            timestamp: Date.now()
+          }));
+          
           toast.success('🚀 Запущена chunked обработка большого файла...');
           startProgressTracking(session_id);
           return;
