@@ -876,6 +876,30 @@ async def clear_all_import_sessions(current_user: User = Depends(get_current_use
     logger.info(f"Cleared {count} import sessions for recovery")
     return {"message": f"Cleared {count} import sessions", "success": True}
 
+@api_router.delete("/import/cancel/{session_id}")
+async def cancel_import_session(session_id: str, current_user: User = Depends(get_current_user)):
+    """Cancel specific import session"""
+    global import_progress
+    
+    if session_id not in import_progress:
+        raise HTTPException(status_code=404, detail="Session not found")
+    
+    # Mark session as cancelled
+    progress_data = import_progress.get(session_id, {})
+    progress_data.update({
+        'status': 'cancelled',
+        'current_operation': 'Import cancelled by user'
+    })
+    import_progress[session_id] = progress_data
+    
+    logger.info(f"Import session {session_id} cancelled by user {current_user.email}")
+    
+    return {
+        "message": f"Import session {session_id} cancelled successfully",
+        "session_id": session_id,
+        "success": True
+    }
+
 async def process_import_testing_batches(session_id: str, node_ids: list, testing_mode: str, db_session: Session):
     """Process node testing in batches to prevent hanging and preserve results"""
     
