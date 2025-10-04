@@ -3462,6 +3462,9 @@ async def start_socks_services(
             login_prefix = f"socks_{node_id}"
             password = ''.join(secrets.choice(string.ascii_letters + string.digits) for _ in range(16))
             
+            # Save previous status for proper restoration later
+            node.previous_status = node.status  # Save current status (ping_ok or speed_ok)
+            
             # Update node with SOCKS data
             node.socks_ip = admin_server_ip
             node.socks_port = socks_port
