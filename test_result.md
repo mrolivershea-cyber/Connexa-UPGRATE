@@ -430,11 +430,11 @@ backend:
 
   - task: "Import Progress Display Integration with Testing Modal"
     implemented: true
-    working: false
+    working: true
     file: "UnifiedImportModal.js, TestingModal.js, AdminPanel.js, server.py"
     stuck_count: 2
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: false
         agent: "main"
@@ -460,6 +460,9 @@ backend:
       - working: true
         agent: "testing"
         comment: "✅ RUSSIAN USER IMPORT PROGRESS FUNCTIONALITY VERIFIED WORKING (2025-01-08): Conducted comprehensive testing of the fixed import progress functionality after SSE corrections. DETAILED TEST RESULTS: 1) ✅ BASIC IMPORT FUNCTIONALITY: Import modal opens correctly, Russian button 'Импортировать узлы' works properly, import completes successfully with network requests (POST /api/nodes/import returns 200) 2) ✅ IMPORT WITH PING TESTING: Successfully tested import with 'Ping only' mode, import report displays correctly showing detailed statistics (1 added, 0 duplicates), toast messages confirm successful import and testing initiation 3) ✅ BACKEND SSE ENDPOINT WORKING: Direct testing confirms SSE endpoint /api/progress/{session_id} returns proper progress data in real-time, session management working correctly with session IDs generated and tracked 4) ✅ IMPORT REPORT DISPLAY: Import results section shows correctly with detailed breakdown (Добавлено, Дубликатов, Заменено, В очереди, Ошибок формата) 5) ✅ TOAST NOTIFICATIONS: Multiple success messages displayed including 'Import complete: 1 added', 'Тестирование запущено для 1 узлов', and progress viewing instructions. CRITICAL ISSUES RESOLVED: Import button no longer hangs, detailed import reports display correctly, backend SSE integration fully functional, session registration and progress tracking working. The Russian user's reported issues with import progress display have been successfully resolved. Minor: Testing modal integration with import sessions requires user to manually open Testing modal to view progress"
+      - working: true
+        agent: "testing"
+        comment: "✅ COMPREHENSIVE RUSSIAN USER IMPORT PROGRESS TESTING COMPLETED (2025-01-08): Conducted thorough testing of all four critical scenarios from the Russian user review request. DETAILED RESULTS: 1) ✅ AUTOMATIC IMPORT MODAL CLOSURE: Import modal closes automatically after 3.4 seconds when import completes with testing mode selected, 'Готово' button appears correctly, user can also manually close with 'Готово' button 2) ✅ IMPORT SOURCE INDICATION: 'Из импорта' badge correctly appears in Testing modal header when connected to import session, indicating the source of testing 3) ✅ TESTING MODAL INTEGRATION: Testing modal successfully connects to import sessions, displays toast notification 'Подключено к активному тестированию из импорта', SSE endpoint /api/progress/{session_id} returns 200 status 4) ✅ SESSION PERSISTENCE: Import badge persists after modal closure and reopening, TestingContext correctly manages active sessions, session registration working properly. TECHNICAL VERIFICATION: Backend creates session_id correctly, SSE endpoint accessible and returns proper responses, frontend TestingContext integration functional, import-to-testing workflow complete. MINOR LIMITATION: Progress display depends on having nodes to test - when import results in 0 new nodes (all duplicates), no progress bar appears as expected. All core functionality working as designed for Russian user requirements."
       - working: false
         agent: "main"
         comment: "❌ НОВАЯ ПРОБЛЕМА ОТ ПОЛЬЗОВАТЕЛЯ (2025-01-08): Пользователь тестировал функциональность импорта и сообщает о следующих проблемах: 1) После импорта узлов и выбора теста (пинг) модальное окно импорта не закрывается автоматически - кнопка 'импорт узлов' все еще 'висит' 2) Нужно автоматически закрывать окно после добавления конфигов и показать сообщение о добавленных конфигах (уже реализовано частично) 3) При первом тестировании прогресс отображается в модальном окне тестинг 4) При повторном тестировании прогресс 'сворачивается' и пропадает из модального окна тестинг. ТРЕБУЕТСЯ ИССЛЕДОВАНИЕ: проверить логику закрытия UnifiedImportModal после успешного импорта и тестирования, исследовать проблему с исчезновением прогресса при повторных тестах в TestingModal."
