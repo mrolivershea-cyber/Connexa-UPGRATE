@@ -15853,7 +15853,7 @@ City: TestCity"""
             print(f"  {result['ip']}: {status} - {result['message']} ({result['response_time']:.2f}s)")
         
         self.log_test("SPEED_OK Configs - PING LIGHT Test", True, 
-                     f"PING LIGHT results: {len(successful_pings)}/{len(test_ips)} reachable via TCP 1723. "
+                     f"PING LIGHT results: {len(successful_pings)}/{len(test_configs)} reachable via TCP 1723. "
                      f"Successful: {[r['ip'] for r in successful_pings]}, "
                      f"Failed: {[r['ip'] for r in failed_pings]}")
         
