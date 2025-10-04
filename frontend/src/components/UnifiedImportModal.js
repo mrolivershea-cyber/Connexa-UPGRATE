@@ -271,14 +271,23 @@ const UnifiedImportModal = ({ isOpen, onClose, onComplete }) => {
                     <Activity className="h-4 w-4 mr-2 text-blue-600" />
                     📂 Обработка большого файла...
                   </CardTitle>
-                  <Button 
-                    variant="destructive" 
-                    size="sm" 
-                    onClick={cancelImport}
-                    disabled={!sessionId}
-                  >
-                    ⏹️ Отменить
-                  </Button>
+                  <div className="flex space-x-2">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={onClose}
+                    >
+                      📋 Свернуть в фон
+                    </Button>
+                    <Button 
+                      variant="destructive" 
+                      size="sm" 
+                      onClick={cancelImport}
+                      disabled={!sessionId}
+                    >
+                      ⏹️ Отменить
+                    </Button>
+                  </div>
                 </div>
               </CardHeader>
               <CardContent className="space-y-3">
