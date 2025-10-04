@@ -187,9 +187,10 @@ class Format7Tester:
         
         # Generate 10 test nodes in Format 7 with unique IPs
         timestamp = str(int(time.time()))
+        ip_part = int(timestamp[-3:]) % 255  # Ensure IP octet is valid (0-255)
         test_nodes = []
         for i in range(10):
-            test_nodes.append(f"10.{timestamp[-3:]}.{i}.{i+1}:user{i}:pass{i}")
+            test_nodes.append(f"10.{ip_part}.{i}.{i+1}:user{i}:pass{i}")
         
         test_data = "\n".join(test_nodes)
         
