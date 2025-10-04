@@ -637,28 +637,7 @@ async def import_nodes(
         # Process nodes with deduplication logic - always use no_test
         results = process_parsed_nodes(db, parsed_data, testing_mode)
         
-        # No automatic testing - user will start tests manually
-        # Removed automatic testing logic
-            # Get node IDs to test
-            nodes_to_test = []
-            for added_node in results['added']:
-                nodes_to_test.append(added_node['id'])
-            for replaced_node in results['replaced']:
-                nodes_to_test.append(replaced_node['id'])
-            
-            if nodes_to_test:
-                # Initialize progress tracker
-                progress = ProgressTracker(session_id, len(nodes_to_test))
-                progress.update(0, f"Начинаем тестирование {len(nodes_to_test)} серверов...")
-                
-                logger.info(f"📊 Import: Starting batch testing for session {session_id} with {len(nodes_to_test)} nodes")
-                
-                # Start background batch testing instead of blocking
-                asyncio.create_task(process_import_testing_batches(
-                    session_id, nodes_to_test, data.testing_mode, db
-                ))
-                # Testing will be handled asynchronously by batch processor
-                logger.info(f"📊 Import: Queued {len(nodes_to_test)} nodes for batch testing in session {session_id}")
+        # No automatic testing - user will start tests manually through Testing modal
         
         # Create detailed report with smart summary
         added_count = len(results['added'])
