@@ -29,24 +29,28 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], onTestComplete })
 
   React.useEffect(() => {
     if (isOpen) {
-      // First, check for active import session
-      const activeImportSession = getActiveImportSession();
-      
-      if (activeImportSession) {
-        // Connect to active import testing session
-        setSessionId(activeImportSession.sessionId);
-        setLoading(true);
-        setProgressData(null);
-        setResults(null);
-        setTestType(activeImportSession.testType);
-        setProcessedNodes(0);
-        setTotalNodes(activeImportSession.nodeIds.length);
-        setUseNewSystem(true);
-        setIsMinimized(false);
+      // First, check for active import session with delay to ensure provider is ready
+      setTimeout(() => {
+        const activeImportSession = getActiveImportSession();
         
-        toast.success(`Подключено к активному тестированию из импорта (${activeImportSession.nodeIds.length} узлов)`);
-        return;
-      }
+        if (activeImportSession) {
+          console.log('Found active import session:', activeImportSession);
+          // Connect to active import testing session
+          setSessionId(activeImportSession.sessionId);
+          setLoading(true);
+          setProgressData(null);
+          setResults(null);
+          setTestType(activeImportSession.testType);
+          setProcessedNodes(0);
+          setTotalNodes(activeImportSession.nodeIds.length);
+          setUseNewSystem(true);
+          setIsMinimized(false);
+          
+          toast.success(`Подключено к активному тестированию из импорта (${activeImportSession.nodeIds.length} узлов)`);
+          return;
+        }
+      }, 100);
+      
       
       // Check for saved progress state from manual testing
       const savedState = localStorage.getItem('testingProgress');
