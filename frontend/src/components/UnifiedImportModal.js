@@ -269,13 +269,13 @@ const UnifiedImportModal = ({ isOpen, onClose, onComplete }) => {
                 {/* Progress Bar */}
                 <div className="space-y-1">
                   <div className="flex justify-between text-xs text-gray-600">
-                    <span>Прогресс: {progress.processed_chunks || 0} из {progress.total_chunks || 0} частей</span>
-                    <span>{Math.round(((progress.processed_chunks || 0) / (progress.total_chunks || 1)) * 100)}%</span>
+                    <span>Прогресс: {progress?.processed_chunks || 0} из {progress?.total_chunks || 0} частей</span>
+                    <span>{Math.round(((progress?.processed_chunks || 0) / (progress?.total_chunks || 1)) * 100)}%</span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2">
                     <div 
                       className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                      style={{ width: `${Math.round(((progress.processed_chunks || 0) / (progress.total_chunks || 1)) * 100)}%` }}
+                      style={{ width: `${Math.round(((progress?.processed_chunks || 0) / (progress?.total_chunks || 1)) * 100)}%` }}
                     ></div>
                   </div>
                 </div>
@@ -283,22 +283,22 @@ const UnifiedImportModal = ({ isOpen, onClose, onComplete }) => {
                 {/* Statistics */}
                 <div className="grid grid-cols-3 gap-2 text-sm">
                   <div className="text-center p-2 bg-green-100 rounded">
-                    <div className="font-semibold text-green-800">{progress.added || 0}</div>
+                    <div className="font-semibold text-green-800">{progress?.added || 0}</div>
                     <div className="text-xs text-green-600">✅ Добавлено</div>
                   </div>
                   <div className="text-center p-2 bg-yellow-100 rounded">
-                    <div className="font-semibold text-yellow-800">{progress.skipped || 0}</div>
+                    <div className="font-semibold text-yellow-800">{progress?.skipped || 0}</div>
                     <div className="text-xs text-yellow-600">⚠️ Пропущено</div>
                   </div>
                   <div className="text-center p-2 bg-red-100 rounded">
-                    <div className="font-semibold text-red-800">{progress.errors || 0}</div>
+                    <div className="font-semibold text-red-800">{progress?.errors || 0}</div>
                     <div className="text-xs text-red-600">❌ Ошибок</div>
                   </div>
                 </div>
                 
                 {/* Current Operation */}
                 <div className="text-xs text-gray-600 bg-gray-100 p-2 rounded">
-                  <strong>Текущая операция:</strong> {progress.current_operation || 'Обработка данных...'}
+                  <strong>Текущая операция:</strong> {progress?.current_operation || 'Инициализация обработки...'}
                 </div>
                 
                 {/* Cancel Button */}
