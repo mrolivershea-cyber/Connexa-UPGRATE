@@ -207,7 +207,7 @@ class Format7Tester:
                 # Verify all nodes have 'not_tested' status
                 verified_count = 0
                 for i in range(10):
-                    ip = f"10.{timestamp[-3:]}.{i}.{i+1}"
+                    ip = f"10.{ip_part}.{i}.{i+1}"
                     nodes_success, nodes_response = self.make_request('GET', f'nodes?ip={ip}')
                     if nodes_success and 'nodes' in nodes_response and nodes_response['nodes']:
                         node = nodes_response['nodes'][0]
