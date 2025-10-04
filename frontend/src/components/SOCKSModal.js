@@ -374,19 +374,102 @@ const SOCKSModal = ({ isOpen, onClose, selectedNodeIds = [] }) => {
               </CardContent>
             </Card>
 
+            {/* Информация о выбранных узлах */}
+            {selectedNodesInfo.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Server className="h-5 w-5" />
+                    Выбранные узлы ({selectedNodesInfo.length})
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2 max-h-32 overflow-y-auto">
+                    {selectedNodesInfo.map(({ id, data, error }) => {
+                      if (error || !data) {
+                        return (
+                          <div key={id} className="flex justify-between items-center p-2 bg-red-50 border border-red-200 rounded">
+                            <span className="text-sm text-red-700">Узел {id}</span>
+                            <Badge variant="destructive">Ошибка</Badge>
+                          </div>
+                        );
+                      }
+
+                      const canStartSOCKS = ['ping_ok', 'speed_ok'].includes(data.status);
+                      const isAlreadyOnline = data.status === 'online';
+
+                      return (
+                        <div key={id} className={`flex justify-between items-center p-2 border rounded ${
+                          canStartSOCKS ? 'bg-green-50 border-green-200' : 
+                          isAlreadyOnline ? 'bg-blue-50 border-blue-200' : 
+                          'bg-red-50 border-red-200'
+                        }`}>
+                          <span className="text-sm font-mono">{data.ip}</span>
+                          <div className="flex items-center gap-2">
+                            <Badge variant={
+                              canStartSOCKS ? 'default' : 
+                              isAlreadyOnline ? 'secondary' : 
+                              'destructive'
+                            }>
+                              {data.status}
+                            </Badge>
+                            {isAlreadyOnline ? (
+                              <span className="text-xs text-blue-600">✓ Уже запущен</span>
+                            ) : canStartSOCKS ? (
+                              <span className="text-xs text-green-600">✓ Готов</span>
+                            ) : (
+                              <span className="text-xs text-red-600">✗ Неподходящий</span>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  
+                  {/* Сводная информация */}
+                  <div className="mt-3 pt-3 border-t">
+                    {(() => {
+                      const validNodes = selectedNodesInfo.filter(({ data }) => 
+                        data && ['ping_ok', 'speed_ok'].includes(data.status)
+                      );
+                      const onlineNodes = selectedNodesInfo.filter(({ data }) => 
+                        data && data.status === 'online'
+                      );
+                      const invalidNodes = selectedNodesInfo.filter(({ data, error }) => 
+                        error || !data || !['ping_ok', 'speed_ok', 'online'].includes(data?.status)
+                      );
+
+                      return (
+                        <div className="text-xs space-y-1">
+                          {validNodes.length > 0 && (
+                            <div className="text-green-600">✓ {validNodes.length} узлов готовы для запуска SOCKS</div>
+                          )}
+                          {onlineNodes.length > 0 && (
+                            <div className="text-blue-600">ℹ {onlineNodes.length} узлов уже запущены (нужно сначала остановить)</div>
+                          )}
+                          {invalidNodes.length > 0 && (
+                            <div className="text-red-600">✗ {invalidNodes.length} узлов не подходят для SOCKS</div>
+                          )}
+                        </div>
+                      );
+                    })()}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
             {/* Управление SOCKS */}
             <Card>
               <CardHeader>
-                <CardTitle>Старт Сервис</CardTitle>
+                <CardTitle>Управление Сервисами</CardTitle>
                 <CardDescription>
-                  Выбрано узлов: {selectedNodeIds.length}
-                  {selectedNodeIds.length > 0 ? (
-                    <div className="mt-2 text-xs text-blue-600">
-                      💡 Для запуска SOCKS узлы должны иметь статус "ping_ok" или "speed_ok"
-                    </div>
-                  ) : (
+                  {selectedNodeIds.length === 0 ? (
                     <div className="mt-2 text-xs text-amber-600">
                       ⚠️ Выберите узлы в таблице перед запуском SOCKS
+                    </div>
+                  ) : (
+                    <div className="mt-2 text-xs text-blue-600">
+                      💡 Только узлы со статусом "ping_ok" или "speed_ok" могут запустить SOCKS
                     </div>
                   )}
                 </CardDescription>
