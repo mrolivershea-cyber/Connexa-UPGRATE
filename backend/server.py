@@ -2711,10 +2711,9 @@ async def manual_ping_test(
             node.last_update = datetime.utcnow()
             # Note: get_db() will auto-commit
             
-            # Perform fast multi-port TCP ping based on node config
-            from ping_speed_test import multiport_tcp_ping
-            ports = get_ping_ports_for_node(node)
-            ping_result = await multiport_tcp_ping(node.ip, ports=ports, timeouts=[2.0])
+            # Perform full PING OK test with authentication
+            from ping_speed_test import test_node_ping
+            ping_result = await test_node_ping(node.ip, node.login or 'admin', node.password or 'admin')
             # Add packet_loss for UI compatibility (100 - success_rate)
             try:
                 ping_result["packet_loss"] = round(100.0 - float(ping_result.get("success_rate", 0.0)), 1)
