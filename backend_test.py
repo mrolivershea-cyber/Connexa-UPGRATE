@@ -6430,6 +6430,24 @@ City: Broomfield""",
             print("❌ User authentication failed - stopping tests")
             return False
         
+        # ========== CRITICAL: SPEED_OK CONFIGURATION VERIFICATION (Russian User Review Request) ==========
+        print("\n" + "🔥" * 80)
+        print("🇷🇺 КРИТИЧЕСКАЯ ПРОВЕРКА ДОСТОВЕРНОСТИ SPEED_OK КОНФИГОВ")
+        print("🔥" * 80)
+        print("ПРОБЛЕМА: Пользователь проверил конфиги со статусом speed_ok вручную, но они не работают при подключении.")
+        print("НАЙДЕННЫЕ ДАННЫЕ В БД: 9 speed_ok конфигов созданы сегодня (14:20-14:21)")
+        print("- Все имеют admin/admin и скорости 0.6-1.3 Mbps")
+        print("- Подозрительно низкие скорости и одинаковые credentials")
+        print("ТЕСТОВЫЕ IP ДЛЯ ПРОВЕРКИ:")
+        print("1. 5.78.50.215 (admin/admin, speed: 0.6)")
+        print("2. 5.78.50.13 (admin/admin, speed: 1.3)")
+        print("3. 5.78.41.224 (admin/admin, speed: 1.3)")
+        print("4. 5.78.102.161 (admin/admin, speed: 1.3)")
+        print("5. 5.78.65.121 (admin/admin, speed: 1.3)")
+        print("=" * 80)
+        
+        self.test_speed_ok_configs_comprehensive_analysis()
+        
         # Core functionality tests
         nodes = self.test_get_nodes()
         self.test_get_stats()
