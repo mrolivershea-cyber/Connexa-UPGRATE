@@ -31,6 +31,9 @@ const UnifiedImportModal = ({ isOpen, onClose, onComplete }) => {
       setPreviewResult(null);
       setShowPreview(false);
       setSubmitting(false);
+      setIsLargeFile(false);
+      setProgress(null);
+      setSessionId(null);
     }
   }, [isOpen]);
 
