@@ -131,6 +131,15 @@ class SpeedOKInvestigator:
             # 3. PING OK TEST - Full PPTP authentication
             if result["database_status"]["status"] != "not_found":
                 node_id = nodes_response['nodes'][0]['id']
+                
+                # First, reset the node to not_tested to force a real ping test
+                print(f"    🔄 Resetting node {node_id} to not_tested status to force real ping test...")
+                reset_success, reset_response = self.make_request('PUT', f'nodes/{node_id}', {"status": "not_tested"})
+                if reset_success:
+                    print(f"    ✅ Node reset to not_tested")
+                else:
+                    print(f"    ❌ Failed to reset node: {reset_response}")
+                
                 ping_ok_data = {"node_ids": [node_id]}
                 ping_ok_success, ping_ok_response = self.make_request('POST', 'manual/ping-test', ping_ok_data)
                 
