@@ -226,7 +226,7 @@ class SOCKSServer:
                 self.stats_callback('connection_end')
             
             # Remove from active connections
-            current_thread = Thread.current_thread()
+            current_thread = threading.current_thread()
             if current_thread in self.active_connections:
                 self.active_connections.remove(current_thread)
     
