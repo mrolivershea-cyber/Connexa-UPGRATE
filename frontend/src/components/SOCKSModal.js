@@ -145,26 +145,58 @@ const SOCKSModal = ({ isOpen, onClose, selectedNodeIds = [] }) => {
       const successCount = results.filter(r => r.success).length;
       const failCount = results.length - successCount;
       
-      // Показываем детальную информацию об ошибках
+      // Анализируем результаты и показываем детальную информацию
       const failedResults = results.filter(r => !r.success);
+      const successfulResults = results.filter(r => r.success);
+      
+      // Показываем детальную информацию в консоли
       if (failedResults.length > 0) {
-        const errorMessages = failedResults.map(r => `Узел ${r.node_id}: ${r.message}`).join('\n');
+        const errorMessages = failedResults.map(r => `Узел ${r.node_id} (${r.ip}): ${r.message}`).join('\n');
         console.log('SOCKS start failures:', errorMessages);
+      }
+      
+      // Анализируем типы ошибок
+      const alreadyOnlineErrors = failedResults.filter(r => 
+        r.message && r.message.includes('current: online')
+      );
+      const wrongStatusErrors = failedResults.filter(r => 
+        r.message && (
+          r.message.includes('ping_ok or speed_ok') || 
+          r.message.includes('current: ping_failed') ||
+          r.message.includes('current: not_tested')
+        )
+      );
+      const otherErrors = failedResults.filter(r => 
+        !alreadyOnlineErrors.includes(r) && !wrongStatusErrors.includes(r)
+      );
+
+      // Составляем детальные сообщения
+      let detailMessages = [];
+      if (alreadyOnlineErrors.length > 0) {
+        detailMessages.push(`${alreadyOnlineErrors.length} узлов уже запущены (нужно сначала остановить)`);
+      }
+      if (wrongStatusErrors.length > 0) {
+        detailMessages.push(`${wrongStatusErrors.length} узлов имеют неподходящий статус`);
+      }
+      if (otherErrors.length > 0) {
+        detailMessages.push(`${otherErrors.length} узлов с другими ошибками`);
       }
 
       if (successCount > 0) {
-        toast.success(`✅ SOCKS запущен для ${successCount} узлов`, {
-          description: successCount === results.length ? 'Все узлы успешно запущены' : `${failCount} узлов не удалось запустить`
+        toast.success(`✅ SOCKS запущен для ${successCount} из ${results.length} узлов`, {
+          description: successCount === results.length ? 
+            'Все узлы успешно запущены' : 
+            detailMessages.join(', ')
         });
       }
       
       if (failCount > 0 && successCount === 0) {
-        toast.error(`❌ Не удалось запустить SOCKS ни для одного узла`, {
-          description: 'Проверьте что узлы имеют статус "ping_ok" или "speed_ok"'
+        toast.error(`❌ Не удалось запустить SOCKS ни для одного узла (${results.length})`, {
+          description: detailMessages.join('. ') || 'Проверьте статус узлов в таблице выше'
         });
       } else if (failCount > 0) {
         toast.warning(`⚠️ Частично запущено: ${successCount} успешно, ${failCount} ошибок`, {
-          description: 'Некоторые узлы могут иметь неподходящий статус'
+          description: detailMessages.join('. ')
         });
       }
 
