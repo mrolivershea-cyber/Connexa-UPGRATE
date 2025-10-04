@@ -779,6 +779,72 @@ async def import_nodes_chunked(
         'progress_url': f'/api/import/progress/{session_id}'
     }
 
+async def process_chunks_async(chunks: list, protocol: str, session_id: str, user_id: int):
+    """Process chunks asynchronously in background"""
+    try:
+        # Create new database session for background processing
+        db = SessionLocal()
+        
+        total_added = 0
+        total_skipped = 0
+        total_replaced = 0
+        total_errors = 0
+        
+        for chunk_index, chunk in enumerate(chunks):
+            # Update progress
+            progress_data = import_progress.get(session_id, {})
+            progress_data.update({
+                'processed_chunks': chunk_index,
+                'current_operation': f'Processing chunk {chunk_index + 1}/{len(chunks)}...'
+            })
+            import_progress[session_id] = progress_data
+            
+            # Process chunk
+            chunk_text = '\n'.join(chunk)
+            if chunk_text.strip():
+                try:
+                    # Parse chunk
+                    parsed_data = parse_nodes_text(chunk_text, protocol)
+                    
+                    # Process nodes
+                    results = process_parsed_nodes(db, parsed_data, "no_test")
+                    
+                    # Update totals
+                    total_added += len(results['added'])
+                    total_skipped += len(results['skipped'])
+                    total_replaced += len(results['replaced'])
+                    total_errors += len(results['errors'])
+                    
+                except Exception as chunk_error:
+                    logger.error(f"Error processing chunk {chunk_index}: {chunk_error}")
+                    total_errors += 1
+        
+        # Final progress update
+        progress_data = import_progress.get(session_id, {})
+        progress_data.update({
+            'processed_chunks': len(chunks),
+            'added': total_added,
+            'skipped': total_skipped,
+            'replaced': total_replaced,
+            'errors': total_errors,
+            'status': 'completed',
+            'current_operation': 'Import completed'
+        })
+        import_progress[session_id] = progress_data
+        
+        db.close()
+        logger.info(f"Chunked import completed - session: {session_id}, added: {total_added}, skipped: {total_skipped}")
+        
+    except Exception as e:
+        logger.error(f"Error in chunked import processing: {e}")
+        # Mark as failed
+        progress_data = import_progress.get(session_id, {})
+        progress_data.update({
+            'status': 'failed',
+            'current_operation': f'Failed: {str(e)}'
+        })
+        import_progress[session_id] = progress_data
+
 async def process_import_testing_batches(session_id: str, node_ids: list, testing_mode: str, db_session: Session):
     """Process node testing in batches to prevent hanging and preserve results"""
     
