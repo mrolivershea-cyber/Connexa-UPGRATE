@@ -3498,6 +3498,8 @@ async def start_socks_services(
                 "message": f"Ошибка запуска SOCKS: {str(e)}"
             })
     
+    # Commit changes to database
+    db.commit()
     return {"results": results}
 
 @api_router.post("/socks/stop")
