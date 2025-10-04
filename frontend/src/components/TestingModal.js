@@ -286,7 +286,9 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], onTestComplete })
       let endpoint;
       
       // ALWAYS use progress-enabled endpoints
-      if (testType === 'ping') {
+      if (testType === 'ping_light') {
+        endpoint = 'manual/ping-light-test';
+      } else if (testType === 'ping') {
         endpoint = 'manual/ping-test-batch-progress';
       } else if (testType === 'speed') {
         endpoint = 'manual/speed-test-batch-progress';
