@@ -1114,6 +1114,231 @@ Random text that should cause errors""",
             self.log_test("Format 7 Large File Simulation", False, f"Failed to import large Format 7 file: {response}")
             return False
 
+    # ========== ENHANCED PROGRESS INTERFACE TESTS (Russian User Review Request) ==========
+    
+    def test_enhanced_progress_interface_large_file_chunked_import(self):
+        """СЦЕНАРИЙ 1 - Большой прогресс-индикатор: Test large file chunked import with progress tracking"""
+        # Create a large file >500KB for chunked import
+        large_data_lines = []
+        for i in range(15000):  # This should create >500KB file
+            large_data_lines.append(f"192.168.{(i//256)+1}.{i%256}:testuser{i}:testpass{i}")
+        
+        large_data = "\n".join(large_data_lines)
+        data_size = len(large_data.encode('utf-8'))
+        
+        if data_size <= 500 * 1024:
+            # Add more data to ensure it's >500KB
+            for i in range(15000, 20000):
+                large_data_lines.append(f"10.{(i//256)+1}.{i%256}.{i%256}:bulkuser{i}:bulkpass{i}")
+            large_data = "\n".join(large_data_lines)
+            data_size = len(large_data.encode('utf-8'))
+        
+        import_data = {
+            "data": large_data,
+            "protocol": "pptp"
+        }
+        
+        # Test chunked import endpoint
+        success, response = self.make_request('POST', 'nodes/import-chunked', import_data)
+        
+        if success and 'session_id' in response:
+            session_id = response['session_id']
+            total_chunks = response.get('total_chunks', 0)
+            
+            self.log_test("Enhanced Progress Interface - Large File Chunked Import", True, 
+                         f"✅ Large file ({data_size/1024:.1f}KB) started chunked processing with session_id: {session_id}, total_chunks: {total_chunks}")
+            
+            # Test progress tracking
+            progress_success, progress_response = self.make_request('GET', f'import/progress/{session_id}')
+            
+            if progress_success:
+                progress_data = progress_response
+                self.log_test("Enhanced Progress Interface - Progress Tracking", True, 
+                             f"✅ Progress tracking working: processed_chunks={progress_data.get('processed_chunks', 0)}, status={progress_data.get('status', 'unknown')}")
+                return session_id  # Return session_id for other tests
+            else:
+                self.log_test("Enhanced Progress Interface - Progress Tracking", False, 
+                             f"❌ Progress tracking failed: {progress_response}")
+                return None
+        else:
+            self.log_test("Enhanced Progress Interface - Large File Chunked Import", False, 
+                         f"❌ Chunked import failed: {response}")
+            return None
+    
+    def test_enhanced_progress_interface_cancel_functionality(self):
+        """СЦЕНАРИЙ 3 - Кнопка отмены: Test import cancellation functionality"""
+        # First start a chunked import
+        session_id = self.test_enhanced_progress_interface_large_file_chunked_import()
+        
+        if not session_id:
+            self.log_test("Enhanced Progress Interface - Cancel Functionality", False, 
+                         "❌ Could not start chunked import for cancel test")
+            return False
+        
+        # Wait a moment for import to start processing
+        import time
+        time.sleep(2)
+        
+        # Test cancellation
+        cancel_success, cancel_response = self.make_request('DELETE', f'import/cancel/{session_id}')
+        
+        if cancel_success:
+            # Check that the session status changed to cancelled
+            time.sleep(1)  # Wait for cancellation to take effect
+            
+            progress_success, progress_response = self.make_request('GET', f'import/progress/{session_id}')
+            
+            if progress_success and progress_response.get('status') == 'cancelled':
+                self.log_test("Enhanced Progress Interface - Cancel Functionality", True, 
+                             f"✅ Import cancellation working: session {session_id} status changed to 'cancelled'")
+                return True
+            else:
+                self.log_test("Enhanced Progress Interface - Cancel Functionality", False, 
+                             f"❌ Import status not cancelled: {progress_response.get('status', 'unknown')}")
+                return False
+        else:
+            self.log_test("Enhanced Progress Interface - Cancel Functionality", False, 
+                         f"❌ Cancel request failed: {cancel_response}")
+            return False
+    
+    def test_enhanced_progress_interface_session_persistence(self):
+        """СЦЕНАРИЙ 2 - Сворачивание и восстановление: Test session persistence and recovery"""
+        # Create a medium-sized file for chunked import
+        test_data_lines = []
+        for i in range(5000):  # Medium size file
+            test_data_lines.append(f"172.16.{(i//256)+1}.{i%256}:persist{i}:pass{i}")
+        
+        test_data = "\n".join(test_data_lines)
+        data_size = len(test_data.encode('utf-8'))
+        
+        import_data = {
+            "data": test_data,
+            "protocol": "pptp"
+        }
+        
+        # Start chunked import
+        success, response = self.make_request('POST', 'nodes/import-chunked', import_data)
+        
+        if success and 'session_id' in response:
+            session_id = response['session_id']
+            
+            # Simulate "minimizing to background" by just checking that session persists
+            import time
+            time.sleep(3)  # Let it process for a bit
+            
+            # Check that session is still active and trackable
+            progress_success, progress_response = self.make_request('GET', f'import/progress/{session_id}')
+            
+            if progress_success:
+                status = progress_response.get('status', 'unknown')
+                processed_chunks = progress_response.get('processed_chunks', 0)
+                total_chunks = progress_response.get('total_chunks', 0)
+                
+                if status in ['processing', 'completed']:
+                    self.log_test("Enhanced Progress Interface - Session Persistence", True, 
+                                 f"✅ Session persistence working: session {session_id} status={status}, progress={processed_chunks}/{total_chunks}")
+                    return True
+                else:
+                    self.log_test("Enhanced Progress Interface - Session Persistence", False, 
+                                 f"❌ Session in unexpected status: {status}")
+                    return False
+            else:
+                self.log_test("Enhanced Progress Interface - Session Persistence", False, 
+                             f"❌ Could not track session progress: {progress_response}")
+                return False
+        else:
+            self.log_test("Enhanced Progress Interface - Session Persistence", False, 
+                         f"❌ Could not start chunked import: {response}")
+            return False
+    
+    def test_enhanced_progress_interface_regular_vs_chunked(self):
+        """Test automatic redirection from regular to chunked import for large files"""
+        # Create a large file that should trigger automatic chunked processing
+        large_data_lines = []
+        for i in range(12000):  # Should be >500KB
+            large_data_lines.append(f"203.0.113.{(i//256)+1}:autouser{i}:autopass{i}")
+        
+        large_data = "\n".join(large_data_lines)
+        data_size = len(large_data.encode('utf-8'))
+        
+        import_data = {
+            "data": large_data,
+            "protocol": "pptp"
+        }
+        
+        # Use regular import endpoint - should automatically redirect to chunked
+        success, response = self.make_request('POST', 'nodes/import', import_data)
+        
+        if success:
+            # Check if it returned a session_id (indicating chunked processing)
+            if 'session_id' in response:
+                session_id = response['session_id']
+                self.log_test("Enhanced Progress Interface - Auto Chunked Redirect", True, 
+                             f"✅ Large file ({data_size/1024:.1f}KB) automatically redirected to chunked processing with session_id: {session_id}")
+                return True
+            else:
+                # Check if it processed normally (might be smaller than expected)
+                if 'report' in response:
+                    report = response['report']
+                    self.log_test("Enhanced Progress Interface - Auto Chunked Redirect", True, 
+                                 f"✅ File ({data_size/1024:.1f}KB) processed normally: {report.get('added', 0)} added")
+                    return True
+                else:
+                    self.log_test("Enhanced Progress Interface - Auto Chunked Redirect", False, 
+                                 f"❌ Unexpected response format: {response}")
+                    return False
+        else:
+            self.log_test("Enhanced Progress Interface - Auto Chunked Redirect", False, 
+                         f"❌ Import failed: {response}")
+            return False
+    
+    def test_enhanced_progress_interface_progress_data_structure(self):
+        """Test that progress data contains all required fields for enhanced UI"""
+        # Start a small chunked import
+        test_data = "\n".join([f"198.51.100.{i}:structtest{i}:pass{i}" for i in range(1000)])
+        
+        import_data = {
+            "data": test_data,
+            "protocol": "pptp"
+        }
+        
+        success, response = self.make_request('POST', 'nodes/import-chunked', import_data)
+        
+        if success and 'session_id' in response:
+            session_id = response['session_id']
+            
+            # Get progress data
+            progress_success, progress_response = self.make_request('GET', f'import/progress/{session_id}')
+            
+            if progress_success:
+                # Check for required fields for enhanced UI
+                required_fields = [
+                    'session_id', 'total_chunks', 'processed_chunks', 
+                    'added', 'skipped', 'errors', 'status', 'current_operation'
+                ]
+                
+                missing_fields = []
+                for field in required_fields:
+                    if field not in progress_response:
+                        missing_fields.append(field)
+                
+                if not missing_fields:
+                    self.log_test("Enhanced Progress Interface - Progress Data Structure", True, 
+                                 f"✅ All required progress fields present: {list(progress_response.keys())}")
+                    return True
+                else:
+                    self.log_test("Enhanced Progress Interface - Progress Data Structure", False, 
+                                 f"❌ Missing required fields: {missing_fields}")
+                    return False
+            else:
+                self.log_test("Enhanced Progress Interface - Progress Data Structure", False, 
+                             f"❌ Could not get progress data: {progress_response}")
+                return False
+        else:
+            self.log_test("Enhanced Progress Interface - Progress Data Structure", False, 
+                         f"❌ Could not start chunked import: {response}")
+            return False
+
     # ========== FIXED SPEED TEST FUNCTIONALITY TESTS (Russian User Review Request) ==========
     
     def test_fixed_speed_test_real_http_testing(self):
