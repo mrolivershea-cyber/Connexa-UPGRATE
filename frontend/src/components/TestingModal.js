@@ -319,15 +319,16 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], onTestComplete })
         const savedState = {
           sessionId: response.data.session_id,
           loading: true,
-          progressData: null,
-          results: null,
           testType,
-          selectedNodeIds,
-          processedNodes: 0,
           totalNodes: selectedNodeIds.length,
           timestamp: Date.now()
+          // REMOVED large arrays to prevent localStorage overflow
         };
-        localStorage.setItem('testingProgress', JSON.stringify(savedState));
+        try {
+          localStorage.setItem('testingProgress', JSON.stringify(savedState));
+        } catch (e) {
+          console.warn('Failed to save test start state to localStorage:', e.message);
+        }
         toast.info(response.data.message || 'Тестирование начато');
         // Don't set loading to false yet, SSE will handle completion
       } else {
@@ -367,17 +368,19 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], onTestComplete })
     if (sessionId || loading) {
       const savedState = {
         sessionId,
-        loading,
-        progressData,
-        results,
+        testRunning: true,
         testType,
-        selectedNodeIds,
-        processedNodes,
         totalNodes,
         timestamp: Date.now()
+        // REMOVED large objects to prevent localStorage overflow
       };
-      localStorage.setItem('testingProgress', JSON.stringify(savedState));
-      toast.info('Тестирование свернуто. Откройте Testing для просмотра прогресса.');
+      try {
+        localStorage.setItem('testingProgress', JSON.stringify(savedState));
+        toast.info('Тестирование свернуто. Откройте Testing для просмотра прогресса.');
+      } catch (e) {
+        console.warn('Failed to save minimized state to localStorage:', e.message);
+        toast.info('Тестирование продолжается в фоне.');
+      }
     }
     
     // Close the modal but keep the process running

@@ -36,38 +36,49 @@ async def tcp_connect_measure(ip: str, port: int, per_attempt_timeout: float) ->
         return False, per_attempt_timeout * 1000.0, f"EXC:{str(e)}"
 
 async def multiport_tcp_ping(ip: str, ports: List[int], timeouts: List[float]) -> Dict:
-    """СВЕРХ-БЫСТРЫЙ ping тест - один порт, один таймаут, немедленный результат"""
+    """Более строгий ping тест с множественными попытками для точности"""
     
-    # МАКСИМАЛЬНОЕ УПРОЩЕНИЕ: только первый порт, только первый таймаут
     port = ports[0] if ports else 1723
-    timeout = 0.5  # АГРЕССИВНО короткий таймаут
+    attempts = 3  # Минимум 3 попытки для достоверности
+    successful_attempts = 0
+    total_time = 0.0
     
-    # ЕДИНСТВЕННАЯ попытка подключения
-    ok, elapsed, err = await tcp_connect_measure(ip, port, timeout)
+    for attempt in range(attempts):
+        ok, elapsed, err = await tcp_connect_measure(ip, port, 1.5)  # Увеличен таймаут
+        if ok:
+            successful_attempts += 1
+            total_time += elapsed
+            
+        # Небольшая пауза между попытками
+        if attempt < attempts - 1:
+            await asyncio.sleep(0.3)
     
-    if ok:
-        # НЕМЕДЛЕННЫЙ успех
+    # Требуем минимум 2 из 3 успешных попыток
+    success_rate = (successful_attempts / attempts) * 100.0
+    success = successful_attempts >= 2
+    
+    if success:
+        avg_time = total_time / successful_attempts
         return {
             "success": True,
-            "avg_time": round(elapsed, 1),
-            "best_time": round(elapsed, 1),
-            "success_rate": 100.0,
-            "attempts_total": 1,
-            "attempts_ok": 1,
-            "details": {port: {"ok": 1, "fail": 0, "best_ms": elapsed}},
-            "message": f"TCP reachability: OK (ULTRA-FAST); {elapsed:.1f}ms",
+            "avg_time": round(avg_time, 1),
+            "best_time": round(avg_time, 1),
+            "success_rate": round(success_rate, 1),
+            "attempts_total": attempts,
+            "attempts_ok": successful_attempts,
+            "details": {port: {"ok": successful_attempts, "fail": attempts - successful_attempts, "best_ms": avg_time}},
+            "message": f"PPTP port accessible: {successful_attempts}/{attempts} attempts OK; {avg_time:.1f}ms avg",
         }
     else:
-        # НЕМЕДЛЕННАЯ неудача
         return {
             "success": False,
             "avg_time": 0.0,
             "best_time": 0.0,
-            "success_rate": 0.0,
-            "attempts_total": 1,
-            "attempts_ok": 0,
-            "details": {port: {"ok": 0, "fail": 1, "best_ms": None}},
-            "message": f"TCP reachability: FAILED (ULTRA-FAST); {err}",
+            "success_rate": round(success_rate, 1),
+            "attempts_total": attempts,
+            "attempts_ok": successful_attempts,
+            "details": {port: {"ok": successful_attempts, "fail": attempts - successful_attempts, "best_ms": None}},
+            "message": f"PPTP port unreliable: {successful_attempts}/{attempts} attempts failed; likely not a working PPTP server",
         }
 
     success_rate = (total_ok / max(1, total_attempts)) * 100.0
