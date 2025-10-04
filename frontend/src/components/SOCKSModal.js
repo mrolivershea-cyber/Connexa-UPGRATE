@@ -69,8 +69,9 @@ const SOCKSModal = ({ isOpen, onClose, selectedNodeIds = [] }) => {
   useEffect(() => {
     if (isOpen) {
       loadSOCKSData();
+      loadSelectedNodesInfo();
     }
-  }, [isOpen]);
+  }, [isOpen, selectedNodeIds]);
 
   const loadSelectedNodesInfo = async () => {
     if (selectedNodeIds.length === 0) {
