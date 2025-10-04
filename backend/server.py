@@ -833,7 +833,16 @@ async def process_chunks_async(chunks: list, protocol: str, session_id: str, use
         })
         import_progress[session_id] = progress_data
         
-        db.close()
+        # CRITICAL FIX: Commit all changes before closing
+        try:
+            db.commit()
+            logger.info(f"✅ Chunked import committed to database - session: {session_id}")
+        except Exception as commit_error:
+            logger.error(f"❌ CRITICAL: Failed to commit chunked import: {commit_error}")
+            db.rollback()
+        finally:
+            db.close()
+        
         logger.info(f"Chunked import completed - session: {session_id}, added: {total_added}, skipped: {total_skipped}")
         
     except Exception as e:
