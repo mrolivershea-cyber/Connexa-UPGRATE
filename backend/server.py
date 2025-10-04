@@ -929,9 +929,14 @@ def parse_nodes_text(text: str, protocol: str = "pptp") -> dict:
             
             is_single_line = False
             
-            # Check Format 4: Colon-separated (at least 5 colons, starts with IP)
+            # Check Format 7: Simple IP:Login:Pass (exactly 2 colons)
             parts_colon = line.split(':')
-            if len(parts_colon) >= 6 and is_valid_ip(parts_colon[0].strip()):
+            if len(parts_colon) == 3 and is_valid_ip(parts_colon[0].strip()):
+                single_line_blocks.append(line)
+                is_single_line = True
+            
+            # Check Format 4: Colon-separated (at least 5 colons, starts with IP)
+            elif len(parts_colon) >= 6 and is_valid_ip(parts_colon[0].strip()):
                 single_line_blocks.append(line)
                 is_single_line = True
             
