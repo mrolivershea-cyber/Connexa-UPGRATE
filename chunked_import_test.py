@@ -109,7 +109,7 @@ class ChunkedImportTester:
         print("\n🔍 СЦЕНАРИЙ 1 - Testing Chunked Import for Large Files (>500KB)")
         
         # Generate test data >500KB (create ~600KB file)
-        test_data = self.generate_large_test_data(600)
+        test_data = self.generate_large_test_data(600, "172.20")
         data_size_kb = len(test_data.encode('utf-8')) / 1024
         
         print(f"   Generated test data: {data_size_kb:.1f}KB")
