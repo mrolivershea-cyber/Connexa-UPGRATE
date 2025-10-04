@@ -48,6 +48,7 @@ const AdminPanel = () => {
   const [showExportModal, setShowExportModal] = useState(false);
   const [showOptionsModal, setShowOptionsModal] = useState(false);
   const [showTestingModal, setShowTestingModal] = useState(false);
+  const [showSOCKSModal, setShowSOCKSModal] = useState(false);
   
   // Add state for format error modal
   const [showFormatErrorModal, setShowFormatErrorModal] = useState(false);
