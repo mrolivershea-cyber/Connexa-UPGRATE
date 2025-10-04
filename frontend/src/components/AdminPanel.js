@@ -565,34 +565,7 @@ const AdminPanel = () => {
                   Stop Services
                 </Button>
                 
-                {/* Manual Testing Workflow Buttons */}
-                <Button 
-                  onClick={handleManualPingTest}
-                  disabled={!selectAllMode && selectedNodes.length === 0}
-                  className="bg-blue-600 hover:bg-blue-700"
-                  data-testid="manual-ping-btn"
-                >
-                  <Zap className="h-4 w-4 mr-2" />
-                  Ping Test
-                </Button>
-                <Button 
-                  onClick={handleManualSpeedTest}
-                  disabled={!selectAllMode && selectedNodes.length === 0}
-                  className="bg-orange-600 hover:bg-orange-700"
-                  data-testid="manual-speed-btn"
-                >
-                  <Activity className="h-4 w-4 mr-2" />
-                  Speed Test
-                </Button>
-                <Button 
-                  onClick={handleManualLaunchServices}
-                  disabled={!selectAllMode && selectedNodes.length === 0}
-                  className="bg-purple-600 hover:bg-purple-700"
-                  data-testid="manual-launch-btn"
-                >
-                  <Server className="h-4 w-4 mr-2" />
-                  Launch Services
-                </Button>
+                {/* Import and Testing Actions */}
                 <Button 
                   onClick={() => setShowImportModal(true)}
                   data-testid="import-btn"
