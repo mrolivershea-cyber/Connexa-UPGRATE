@@ -39,6 +39,14 @@ MAX_SPEED_GLOBAL = 2  # Критически снижено для стабил�
 global_ping_sem = asyncio.Semaphore(MAX_PING_GLOBAL)
 global_speed_sem = asyncio.Semaphore(MAX_SPEED_GLOBAL)
 
+# Система защиты от перегрузки
+active_sessions = set()
+MAX_CONCURRENT_SESSIONS = 2  # Максимум 2 тестовых сессии одновременно
+
+def can_start_new_session() -> bool:
+    """Проверка возможности запуска новой сессии"""
+    return len(active_sessions) < MAX_CONCURRENT_SESSIONS
+
 class ProgressTracker:
     def __init__(self, session_id: str, total_items: int):
         self.session_id = session_id
