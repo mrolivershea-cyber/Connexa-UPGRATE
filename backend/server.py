@@ -2654,7 +2654,7 @@ async def process_testing_batches(session_id: str, node_ids: list, testing_mode:
     failed_tests = 0
 
     if ping_timeouts is None:
-        ping_timeouts = [0.8, 1.2, 1.6]
+        ping_timeouts = [2.0, 3.0, 5.0]  # Более щадящие таймауты для российских серверов
     
     try:
         # Get fresh database session for background processing
