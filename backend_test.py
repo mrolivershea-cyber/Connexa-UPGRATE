@@ -14610,6 +14610,128 @@ City: TestCity"""
                          f"Failed to import test nodes: {import_response}")
             return False
 
+    def test_chunked_import_critical_commit_fix(self):
+        """CRITICAL TEST: Verify chunked import commit fix - data must persist in database"""
+        print("\n🔥 CRITICAL CHUNKED IMPORT COMMIT FIX TEST")
+        print("Testing the specific fix: db.commit() added to process_chunks_async() at lines 837-842")
+        
+        # Create medium-sized test data to trigger chunked processing (~50 nodes)
+        import time
+        timestamp = str(int(time.time()))[-4:]
+        test_nodes = []
+        for i in range(50):
+            test_nodes.append(f"10.99.{timestamp[-2:]}.{i}:commituser{timestamp}{i}:commitpass{timestamp}{i}")
+        
+        test_data = "\n".join(test_nodes)
+        data_size = len(test_data.encode('utf-8'))
+        
+        print(f"📊 Test data: {len(test_nodes)} nodes, {data_size} bytes")
+        
+        # Force chunked processing by using direct endpoint
+        import_data = {
+            "data": test_data,
+            "protocol": "pptp"
+        }
+        
+        # Step 1: Start chunked import
+        success, response = self.make_request('POST', 'nodes/import-chunked', import_data)
+        
+        if not success:
+            self.log_test("CRITICAL Chunked Import Commit Fix", False, f"Failed to start chunked import: {response}")
+            return False
+        
+        session_id = response.get('session_id')
+        if not session_id:
+            self.log_test("CRITICAL Chunked Import Commit Fix", False, "No session_id returned")
+            return False
+        
+        print(f"✅ Chunked import started with session_id: {session_id}")
+        
+        # Step 2: Monitor progress until completion
+        max_wait = 60  # 60 seconds max wait
+        wait_time = 0
+        final_status = None
+        
+        while wait_time < max_wait:
+            time.sleep(2)
+            wait_time += 2
+            
+            progress_success, progress_response = self.make_request('GET', f'import/progress/{session_id}')
+            
+            if progress_success:
+                status = progress_response.get('status')
+                processed_chunks = progress_response.get('processed_chunks', 0)
+                total_chunks = progress_response.get('total_chunks', 0)
+                current_operation = progress_response.get('current_operation', '')
+                
+                print(f"📈 Progress: {status} - {processed_chunks}/{total_chunks} chunks - {current_operation}")
+                
+                if status == 'completed':
+                    final_status = 'completed'
+                    added = progress_response.get('added', 0)
+                    print(f"✅ Import completed: {added} nodes added")
+                    break
+                elif status == 'failed':
+                    final_status = 'failed'
+                    print(f"❌ Import failed: {current_operation}")
+                    break
+        
+        if final_status != 'completed':
+            self.log_test("CRITICAL Chunked Import Commit Fix", False, 
+                         f"Import did not complete successfully. Final status: {final_status}")
+            return False
+        
+        # Step 3: CRITICAL TEST - Verify data was actually committed to database
+        print("🔍 CRITICAL: Verifying data persistence in database...")
+        
+        # Check database for our test nodes
+        verified_nodes = 0
+        sample_indices = [0, 10, 20, 30, 40]  # Check 5 sample nodes
+        
+        for idx in sample_indices:
+            expected_ip = f"10.99.{timestamp[-2:]}.{idx}"
+            expected_login = f"commituser{timestamp}{idx}"
+            expected_password = f"commitpass{timestamp}{idx}"
+            
+            nodes_success, nodes_response = self.make_request('GET', f'nodes?ip={expected_ip}')
+            
+            if nodes_success and 'nodes' in nodes_response and nodes_response['nodes']:
+                node = nodes_response['nodes'][0]
+                if (node.get('ip') == expected_ip and 
+                    node.get('login') == expected_login and 
+                    node.get('password') == expected_password and
+                    node.get('status') == 'not_tested'):
+                    verified_nodes += 1
+                    print(f"✅ Node {idx} verified in database: {expected_ip}")
+                else:
+                    print(f"❌ Node {idx} data mismatch: expected {expected_ip}/{expected_login}, got {node.get('ip')}/{node.get('login')}")
+            else:
+                print(f"❌ Node {idx} NOT FOUND in database: {expected_ip}")
+        
+        # Step 4: Test data persistence after "restart" (query again after delay)
+        print("🔄 Testing data persistence after delay (simulating restart)...")
+        time.sleep(3)
+        
+        # Re-query the same nodes to ensure they persist
+        persistent_nodes = 0
+        for idx in sample_indices:
+            expected_ip = f"10.99.{timestamp[-2:]}.{idx}"
+            
+            nodes_success, nodes_response = self.make_request('GET', f'nodes?ip={expected_ip}')
+            
+            if nodes_success and 'nodes' in nodes_response and nodes_response['nodes']:
+                persistent_nodes += 1
+        
+        # Step 5: Final verification
+        if verified_nodes >= 5 and persistent_nodes >= 5:
+            self.log_test("CRITICAL Chunked Import Commit Fix", True, 
+                         f"✅ CRITICAL FIX VERIFIED: All {verified_nodes}/5 nodes saved to database and persist after delay. db.commit() fix working correctly!")
+            return True
+        else:
+            self.log_test("CRITICAL Chunked Import Commit Fix", False, 
+                         f"❌ CRITICAL ISSUE: Only {verified_nodes}/5 nodes verified in DB, {persistent_nodes}/5 persistent. Data loss detected - commit fix may not be working!")
+            return False
+
     def run_all_tests(self):
         """Run all backend tests"""
         print("🚀 Starting Connexa Backend API Tests")
@@ -14624,6 +14746,12 @@ City: TestCity"""
         if not self.test_login():
             print("❌ Login failed - stopping tests")
             return False
+        
+        # ========== CRITICAL CHUNKED IMPORT COMMIT FIX TEST (Review Request Priority) ==========
+        print("\n" + "🔥" * 30)
+        print("CRITICAL CHUNKED IMPORT COMMIT FIX TESTING")
+        print("🔥" * 30)
+        self.test_chunked_import_critical_commit_fix()
         
         # ========== IMPROVED PING WORKFLOW TESTS (Review Request) ==========
         print("\n" + "="*80)
