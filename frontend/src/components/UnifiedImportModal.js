@@ -323,19 +323,25 @@ const UnifiedImportModal = ({ isOpen, onClose, onComplete }) => {
                   )}
                 </div>
                 
-                {/* Statistics */}
-                <div className="grid grid-cols-3 gap-2 text-sm">
-                  <div className="text-center p-2 bg-green-100 rounded">
-                    <div className="font-semibold text-green-800">{progress?.added || 0}</div>
+                {/* Detailed Statistics */}
+                <div className="grid grid-cols-4 gap-2 text-sm">
+                  <div className="text-center p-3 bg-green-100 rounded-lg border border-green-200">
+                    <div className="text-xl font-bold text-green-800">{progress?.added || 0}</div>
                     <div className="text-xs text-green-600">✅ Добавлено</div>
                   </div>
-                  <div className="text-center p-2 bg-yellow-100 rounded">
-                    <div className="font-semibold text-yellow-800">{progress?.skipped || 0}</div>
+                  <div className="text-center p-3 bg-yellow-100 rounded-lg border border-yellow-200">
+                    <div className="text-xl font-bold text-yellow-800">{progress?.skipped || 0}</div>
                     <div className="text-xs text-yellow-600">⚠️ Пропущено</div>
                   </div>
-                  <div className="text-center p-2 bg-red-100 rounded">
-                    <div className="font-semibold text-red-800">{progress?.errors || 0}</div>
+                  <div className="text-center p-3 bg-red-100 rounded-lg border border-red-200">
+                    <div className="text-xl font-bold text-red-800">{progress?.errors || 0}</div>
                     <div className="text-xs text-red-600">❌ Ошибок</div>
+                  </div>
+                  <div className="text-center p-3 bg-blue-100 rounded-lg border border-blue-200">
+                    <div className="text-xl font-bold text-blue-800">
+                      {((progress?.added || 0) + (progress?.skipped || 0) + (progress?.errors || 0))}
+                    </div>
+                    <div className="text-xs text-blue-600">📊 Всего</div>
                   </div>
                 </div>
                 
