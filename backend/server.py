@@ -2675,15 +2675,15 @@ async def process_testing_batches(session_id: str, node_ids: list, testing_mode:
     """Process testing in batches for any test type with concurrency controls"""
     
     total_nodes = len(node_ids)
-    # КОНСЕРВАТИВНЫЕ батчи для предотвращения перегрузки
+    # АГРЕССИВНЫЕ большие батчи для максимальной скорости
     if total_nodes < 100:
-        BATCH_SIZE = 10   # Очень маленькие батчи для малых объемов
+        BATCH_SIZE = 50   # Большие батчи даже для малых объемов
     elif total_nodes < 500:
-        BATCH_SIZE = 20   # Небольшие батчи
+        BATCH_SIZE = 100  # Большие батчи
     elif total_nodes < 1000:
-        BATCH_SIZE = 30   # Средние батчи 
+        BATCH_SIZE = 200  # Очень большие батчи
     else:
-        BATCH_SIZE = 50   # Максимальный размер батча критически снижен
+        BATCH_SIZE = 300  # МАКСИМАЛЬНЫЕ батчи для скорости
     processed_nodes = 0
     failed_tests = 0
 
