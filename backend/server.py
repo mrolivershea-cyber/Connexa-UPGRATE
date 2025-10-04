@@ -2665,7 +2665,7 @@ async def manual_ping_light_test(
                 "new_status": None
             })
         finally:
-            test_dedupe_mark_finished(node_id, "ping_light")
+            test_dedupe_mark_finished(node_id)
     
     return {"results": results}
 @api_router.post("/manual/ping-test")
