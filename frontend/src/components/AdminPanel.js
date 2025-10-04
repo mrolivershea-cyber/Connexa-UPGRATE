@@ -733,6 +733,12 @@ const AdminPanel = () => {
         }}
       />
       
+      <SOCKSModal 
+        isOpen={showSOCKSModal}
+        onClose={() => setShowSOCKSModal(false)}
+        selectedNodeIds={selectAllMode ? allSelectedIds : selectedNodes}
+      />
+      
       {/* Format Error Modal */}
       <Dialog open={showFormatErrorModal} onOpenChange={setShowFormatErrorModal}>
         <DialogContent className="max-w-4xl max-h-[80vh]">
