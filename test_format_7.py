@@ -140,8 +140,8 @@ class Format7Tester:
             report = response['report']
             if report.get('added', 0) >= 2:
                 # Verify first node
-                ip1 = f"144.229.{timestamp[-3:]}.35"
-                ip2 = f"76.178.{timestamp[-3:]}.46"
+                ip1 = f"144.229.{ip_part}.35"
+                ip2 = f"76.178.{ip_part}.46"
                 
                 nodes_success1, nodes_response1 = self.make_request('GET', f'nodes?ip={ip1}')
                 nodes_success2, nodes_response2 = self.make_request('GET', f'nodes?ip={ip2}')
