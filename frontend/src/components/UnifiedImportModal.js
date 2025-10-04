@@ -13,6 +13,7 @@ import axios from 'axios';
 
 const UnifiedImportModal = ({ isOpen, onClose, onComplete }) => {
   const { API } = useAuth();
+  const { addSession } = useTesting();
 
   // Import form state
   const [importData, setImportData] = useState('');
