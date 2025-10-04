@@ -112,7 +112,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Critical Status Assignment Bug and Admin Panel Enhancement: User imported 2,336 PPTP configurations which incorrectly received 'online' status instead of 'not_tested'. The /api/stats endpoint shows 'Not Tested: 2' when it should show 2,332. Need to: 1) Fix status assignment logic for new imports, 2) Implement manual testing workflow (ping → speed → SOCKS+OVPN service launch), 3) Add background monitoring for online nodes every 5 minutes, 4) Add last_update field for offline status tracking."
+user_problem_statement: "Russian User Request - Simplified Import Process: User experienced issues with automatic testing during import and requested to simplify the import modal. Requirements: 1) Remove all testing mode options (Ping only, Speed only, No test) from import modal, 2) Always assign 'not_tested' status to new imported nodes, 3) Remove automatic testing during import - user will run tests manually through Testing modal, 4) Simplify import UI to basic functionality only."
 
 backend:
   - task: "Fixed critical import status assignment bug"
