@@ -27,6 +27,7 @@ import { useAuth } from '../contexts/AuthContext';
 const SOCKSModal = ({ isOpen, onClose, selectedNodeIds = [] }) => {
   const { API } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [selectedNodesInfo, setSelectedNodesInfo] = useState([]);
   const [socksStats, setSocksStats] = useState({
     active_connections: 0,
     total_tunnels: 0,
