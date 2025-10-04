@@ -13,6 +13,7 @@ import axios from 'axios';
 
 const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], onTestComplete }) => {
   const { API } = useAuth();
+  const { getActiveImportSession, updateSession, removeSession, addSession } = useTesting();
   const [loading, setLoading] = useState(false);
   const [testType, setTestType] = useState('ping');
   const [results, setResults] = useState(null);
