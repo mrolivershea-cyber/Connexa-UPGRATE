@@ -78,6 +78,7 @@ class Node(Base):
     socks_port = Column(Integer, nullable=True)   # SOCKS proxy port  
     socks_login = Column(String(100), nullable=True)  # SOCKS proxy login
     socks_password = Column(String(255), nullable=True)  # SOCKS proxy password
+    previous_status = Column(String(20), nullable=True)  # Status before SOCKS launch (for proper restoration)
     
     # OVPN Configuration (populated when services are launched)
     ovpn_config = Column(Text, nullable=True)  # Complete OVPN configuration
