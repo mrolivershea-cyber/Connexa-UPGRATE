@@ -637,6 +637,7 @@ async def import_nodes(
     
     # If file is large (>500KB), redirect to chunked processing
     if data_size > 500 * 1024:  # 500KB threshold
+        logger.info(f"Large file detected ({data_size/1024:.1f}KB) - redirecting to chunked processing")
         return await import_nodes_chunked(data, current_user, db)
     
     # Force no_test mode - user will run tests manually through Testing modal
