@@ -112,15 +112,37 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], onTestComplete })
       const savedState = {
         sessionId,
         loading,
-        progressData,
-        results,
+        progressData: {
+          // Only save essential progress data
+          processed: progressData?.processed_items || 0,
+          total: progressData?.total_items || 0,
+          currentOperation: progressData?.current_task || ''
+        },
         testType,
-        selectedNodeIds,
-        processedNodes,
         totalNodes,
         timestamp: Date.now()
+        // REMOVED: selectedNodeIds, results, processedNodes - too large for localStorage
       };
-      localStorage.setItem('testingProgress', JSON.stringify(savedState));
+      
+      try {
+        // Check localStorage size before saving
+        const stateString = JSON.stringify(savedState);
+        if (stateString.length > 100000) { // 100KB limit
+          console.warn('Testing state too large for localStorage, saving minimal data');
+          const minimalState = {
+            sessionId,
+            loading,
+            totalNodes,
+            timestamp: Date.now()
+          };
+          localStorage.setItem('testingProgress', JSON.stringify(minimalState));
+        } else {
+          localStorage.setItem('testingProgress', stateString);
+        }
+      } catch (e) {
+        console.warn('Failed to save testing progress to localStorage:', e.message);
+        // Continue without localStorage
+      }
     };
 
     // Persist immediately and on interval
