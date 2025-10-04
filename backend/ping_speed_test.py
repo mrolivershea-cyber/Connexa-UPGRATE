@@ -147,19 +147,27 @@ class PPTPTester:
             if successful_connections > 0:
                 avg_time = total_time / successful_connections
                 packet_loss = ((attempts - successful_connections) / attempts) * 100.0
-                if packet_loss <= 75.0:
+                # Более строгие требования для PPTP серверов
+                if packet_loss <= 25.0:  # Максимум 25% потерь (было 75%)
                     return {
                         "success": True,
                         "avg_time": round(avg_time, 1),
                         "packet_loss": round(packet_loss, 1),
-                        "message": f"PPTP 1723 OK - {avg_time:.1f}ms avg, {packet_loss:.0f}% loss",
+                        "message": f"PPTP 1723 working - {avg_time:.1f}ms avg, {packet_loss:.0f}% loss",
+                    }
+                elif packet_loss <= 50.0:
+                    return {
+                        "success": False,
+                        "avg_time": round(avg_time, 1),
+                        "packet_loss": round(packet_loss, 1),
+                        "message": f"PPTP 1723 unreliable - {avg_time:.1f}ms avg, {packet_loss:.0f}% loss (may not work for VPN)",
                     }
                 else:
                     return {
                         "success": False,
                         "avg_time": round(avg_time, 1),
                         "packet_loss": round(packet_loss, 1),
-                        "message": f"PPTP 1723 unstable - {avg_time:.1f}ms avg, {packet_loss:.0f}% loss",
+                        "message": f"PPTP 1723 poor connection - {avg_time:.1f}ms avg, {packet_loss:.0f}% loss (unreliable for VPN)",
                     }
             else:
                 return {
