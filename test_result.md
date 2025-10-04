@@ -114,7 +114,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Russian User Request - Simplified Import Process: User experienced issues with automatic testing during import and requested to simplify the import modal. Requirements: 1) Remove all testing mode options (Ping only, Speed only, No test) from import modal, 2) Always assign 'not_tested' status to new imported nodes, 3) Remove automatic testing during import - user will run tests manually through Testing modal, 4) Simplify import UI to basic functionality only."
+user_problem_statement: "SOCKS Service Launch System Implementation: Implement complete SOCKS/OVPN service launch functionality with local SOCKS5 server, traffic masking, and management UI. Requirements: 1) Add 'SOCKS' button after 'Testing' in AdminPanel, 2) Create SOCKS modal with masking settings (obfuscation, HTTP/HTTPS imitation, timing randomization, tunnel encryption), 3) Add 'Socks Online' stats card, 4) Implement local SOCKS5 server with non-standard port, 5) Add separate SOCKS database for logs/reports, 6) Monitoring system every 30 seconds, 7) Auto-manage proxy text file, 8) Use existing SOCKS fields in nodes table (socks_ip, socks_port, socks_login, socks_password), 9) Status transitions: ping_ok/speed_ok → online (remove speed_slow status)."
 
 backend:
   - task: "Fixed critical import status assignment bug"
