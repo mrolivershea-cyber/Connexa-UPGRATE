@@ -190,6 +190,7 @@ const UnifiedImportModal = ({ isOpen, onClose, onComplete }) => {
           }
           
           setSubmitting(false);
+          setIsImportActive(false);
           setSessionId(null);
           
           if (progressData.status === 'completed') {
