@@ -61,7 +61,7 @@ async def multiport_tcp_ping(ip: str, ports: List[int], timeouts: List[float]) -
     best_ms: Optional[float] = None
     details: Dict[int, Dict[str, Optional[float]]] = {}
 
-    probe_ports = ports[:3] if ports else [1723]  # Проверяем до 3 портов для лучшего покрытия
+    probe_ports = ports[:1] if ports else [1723]  # ТОЛЬКО первый порт для максимальной скорости
 
     for idx, t in enumerate(timeouts):
         tasks = [tcp_connect_measure(ip, p, t) for p in probe_ports]
@@ -78,13 +78,24 @@ async def multiport_tcp_ping(ip: str, ports: List[int], timeouts: List[float]) -
                     rec["best_ms"] = elapsed
                 if best_ms is None or elapsed < best_ms:
                     best_ms = elapsed
+                # НЕМЕДЛЕННЫЙ EXIT при первом успехе для скорости
+                return {
+                    "success": True,
+                    "avg_time": round(elapsed, 1),
+                    "best_time": round(elapsed, 1),
+                    "success_rate": 100.0,
+                    "attempts_total": total_attempts,
+                    "attempts_ok": total_ok,
+                    "details": details,
+                    "message": f"TCP reachability: OK (FAST); {elapsed:.1f}ms",
+                }
             else:
                 rec["fail"] += 1
-        # Early-exit
-        if total_ok >= 2 or (total_ok >= 1 and (total_ok / max(1, total_attempts)) >= 0.5):
+        # Быстрый early-exit при первом успехе
+        if total_ok >= 1:
             break
         if not any_ok_this_round and idx < len(timeouts) - 1:
-            await asyncio.sleep(0.05)
+            await asyncio.sleep(0.02)  # Сокращено время ожидания
 
     success_rate = (total_ok / max(1, total_attempts)) * 100.0
     success = total_ok >= 2 or (total_ok >= 1 and success_rate >= 50.0)
