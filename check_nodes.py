@@ -4,7 +4,7 @@ import requests
 import json
 
 def check_nodes():
-    base_url = "https://node-monitor-dash.preview.emergentagent.com"
+    base_url = "https://vpn-status-panel.preview.emergentagent.com"
     api_url = f"{base_url}/api"
     
     # Login
