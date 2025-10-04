@@ -11,16 +11,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { toast } from 'sonner';
 import { 
   Server, 
-  Plus, 
   Settings, 
   Search, 
   X, 
   Download, 
   Trash2, 
-  MoreHorizontal,
-  Eye,
-  EyeOff,
-  Copy,
   LogOut,
   RefreshCw,
   Play,
