@@ -153,9 +153,6 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], onTestComplete })
             setLoading(false);
             
             if (data.status === 'completed') {
-              // Clear saved state when completed
-              localStorage.removeItem('testingProgress');
-              
               // Update session status in global state
               updateSession(sessionId, { status: 'completed' });
               
@@ -178,20 +175,39 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], onTestComplete })
               setResults(testResults);
               toast.success(`Тестирование завершено: ${testResults.filter(r => r.success).length} успешно`);
               
-              // Remove session after short delay to show completion
+              // Keep completed results visible for longer before cleanup
+              const completedState = {
+                sessionId,
+                loading: false,
+                progressData: data,
+                results: testResults,
+                testType,
+                selectedNodeIds,
+                processedNodes: data.processed_items || processedNodes,
+                totalNodes: data.total_items || totalNodes,
+                timestamp: Date.now(),
+                completed: true
+              };
+              localStorage.setItem('testingProgress', JSON.stringify(completedState));
+              
+              // Remove session after longer delay to show completion
               setTimeout(() => {
                 removeSession(sessionId);
-              }, 5000);
+                // Clean up after session removal, not immediately
+                setTimeout(() => {
+                  localStorage.removeItem('testingProgress');
+                }, 30000); // Keep for 30 seconds after session removal
+              }, 10000);
               
               if (onTestComplete) {
                 onTestComplete();
               }
             } else if (data.status === 'failed') {
-              localStorage.removeItem('testingProgress');
               updateSession(sessionId, { status: 'failed' });
               setTimeout(() => {
                 removeSession(sessionId);
-              }, 3000);
+                localStorage.removeItem('testingProgress');
+              }, 5000);
               toast.error('Ошибка при тестировании');
             }
           }
