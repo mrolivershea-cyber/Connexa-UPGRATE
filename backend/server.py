@@ -3563,6 +3563,8 @@ async def stop_socks_services(
                 "message": f"Ошибка остановки SOCKS: {str(e)}"
             })
     
+    # Commit changes to database
+    db.commit()
     return {"results": results}
 
 @api_router.get("/socks/database-report")
