@@ -101,11 +101,13 @@ const UnifiedImportModal = ({ isOpen, onClose, onComplete }) => {
         const { session_id, message } = response.data || {};
 
         if (session_id) {
+          console.log('Chunked processing started, session_id:', session_id);
           setSessionId(session_id);
           toast.success('🚀 Запущена chunked обработка большого файла...');
           startProgressTracking(session_id);
           return;
         } else {
+          console.error('No session_id received:', response.data);
           throw new Error(message || 'Не удалось запустить chunked processing');
         }
       } catch (error) {
