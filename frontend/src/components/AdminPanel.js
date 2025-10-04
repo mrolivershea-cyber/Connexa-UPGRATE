@@ -593,7 +593,7 @@ const AdminPanel = () => {
                 </Button>
                 <Button 
                   onClick={() => setShowSOCKSModal(true)}
-                  disabled={false}
+                  disabled={!selectAllMode && selectedNodes.length === 0}
                   variant="outline"
                   data-testid="socks-btn"
                   className="bg-purple-50 hover:bg-purple-100 border-purple-200"
