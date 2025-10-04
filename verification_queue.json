@@ -1191,5 +1191,20 @@
       4
     ],
     "status": "pending"
+  },
+  {
+    "id": 1759572761,
+    "timestamp": "2025-10-04T10:12:41.744452",
+    "node_data": {
+      "protocol": "pptp",
+      "ip": "96.234.52.227",
+      "login": "user1",
+      "password": "pass1",
+      "state": "New Jersey"
+    },
+    "conflicting_node_ids": [
+      4
+    ],
+    "status": "pending"
   }
 ]
