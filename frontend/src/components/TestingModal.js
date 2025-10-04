@@ -260,6 +260,10 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], onTestComplete })
       if (response.data.session_id) {
         // Track progress via SSE
         setSessionId(response.data.session_id);
+        
+        // Register session in global state
+        addSession(response.data.session_id, 'manual', selectedNodeIds, testType);
+        
         // Persist initial state to survive refreshes
         const savedState = {
           sessionId: response.data.session_id,
