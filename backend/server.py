@@ -3593,10 +3593,14 @@ async def get_socks_database_report(
             )
         ).all()
         
+        # Get monitoring stats
+        monitoring_stats = get_monitoring_stats()
+        
         report = {
             "generated_at": datetime.utcnow().isoformat(),
             "total_socks_nodes": len(socks_nodes),
             "online_socks": len([n for n in socks_nodes if n.status == "online"]),
+            "monitoring": monitoring_stats,
             "nodes": []
         }
         
@@ -3604,7 +3608,10 @@ async def get_socks_database_report(
             report["nodes"].append({
                 "id": node.id,
                 "ip": node.ip,
+                "city": node.city,
+                "country": node.country,
                 "status": node.status,
+                "previous_status": node.previous_status,
                 "socks_ip": node.socks_ip,
                 "socks_port": node.socks_port,
                 "socks_login": node.socks_login,
@@ -3615,6 +3622,29 @@ async def get_socks_database_report(
     except Exception as e:
         logger.error(f"Error generating SOCKS database report: {e}")
         raise HTTPException(status_code=500, detail="Error generating SOCKS database report")
+
+@api_router.get("/socks/monitoring")
+async def get_socks_monitoring_info(
+    current_user: User = Depends(get_current_user)
+):
+    """Get SOCKS monitoring system information"""
+    try:
+        monitoring_stats = get_monitoring_stats()
+        socks_server_stats = get_socks_stats()
+        
+        return {
+            "monitoring": monitoring_stats,
+            "server_stats": socks_server_stats,
+            "system_status": "operational" if monitoring_stats.get("monitoring_active") else "inactive"
+        }
+    except Exception as e:
+        logger.error(f"Error getting SOCKS monitoring info: {e}")
+        return {
+            "monitoring": {},
+            "server_stats": {},
+            "system_status": "error",
+            "error": str(e)
+        }
 
 # Include API router
 app.include_router(api_router)
