@@ -122,81 +122,28 @@ class PPTPTester:
     """Handles real PPTP ping and speed testing"""
 
     @staticmethod
-    async def ping_test(ip: str, timeout: int = 10, fast_mode: bool = False) -> Dict:
+    async def ping_test(ip: str, timeout: int = 2, fast_mode: bool = True) -> Dict:
         """
-        Perform connectivity test for PPTP server via TCP 1723
+        PING LIGHT - быстрая проверка доступности PPTP порта 1723
         Returns: {"success": bool, "avg_time": float, "packet_loss": float, "message": str}
         """
-        max_timeout = 8 if fast_mode else 12
-        attempts = 3 if fast_mode else 4
-        actual_timeout = min(timeout, max_timeout)
-
-        try:
-            successful_connections = 0
-            total_time = 0.0
-            last_error = None
-
-            for attempt in range(attempts):
-                try:
-                    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                    sock.settimeout(actual_timeout)
-                    start_time = time.time()
-                    result = sock.connect_ex((ip, 1723))
-                    if result == 0:
-                        end_time = time.time()
-                        connection_time = (end_time - start_time) * 1000.0
-                        successful_connections += 1
-                        total_time += connection_time
-                    sock.close()
-                except socket.timeout:
-                    last_error = "Connection timeout"
-                except socket.gaierror as e:
-                    last_error = f"DNS resolution failed: {str(e)}"
-                    break
-                except Exception as e:
-                    last_error = f"Socket error: {str(e)}"
-
-                if attempt < attempts - 1:
-                    await asyncio.sleep(0.2 if fast_mode else 0.4)
-
-            if successful_connections > 0:
-                avg_time = total_time / successful_connections
-                packet_loss = ((attempts - successful_connections) / attempts) * 100.0
-                # Более строгие требования для PPTP серверов
-                if packet_loss <= 25.0:  # Максимум 25% потерь (было 75%)
-                    return {
-                        "success": True,
-                        "avg_time": round(avg_time, 1),
-                        "packet_loss": round(packet_loss, 1),
-                        "message": f"PPTP 1723 working - {avg_time:.1f}ms avg, {packet_loss:.0f}% loss",
-                    }
-                elif packet_loss <= 50.0:
-                    return {
-                        "success": False,
-                        "avg_time": round(avg_time, 1),
-                        "packet_loss": round(packet_loss, 1),
-                        "message": f"PPTP 1723 unreliable - {avg_time:.1f}ms avg, {packet_loss:.0f}% loss (may not work for VPN)",
-                    }
-                else:
-                    return {
-                        "success": False,
-                        "avg_time": round(avg_time, 1),
-                        "packet_loss": round(packet_loss, 1),
-                        "message": f"PPTP 1723 poor connection - {avg_time:.1f}ms avg, {packet_loss:.0f}% loss (unreliable for VPN)",
-                    }
-            else:
-                return {
-                    "success": False,
-                    "avg_time": 0.0,
-                    "packet_loss": 100.0,
-                    "message": "PPTP 1723 unreachable",
-                }
-        except Exception as e:
+        # Используем новый PING LIGHT алгоритм
+        result = await ping_light_tcp_check(ip, 1723, timeout)
+        
+        # Преобразуем формат для совместимости
+        if result["success"]:
+            return {
+                "success": True,
+                "avg_time": result["avg_time"],
+                "packet_loss": 0.0,
+                "message": result["message"],
+            }
+        else:
             return {
                 "success": False,
                 "avg_time": 0.0,
                 "packet_loss": 100.0,
-                "message": f"Ping test error: {str(e)}",
+                "message": result["message"],
             }
 
     @staticmethod
