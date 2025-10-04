@@ -82,12 +82,14 @@ const UnifiedImportModal = ({ isOpen, onClose, onComplete }) => {
     const dataSize = new Blob([importData]).size;
     const isLarge = dataSize > 500 * 1024; // 500KB
 
+    console.log(`Import file size: ${(dataSize/1024).toFixed(1)}KB, isLarge: ${isLarge}`);
     setSubmitting(true);
     
     if (isLarge) {
       // Large file - use chunked processing immediately
       try {
-        toast.info('📂 Обнаружен большой файл. Используем безопасную обработку по частям...');
+        console.log('Using chunked processing for large file');
+        toast.info(`📂 Обнаружен большой файл (${(dataSize/1024).toFixed(1)}KB). Используем безопасную обработку по частям...`);
         
         // Use chunked endpoint for large files
         const response = await axios.post(`${API}/nodes/import/chunked`, {
