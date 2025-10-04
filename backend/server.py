@@ -3386,36 +3386,16 @@ async def get_active_socks_proxies(
 
 @api_router.get("/socks/proxy-file")
 async def get_socks_proxy_file(
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    current_user: User = Depends(get_current_user)
 ):
-    """Get SOCKS proxy file content"""
+    """Get SOCKS proxy file content (auto-managed by monitoring system)"""
     try:
-        active_proxies = db.query(Node).filter(
-            Node.status == "online",
-            Node.socks_ip.isnot(None),
-            Node.socks_port.isnot(None),
-            Node.socks_login.isnot(None),
-            Node.socks_password.isnot(None)
-        ).all()
-        
-        proxy_lines = []
-        proxy_lines.append("# Активные SOCKS прокси")
-        proxy_lines.append(f"# Обновлено: {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')} UTC")
-        proxy_lines.append("")
-        
-        for node in active_proxies:
-            proxy_line = f"socks5://{node.socks_login}:{node.socks_password}@{node.socks_ip}:{node.socks_port}"
-            proxy_lines.append(proxy_line)
-        
-        if not active_proxies:
-            proxy_lines.append("# Нет активных SOCKS прокси")
-        
-        content = "\n".join(proxy_lines)
+        # Get proxy file content from monitoring system
+        content = get_proxy_file_content()
         return {"content": content}
     except Exception as e:
-        logger.error(f"Error generating SOCKS proxy file: {e}")
-        return {"content": "# Ошибка генерации файла SOCKS прокси"}
+        logger.error(f"Error getting SOCKS proxy file: {e}")
+        return {"content": "# Ошибка получения файла SOCKS прокси"}
 
 @api_router.post("/socks/start")
 async def start_socks_services(
