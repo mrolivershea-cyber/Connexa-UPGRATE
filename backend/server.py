@@ -2696,8 +2696,7 @@ async def process_testing_batches(session_id: str, node_ids: list, testing_mode:
                                 logger.warning(f"❌ Testing batch: Node {node_id} not found in database")
                                 return False
 
-
-                        # Dedupe check is done before scheduling; optional extra safety
+                            # Dedupe check is done before scheduling; optional extra safety
                         mode_key = "ping" if testing_mode in ["ping_only", "ping_speed"] else ("speed" if testing_mode in ["speed_only"] else testing_mode)
 
                         # Update progress: starting this node
