@@ -316,18 +316,6 @@ const UnifiedImportModal = ({ isOpen, onClose, onComplete }) => {
                 <div className="text-xs text-gray-600 bg-gray-100 p-2 rounded">
                   <strong>Текущая операция:</strong> {progress?.current_operation || 'Инициализация обработки...'}
                 </div>
-                
-                {/* Cancel Button */}
-                <div className="flex justify-end">
-                  <Button 
-                    variant="destructive" 
-                    size="sm" 
-                    onClick={cancelImport}
-                    disabled={!sessionId}
-                  >
-                    ⏹️ Отменить импорт
-                  </Button>
-                </div>
               </CardContent>
             </Card>
           )}
