@@ -792,11 +792,24 @@ async def process_chunks_async(chunks: list, protocol: str, session_id: str, use
         total_errors = 0
         
         for chunk_index, chunk in enumerate(chunks):
+            # Check if import was cancelled
+            current_progress = import_progress.get(session_id, {})
+            if current_progress.get('status') == 'cancelled':
+                logger.info(f"Import session {session_id} was cancelled, stopping processing")
+                db.rollback()  # Rollback any uncommitted changes
+                db.close()
+                return
+            
             # Update progress
             progress_data = import_progress.get(session_id, {})
             progress_data.update({
-                'processed_chunks': chunk_index,
-                'current_operation': f'Processing chunk {chunk_index + 1}/{len(chunks)}...'
+                'processed_chunks': chunk_index + 1,
+                'total_chunks': len(chunks),
+                'added': total_added,
+                'skipped': total_skipped,
+                'replaced': total_replaced,
+                'errors': total_errors,
+                'current_operation': f'Processing chunk {chunk_index + 1}/{len(chunks)} - Parsing nodes...'
             })
             import_progress[session_id] = progress_data
             
@@ -807,6 +820,10 @@ async def process_chunks_async(chunks: list, protocol: str, session_id: str, use
                     # Parse chunk
                     parsed_data = parse_nodes_text(chunk_text, protocol)
                     
+                    # Update operation
+                    progress_data['current_operation'] = f'Processing chunk {chunk_index + 1}/{len(chunks)} - Saving to database...'
+                    import_progress[session_id] = progress_data
+                    
                     # Process nodes
                     results = process_parsed_nodes(db, parsed_data, "no_test")
                     
@@ -815,6 +832,9 @@ async def process_chunks_async(chunks: list, protocol: str, session_id: str, use
                     total_skipped += len(results['skipped'])
                     total_replaced += len(results['replaced'])
                     total_errors += len(results['errors'])
+                    
+                    # Small delay to prevent UI blocking and allow cancel checking
+                    await asyncio.sleep(0.1)
                     
                 except Exception as chunk_error:
                     logger.error(f"Error processing chunk {chunk_index}: {chunk_error}")
