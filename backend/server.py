@@ -1723,6 +1723,10 @@ async def get_providers(
 ):
     query = db.query(Node.provider).filter(Node.provider != "").distinct()
     if q:
+        query = query.filter(Node.provider.ilike(f"%{q}%"))
+    providers = [row[0] for row in query.limit(10).all()]
+    return providers
+
 @api_router.post('/progress/cancel-all')
 async def cancel_all_progress(current_user: User = Depends(get_current_user)):
     # Cancel and mark as completed
@@ -1730,10 +1734,6 @@ async def cancel_all_progress(current_user: User = Depends(get_current_user)):
         tracker.status = 'cancelled'
         progress_store[sid] = tracker
     return {"success": True, "message": "All test sessions cancelled"}
-
-        query = query.filter(Node.provider.ilike(f"%{q}%"))
-    providers = [row[0] for row in query.limit(10).all()]
-    return providers
 
 # Statistics
 @api_router.get("/stats")
