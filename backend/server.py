@@ -3427,10 +3427,6 @@ async def start_socks_services(
     
     results = []
     
-    # SOCKS server runs ON THE NODE itself (use node's IP)
-    # This allows external clients to connect to the node's SOCKS service
-    socks_server_ip = node.ip  # Use node's actual IP for external access
-    
     for node_id in node_ids:
         try:
             node = db.query(Node).filter(Node.id == node_id).first()
