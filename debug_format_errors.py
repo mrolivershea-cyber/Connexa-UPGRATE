@@ -5,7 +5,7 @@ import json
 
 def debug_format_errors():
     """Debug format error detection"""
-    base_url = "https://vpn-status-panel.preview.emergentagent.com"
+    base_url = "https://fastnode-admin.preview.emergentagent.com"
     api_url = f"{base_url}/api"
     
     # Login first

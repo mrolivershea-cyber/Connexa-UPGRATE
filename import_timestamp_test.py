@@ -6,7 +6,7 @@ from datetime import datetime
 import time
 
 # Test import with correct format
-BASE_URL = "https://vpn-status-panel.preview.emergentagent.com"
+BASE_URL = "https://fastnode-admin.preview.emergentagent.com"
 API_URL = f"{BASE_URL}/api"
 
 def login():

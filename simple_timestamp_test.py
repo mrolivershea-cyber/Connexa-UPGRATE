@@ -6,7 +6,7 @@ from datetime import datetime
 import time
 
 def test_timestamp_update():
-    base_url = "https://vpn-status-panel.preview.emergentagent.com"
+    base_url = "https://fastnode-admin.preview.emergentagent.com"
     api_url = f"{base_url}/api"
     
     # Login
