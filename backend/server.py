@@ -2601,8 +2601,16 @@ async def manual_speed_test_batch_progress(
 ):
     """Batch speed test with real-time progress tracking"""
     
+    # ЗАЩИТА ОТ ПЕРЕГРУЗКИ: проверяем лимит сессий
+    if not can_start_new_session():
+        raise HTTPException(
+            status_code=503, 
+            detail=f"Сервер перегружен. Максимум {MAX_CONCURRENT_SESSIONS} тестовых сессий. Попробуйте позже."
+        )
+    
     # Generate session ID for progress tracking
     session_id = str(uuid.uuid4())
+    active_sessions.add(session_id)
     
     # Get all valid nodes
     nodes = []
