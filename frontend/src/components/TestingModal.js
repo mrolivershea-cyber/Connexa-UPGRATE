@@ -59,7 +59,7 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], onTestComplete })
             const isRecent = (Date.now() - state.timestamp) < 300000; // 5 minutes
             
             if (isRecent && state.sessionId) {
-              console.log('Restoring saved testing session:', state.sessionId);
+              console.log('Restoring saved testing session:', state.sessionId, 'loading:', state.loading, 'completed:', state.completed);
               // Restore saved state
               setSessionId(state.sessionId);
               setLoading(state.loading || false);
@@ -71,7 +71,13 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], onTestComplete })
               setUseNewSystem(true);
               setIsMinimized(false);
               
-              toast.info('Восстановлено активное тестирование');
+              if (state.completed) {
+                toast.info('Показаны результаты завершенного тестирования');
+              } else if (state.loading) {
+                toast.info('Восстановлено активное тестирование');
+              } else {
+                toast.info('Восстановлена сессия тестирования');
+              }
               return;
             } else {
               // Clear old saved state only if it's really old
