@@ -3471,7 +3471,7 @@ async def start_socks_services(
             node.last_update = datetime.utcnow()
             
             # Log the SOCKS service creation
-            logger.info(f"✅ SOCKS service created for node {node_id}: {admin_server_ip}:{socks_port} ({login_prefix})")
+            logger.info(f"✅ SOCKS service created for node {node_id}: {node.ip}:{socks_port} ({login_prefix})")
             
             results.append({
                 "node_id": node_id,
