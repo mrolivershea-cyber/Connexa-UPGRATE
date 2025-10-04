@@ -4,7 +4,7 @@ import requests
 import json
 
 def test_ping_restriction_removal():
-    base_url = "https://cleaner-admin-ui.preview.emergentagent.com"
+    base_url = "https://button-dedup-admin.preview.emergentagent.com"
     api_url = f"{base_url}/api"
     
     # Login
