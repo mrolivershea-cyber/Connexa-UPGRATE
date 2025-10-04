@@ -76,9 +76,10 @@ class Format7Tester:
         print("\n🔍 Test 1: Format Detection Test")
         print("Testing data: '5.78.0.0:admin:admin'")
         
-        # Use unique timestamp to avoid duplicates
+        # Use unique timestamp to avoid duplicates (ensure valid IP)
         timestamp = str(int(time.time()))
-        test_data = f"5.78.{timestamp[-3:]}.1:admin:admin"
+        ip_part = int(timestamp[-3:]) % 255  # Ensure IP octet is valid (0-255)
+        test_data = f"5.78.{ip_part}.1:admin:admin"
         
         import_data = {
             "data": test_data,
