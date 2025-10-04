@@ -14548,6 +14548,19 @@ City: TestCity"""
         self.test_comprehensive_deduplication_logic()
         self.test_comprehensive_format_errors()
         
+        # ========== FORMAT 7 TESTS (Russian User Request - IP:Login:Pass) ==========
+        print("\n🇷🇺 FORMAT 7 TESTS - Russian User Request (IP:Login:Pass)")
+        print("=" * 60)
+        print("Testing new Format 7 support for simple IP:Login:Pass format")
+        print("User provided TEST 3.txt file with 65,536 nodes in format like: 5.78.0.0:admin:admin")
+        print("=" * 60)
+        
+        self.test_format_7_detection()
+        self.test_format_7_parsing()
+        self.test_format_7_small_batch_import()
+        self.test_format_7_vs_format_4_differentiation()
+        self.test_format_7_large_file_simulation()
+        
         # CRITICAL TEST - Format 4 Block Splitting Fix (Review Request)
         print("\n🚨 CRITICAL RE-TEST - Fixed Smart Block Splitting for Format 4")
         print("=" * 60)
