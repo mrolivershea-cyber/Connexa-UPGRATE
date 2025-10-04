@@ -445,6 +445,12 @@ const AdminPanel = () => {
               <p className="text-xs text-muted-foreground">🟢 Online</p>
             </CardContent>
           </Card>
+          <Card>
+            <CardContent className="pt-6">
+              <div className="text-2xl font-bold text-purple-600">{stats.socks_online || 0}</div>
+              <p className="text-xs text-muted-foreground">🟣 Socks Online</p>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Filters */}
