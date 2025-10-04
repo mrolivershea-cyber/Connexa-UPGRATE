@@ -261,6 +261,7 @@ const UnifiedImportModal = ({ isOpen, onClose, onComplete }) => {
           setSubmitting(false);
           setIsImportActive(false);
           setSessionId(null);
+          localStorage.removeItem('activeImportSession');
           toast.error('❌ Ошибка импорта: ' + (progressData.message || 'Неизвестная ошибка'));
           return;
         }
