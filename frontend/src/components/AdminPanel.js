@@ -357,6 +357,7 @@ const AdminPanel = () => {
   const getStatusBadge = (status) => {
     const variants = {
       not_tested: 'bg-gray-100 text-gray-800',
+      ping_light: 'bg-yellow-100 text-yellow-800',
       ping_failed: 'bg-red-100 text-red-800', 
       ping_ok: 'bg-orange-100 text-orange-800',
       speed_ok: 'bg-blue-100 text-blue-800',
