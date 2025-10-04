@@ -1752,6 +1752,13 @@ async def get_stats(
     # Get total
     total_nodes = sum(status_dict.values())
     
+    # Get SOCKS online count (online nodes with SOCKS data)
+    socks_online = db.query(Node).filter(
+        Node.status == "online",
+        Node.socks_ip.isnot(None),
+        Node.socks_port.isnot(None)
+    ).count()
+    
     return {
         "total": total_nodes,
         "not_tested": status_dict.get("not_tested", 0),
@@ -1760,6 +1767,7 @@ async def get_stats(
         "speed_ok": status_dict.get("speed_ok", 0),
         "offline": status_dict.get("offline", 0),
         "online": status_dict.get("online", 0),
+        "socks_online": socks_online,
         "by_protocol": {
             "pptp": protocol_dict.get("pptp", 0),
             "ssh": protocol_dict.get("ssh", 0),
