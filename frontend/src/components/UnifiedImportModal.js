@@ -164,21 +164,7 @@ const UnifiedImportModal = ({ isOpen, onClose, onComplete }) => {
             />
           </div>
 
-          {/* Выбор режима тестирования (как "кнопка Testing" в Импорте) */}
-          <div className="space-y-2">
-            <Label className="text-sm">Режим тестирования</Label>
-            <Select value={testingMode} onValueChange={setTestingMode}>
-              <SelectTrigger className="w-[180px]" data-testid="testing-mode-select">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="ping_only">Ping only</SelectItem>
-                <SelectItem value="speed_only">Speed only</SelectItem>
-                <SelectItem value="no_test">No test</SelectItem>
-              </SelectContent>
-            </Select>
-            <div className="text-xs text-gray-500">Прогресс проверок всегда смотрите в окне Testing.</div>
-          </div>
+          {/* Simplified mode - no testing options */}
 
           {/* Итоговый отчёт импорта */}
           {showPreview && previewResult && (
