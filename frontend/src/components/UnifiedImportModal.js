@@ -315,6 +315,18 @@ const UnifiedImportModal = ({ isOpen, onClose, onComplete }) => {
               </CardContent>
             </Card>
           )}
+
+          {/* Простой индикатор для обычного импорта */}
+          {submitting && !sessionId && (
+            <Card className="border-green-200 bg-green-50">
+              <CardContent className="py-4">
+                <div className="flex items-center justify-center space-x-3">
+                  <Activity className="h-5 w-5 text-green-600 animate-spin" />
+                  <span className="text-sm text-green-800">Обработка файла... Пожалуйста, подождите</span>
+                </div>
+              </CardContent>
+            </Card>
+          )}
           
           {/* Настройки импорта */}
           {!submitting && (
