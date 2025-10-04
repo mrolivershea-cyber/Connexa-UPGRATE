@@ -845,6 +845,18 @@ async def process_chunks_async(chunks: list, protocol: str, session_id: str, use
         })
         import_progress[session_id] = progress_data
 
+@api_router.get("/import/progress/{session_id}")
+async def get_import_progress(
+    session_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Get progress of chunked import"""
+    progress_data = import_progress.get(session_id)
+    if not progress_data:
+        raise HTTPException(status_code=404, detail="Import session not found")
+    
+    return progress_data
+
 async def process_import_testing_batches(session_id: str, node_ids: list, testing_mode: str, db_session: Session):
     """Process node testing in batches to prevent hanging and preserve results"""
     
