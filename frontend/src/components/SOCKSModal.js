@@ -201,7 +201,7 @@ const SOCKSModal = ({ isOpen, onClose, selectedNodeIds = [] }) => {
       }
 
       // Обновляем данные
-      await loadSOCKSData();
+      await Promise.all([loadSOCKSData(), loadSelectedNodesInfo()]);
 
     } catch (error) {
       console.error('Error starting SOCKS:', error);
