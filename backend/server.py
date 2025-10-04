@@ -2755,15 +2755,15 @@ async def process_testing_batches(session_id: str, node_ids: list, testing_mode:
                             # Progress
                             progress_increment(session_id, f"✅ {node.ip} - {node.status}", {"node_id": node.id, "ip": node.ip, "status": node.status, "success": True})
                             return True
-                    except Exception as e:
-                        logger.error(f"❌ Testing: Node {node_id} error: {e}")
-                        return False
-                    finally:
-                        try:
-                            test_dedupe_mark_finished(node_id)
-                            local_db.close()
-                        except Exception:
-                            pass
+                        except Exception as e:
+                            logger.error(f"❌ Testing: Node {node_id} error: {e}")
+                            return False
+                        finally:
+                            try:
+                                test_dedupe_mark_finished(node_id)
+                                local_db.close()
+                            except Exception:
+                                pass
 
             for i, node_id in enumerate(current_batch):
                 global_index = batch_start + i
