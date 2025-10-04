@@ -175,11 +175,11 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], onTestComplete })
     };
   }, [sessionId, loading, API, selectedNodeIds.length, onTestComplete, totalNodes]);
 
-  const [pingConcurrency, setPingConcurrency] = useState(3);    // Обновлено под оптимизированные значения
-  const [speedConcurrency, setSpeedConcurrency] = useState(1);  // Обновлено под оптимизированные значения  
-  const [pingTimeouts, setPingTimeouts] = useState('1.0,1.5'); // Обновлено под быстрые таймауты
-  const [speedSampleKB, setSpeedSampleKB] = useState(128);     // Обновлено под оптимизированный размер
-  const [speedTimeout, setSpeedTimeout] = useState(8);        // Обновлено под быстрый таймаут
+  const [pingConcurrency, setPingConcurrency] = useState(15);   // АГРЕССИВНО увеличено для скорости
+  const [speedConcurrency, setSpeedConcurrency] = useState(8);  // АГРЕССИВНО увеличено для скорости
+  const [pingTimeouts, setPingTimeouts] = useState('0.5');     // СВЕРХ-БЫСТРЫЙ единственный таймаут
+  const [speedSampleKB, setSpeedSampleKB] = useState(32);      // МИНИМИЗИРОВАНО для максимальной скорости
+  const [speedTimeout, setSpeedTimeout] = useState(2);         // ЭКСТРЕМАЛЬНО быстро
 
   const handleTest = async () => {
     if (selectedNodeIds.length === 0) {
