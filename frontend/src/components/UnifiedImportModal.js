@@ -83,26 +83,50 @@ const UnifiedImportModal = ({ isOpen, onClose, onComplete }) => {
     const isLarge = dataSize > 500 * 1024; // 500KB
 
     setSubmitting(true);
+    
+    if (isLarge) {
+      // Large file - use chunked processing immediately
+      try {
+        toast.info('📂 Обнаружен большой файл. Используем безопасную обработку по частям...');
+        
+        // Use chunked endpoint for large files
+        const response = await axios.post(`${API}/nodes/import/chunked`, {
+          data: importData,
+          protocol,
+          testing_mode: 'no_test'
+        });
+
+        const { session_id, message } = response.data || {};
+
+        if (session_id) {
+          setSessionId(session_id);
+          toast.success('🚀 Запущена chunked обработка большого файла...');
+          startProgressTracking(session_id);
+          return;
+        } else {
+          throw new Error(message || 'Не удалось запустить chunked processing');
+        }
+      } catch (error) {
+        console.error('Chunked import error:', error);
+        toast.error('❌ Ошибка chunked обработки: ' + (error.response?.data?.message || error.message));
+        setSubmitting(false);
+        return;
+      }
+    }
+
+    // Small file - use regular processing
     try {
       const response = await axios.post(`${API}/nodes/import`, {
         data: importData,
         protocol,
-        testing_mode: 'no_test'  // Always no_test in simplified mode
+        testing_mode: 'no_test'
       });
 
-      const { success, report, message, session_id } = response.data || {};
+      const { success, report, message } = response.data || {};
 
       if (!success) {
         toast.error(message || 'Ошибка импорта');
         setSubmitting(false);
-        return;
-      }
-
-      // If chunked processing was used
-      if (session_id) {
-        setSessionId(session_id);
-        toast.success('🚀 Запущена обработка большого файла...');
-        startProgressTracking(session_id);
         return;
       }
 
@@ -123,13 +147,28 @@ const UnifiedImportModal = ({ isOpen, onClose, onComplete }) => {
       const errorMsg = error.response?.data?.message || 'Не удалось импортировать данные';
       toast.error(errorMsg);
     } finally {
-      if (!sessionId) {
-        setSubmitting(false);
-      }
+      setSubmitting(false);
+    }
+  };
+
+  const cancelImport = async () => {
+    if (!sessionId) return;
+    
+    try {
+      await axios.delete(`${API}/import/cancel/${sessionId}`);
+      toast.info('⏹️ Импорт отменён');
+      setSubmitting(false);
+      setProgress(null);
+      setSessionId(null);
+    } catch (error) {
+      console.error('Cancel error:', error);
+      toast.error('Не удалось отменить импорт');
     }
   };
 
   const startProgressTracking = (sessionId) => {
+    let progressInterval;
+    
     const trackProgress = async () => {
       try {
         const response = await axios.get(`${API}/import/progress/${sessionId}`);
@@ -137,17 +176,24 @@ const UnifiedImportModal = ({ isOpen, onClose, onComplete }) => {
         
         setProgress(progressData);
         
-        if (progressData.status === 'completed') {
-          setSubmitting(false);
-          setPreviewResult({
-            added: progressData.added,
-            skipped_duplicates: progressData.skipped,
-            replaced_old: progressData.replaced,
-            format_errors: progressData.errors
-          });
-          setShowPreview(true);
+        if (progressData.status === 'completed' || progressData.status === 'cancelled') {
+          if (progressInterval) {
+            clearInterval(progressInterval);
+          }
           
-          toast.success(`✅ Импорт большого файла завершён: ${progressData.added} добавлено, ${progressData.skipped} дубликатов`);
+          setSubmitting(false);
+          setSessionId(null);
+          
+          if (progressData.status === 'completed') {
+            setPreviewResult({
+              added: progressData.added,
+              skipped_duplicates: progressData.skipped,
+              replaced_old: progressData.replaced,
+              format_errors: progressData.errors
+            });
+            setShowPreview(true);
+            
+            toast.success(`✅ Импорт большого файла завершён: ${progressData.added} добавлено, ${progressData.skipped} дубликатов`);
           toast.info('📊 Для тестирования используйте кнопку "Testing" в админ-панели');
           
           setTimeout(() => {
