@@ -2947,14 +2947,18 @@ async def manual_ping_light_test(
             from ping_speed_test import test_node_ping_light
             ping_result = await test_node_ping_light(node.ip)
             
-            # Обновить статус на основе результата (БЕЗ защиты для ping_light)
+            # Обновить статус на основе результата (С ЗАЩИТОЙ для ping_light)
             if ping_result['success']:
                 node.status = "ping_light"
                 logger.info(f"✅ Node {node_id} PING LIGHT SUCCESS - status: {original_status} -> ping_light")
             else:
-                # ВСЕГДА ставим ping_failed при неудаче (нет защиты статуса)
-                node.status = "ping_failed"
-                logger.info(f"❌ Node {node_id} PING LIGHT FAILED - status: {original_status} -> ping_failed")
+                # ЗАЩИТА: если уже был ping_light (порт работал хотя бы раз), сохраняем статус
+                if original_status in ("ping_light", "ping_ok", "speed_ok", "online"):
+                    node.status = original_status  # Сохраняем! Не откатываем до ping_failed
+                    logger.info(f"🛡️ Node {node_id} PING LIGHT FAILED but preserving status {original_status} (port was working before)")
+                else:
+                    node.status = "ping_failed"
+                    logger.info(f"❌ Node {node_id} PING LIGHT FAILED - status: {original_status} -> ping_failed")
             
             node.last_check = datetime.utcnow()
             node.last_update = datetime.utcnow()
