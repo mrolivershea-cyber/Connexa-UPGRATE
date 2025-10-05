@@ -561,13 +561,13 @@ const UnifiedImportModal = ({ isOpen, onClose, onComplete }) => {
                   </div>
                 </div>
                 {previewResult.processing_errors > 0 && (
-                  <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded">
-                    <h4 className="font-medium text-red-600 mb-2">Ошибок обработки: {previewResult.processing_errors}</h4>
+                  <div className="mt-3 p-2 bg-red-50 border border-red-200 rounded">
+                    <h4 className="font-medium text-sm text-red-600 mb-1">Ошибок обработки: {previewResult.processing_errors}</h4>
                     <div className="text-xs text-red-600">Проверьте журнал ошибок формата для деталей.</div>
                   </div>
                 )}
                 {previewResult.smart_summary && (
-                  <div className="mt-4 text-sm text-gray-700">{previewResult.smart_summary}</div>
+                  <div className="mt-3 text-sm text-gray-700">{previewResult.smart_summary}</div>
                 )}
               </CardContent>
             </Card>
