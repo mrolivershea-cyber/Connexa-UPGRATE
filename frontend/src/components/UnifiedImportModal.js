@@ -534,29 +534,29 @@ const UnifiedImportModal = ({ isOpen, onClose, onComplete }) => {
           {/* Итоговый отчёт импорта */}
           {showPreview && previewResult && (
             <Card>
-              <CardHeader>
+              <CardHeader className="pb-3">
                 <CardTitle className="text-sm">Результаты импорта</CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-sm">
+              <CardContent className="pt-0">
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-3 text-sm">
                   <div className="text-center">
-                    <div className="text-xl font-bold text-green-600">{previewResult.added || 0}</div>
+                    <div className="text-lg font-bold text-green-600">{previewResult.added || 0}</div>
                     <div className="text-xs text-gray-600">Добавлено</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-xl font-bold text-yellow-600">{previewResult.skipped_duplicates || 0}</div>
+                    <div className="text-lg font-bold text-yellow-600">{previewResult.skipped_duplicates || 0}</div>
                     <div className="text-xs text-gray-600">Дубликатов</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-xl font-bold text-blue-600">{previewResult.replaced_old || 0}</div>
+                    <div className="text-lg font-bold text-blue-600">{previewResult.replaced_old || 0}</div>
                     <div className="text-xs text-gray-600">Заменено</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-xl font-bold text-purple-600">{previewResult.queued_for_verification || 0}</div>
+                    <div className="text-lg font-bold text-purple-600">{previewResult.queued_for_verification || 0}</div>
                     <div className="text-xs text-gray-600">В очереди</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-xl font-bold text-red-600">{previewResult.format_errors || 0}</div>
+                    <div className="text-lg font-bold text-red-600">{previewResult.format_errors || 0}</div>
                     <div className="text-xs text-gray-600">Ошибок формата</div>
                   </div>
                 </div>
