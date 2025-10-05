@@ -1874,6 +1874,13 @@ def process_parsed_nodes_bulk(db: Session, parsed_data: dict, testing_mode: str)
     try:
     is_empty_db = False
         # Get all IPs to check
+        # First check if database is empty for optimization
+        total_count = db.execute(text("SELECT COUNT(*) FROM nodes")).scalar()
+        is_empty_db = (total_count == 0)
+        
+        if is_empty_db:
+            logger.info("Empty database detected - using optimized INSERT mode")
+        
         ip_list = [node.get('ip', '').strip() for node in parsed_data.get('nodes', [])]
         
         if ip_list:
