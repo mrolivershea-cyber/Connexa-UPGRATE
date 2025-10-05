@@ -30,21 +30,20 @@ const UnifiedImportModal = ({ isOpen, onClose, onComplete }) => {
 
   useEffect(() => {
     if (isOpen) {
-      // Check for active import session in localStorage
+      // Check for active chunked import session
       const activeImport = localStorage.getItem('activeImportSession');
       if (activeImport) {
         try {
           const importData = JSON.parse(activeImport);
           if (importData.sessionId && importData.timestamp > Date.now() - 30 * 60 * 1000) { // 30 minutes
-            console.log('Resuming active import session:', importData.sessionId);
+            console.log('Resuming active chunked import session:', importData.sessionId);
             setSessionId(importData.sessionId);
             setIsImportActive(true);
-            setSubmitting(false); // Not submitting anymore, just monitoring
+            setSubmitting(false);
             startProgressTracking(importData.sessionId);
-            toast.info('📂 Обнаружена активная сессия импорта. Продолжаем...');
-            return;
+            toast.info('📂 Обнаружена активная сессия chunked импорта. Продолжаем...');
+            return; // Don't reset states
           } else {
-            // Clean up old session
             localStorage.removeItem('activeImportSession');
           }
         } catch (e) {
@@ -52,7 +51,28 @@ const UnifiedImportModal = ({ isOpen, onClose, onComplete }) => {
         }
       }
       
-      // Reset form for new import
+      // Check for active regular import
+      const activeRegular = localStorage.getItem('activeRegularImport');
+      if (activeRegular) {
+        try {
+          const regularData = JSON.parse(activeRegular);
+          if (regularData.active && regularData.timestamp > Date.now() - 30 * 60 * 1000) {
+            console.log('Resuming active regular import, progress:', regularData.progress);
+            setRegularImportController(new AbortController());
+            setIsImportActive(true);
+            setSubmitting(true);
+            setRegularImportProgress(regularData.progress || 0);
+            toast.info('📂 Восстанавливаем активный импорт...');
+            return; // Don't reset states
+          } else {
+            localStorage.removeItem('activeRegularImport');
+          }
+        } catch (e) {
+          localStorage.removeItem('activeRegularImport');
+        }
+      }
+      
+      // Reset form ONLY if no active imports
       setImportData('');
       setProtocol('pptp');
       setPreviewResult(null);
@@ -62,7 +82,11 @@ const UnifiedImportModal = ({ isOpen, onClose, onComplete }) => {
       setProgress(null);
       setSessionId(null);
       setIsImportActive(false);
+      setRegularImportController(null);
+      setRegularImportProgress(0);
+      setRegularImportStats({ added: 0, skipped: 0, errors: 0 });
       localStorage.removeItem('activeImportSession');
+      localStorage.removeItem('activeRegularImport');
     }
   }, [isOpen]);
 
