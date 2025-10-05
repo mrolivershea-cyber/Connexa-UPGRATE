@@ -550,7 +550,7 @@ async def get_nodes(
               if k not in ['page', 'limit', 'current_user', 'db'] and v is not None}
     
     # Apply filters using helper function
-    query = apply_node_filters(db.query(Node), **filters)
+    query = apply_node_filters_kwargs(db.query(Node), **filters)
     
     # Use a single query for count to improve performance
     total_count = query.count()
