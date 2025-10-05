@@ -1356,7 +1356,36 @@ def parse_nodes_text(text: str, protocol: str = "pptp") -> dict:
                     for entry in entries:
                         entry = entry.strip()
                         if entry and '> PPTP_SVOIM_VPN:' in entry:
-                            format6_blocks.append(entry)
+                            # This entry has Format 6 marker, but might also contain Format 5 after it
+                            # Check if it's ONLY Format 6 (small block) or mixed (huge block)
+                            if len(entry) < 1000:  # Small block - likely pure Format 6
+                                format6_blocks.append(entry)
+                            else:
+                                # Large block - likely Format 6 + Format 5
+                                # Split into Format 6 part and rest
+                                entry_lines = entry.split('\n')
+                                format6_lines = []
+                                format5_start_index = None
+                                
+                                # Find where Format 6 ends (typically 6-7 lines)
+                                for i, line in enumerate(entry_lines):
+                                    if i < 10:  # Format 6 is typically first 6-7 lines
+                                        format6_lines.append(line)
+                                    else:
+                                        # Check if this looks like start of Format 5
+                                        if line.strip().startswith('IP:') and i > 6:
+                                            format5_start_index = i
+                                            break
+                                
+                                if format5_start_index:
+                                    # Split: Format 6 part + Format 5 part
+                                    format6_text = '\n'.join(entry_lines[:format5_start_index])
+                                    format5_text = '\n'.join(entry_lines[format5_start_index:])
+                                    format6_blocks.append(format6_text)
+                                    non_format6_entries.append(format5_text)
+                                else:
+                                    # Can't find clear split, treat as Format 6
+                                    format6_blocks.append(entry)
                         elif entry and 'IP:' in entry:
                             # This is not Format 6, save for later processing
                             non_format6_entries.append(entry)
@@ -1365,7 +1394,26 @@ def parse_nodes_text(text: str, protocol: str = "pptp") -> dict:
                     for entry in entries:
                         entry = entry.strip()
                         if entry and '🚨 PPTP Connection' in entry:
-                            format6_blocks.append(entry)
+                            # Same logic as above
+                            if len(entry) < 1000:
+                                format6_blocks.append(entry)
+                            else:
+                                entry_lines = entry.split('\n')
+                                format6_lines = entry_lines[:10]
+                                format5_start_index = None
+                                
+                                for i, line in enumerate(entry_lines[10:], start=10):
+                                    if line.strip().startswith('IP:'):
+                                        format5_start_index = i
+                                        break
+                                
+                                if format5_start_index:
+                                    format6_text = '\n'.join(entry_lines[:format5_start_index])
+                                    format5_text = '\n'.join(entry_lines[format5_start_index:])
+                                    format6_blocks.append(format6_text)
+                                    non_format6_entries.append(format5_text)
+                                else:
+                                    format6_blocks.append(entry)
                         elif entry and 'IP:' in entry:
                             non_format6_entries.append(entry)
                 else:
