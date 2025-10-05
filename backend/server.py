@@ -1395,7 +1395,7 @@ def parse_nodes_text(text: str, protocol: str = "pptp") -> dict:
             
             # PRIORITY 3: Check for Format 5 entries (IP: with uppercase, but NOT Format 6)
             # Only if no Format 6 markers present
-            elif remaining_text.count('IP:') > 1:
+            if remaining_text and remaining_text.count('IP:') > 1:
                 # Check if this is Format 5 (has "Credentials:" but no Format 6 markers)
                 if 'Credentials:' in remaining_text and '> PPTP_SVOIM_VPN:' not in remaining_text:
                     entries = re.split(r'(?=\bIP:)', remaining_text)
@@ -1408,7 +1408,7 @@ def parse_nodes_text(text: str, protocol: str = "pptp") -> dict:
                     blocks.append(remaining_text.strip())
             
             # Single multi-line block
-            elif remaining_text.strip():
+            elif remaining_text and remaining_text.strip():
                 blocks.append(remaining_text.strip())
     
     # PASS 3: Parse each block
