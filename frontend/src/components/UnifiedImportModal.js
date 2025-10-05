@@ -400,18 +400,24 @@ const UnifiedImportModal = ({ isOpen, onClose, onComplete }) => {
         </DialogHeader>
 
         <div className="space-y-3 mt-2">
-          {/* Compact Progress Bar (если идет импорт) */}
-          {(submitting || isImportActive) && sessionId && progress && (
+          {/* Compact Progress Bar (для любого импорта) */}
+          {submitting && (
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 space-y-2">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
                   <div className="text-3xl font-bold text-blue-600">
-                    {Math.round(((progress?.processed_chunks || 0) / (progress?.total_chunks || 1)) * 100)}%
+                    {sessionId && progress 
+                      ? Math.round(((progress?.processed_chunks || 0) / (progress?.total_chunks || 1)) * 100)
+                      : regularImportProgress
+                    }%
                   </div>
                   <div>
                     <div className="text-sm font-semibold text-gray-700">Прогресс импорта</div>
                     <div className="text-xs text-gray-600">
-                      Файл: {(importData.length / 1024).toFixed(1)}KB | Протокол: {protocol.toUpperCase()}
+                      {sessionId 
+                        ? `Обработано ${progress?.processed_chunks || 0} из ${progress?.total_chunks || 0} частей`
+                        : `Файл: ${(importData.length / 1024).toFixed(1)}KB | Протокол: ${protocol.toUpperCase()}`
+                      }
                     </div>
                   </div>
                 </div>
@@ -424,15 +430,16 @@ const UnifiedImportModal = ({ isOpen, onClose, onComplete }) => {
                   >
                     📋 Свернуть
                   </Button>
-                  <Button 
-                    variant="destructive" 
-                    size="sm" 
-                    onClick={cancelImport}
-                    disabled={!sessionId}
-                    className="text-xs"
-                  >
-                    ⏹️ Отменить
-                  </Button>
+                  {sessionId && (
+                    <Button 
+                      variant="destructive" 
+                      size="sm" 
+                      onClick={cancelImport}
+                      className="text-xs"
+                    >
+                      ⏹️ Отменить
+                    </Button>
+                  )}
                 </div>
               </div>
               
@@ -440,12 +447,15 @@ const UnifiedImportModal = ({ isOpen, onClose, onComplete }) => {
               <div className="relative w-full bg-gray-200 rounded-full h-3 overflow-hidden">
                 <div 
                   className="bg-gradient-to-r from-blue-500 to-blue-600 h-3 rounded-full transition-all duration-500"
-                  style={{ width: `${Math.max(((progress?.processed_chunks || 0) / (progress?.total_chunks || 1)) * 100, 2)}%` }}
+                  style={{ 
+                    width: `${Math.max(
+                      sessionId && progress 
+                        ? ((progress?.processed_chunks || 0) / (progress?.total_chunks || 1)) * 100
+                        : regularImportProgress,
+                      2
+                    )}%` 
+                  }}
                 />
-              </div>
-              
-              <div className="text-xs text-center text-gray-600">
-                Обработано {progress?.processed_chunks || 0} из {progress?.total_chunks || 0} частей
               </div>
             </div>
           )}
