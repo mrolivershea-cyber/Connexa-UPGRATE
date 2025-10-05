@@ -261,7 +261,16 @@ const UnifiedImportModal = ({ isOpen, onClose, onComplete }) => {
       toast.success(`✅ Импорт завершён: ${report?.added || 0} добавлено, ${report?.skipped_duplicates || 0} дубликатов`);
       toast.info('📊 Для тестирования используйте кнопку "Testing" в админ-панели');
 
-      if (onComplete) onComplete(report);
+      // Вызываем onComplete с задержкой, чтобы дать React время обновить UI
+      if (onComplete) {
+        try {
+          setTimeout(() => {
+            onComplete(report);
+          }, 100);
+        } catch (error) {
+          console.error('Error in onComplete callback:', error);
+        }
+      }
       
     } catch (error) {
       if (error.name === 'AbortError' || error.name === 'CanceledError') {
