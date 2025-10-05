@@ -24,6 +24,9 @@ const UnifiedImportModal = ({ isOpen, onClose, onComplete }) => {
   const [progress, setProgress] = useState(null);
   const [sessionId, setSessionId] = useState(null);
   const [isImportActive, setIsImportActive] = useState(false);
+  const [regularImportController, setRegularImportController] = useState(null);
+  const [regularImportProgress, setRegularImportProgress] = useState(0);
+  const [regularImportStats, setRegularImportStats] = useState({ added: 0, skipped: 0, errors: 0 });
 
   useEffect(() => {
     if (isOpen) {
