@@ -110,7 +110,7 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], selectAllMode = f
         setUseNewSystem(false);
       }, 100);
     }
-  }, [isOpen, selectedNodeIds.length, getActiveImportSession]);
+  }, [isOpen, selectedNodeIds.length, selectAllMode, totalCount, getActiveImportSession]);
 
   // Auto-persist testing session to survive page refreshes
   React.useEffect(() => {
