@@ -1872,6 +1872,7 @@ def process_parsed_nodes_bulk(db: Session, parsed_data: dict, testing_mode: str)
     # Get existing IPs in batches for performance (FIXED: process in chunks to avoid huge queries)
     existing_ips = {}
     try:
+    is_empty_db = False
         # Get all IPs to check
         ip_list = [node.get('ip', '').strip() for node in parsed_data.get('nodes', [])]
         
