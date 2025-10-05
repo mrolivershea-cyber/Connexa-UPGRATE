@@ -2066,21 +2066,30 @@ def process_parsed_nodes_bulk(db: Session, parsed_data: dict, testing_mode: str)
     # Optimized bulk insert with duplicate handling
     if bulk_insert_data:
         try:
-            # Use different INSERT strategy based on database state
-            if is_empty_db:
-                # Fast INSERT for empty database
-                insert_stmt = text("""
-                    INSERT INTO nodes (ip, login, password, protocol, status, last_update)
-                    VALUES (:ip, :login, :password, :protocol, :status, datetime('now'))
-                """)
-            else:
-                # INSERT OR REPLACE for handling duplicates properly
-                insert_stmt = text("""
-                    INSERT OR REPLACE INTO nodes (ip, login, password, protocol, status, last_update)
-                    VALUES (:ip, :login, :password, :protocol, :status, datetime('now'))
-                """)
+            # CRITICAL FIX: Deduplicate bulk_insert_data BEFORE inserting
+            # This prevents UNIQUE constraint violations from duplicates within the import batch
+            seen_keys = set()
+            deduplicated_data = []
+            duplicates_removed = 0
             
-            db.execute(insert_stmt, bulk_insert_data)
+            for item in bulk_insert_data:
+                key = (item['ip'], item['login'], item['password'])
+                if key not in seen_keys:
+                    seen_keys.add(key)
+                    deduplicated_data.append(item)
+                else:
+                    duplicates_removed += 1
+            
+            if duplicates_removed > 0:
+                logger.info(f"🔍 Removed {duplicates_removed} duplicates from bulk insert data")
+            
+            # Use INSERT OR IGNORE to handle any remaining duplicates (DB-level protection)
+            insert_stmt = text("""
+                INSERT OR IGNORE INTO nodes (ip, login, password, protocol, status, last_update)
+                VALUES (:ip, :login, :password, :protocol, :status, datetime('now'))
+            """)
+            
+            db.execute(insert_stmt, deduplicated_data)
             db.commit()
             
             logger.info(f"✅ OPTIMIZED BULK INSERT: {len(added_nodes)} added, {len(skipped_nodes)} skipped, {len(replaced_nodes)} replaced")
@@ -2088,7 +2097,7 @@ def process_parsed_nodes_bulk(db: Session, parsed_data: dict, testing_mode: str)
         except Exception as e:
             logger.error(f"Bulk insert error: {e}")
             db.rollback()
-            error_nodes.extend([{"error": f"Bulk insert failed: {e}", "data": item} for item in bulk_insert_data])
+            error_nodes.extend([{"error": f"Bulk insert failed: {e}", "data": item} for item in deduplicated_data])
             added_nodes = []
     
     return {
