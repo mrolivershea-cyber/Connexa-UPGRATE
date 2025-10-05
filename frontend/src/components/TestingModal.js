@@ -310,7 +310,7 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], selectAllMode = f
       
       // Use appropriate endpoints for each test type
       if (testType === 'ping_light') {
-        endpoint = 'manual/ping-light-test';  // Fast TCP check without auth
+        endpoint = 'manual/ping-light-test-batch-progress';  // Fast TCP check without auth with progress
       } else if (testType === 'ping') {
         endpoint = 'manual/ping-test-batch-progress';  // Full ping with auth
       } else if (testType === 'speed') {
