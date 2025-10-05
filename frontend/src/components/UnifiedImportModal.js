@@ -197,6 +197,7 @@ const UnifiedImportModal = ({ isOpen, onClose, onComplete }) => {
     try {
       const controller = new AbortController();
       setRegularImportController(controller);
+      setRegularImportProgress(0);
       
       const response = await axios.post(`${API}/nodes/import`, {
         data: importData,
@@ -211,8 +212,17 @@ const UnifiedImportModal = ({ isOpen, onClose, onComplete }) => {
       if (!success) {
         toast.error(message || 'Ошибка импорта');
         setSubmitting(false);
+        setRegularImportProgress(0);
         return;
       }
+
+      // Complete progress and update stats
+      setRegularImportProgress(100);
+      setRegularImportStats({
+        added: report?.added || 0,
+        skipped: report?.skipped_duplicates || 0,
+        errors: report?.format_errors || 0
+      });
 
       // Show results
       setPreviewResult(report || null);
@@ -226,12 +236,14 @@ const UnifiedImportModal = ({ isOpen, onClose, onComplete }) => {
     } catch (error) {
       if (error.name === 'AbortError' || error.name === 'CanceledError') {
         toast.info('⏹️ Импорт отменён пользователем');
+        setRegularImportProgress(0);
         return;
       }
       
       console.error('Error importing:', error);
       const errorMsg = error.response?.data?.message || 'Не удалось импортировать данные';
       toast.error(errorMsg);
+      setRegularImportProgress(0);
     } finally {
       setSubmitting(false);
       setRegularImportController(null);
