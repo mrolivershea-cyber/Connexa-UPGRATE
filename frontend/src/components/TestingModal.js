@@ -780,7 +780,7 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], selectAllMode = f
           </Button>
           <Button 
             onClick={handleTest}
-            disabled={loading || selectedNodeIds.length === 0}
+            disabled={loading || (!selectAllMode && selectedNodeIds.length === 0)}
             data-testid="start-testing-btn"
           >
             <Activity className="h-4 w-4 mr-2" />
