@@ -705,7 +705,7 @@ const AdminPanel = () => {
               data-testid="select-all-checkbox"
             />
             <span className="text-sm">
-              Select All ({selectAllMode ? allSelectedIds.length : selectedNodes.length} selected
+              Select All ({selectAllMode ? selectAllCount : selectedNodes.length} selected
               {selectAllMode && ` total, ${selectedNodes.length} visible`})
             </span>
           </div>
