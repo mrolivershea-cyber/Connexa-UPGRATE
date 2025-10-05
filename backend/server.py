@@ -2215,6 +2215,8 @@ def process_parsed_nodes(db: Session, parsed_data: dict, testing_mode: str = "no
     # Commit all changes
     try:
         db.commit()
+        # Log final statistics
+        logger.info(f"✅ Import Complete - Added: {len(results['added'])}, Skipped: {len(results['skipped'])}, Replaced: {len(results['replaced'])}, Queued: {len(results['queued'])}, Errors: {len(results['errors'])}")
     except Exception as e:
         logger.error(f"Database commit error: {str(e)}")
         db.rollback()
