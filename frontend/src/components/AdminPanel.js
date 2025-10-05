@@ -80,6 +80,7 @@ const AdminPanel = () => {
 
   const loadNodes = useCallback(async (page = 1) => {
     try {
+      console.log(`📥 Loading nodes: page=${page}, filters=`, activeFilters);
       setLoading(true);
       const params = {
         page,
@@ -88,11 +89,17 @@ const AdminPanel = () => {
       };
       
       const response = await axios.get(`${API}/nodes`, { params });
-      setNodes(response.data.nodes);
-      setCurrentPage(response.data.page);
-      setTotalPages(response.data.total_pages);
+      
+      // Batch state updates together
+      React.startTransition(() => {
+        setNodes(response.data.nodes);
+        setCurrentPage(response.data.page);
+        setTotalPages(response.data.total_pages);
+      });
+      
+      console.log(`✅ Loaded ${response.data.nodes.length} nodes successfully`);
     } catch (error) {
-      console.error('Error loading nodes:', error);
+      console.error('❌ Error loading nodes:', error);
       toast.error('Failed to load nodes');
     } finally {
       setLoading(false);
