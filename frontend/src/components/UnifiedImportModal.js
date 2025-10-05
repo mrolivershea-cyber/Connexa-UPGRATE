@@ -578,7 +578,7 @@ const UnifiedImportModal = ({ isOpen, onClose, onComplete }) => {
           </div>
 
           {/* УНИФИЦИРОВАННЫЙ КОМПОНЕНТ ПРОГРЕССА для всех типов импорта */}
-          {(submitting || isImportActive) && (sessionId || regularImportController) && (
+          {((submitting && !sessionId) || (isImportActive && sessionId)) && (
             <ProgressDisplay
               type={sessionId ? 'chunked' : 'regular'}
               progress={sessionId ? progress : null}
