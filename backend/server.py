@@ -3042,15 +3042,15 @@ async def manual_ping_test(
             except Exception:
                 ping_result["packet_loss"] = 100.0 if not ping_result.get("success") else 0.0
 
-            # Update status based on result with sticky PING OK baseline
+            # Update status based on result with rollback to ping_ok
             if ping_result['success']:
                 node.status = "ping_ok"
                 logger.info(f"✅ Node {node_id} ping SUCCESS - status: {original_status} -> ping_ok")
             else:
-                # Never downgrade below PING OK once achieved
+                # Откат до ping_ok для высоких статусов (speed_ok, online)
                 if has_ping_baseline(original_status):
-                    node.status = original_status  # keep ping_ok/speed_ok/online
-                    logger.info(f"🛡️ Node {node_id} ping FAILED but preserving baseline {original_status}")
+                    node.status = "ping_ok"  # откатываем до ping_ok (НЕ сохраняем текущий)
+                    logger.info(f"🔄 Node {node_id} ping FAILED - rolling back from {original_status} to ping_ok")
                 else:
                     node.status = "ping_failed"
                     logger.info(f"❌ Node {node_id} ping FAILED - status: {original_status} -> ping_failed")
