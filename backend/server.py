@@ -586,7 +586,7 @@ async def get_all_node_ids(
               if k not in ['current_user', 'db'] and v is not None}
     
     # Apply filters using helper function - only select ID for performance
-    query = apply_node_filters(db.query(Node.id), **filters)
+    query = apply_node_filters_kwargs(db.query(Node.id), **filters)
     
     # Get all IDs (no pagination) - more efficient list comprehension
     node_ids = [row[0] for row in query.all()]
