@@ -321,13 +321,21 @@ const UnifiedImportModal = ({ isOpen, onClose, onComplete }) => {
           localStorage.removeItem('activeImportSession');
           
           if (progressData.status === 'completed') {
-            setPreviewResult({
+            const report = {
               added: progressData.added,
               skipped_duplicates: progressData.skipped,
               replaced_old: progressData.replaced,
               format_errors: progressData.errors
-            });
+            };
+            
+            setPreviewResult(report);
             setShowPreview(true);
+            
+            // Save report to localStorage for recovery
+            localStorage.setItem('lastImportReport', JSON.stringify({
+              report: report,
+              timestamp: Date.now()
+            }));
             
             toast.success(`✅ Импорт большого файла завершён: ${progressData.added} добавлено, ${progressData.skipped} дубликатов`);
           toast.info('📊 Для тестирования используйте кнопку "Testing" в админ-панели');
