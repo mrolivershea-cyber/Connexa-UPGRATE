@@ -504,28 +504,6 @@ const UnifiedImportModal = ({ isOpen, onClose, onComplete }) => {
             </Card>
           )}
 
-          {/* Простой индикатор для обычного импорта */}
-          {submitting && !sessionId && (
-            <Card className="border-green-200 bg-green-50">
-              <CardContent className="py-4">
-                <div className="space-y-3">
-                  <div className="flex items-center justify-center space-x-3">
-                    <Activity className="h-6 w-6 text-green-600 animate-spin" />
-                    <span className="text-lg font-semibold text-green-800">Обработка файла</span>
-                  </div>
-                  
-                  {/* Simple Progress Animation */}
-                  <div className="w-full bg-green-200 rounded-full h-2">
-                    <div className="bg-green-600 h-2 rounded-full animate-pulse w-full"></div>
-                  </div>
-                  
-                  <div className="text-center text-sm text-green-700">
-                    📂 Файл обрабатывается напрямую (размер &lt; 500KB)
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
           
           {/* Настройки импорта */}
           {!submitting && (
