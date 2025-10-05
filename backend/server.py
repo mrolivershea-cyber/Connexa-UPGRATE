@@ -3266,13 +3266,18 @@ async def manual_ping_test_batch_progress(
     session_id = str(uuid.uuid4())
     active_sessions.add(session_id)
     
-    # Если node_ids пустой - тестируем ВСЕ узлы (Select All режим)
+    # Если node_ids пустой - тестируем узлы по фильтрам (Select All режим)
     node_ids_to_test = test_request.node_ids or []
     if not node_ids_to_test:
-        logger.info("🌐 PING OK BATCH: Select All mode detected - loading all nodes from database")
-        all_nodes = db.query(Node).all()
+        logger.info("🌐 PING OK BATCH: Select All mode detected - loading nodes with filters")
+        query = db.query(Node)
+        # Применяем фильтры если есть
+        if test_request.filters:
+            query = apply_node_filters(query, test_request.filters)
+            logger.info(f"🔍 PING OK BATCH: Applying filters: {test_request.filters}")
+        all_nodes = query.all()
         node_ids_to_test = [node.id for node in all_nodes]
-        logger.info(f"📊 PING OK BATCH: Will test {len(node_ids_to_test)} nodes (all nodes in database)")
+        logger.info(f"📊 PING OK BATCH: Will test {len(node_ids_to_test)} nodes (with filters)")
     
     # Get all valid nodes
     nodes = []
