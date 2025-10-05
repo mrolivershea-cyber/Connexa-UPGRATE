@@ -27,6 +27,20 @@ const UnifiedImportModal = ({ isOpen, onClose, onComplete }) => {
   const [regularImportController, setRegularImportController] = useState(null);
   const [regularImportProgress, setRegularImportProgress] = useState(0);
   const [regularImportStats, setRegularImportStats] = useState({ added: 0, skipped: 0, errors: 0 });
+  
+  // Simulate progress for regular import (non-blocking)
+  useEffect(() => {
+    if (submitting && !sessionId) {
+      let progressValue = 0;
+      const interval = setInterval(() => {
+        progressValue += Math.random() * 5 + 2;
+        if (progressValue >= 90) progressValue = 90;
+        setRegularImportProgress(Math.round(progressValue));
+      }, 150);
+      
+      return () => clearInterval(interval);
+    }
+  }, [submitting, sessionId]);
 
   useEffect(() => {
     if (isOpen) {
