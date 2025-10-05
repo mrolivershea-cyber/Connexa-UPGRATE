@@ -266,9 +266,13 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], selectAllMode = f
   const [speedTimeout, setSpeedTimeout] = useState(2);         // ЭКСТРЕМАЛЬНО быстро
 
   const handleTest = async () => {
-    if (selectedNodeIds.length === 0) {
+    if (!selectAllMode && selectedNodeIds.length === 0) {
       toast.error('Выберите узлы для тестирования');
       return;
+    }
+    
+    if (selectAllMode) {
+      toast.info('🚀 Запуск тестирования всех узлов в базе...');
     }
 
     setLoading(true);
