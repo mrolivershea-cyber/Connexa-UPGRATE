@@ -339,12 +339,20 @@ const UnifiedImportModal = ({ isOpen, onClose, onComplete }) => {
             toast.success(`✅ Импорт большого файла завершён: ${progressData.added} добавлено, ${progressData.skipped} дубликатов`);
           toast.info('📊 Для тестирования используйте кнопку "Testing" в админ-панели');
           
+          // Вызываем onComplete только после того как UI обновился
           if (onComplete) {
-            onComplete({
-              added: progressData.added,
-              skipped_duplicates: progressData.skipped,
-              replaced_old: progressData.replaced
-            });
+            try {
+              // Используем setTimeout чтобы дать React время обновить UI
+              setTimeout(() => {
+                onComplete({
+                  added: progressData.added,
+                  skipped_duplicates: progressData.skipped,
+                  replaced_old: progressData.replaced
+                });
+              }, 100);
+            } catch (error) {
+              console.error('Error in onComplete callback:', error);
+            }
           }
           } else if (progressData.status === 'cancelled') {
             toast.info('⏹️ Импорт отменён пользователем');
