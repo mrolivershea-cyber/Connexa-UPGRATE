@@ -18930,6 +18930,19 @@ City: TestCity"""
         
         self.test_bulk_delete_comprehensive_scenarios()
         
+        # ========== IMPORT PERFORMANCE TESTS (Russian User Review Request) ==========
+        print("\n" + "🔥" * 80)
+        print("🇷🇺 ДИАГНОСТИКА ПРОИЗВОДИТЕЛЬНОСТИ ИМПОРТА - REVIEW REQUEST")
+        print("🔥" * 80)
+        print("ЗАДАЧА: Проверить скорость импорта и найти узкие места")
+        print("ТЕСТ 1: Маленький файл (10 строк) - Regular Import")
+        print("ТЕСТ 2: Средний файл (1000 строк) - Regular Import")
+        print("ТЕСТ 3: Большой файл (5000 строк) - Chunked Import")
+        print("ФОРМАТ ДАННЫХ: IP:Login:Pass (Format 7)")
+        print("🔥" * 80)
+        
+        self.test_import_performance_bottleneck_analysis()
+        
         # Print summary
         print("\n" + "=" * 50)
         print(f"📊 Test Summary: {self.tests_passed}/{self.tests_run} tests passed")
