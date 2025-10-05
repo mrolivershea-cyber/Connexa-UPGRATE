@@ -159,30 +159,39 @@ const AdminPanel = () => {
 
   const handleSelectAll = async () => {
     if (selectAllMode) {
-      // Currently in "select all" mode - deselect all
+      // Deselect all
+      setSelectAllMode(false);
       setSelectedNodes([]);
       setAllSelectedIds([]);
-      setSelectAllMode(false);
-    } else {
-      // Select all nodes matching current filters
-      setLoading(true); // Show loading state
-      try {
-        const allIds = await getAllNodeIds();
-        if (allIds.length > 0) {
-          setAllSelectedIds(allIds);
-          // For visible nodes, create a Set for fast lookup
-          const visibleIds = new Set(nodes.map(node => node.id));
-          const visibleSelected = allIds.filter(id => visibleIds.has(id));
-          setSelectedNodes(visibleSelected);
-          setSelectAllMode(true);
-          toast.success(`Выбрано ${allIds.length} узлов`);
-        }
-      } catch (error) {
-        console.error('Error selecting all:', error);
-        toast.error('Ошибка при выборе всех узлов');
-      } finally {
-        setLoading(false);
-      }
+      toast.info('Сброшен выбор всех узлов');
+      return;
+    }
+    
+    setLoading(true);
+    try {
+      // Получаем количество узлов без предварительных предупреждений
+      const params = {
+        ...activeFilters,
+        count_only: true
+      };
+      
+      const response = await axios.get(`${API}/nodes/count`, { params });
+      const totalCount = response.data.count || 0;
+      
+      setSelectAllMode(true);
+      setAllSelectedIds([]); // Не загружаем все ID в память
+      
+      // Выбираем только текущую страницу визуально
+      const currentPageIds = nodes.map(node => node.id);
+      setSelectedNodes(currentPageIds);
+      
+      toast.success(`Режим "Выбрать все" активен для ${totalCount} узлов`);
+      toast.info(`💡 Операции будут применены ко всем ${totalCount} узлам, а не только к видимым`);
+    } catch (error) {
+      console.error('Error selecting all:', error);
+      toast.error('Ошибка при получении количества узлов');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -218,30 +227,83 @@ const AdminPanel = () => {
   };
 
   const handleDeleteSelected = async () => {
-    const targetIds = selectAllMode ? allSelectedIds : selectedNodes;
-    
-    if (!targetIds.length) {
-      toast.error('No nodes selected');
-      return;
-    }
+    if (selectAllMode) {
+      // Quick confirm for bulk delete
+      const countResponse = await axios.get(`${API}/nodes/count`, { params: activeFilters });
+      const totalCount = countResponse.data.count || 0;
+      
+      const confirmed = window.confirm(`Удалить ${totalCount} узлов с текущими фильтрами?`);
+      if (!confirmed) return;
+      
+      setLoading(true);
+      try {
+        // Use bulk delete with filters - add delete_all for selectAll mode
+        const bulkParams = {
+          ...activeFilters,
+          delete_all: Object.keys(activeFilters).length === 0 ? 'true' : 'false'
+        };
+        
+        const response = await axios({
+          method: 'delete',
+          url: `${API}/nodes/bulk`,
+          params: bulkParams
+        });
+        
+        const deletedCount = response.data.deleted_count || totalCount;
+        toast.success(`✅ Удалено ${deletedCount} узлов с текущими фильтрами`);
+        
+        // Reset selections and reload
+        setSelectedNodes([]);
+        setSelectAllMode(false);
+        setAllSelectedIds([]);
+        loadNodes(1); // Start from first page
+        loadStats();
+      } catch (error) {
+        console.error('Error bulk deleting nodes:', error);
+        let errorMsg = 'Ошибка массового удаления узлов';
+        
+        if (error.response?.data?.detail) {
+          if (typeof error.response.data.detail === 'string') {
+            errorMsg = error.response.data.detail;
+          } else {
+            errorMsg = JSON.stringify(error.response.data.detail);
+          }
+        } else if (error.message) {
+          errorMsg = error.message;
+        }
+        
+        toast.error(`❌ ${errorMsg}`);
+        console.log('Full error object:', error);
+      } finally {
+        setLoading(false);
+      }
+    } else {
+      // Regular delete for individual selected nodes
+      if (!selectedNodes.length) {
+        toast.error('Узлы не выбраны');
+        return;
+      }
 
-    if (!window.confirm(`Delete ${targetIds.length} selected nodes?`)) {
-      return;
-    }
+      const confirmed = window.confirm(`Удалить ${selectedNodes.length} выбранных узлов?`);
+      if (!confirmed) return;
 
-    try {
-      const response = await axios.delete(`${API}/nodes`, {
-        data: { node_ids: targetIds }
-      });
-      toast.success(`Deleted ${targetIds.length} nodes`);
-      setSelectedNodes([]);
-      setAllSelectedIds([]);
-      setSelectAllMode(false);
-      loadNodes(currentPage);
-      loadStats();
-    } catch (error) {
-      console.error('Error deleting nodes:', error);
-      toast.error('Failed to delete nodes');
+      setLoading(true);
+      try {
+        await axios.delete(`${API}/nodes`, {
+          data: { node_ids: selectedNodes }
+        });
+        toast.success(`✅ Удалено ${selectedNodes.length} узлов`);
+        
+        // Reset selections and reload
+        setSelectedNodes([]);
+        loadNodes(currentPage);
+        loadStats();
+      } catch (error) {
+        console.error('Error deleting selected nodes:', error);
+        toast.error('❌ Ошибка удаления выбранных узлов');
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
@@ -389,7 +451,25 @@ const AdminPanel = () => {
             <div className="flex items-center space-x-4">
               <Server className="h-8 w-8 text-blue-600" />
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">Connexa Admin Panel</h1>
+                <div className="flex items-center space-x-3">
+                  <h1 className="text-2xl font-bold text-gray-900">Connexa Admin Panel</h1>
+                  {/* Import Status Indicator */}
+                  {(() => {
+                    // Check for active imports
+                    const activeImportSession = localStorage.getItem('activeImportSession');
+                    const activeRegularImport = localStorage.getItem('activeRegularImport');
+                    
+                    if (activeImportSession || activeRegularImport) {
+                      return (
+                        <div className="flex items-center bg-blue-100 border border-blue-300 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
+                          <Activity className="h-4 w-4 mr-1 animate-spin" />
+                          Импорт активен
+                        </div>
+                      );
+                    }
+                    return null;
+                  })()}
+                </div>
                 <p className="text-sm text-gray-500">VPN Management System v1.7</p>
               </div>
             </div>

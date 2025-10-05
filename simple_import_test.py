@@ -4,139 +4,228 @@ import requests
 import json
 import time
 
-def test_import_functionality():
-    """Test the import functionality with different testing modes"""
-    
-    # Use local backend URL
-    base_url = "http://localhost:8001"
-    api_url = f"{base_url}/api"
-    
-    # Login first
+# Configuration
+BASE_URL = "https://socks-admin.preview.emergentagent.com"
+API_URL = f"{BASE_URL}/api"
+
+def login():
+    """Login and get token"""
     login_data = {"username": "admin", "password": "admin"}
+    response = requests.post(f"{API_URL}/auth/login", json=login_data)
     
-    try:
-        login_response = requests.post(f"{api_url}/auth/login", json=login_data, timeout=10)
-        if login_response.status_code != 200:
-            print(f"❌ Login failed: {login_response.text}")
-            return False
-        
-        token = login_response.json().get('access_token')
-        headers = {
-            'Content-Type': 'application/json',
-            'Authorization': f'Bearer {token}'
-        }
-        
+    if response.status_code == 200:
+        token = response.json().get('access_token')
         print("✅ Login successful")
-        
-        # Test 1: Import with ping_only mode
-        print("\n🔥 TEST 1: Import with ping_only mode")
-        test_data = """72.197.30.147 admin admin US
-100.11.102.204 admin admin US  
-200.1.1.1 admin admin US"""
-        
-        import_data = {
-            "data": test_data,
-            "protocol": "pptp",
-            "testing_mode": "ping_only"
-        }
-        
-        import_response = requests.post(f"{api_url}/nodes/import", json=import_data, headers=headers, timeout=30)
-        
-        if import_response.status_code == 200:
-            result = import_response.json()
-            print(f"✅ Import successful: {result.get('message', 'No message')}")
-            if 'report' in result:
-                report = result['report']
-                print(f"   Added: {report.get('added', 0)}")
-                print(f"   Format errors: {report.get('format_errors', 0)}")
-                print(f"   Testing mode: {report.get('testing_mode', 'unknown')}")
-        else:
-            print(f"❌ Import failed: {import_response.text}")
-            return False
-        
-        # Wait a bit for testing to start
-        time.sleep(5)
-        
-        # Test 2: Import with ping_speed mode
-        print("\n🔥 TEST 2: Import with ping_speed mode")
-        test_data2 = """72.197.30.148 admin admin US
-100.11.102.205 admin admin US"""
-        
-        import_data2 = {
-            "data": test_data2,
-            "protocol": "pptp",
-            "testing_mode": "ping_speed"
-        }
-        
-        import_response2 = requests.post(f"{api_url}/nodes/import", json=import_data2, headers=headers, timeout=30)
-        
-        if import_response2.status_code == 200:
-            result2 = import_response2.json()
-            print(f"✅ Import successful: {result2.get('message', 'No message')}")
-            if 'report' in result2:
-                report2 = result2['report']
-                print(f"   Added: {report2.get('added', 0)}")
-                print(f"   Format errors: {report2.get('format_errors', 0)}")
-                print(f"   Testing mode: {report2.get('testing_mode', 'unknown')}")
-        else:
-            print(f"❌ Import failed: {import_response2.text}")
-            return False
-        
-        # Test 3: Check for nodes stuck in checking status
-        print("\n🔥 TEST 3: Check for nodes stuck in 'checking' status")
-        
-        # Wait a bit more for any testing to complete
-        time.sleep(10)
-        
-        checking_response = requests.get(f"{api_url}/nodes?status=checking", headers=headers, timeout=10)
-        
-        if checking_response.status_code == 200:
-            checking_result = checking_response.json()
-            checking_nodes = checking_result.get('nodes', [])
-            checking_count = len(checking_nodes)
+        return token
+    else:
+        print(f"❌ Login failed: {response.text}")
+        return None
+
+def test_regular_import(token):
+    """Test 1: Regular Import (small files <200KB)"""
+    print("\n🔥 ТЕСТ 1: Regular Import (малые файлы <200KB)")
+    
+    # Generate 50 lines of Format 7 (IP:Login:Pass)
+    test_lines = []
+    for i in range(50):
+        test_lines.append(f"5.78.{i//256}.{i%256+1}:admin:pass{i}")
+    
+    test_data = "\n".join(test_lines)
+    data_size = len(test_data.encode('utf-8'))
+    
+    print(f"📊 Test data: {len(test_lines)} lines, {data_size} bytes ({data_size/1024:.1f}KB)")
+    
+    import_data = {
+        "data": test_data,
+        "protocol": "pptp"
+    }
+    
+    headers = {
+        'Content-Type': 'application/json',
+        'Authorization': f'Bearer {token}'
+    }
+    
+    response = requests.post(f"{API_URL}/nodes/import", json=import_data, headers=headers)
+    
+    if response.status_code == 200:
+        result = response.json()
+        if result.get('success'):
+            report = result.get('report', {})
+            added = report.get('added', 0)
+            skipped = report.get('skipped_duplicates', 0)
+            errors = report.get('format_errors', 0)
+            has_session_id = 'session_id' in result and result['session_id'] is not None
             
-            print(f"   Nodes stuck in 'checking': {checking_count}")
+            print(f"✅ SUCCESS: {added} added, {skipped} skipped, {errors} errors")
+            print(f"   Session ID: {result.get('session_id', 'None')} (should be None for small files)")
             
-            if checking_count == 0:
-                print("✅ No nodes stuck in 'checking' status")
+            if not has_session_id and added > 0:
+                print("✅ PASSED: Regular processing (no session_id)")
+                return True
             else:
-                print(f"❌ {checking_count} nodes stuck in 'checking' status")
-                for node in checking_nodes[:5]:  # Show first 5
-                    print(f"     - Node {node.get('id')}: {node.get('ip')} ({node.get('status')})")
+                print("❌ FAILED: Expected regular processing")
+                return False
         else:
-            print(f"❌ Failed to check nodes: {checking_response.text}")
-        
-        # Test 4: Check specific node statuses
-        print("\n🔥 TEST 4: Check specific node statuses")
-        
-        test_ips = ['72.197.30.147', '72.197.30.148', '100.11.102.204']
-        
-        for ip in test_ips:
-            node_response = requests.get(f"{api_url}/nodes?ip={ip}", headers=headers, timeout=10)
+            print(f"❌ FAILED: {result}")
+            return False
+    else:
+        print(f"❌ FAILED: HTTP {response.status_code} - {response.text}")
+        return False
+
+def test_chunked_import(token):
+    """Test 2: Chunked Import (large files >200KB)"""
+    print("\n🔥 ТЕСТ 2: Chunked Import (большие файлы >200KB)")
+    
+    # Generate 1000 lines of Format 7 to ensure >200KB
+    test_lines = []
+    for i in range(1000):
+        ip_a = 10 + (i // 65536)
+        ip_b = (i // 256) % 256
+        ip_c = i % 256
+        test_lines.append(f"{ip_a}.{ip_b}.{ip_c}.1:admin:pass{i}")
+    
+    test_data = "\n".join(test_lines)
+    data_size = len(test_data.encode('utf-8'))
+    
+    print(f"📊 Test data: {len(test_lines)} lines, {data_size} bytes ({data_size/1024:.1f}KB)")
+    
+    import_data = {
+        "data": test_data,
+        "protocol": "pptp"
+    }
+    
+    headers = {
+        'Content-Type': 'application/json',
+        'Authorization': f'Bearer {token}'
+    }
+    
+    response = requests.post(f"{API_URL}/nodes/import-chunked", json=import_data, headers=headers)
+    
+    if response.status_code == 200:
+        result = response.json()
+        if result.get('success'):
+            session_id = result.get('session_id')
+            total_chunks = result.get('total_chunks', 0)
+            progress_url = result.get('progress_url', '')
             
-            if node_response.status_code == 200:
-                node_result = node_response.json()
-                nodes = node_result.get('nodes', [])
-                
-                if nodes:
-                    node = nodes[0]
-                    status = node.get('status')
-                    print(f"   {ip}: {status}")
-                else:
-                    print(f"   {ip}: Not found")
+            print(f"✅ SUCCESS: session_id={session_id}, total_chunks={total_chunks}")
+            print(f"   Progress URL: {progress_url}")
+            
+            if session_id and total_chunks > 0:
+                print("✅ PASSED: Chunked processing started")
+                return session_id
             else:
-                print(f"   {ip}: Error checking status")
+                print("❌ FAILED: Missing session_id or total_chunks")
+                return None
+        else:
+            print(f"❌ FAILED: {result}")
+            return None
+    else:
+        print(f"❌ FAILED: HTTP {response.status_code} - {response.text}")
+        return None
+
+def test_progress_tracking(token, session_id):
+    """Test 3: Progress Tracking"""
+    print("\n🔥 ТЕСТ 3: Progress Tracking")
+    
+    if not session_id:
+        print("❌ FAILED: No session_id provided")
+        return False
+    
+    headers = {
+        'Content-Type': 'application/json',
+        'Authorization': f'Bearer {token}'
+    }
+    
+    # Wait a moment for processing to start
+    print("⏳ Waiting for processing to start...")
+    time.sleep(3)
+    
+    response = requests.get(f"{API_URL}/import/progress/{session_id}", headers=headers)
+    
+    if response.status_code == 200:
+        result = response.json()
         
-        print("\n🏁 IMPORT TESTING COMPLETED")
+        # Check for required progress fields
+        required_fields = ['session_id', 'total_chunks', 'processed_chunks', 'status', 'added', 'skipped', 'errors']
+        missing_fields = [field for field in required_fields if field not in result]
+        
+        if not missing_fields:
+            status = result.get('status', 'unknown')
+            processed_chunks = result.get('processed_chunks', 0)
+            total_chunks = result.get('total_chunks', 0)
+            added = result.get('added', 0)
+            skipped = result.get('skipped', 0)
+            errors = result.get('errors', 0)
+            
+            print(f"✅ SUCCESS: status={status}, processed_chunks={processed_chunks}/{total_chunks}")
+            print(f"   Statistics: added={added}, skipped={skipped}, errors={errors}")
+            print("✅ PASSED: Progress tracking working")
+            return True
+        else:
+            print(f"❌ FAILED: Missing required fields: {missing_fields}")
+            return False
+    else:
+        print(f"❌ FAILED: HTTP {response.status_code} - {response.text}")
+        return False
+
+def main():
+    print("🚀 КРИТИЧЕСКОЕ ТЕСТИРОВАНИЕ: Импорт узлов через API")
+    print("=" * 80)
+    print("КОНТЕКСТ: Пользователь не может импортировать узлы ни через текстовый буфер, ни через файл.")
+    print("ТЕСТИРУЕМЫЕ СЦЕНАРИИ:")
+    print("1. Regular Import (малые файлы <200KB) - POST /api/nodes/import")
+    print("2. Chunked Import (большие файлы >200KB) - POST /api/nodes/import-chunked")
+    print("3. Progress Tracking - GET /api/import/progress/{session_id}")
+    print("ФОРМАТ ДАННЫХ: Format 7 (IP:Login:Pass)")
+    print("=" * 80)
+    
+    # Login
+    token = login()
+    if not token:
+        print("❌ Cannot proceed without authentication")
+        return False
+    
+    # Run tests
+    test1_passed = test_regular_import(token)
+    session_id = test_chunked_import(token)
+    test2_passed = session_id is not None
+    test3_passed = test_progress_tracking(token, session_id)
+    
+    # Summary
+    print("\n" + "=" * 80)
+    print("🏁 РЕЗУЛЬТАТЫ ТЕСТИРОВАНИЯ")
+    print("=" * 80)
+    
+    tests_passed = sum([test1_passed, test2_passed, test3_passed])
+    total_tests = 3
+    
+    print(f"📊 Результат: {tests_passed}/{total_tests} тестов пройдено ({(tests_passed/total_tests)*100:.1f}%)")
+    
+    if test1_passed:
+        print("✅ ТЕСТ 1: Regular Import - ПРОЙДЕН")
+    else:
+        print("❌ ТЕСТ 1: Regular Import - НЕ ПРОЙДЕН")
+    
+    if test2_passed:
+        print("✅ ТЕСТ 2: Chunked Import - ПРОЙДЕН")
+    else:
+        print("❌ ТЕСТ 2: Chunked Import - НЕ ПРОЙДЕН")
+    
+    if test3_passed:
+        print("✅ ТЕСТ 3: Progress Tracking - ПРОЙДЕН")
+    else:
+        print("❌ ТЕСТ 3: Progress Tracking - НЕ ПРОЙДЕН")
+    
+    if tests_passed == total_tests:
+        print("\n🎉 ВСЕ КРИТИЧЕСКИЕ ТЕСТЫ ПРОЙДЕНЫ!")
+        print("✅ Импорт узлов работает корректно через оба endpoint")
         return True
-        
-    except Exception as e:
-        print(f"❌ Test failed with exception: {str(e)}")
+    else:
+        print(f"\n❌ {total_tests - tests_passed} тестов не пройдено")
+        print("❌ Требуется исправление функциональности импорта")
         return False
 
 if __name__ == "__main__":
-    success = test_import_functionality()
-    if success:
-        print("🎉 Import testing completed successfully")
-    else:
-        print("❌ Import testing failed")
+    success = main()
+    exit(0 if success else 1)

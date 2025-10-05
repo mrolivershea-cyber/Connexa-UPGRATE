@@ -117,7 +117,7 @@ const UnifiedImportModal = ({ isOpen, onClose, onComplete }) => {
         toast.info(`📂 Обнаружен большой файл (${(dataSize/1024).toFixed(1)}KB). Используем безопасную обработку по частям...`);
         
         // Use chunked endpoint for large files
-        const response = await axios.post(`${API}/nodes/import/chunked`, {
+        const response = await axios.post(`${API}/nodes/import-chunked`, {
           data: importData,
           protocol,
           testing_mode: 'no_test'

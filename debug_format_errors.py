@@ -5,7 +5,7 @@ import json
 
 def debug_format_errors():
     """Debug format error detection"""
-    base_url = "https://node-proxy-dash.preview.emergentagent.com"
+    base_url = "https://socks-admin.preview.emergentagent.com"
     api_url = f"{base_url}/api"
     
     # Login first

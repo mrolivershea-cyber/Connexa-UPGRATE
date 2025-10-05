@@ -539,6 +539,86 @@ async def get_all_node_ids(
         "total_count": len(node_ids)
     }
 
+@api_router.get("/nodes/count")
+async def get_nodes_count(
+    status: Optional[str] = None,
+    protocol: Optional[str] = None,
+    search: Optional[str] = None,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get count of nodes matching filters - for performance"""
+    query = db.query(Node)
+    
+    if status:
+        query = query.filter(Node.status == status)
+    if protocol:
+        query = query.filter(Node.protocol == protocol)
+    if search:
+        query = query.filter(
+            (Node.ip.contains(search)) |
+            (Node.login.contains(search)) |
+            (Node.password.contains(search))
+        )
+    
+    count = query.count()
+    return {"count": count}
+
+@api_router.delete("/nodes/bulk")
+async def bulk_delete_nodes(
+    status: Optional[str] = None,
+    protocol: Optional[str] = None,
+    search: Optional[str] = None,
+    delete_all: Optional[bool] = False,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Bulk delete nodes by filters"""
+    query = db.query(Node)
+    
+    # Apply filters
+    filters_applied = False
+    if status:
+        query = query.filter(Node.status == status)
+        filters_applied = True
+    if protocol:
+        query = query.filter(Node.protocol == protocol)
+        filters_applied = True
+    if search:
+        query = query.filter(
+            (Node.ip.contains(search)) |
+            (Node.login.contains(search)) |
+            (Node.password.contains(search))
+        )
+        filters_applied = True
+    
+    # Safety check - require either filters or explicit delete_all=True
+    if not filters_applied and not delete_all:
+        raise HTTPException(
+            status_code=400, 
+            detail="Must specify filters (status, protocol, search) or set delete_all=true to delete all nodes"
+        )
+    
+    # Get count first
+    count_to_delete = query.count()
+    
+    if count_to_delete == 0:
+        return {
+            "message": "No nodes found matching the criteria",
+            "deleted_count": 0
+        }
+    
+    # Delete all matching nodes
+    deleted_count = query.delete(synchronize_session=False)
+    db.commit()
+    
+    logger.info(f"Bulk deleted {deleted_count} nodes with filters: status={status}, protocol={protocol}, search={search}, delete_all={delete_all}")
+    
+    return {
+        "message": f"Successfully deleted {deleted_count} nodes",
+        "deleted_count": deleted_count
+    }
+
 @api_router.get("/nodes/{node_id}")
 async def get_node_by_id(
     node_id: int,
@@ -609,6 +689,27 @@ async def delete_node(
     db.delete(db_node)
     db.commit()
     return {"message": "Node deleted successfully"}
+
+@api_router.delete("/nodes/batch")
+async def delete_nodes_batch(
+    data: dict,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Delete multiple nodes by IDs"""
+    node_ids = data.get("node_ids", [])
+    if not node_ids:
+        raise HTTPException(status_code=400, detail="No node IDs provided")
+    
+    deleted_count = db.query(Node).filter(Node.id.in_(node_ids)).delete(synchronize_session=False)
+    db.commit()
+    
+    logger.info(f"Batch deleted {deleted_count} nodes by IDs: {node_ids}")
+    
+    return {
+        "message": f"Successfully deleted {deleted_count} nodes",
+        "deleted_count": deleted_count
+    }
 
 @api_router.delete("/nodes")
 async def delete_multiple_nodes(
@@ -744,8 +845,18 @@ async def import_nodes_chunked(
     
     # Split data into chunks by lines for processing
     lines = data.data.strip().split('\n')
-    chunk_size = 1000  # Process 1000 lines at a time
+    
+    # Optimized chunk sizes for maximum speed
+    if len(lines) > 50000:
+        chunk_size = 10000  # Large files: 10K lines per chunk (faster)
+    elif len(lines) > 10000:
+        chunk_size = 5000   # Medium files: 5K lines per chunk (faster)
+    else:
+        chunk_size = 2500   # Small files: 2.5K lines per chunk (faster)
+    
     chunks = [lines[i:i + chunk_size] for i in range(0, len(lines), chunk_size)]
+    
+    logger.info(f"Dynamic chunking: {len(lines)} lines -> {len(chunks)} chunks of {chunk_size} lines each")
     
     total_chunks = len(chunks)
     total_lines = len(lines)
@@ -792,26 +903,28 @@ async def process_chunks_async(chunks: list, protocol: str, session_id: str, use
         total_errors = 0
         
         for chunk_index, chunk in enumerate(chunks):
-            # Check if import was cancelled
-            current_progress = import_progress.get(session_id, {})
-            if current_progress.get('status') == 'cancelled':
-                logger.info(f"Import session {session_id} was cancelled, stopping processing")
-                db.rollback()  # Rollback any uncommitted changes
-                db.close()
-                return
+            # Quick cancellation check only every 5th chunk for performance
+            if chunk_index % 5 == 0:
+                current_progress = import_progress.get(session_id, {})
+                if current_progress.get('status') == 'cancelled':
+                    logger.info(f"Import session {session_id} was cancelled, stopping processing")
+                    db.rollback()
+                    db.close()
+                    return
             
-            # Update progress
-            progress_data = import_progress.get(session_id, {})
-            progress_data.update({
-                'processed_chunks': chunk_index + 1,
-                'total_chunks': len(chunks),
-                'added': total_added,
-                'skipped': total_skipped,
-                'replaced': total_replaced,
-                'errors': total_errors,
-                'current_operation': f'Processing chunk {chunk_index + 1}/{len(chunks)} - Parsing nodes...'
-            })
-            import_progress[session_id] = progress_data
+            # Update progress every 3rd chunk to reduce overhead
+            if chunk_index % 3 == 0:
+                progress_data = import_progress.get(session_id, {})
+                progress_data.update({
+                    'processed_chunks': chunk_index + 1,
+                    'total_chunks': len(chunks),
+                    'added': total_added,
+                    'skipped': total_skipped,
+                    'replaced': total_replaced,
+                    'errors': total_errors,
+                    'current_operation': f'Processing chunk {chunk_index + 1}/{len(chunks)}'
+                })
+                import_progress[session_id] = progress_data
             
             # Process chunk
             chunk_text = '\n'.join(chunk)
@@ -820,12 +933,11 @@ async def process_chunks_async(chunks: list, protocol: str, session_id: str, use
                     # Parse chunk
                     parsed_data = parse_nodes_text(chunk_text, protocol)
                     
-                    # Update operation
-                    progress_data['current_operation'] = f'Processing chunk {chunk_index + 1}/{len(chunks)} - Saving to database...'
-                    import_progress[session_id] = progress_data
-                    
-                    # Process nodes
-                    results = process_parsed_nodes(db, parsed_data, "no_test")
+                    # Process nodes with BULK optimization (always use bulk for speed)
+                    if len(parsed_data['nodes']) > 100:  # Lower threshold for bulk mode
+                        results = process_parsed_nodes_bulk(db, parsed_data, "no_test")
+                    else:
+                        results = process_parsed_nodes(db, parsed_data, "no_test")
                     
                     # Update totals
                     total_added += len(results['added'])
@@ -833,14 +945,13 @@ async def process_chunks_async(chunks: list, protocol: str, session_id: str, use
                     total_replaced += len(results['replaced'])
                     total_errors += len(results['errors'])
                     
-                    # Small delay to prevent UI blocking and allow cancel checking
-                    await asyncio.sleep(0.1)
+                    # No delay for maximum speed
                     
                 except Exception as chunk_error:
                     logger.error(f"Error processing chunk {chunk_index}: {chunk_error}")
                     total_errors += 1
         
-        # Final progress update
+        # Final progress update with detailed report
         progress_data = import_progress.get(session_id, {})
         progress_data.update({
             'processed_chunks': len(chunks),
@@ -849,7 +960,15 @@ async def process_chunks_async(chunks: list, protocol: str, session_id: str, use
             'replaced': total_replaced,
             'errors': total_errors,
             'status': 'completed',
-            'current_operation': 'Import completed'
+            'current_operation': 'Import completed',
+            'final_report': {
+                'total_processed': total_added + total_skipped + total_replaced + total_errors,
+                'added': total_added,
+                'skipped_duplicates': total_skipped,
+                'replaced_old': total_replaced,
+                'format_errors': total_errors,
+                'success_rate': round((total_added / max(1, total_added + total_errors)) * 100, 1)
+            }
         })
         import_progress[session_id] = progress_data
         
@@ -857,13 +976,12 @@ async def process_chunks_async(chunks: list, protocol: str, session_id: str, use
         try:
             db.commit()
             logger.info(f"✅ Chunked import committed to database - session: {session_id}")
+            logger.info(f"📊 Final results: {total_added} added, {total_skipped} skipped, {total_replaced} replaced, {total_errors} errors")
         except Exception as commit_error:
             logger.error(f"❌ CRITICAL: Failed to commit chunked import: {commit_error}")
             db.rollback()
         finally:
             db.close()
-        
-        logger.info(f"Chunked import completed - session: {session_id}, added: {total_added}, skipped: {total_skipped}")
         
     except Exception as e:
         logger.error(f"Error in chunked import processing: {e}")
@@ -1740,6 +1858,134 @@ def create_verification_queue_entry(db: Session, node_data: dict, conflicting_no
     except Exception as e:
         print(f"Error creating verification queue entry: {e}")
         return 0
+
+def process_parsed_nodes_bulk(db: Session, parsed_data: dict, testing_mode: str) -> dict:
+    """OPTIMIZED BULK version - fast but with proper duplicate checking and reporting"""
+    from sqlalchemy import text
+    from datetime import datetime, timedelta
+    
+    added_nodes = []
+    skipped_nodes = []
+    replaced_nodes = []
+    error_nodes = []
+    
+    # Get existing IPs in batches for performance
+    existing_ips = {}
+    try:
+        # Get all existing IPs with their creation dates for smart duplicate handling
+        ip_list = [node.get('ip', '').strip() for node in parsed_data.get('nodes', [])[:1000]]
+        if ip_list:
+            placeholders = ','.join('?' * len(ip_list))
+            result = db.execute(text(f"""
+                SELECT ip, login, password, last_update 
+                FROM nodes 
+                WHERE ip IN ({placeholders})
+            """), ip_list)
+        else:
+            result = []
+        
+        for row in result.fetchall():
+            existing_ips[row[0]] = {
+                'login': row[1], 
+                'password': row[2], 
+                'last_update': row[3]
+            }
+    except Exception as e:
+        logger.error(f"Error getting existing IPs: {e}")
+        # Continue without duplicate checking if query fails
+    
+    # Process nodes with smart duplicate handling
+    bulk_insert_data = []
+    
+    for node_data in parsed_data.get('nodes', []):
+        try:
+            ip = node_data.get('ip', '').strip()
+            login = node_data.get('login', 'admin')
+            password = node_data.get('password', 'admin')
+            protocol = node_data.get('protocol', 'pptp')
+            
+            if not ip:
+                error_nodes.append({"error": "Missing IP", "data": node_data})
+                continue
+            
+            # Smart duplicate checking
+            if ip in existing_ips:
+                existing = existing_ips[ip]
+                
+                # Check if exact duplicate (same IP + login + password)
+                if existing['login'] == login and existing['password'] == password:
+                    skipped_nodes.append({
+                        "ip": ip, 
+                        "reason": "Exact duplicate",
+                        "existing_login": existing['login']
+                    })
+                    continue
+                
+                # Check if old record (>4 weeks) - replace it
+                try:
+                    if existing['last_update']:
+                        last_update_date = datetime.fromisoformat(existing['last_update'].replace('Z', '+00:00'))
+                        if datetime.utcnow() - last_update_date > timedelta(weeks=4):
+                            # Will be replaced by INSERT OR REPLACE
+                            replaced_nodes.append({
+                                "ip": ip,
+                                "reason": "Replaced old record",
+                                "old_login": existing['login'],
+                                "new_login": login
+                            })
+                        else:
+                            # Recent duplicate with different credentials
+                            skipped_nodes.append({
+                                "ip": ip,
+                                "reason": "Recent duplicate with different credentials",
+                                "existing_login": existing['login']
+                            })
+                            continue
+                except:
+                    pass  # If date parsing fails, treat as replaceable
+            
+            # Add to bulk insert
+            bulk_insert_data.append({
+                'ip': ip,
+                'login': login,
+                'password': password,
+                'protocol': protocol,
+                'status': 'not_tested'
+            })
+            
+            if ip not in existing_ips:
+                added_nodes.append({"ip": ip, "login": login})
+            
+        except Exception as e:
+            logger.error(f"Error processing node in bulk mode: {e}")
+            error_nodes.append({"error": str(e), "data": node_data})
+    
+    # Optimized bulk insert with duplicate handling
+    if bulk_insert_data:
+        try:
+            # Use INSERT OR REPLACE for handling duplicates properly
+            insert_stmt = text("""
+                INSERT OR REPLACE INTO nodes (ip, login, password, protocol, status, last_update)
+                VALUES (:ip, :login, :password, :protocol, :status, datetime('now'))
+            """)
+            
+            db.execute(insert_stmt, bulk_insert_data)
+            db.commit()
+            
+            logger.info(f"✅ OPTIMIZED BULK INSERT: {len(added_nodes)} added, {len(skipped_nodes)} skipped, {len(replaced_nodes)} replaced")
+            
+        except Exception as e:
+            logger.error(f"Bulk insert error: {e}")
+            db.rollback()
+            error_nodes.extend([{"error": f"Bulk insert failed: {e}", "data": item} for item in bulk_insert_data])
+            added_nodes = []
+    
+    return {
+        'added': added_nodes,
+        'skipped': skipped_nodes,
+        'replaced': replaced_nodes,
+        'errors': error_nodes
+    }
 
 def process_parsed_nodes(db: Session, parsed_data: dict, testing_mode: str = "no_test") -> dict:
     """Process parsed nodes with IN-IMPORT and DB deduplication logic"""

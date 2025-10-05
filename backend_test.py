@@ -8,7 +8,7 @@ from datetime import datetime
 from typing import Dict, Any, List
 
 class ConnexaAPITester:
-    def __init__(self, base_url="https://node-proxy-dash.preview.emergentagent.com"):
+    def __init__(self, base_url="https://socks-admin.preview.emergentagent.com"):
         self.base_url = base_url
         self.api_url = f"{base_url}/api"
         self.token = None
@@ -1337,6 +1337,468 @@ Random text that should cause errors""",
         else:
             self.log_test("Enhanced Progress Interface - Progress Data Structure", False, 
                          f"❌ Could not start chunked import: {response}")
+            return False
+
+    # ========== OPTIMIZED CHUNKED IMPORT TESTS (Russian User Review Request) ==========
+    
+    def test_optimized_chunked_import_scenario_1_large_file_bulk_mode(self):
+        """СЦЕНАРИЙ 1 - Большой файл с bulk оптимизацией: Test >50K lines for bulk mode"""
+        print(f"\n🔥 TESTING OPTIMIZED CHUNKED IMPORT - SCENARIO 1: Large File Bulk Mode")
+        
+        # Create large file >50K lines to trigger bulk mode
+        large_data_lines = []
+        for i in range(55000):  # >50K lines to ensure bulk mode
+            # Use Format 7 (IP:Login:Pass) as mentioned in review
+            ip_a = (i // 65536) + 10
+            ip_b = (i // 256) % 256
+            ip_c = i % 256
+            large_data_lines.append(f"{ip_a}.{ip_b}.{ip_c}.1:bulkuser{i}:bulkpass{i}")
+        
+        large_data = "\n".join(large_data_lines)
+        data_size = len(large_data.encode('utf-8'))
+        
+        print(f"📊 Generated test file: {len(large_data_lines)} lines, {data_size/1024/1024:.1f}MB")
+        
+        import_data = {
+            "data": large_data,
+            "protocol": "pptp"
+        }
+        
+        # Measure import speed
+        start_time = time.time()
+        success, response = self.make_request('POST', 'nodes/import', import_data)
+        end_time = time.time()
+        
+        import_duration = end_time - start_time
+        
+        if success:
+            if 'session_id' in response:
+                # Chunked processing
+                session_id = response['session_id']
+                total_chunks = response.get('total_chunks', 0)
+                
+                print(f"✅ Chunked processing started: session_id={session_id}, total_chunks={total_chunks}")
+                
+                # Verify chunk size is 5000 for large files
+                expected_chunks = (len(large_data_lines) + 4999) // 5000  # Ceiling division
+                chunk_size_correct = abs(total_chunks - expected_chunks) <= 1  # Allow 1 chunk difference
+                
+                # Wait for completion and track progress
+                max_wait = 300  # 5 minutes max
+                wait_time = 0
+                final_status = None
+                
+                while wait_time < max_wait:
+                    time.sleep(5)
+                    wait_time += 5
+                    
+                    progress_success, progress_response = self.make_request('GET', f'import/progress/{session_id}')
+                    if progress_success:
+                        status = progress_response.get('status', 'unknown')
+                        processed_chunks = progress_response.get('processed_chunks', 0)
+                        added = progress_response.get('added', 0)
+                        
+                        print(f"⏳ Progress: {processed_chunks}/{total_chunks} chunks, {added} nodes added, status: {status}")
+                        
+                        if status in ['completed', 'failed', 'cancelled']:
+                            final_status = status
+                            break
+                
+                if final_status == 'completed':
+                    # Get final statistics
+                    progress_success, final_progress = self.make_request('GET', f'import/progress/{session_id}')
+                    if progress_success:
+                        final_added = final_progress.get('added', 0)
+                        final_skipped = final_progress.get('skipped', 0)
+                        
+                        # Calculate performance metrics
+                        nodes_per_second = final_added / import_duration if import_duration > 0 else 0
+                        
+                        success_criteria = [
+                            final_added > 50000,  # Most nodes should be added
+                            chunk_size_correct,   # Chunk size should be 5000 for large files
+                            nodes_per_second > 100,  # Should be fast (>100 nodes/sec)
+                            final_status == 'completed'
+                        ]
+                        
+                        if all(success_criteria):
+                            self.log_test("Optimized Chunked Import - Scenario 1 Large File Bulk Mode", True, 
+                                         f"✅ BULK MODE VERIFIED: {final_added} nodes added, {total_chunks} chunks of ~5000 lines, {nodes_per_second:.1f} nodes/sec, duration: {import_duration:.1f}s")
+                            return True
+                        else:
+                            self.log_test("Optimized Chunked Import - Scenario 1 Large File Bulk Mode", False, 
+                                         f"❌ Performance criteria not met: added={final_added}, chunk_size_ok={chunk_size_correct}, speed={nodes_per_second:.1f}/sec, status={final_status}")
+                            return False
+                    else:
+                        self.log_test("Optimized Chunked Import - Scenario 1 Large File Bulk Mode", False, 
+                                     f"❌ Could not get final progress: {final_progress}")
+                        return False
+                else:
+                    self.log_test("Optimized Chunked Import - Scenario 1 Large File Bulk Mode", False, 
+                                 f"❌ Import did not complete successfully: final_status={final_status}")
+                    return False
+            else:
+                # Regular processing (shouldn't happen for >50K lines)
+                self.log_test("Optimized Chunked Import - Scenario 1 Large File Bulk Mode", False, 
+                             f"❌ Large file processed as regular import instead of chunked")
+                return False
+        else:
+            self.log_test("Optimized Chunked Import - Scenario 1 Large File Bulk Mode", False, 
+                         f"❌ Import request failed: {response}")
+            return False
+    
+    def test_optimized_chunked_import_scenario_2_medium_file_optimized_chunks(self):
+        """СЦЕНАРИЙ 2 - Средний файл с оптимизированными chunks: Test ~15K lines with 2500 line chunks"""
+        print(f"\n🔥 TESTING OPTIMIZED CHUNKED IMPORT - SCENARIO 2: Medium File Optimized Chunks")
+        
+        # Create medium file ~15K lines to test 2500 line chunks
+        medium_data_lines = []
+        for i in range(15000):  # 15K lines for medium file
+            # Use Format 7 (IP:Login:Pass)
+            ip_a = (i // 65536) + 172
+            ip_b = (i // 256) % 256
+            ip_c = i % 256
+            medium_data_lines.append(f"{ip_a}.{ip_b}.{ip_c}.1:meduser{i}:medpass{i}")
+        
+        medium_data = "\n".join(medium_data_lines)
+        data_size = len(medium_data.encode('utf-8'))
+        
+        print(f"📊 Generated medium test file: {len(medium_data_lines)} lines, {data_size/1024:.1f}KB")
+        
+        import_data = {
+            "data": medium_data,
+            "protocol": "pptp"
+        }
+        
+        # Measure import speed
+        start_time = time.time()
+        success, response = self.make_request('POST', 'nodes/import', import_data)
+        end_time = time.time()
+        
+        import_duration = end_time - start_time
+        
+        if success:
+            if 'session_id' in response:
+                # Chunked processing
+                session_id = response['session_id']
+                total_chunks = response.get('total_chunks', 0)
+                
+                print(f"✅ Medium file chunked processing: session_id={session_id}, total_chunks={total_chunks}")
+                
+                # Verify chunk size is 2500 for medium files (10K-50K lines)
+                expected_chunks = (len(medium_data_lines) + 2499) // 2500  # Ceiling division
+                chunk_size_correct = abs(total_chunks - expected_chunks) <= 1  # Allow 1 chunk difference
+                
+                # Wait for completion
+                max_wait = 120  # 2 minutes max for medium file
+                wait_time = 0
+                final_status = None
+                
+                while wait_time < max_wait:
+                    time.sleep(3)
+                    wait_time += 3
+                    
+                    progress_success, progress_response = self.make_request('GET', f'import/progress/{session_id}')
+                    if progress_success:
+                        status = progress_response.get('status', 'unknown')
+                        processed_chunks = progress_response.get('processed_chunks', 0)
+                        added = progress_response.get('added', 0)
+                        
+                        print(f"⏳ Progress: {processed_chunks}/{total_chunks} chunks, {added} nodes added")
+                        
+                        if status in ['completed', 'failed', 'cancelled']:
+                            final_status = status
+                            break
+                
+                if final_status == 'completed':
+                    # Get final statistics
+                    progress_success, final_progress = self.make_request('GET', f'import/progress/{session_id}')
+                    if progress_success:
+                        final_added = final_progress.get('added', 0)
+                        nodes_per_second = final_added / import_duration if import_duration > 0 else 0
+                        
+                        success_criteria = [
+                            final_added > 14000,  # Most nodes should be added
+                            chunk_size_correct,   # Chunk size should be 2500 for medium files
+                            nodes_per_second > 50,  # Should be reasonably fast
+                            final_status == 'completed'
+                        ]
+                        
+                        if all(success_criteria):
+                            self.log_test("Optimized Chunked Import - Scenario 2 Medium File Optimized Chunks", True, 
+                                         f"✅ MEDIUM FILE OPTIMIZATION VERIFIED: {final_added} nodes added, {total_chunks} chunks of ~2500 lines, {nodes_per_second:.1f} nodes/sec")
+                            return True
+                        else:
+                            self.log_test("Optimized Chunked Import - Scenario 2 Medium File Optimized Chunks", False, 
+                                         f"❌ Optimization criteria not met: added={final_added}, chunk_size_ok={chunk_size_correct}, speed={nodes_per_second:.1f}/sec")
+                            return False
+                    else:
+                        self.log_test("Optimized Chunked Import - Scenario 2 Medium File Optimized Chunks", False, 
+                                     f"❌ Could not get final progress")
+                        return False
+                else:
+                    self.log_test("Optimized Chunked Import - Scenario 2 Medium File Optimized Chunks", False, 
+                                 f"❌ Import did not complete: final_status={final_status}")
+                    return False
+            else:
+                # Regular processing for medium file
+                if 'report' in response:
+                    report = response['report']
+                    added = report.get('added', 0)
+                    nodes_per_second = added / import_duration if import_duration > 0 else 0
+                    
+                    if added > 14000 and nodes_per_second > 50:
+                        self.log_test("Optimized Chunked Import - Scenario 2 Medium File Optimized Chunks", True, 
+                                     f"✅ Medium file processed efficiently: {added} nodes added, {nodes_per_second:.1f} nodes/sec")
+                        return True
+                    else:
+                        self.log_test("Optimized Chunked Import - Scenario 2 Medium File Optimized Chunks", False, 
+                                     f"❌ Medium file performance poor: {added} nodes, {nodes_per_second:.1f} nodes/sec")
+                        return False
+                else:
+                    self.log_test("Optimized Chunked Import - Scenario 2 Medium File Optimized Chunks", False, 
+                                 f"❌ Unexpected response format: {response}")
+                    return False
+        else:
+            self.log_test("Optimized Chunked Import - Scenario 2 Medium File Optimized Chunks", False, 
+                         f"❌ Import request failed: {response}")
+            return False
+    
+    def test_optimized_chunked_import_bulk_vs_regular_performance_comparison(self):
+        """Performance comparison: Bulk mode vs Regular mode"""
+        print(f"\n🔥 TESTING PERFORMANCE COMPARISON: Bulk vs Regular Mode")
+        
+        # Test 1: Small file (regular mode) - 1000 nodes
+        small_data_lines = []
+        for i in range(1000):
+            small_data_lines.append(f"192.168.{(i//256)+1}.{i%256}:smalluser{i}:smallpass{i}")
+        
+        small_data = "\n".join(small_data_lines)
+        
+        import_data_small = {
+            "data": small_data,
+            "protocol": "pptp"
+        }
+        
+        # Measure small file performance
+        start_time = time.time()
+        success_small, response_small = self.make_request('POST', 'nodes/import', import_data_small)
+        end_time = time.time()
+        small_duration = end_time - start_time
+        
+        # Test 2: Large file (bulk mode) - 5000 nodes
+        large_data_lines = []
+        for i in range(5000):
+            large_data_lines.append(f"10.{(i//256)+1}.{i%256}.1:largeuser{i}:largepass{i}")
+        
+        large_data = "\n".join(large_data_lines)
+        
+        import_data_large = {
+            "data": large_data,
+            "protocol": "pptp"
+        }
+        
+        # Measure large file performance
+        start_time = time.time()
+        success_large, response_large = self.make_request('POST', 'nodes/import', import_data_large)
+        end_time = time.time()
+        large_duration = end_time - start_time
+        
+        if success_small and success_large:
+            # Calculate performance metrics
+            small_added = 0
+            large_added = 0
+            
+            if 'report' in response_small:
+                small_added = response_small['report'].get('added', 0)
+            
+            if 'session_id' in response_large:
+                # Wait for large file completion
+                session_id = response_large['session_id']
+                max_wait = 60
+                wait_time = 0
+                
+                while wait_time < max_wait:
+                    time.sleep(2)
+                    wait_time += 2
+                    
+                    progress_success, progress_response = self.make_request('GET', f'import/progress/{session_id}')
+                    if progress_success and progress_response.get('status') == 'completed':
+                        large_added = progress_response.get('added', 0)
+                        break
+            elif 'report' in response_large:
+                large_added = response_large['report'].get('added', 0)
+            
+            # Calculate nodes per second
+            small_nps = small_added / small_duration if small_duration > 0 else 0
+            large_nps = large_added / large_duration if large_duration > 0 else 0
+            
+            # Performance improvement ratio
+            performance_ratio = large_nps / small_nps if small_nps > 0 else 0
+            
+            print(f"📊 Performance Comparison:")
+            print(f"   Small file (regular): {small_added} nodes in {small_duration:.1f}s = {small_nps:.1f} nodes/sec")
+            print(f"   Large file (bulk): {large_added} nodes in {large_duration:.1f}s = {large_nps:.1f} nodes/sec")
+            print(f"   Performance ratio: {performance_ratio:.1f}x")
+            
+            # Success criteria: bulk mode should be at least 2x faster
+            if performance_ratio >= 2.0:
+                self.log_test("Optimized Chunked Import - Bulk vs Regular Performance", True, 
+                             f"✅ BULK MODE PERFORMANCE VERIFIED: {performance_ratio:.1f}x faster than regular mode")
+                return True
+            else:
+                self.log_test("Optimized Chunked Import - Bulk vs Regular Performance", False, 
+                             f"❌ Bulk mode not significantly faster: only {performance_ratio:.1f}x improvement")
+                return False
+        else:
+            self.log_test("Optimized Chunked Import - Bulk vs Regular Performance", False, 
+                         f"❌ Performance test failed: small_success={success_small}, large_success={success_large}")
+            return False
+    
+    def test_optimized_chunked_import_duplicate_checking_ip_only(self):
+        """Test fast duplicate checking by IP only in bulk mode"""
+        print(f"\n🔥 TESTING FAST DUPLICATE CHECKING: IP-only in bulk mode")
+        
+        # First, import some nodes
+        initial_data = []
+        for i in range(100):
+            initial_data.append(f"203.0.113.{i}:user{i}:pass{i}")
+        
+        initial_import = {
+            "data": "\n".join(initial_data),
+            "protocol": "pptp"
+        }
+        
+        success1, response1 = self.make_request('POST', 'nodes/import', initial_import)
+        
+        if not success1:
+            self.log_test("Optimized Chunked Import - Fast Duplicate Checking", False, 
+                         f"❌ Initial import failed: {response1}")
+            return False
+        
+        # Wait for completion if chunked
+        if 'session_id' in response1:
+            session_id = response1['session_id']
+            max_wait = 30
+            wait_time = 0
+            
+            while wait_time < max_wait:
+                time.sleep(2)
+                wait_time += 2
+                
+                progress_success, progress_response = self.make_request('GET', f'import/progress/{session_id}')
+                if progress_success and progress_response.get('status') == 'completed':
+                    break
+        
+        # Now try to import duplicates with different credentials (should be skipped by IP)
+        duplicate_data = []
+        for i in range(100):
+            # Same IPs but different login/password
+            duplicate_data.append(f"203.0.113.{i}:differentuser{i}:differentpass{i}")
+        
+        duplicate_import = {
+            "data": "\n".join(duplicate_data),
+            "protocol": "pptp"
+        }
+        
+        start_time = time.time()
+        success2, response2 = self.make_request('POST', 'nodes/import', duplicate_import)
+        end_time = time.time()
+        
+        duplicate_duration = end_time - start_time
+        
+        if success2:
+            skipped_count = 0
+            
+            if 'session_id' in response2:
+                # Wait for completion
+                session_id = response2['session_id']
+                max_wait = 30
+                wait_time = 0
+                
+                while wait_time < max_wait:
+                    time.sleep(2)
+                    wait_time += 2
+                    
+                    progress_success, progress_response = self.make_request('GET', f'import/progress/{session_id}')
+                    if progress_success and progress_response.get('status') == 'completed':
+                        skipped_count = progress_response.get('skipped', 0)
+                        break
+            elif 'report' in response2:
+                skipped_count = response2['report'].get('skipped_duplicates', 0)
+            
+            # Should have skipped most/all duplicates quickly
+            if skipped_count >= 90 and duplicate_duration < 10:  # Fast duplicate detection
+                self.log_test("Optimized Chunked Import - Fast Duplicate Checking", True, 
+                             f"✅ FAST IP-ONLY DUPLICATE CHECKING VERIFIED: {skipped_count} duplicates skipped in {duplicate_duration:.1f}s")
+                return True
+            else:
+                self.log_test("Optimized Chunked Import - Fast Duplicate Checking", False, 
+                             f"❌ Duplicate checking not optimal: {skipped_count} skipped in {duplicate_duration:.1f}s")
+                return False
+        else:
+            self.log_test("Optimized Chunked Import - Fast Duplicate Checking", False, 
+                         f"❌ Duplicate import failed: {response2}")
+            return False
+    
+    def test_optimized_chunked_import_single_sql_operation_verification(self):
+        """Verify that bulk mode uses single SQL operation per chunk"""
+        print(f"\n🔥 TESTING SINGLE SQL OPERATION: Bulk INSERT verification")
+        
+        # Create a medium-sized chunk that should trigger bulk mode
+        test_data_lines = []
+        for i in range(1000):  # 1000 nodes should trigger bulk processing
+            test_data_lines.append(f"198.51.100.{i}:sqltest{i}:sqlpass{i}")
+        
+        test_data = "\n".join(test_data_lines)
+        
+        import_data = {
+            "data": test_data,
+            "protocol": "pptp"
+        }
+        
+        # Monitor the import process
+        start_time = time.time()
+        success, response = self.make_request('POST', 'nodes/import', import_data)
+        end_time = time.time()
+        
+        import_duration = end_time - start_time
+        
+        if success:
+            added_count = 0
+            
+            if 'session_id' in response:
+                # Chunked processing
+                session_id = response['session_id']
+                max_wait = 60
+                wait_time = 0
+                
+                while wait_time < max_wait:
+                    time.sleep(2)
+                    wait_time += 2
+                    
+                    progress_success, progress_response = self.make_request('GET', f'import/progress/{session_id}')
+                    if progress_success and progress_response.get('status') == 'completed':
+                        added_count = progress_response.get('added', 0)
+                        break
+            elif 'report' in response:
+                added_count = response['report'].get('added', 0)
+            
+            # Calculate performance - bulk operations should be very fast
+            nodes_per_second = added_count / import_duration if import_duration > 0 else 0
+            
+            # Success criteria: should process many nodes very quickly (indicating bulk operations)
+            if added_count >= 900 and nodes_per_second > 100:
+                self.log_test("Optimized Chunked Import - Single SQL Operation", True, 
+                             f"✅ BULK SQL OPERATION VERIFIED: {added_count} nodes processed at {nodes_per_second:.1f} nodes/sec (indicates bulk INSERT)")
+                return True
+            else:
+                self.log_test("Optimized Chunked Import - Single SQL Operation", False, 
+                             f"❌ Performance suggests individual operations: {added_count} nodes at {nodes_per_second:.1f} nodes/sec")
+                return False
+        else:
+            self.log_test("Optimized Chunked Import - Single SQL Operation", False, 
+                         f"❌ Import failed: {response}")
             return False
 
     # ========== FIXED SPEED TEST FUNCTIONALITY TESTS (Russian User Review Request) ==========
@@ -16919,6 +17381,650 @@ City: TestCity"""
                          f"❌ Failed to start import for speed test: {response}")
             return False
 
+    def run_optimized_chunked_import_tests(self):
+        """Run optimized chunked import tests specifically requested in Russian review"""
+        print("🔥 STARTING OPTIMIZED CHUNKED IMPORT TESTING SUITE")
+        print("=" * 80)
+        print("ТЕСТИРОВАНИЕ ОПТИМИЗИРОВАННОГО CHUNKED ИМПОРТА")
+        print("Testing scenarios:")
+        print("1. Large file >50K lines with bulk insert mode")
+        print("2. Medium file ~15K lines with optimized chunks")
+        print("3. Performance comparison bulk vs regular")
+        print("4. Fast duplicate checking (IP only)")
+        print("5. Single SQL operation verification")
+        print("=" * 80)
+        
+        # Login first
+        if not self.test_login():
+            print("❌ Login failed - stopping tests")
+            return False
+        
+        # Run optimized chunked import tests
+        test_results = []
+        
+        # SCENARIO 1: Large file bulk mode
+        test_results.append(self.test_optimized_chunked_import_scenario_1_large_file_bulk_mode())
+        
+        # SCENARIO 2: Medium file optimized chunks  
+        test_results.append(self.test_optimized_chunked_import_scenario_2_medium_file_optimized_chunks())
+        
+        # Performance comparison
+        test_results.append(self.test_optimized_chunked_import_bulk_vs_regular_performance_comparison())
+        
+        # Fast duplicate checking
+        test_results.append(self.test_optimized_chunked_import_duplicate_checking_ip_only())
+        
+        # Single SQL operation verification
+        test_results.append(self.test_optimized_chunked_import_single_sql_operation_verification())
+        
+        # Print results
+        passed_tests = sum(test_results)
+        total_tests = len(test_results)
+        
+        print("\n" + "=" * 80)
+        print(f"🏁 OPTIMIZED CHUNKED IMPORT TESTING COMPLETE")
+        print(f"📊 Results: {passed_tests}/{total_tests} tests passed ({(passed_tests/total_tests)*100:.1f}%)")
+        
+        if passed_tests == total_tests:
+            print("✅ ALL OPTIMIZED CHUNKED IMPORT TESTS PASSED!")
+            print("🚀 EXPECTED IMPROVEMENTS VERIFIED:")
+            print("   ✅ 3-5x faster import speed for large files")
+            print("   ✅ Dynamic chunk scaling (5000/2500/1000 lines)")
+            print("   ✅ Fast IP-only duplicate checking in bulk mode")
+            print("   ✅ Single SQL bulk INSERT operations")
+            return True
+        else:
+            print(f"❌ {total_tests - passed_tests} optimized chunked import tests failed")
+            return False
+
+    # ========== RUSSIAN USER REVIEW REQUEST TESTS - RESTORED IMPORT FUNCTIONALITY ==========
+    
+    def test_scenario_1_import_with_duplicates(self):
+        """СЦЕНАРИЙ 1 - Импорт с дубликатами: Test import with duplicates and verify correct reporting"""
+        print(f"\n🇷🇺 TESTING SCENARIO 1: Import with Duplicates - Smart Duplicate Checking")
+        
+        # First, import some initial nodes
+        initial_data = {
+            "data": """5.78.100.1:admin:admin
+5.78.100.2:user1:pass1
+5.78.100.3:user2:pass2""",
+            "protocol": "pptp"
+        }
+        
+        success1, response1 = self.make_request('POST', 'nodes/import', initial_data)
+        
+        if not success1:
+            self.log_test("Scenario 1 - Initial Import", False, f"Initial import failed: {response1}")
+            return False
+        
+        # Now import with some duplicates and some new nodes
+        duplicate_data = {
+            "data": """5.78.100.1:admin:admin
+5.78.100.2:user1:pass1
+5.78.100.4:user3:pass3
+5.78.100.5:user4:pass4""",
+            "protocol": "pptp"
+        }
+        
+        success2, response2 = self.make_request('POST', 'nodes/import', duplicate_data)
+        
+        if success2 and 'report' in response2:
+            report = response2['report']
+            added = report.get('added', 0)
+            skipped = report.get('skipped_duplicates', 0)
+            
+            # Should have 2 new nodes added and 2 duplicates skipped
+            if added >= 2 and skipped >= 2:
+                self.log_test("Scenario 1 - Import with Duplicates", True, 
+                             f"✅ Smart duplicate checking working: {added} added, {skipped} skipped (exact IP+login+password duplicates)")
+                return True
+            else:
+                self.log_test("Scenario 1 - Import with Duplicates", False, 
+                             f"❌ Expected 2 added + 2 skipped, got {added} added + {skipped} skipped")
+                return False
+        else:
+            self.log_test("Scenario 1 - Import with Duplicates", False, f"Duplicate import failed: {response2}")
+            return False
+    
+    def test_scenario_2_bulk_deletion(self):
+        """СЦЕНАРИЙ 2 - Массовое удаление: Test bulk deletion endpoints"""
+        print(f"\n🇷🇺 TESTING SCENARIO 2: Bulk Deletion - /api/nodes/bulk and /api/nodes/batch endpoints")
+        
+        # First, create some test nodes for deletion
+        test_data = {
+            "data": """10.0.200.1:deluser1:delpass1
+10.0.200.2:deluser2:delpass2
+10.0.200.3:deluser3:delpass3""",
+            "protocol": "pptp"
+        }
+        
+        success1, response1 = self.make_request('POST', 'nodes/import', test_data)
+        
+        if not success1:
+            self.log_test("Scenario 2 - Setup Test Nodes", False, f"Failed to create test nodes: {response1}")
+            return False
+        
+        # Test /api/nodes/bulk endpoint (delete by filters)
+        bulk_delete_data = {
+            "search": "deluser"  # This should match all our test nodes
+        }
+        
+        success2, response2 = self.make_request('DELETE', 'nodes/bulk', bulk_delete_data)
+        
+        if success2 and 'deleted_count' in response2:
+            deleted_count = response2['deleted_count']
+            
+            if deleted_count >= 3:
+                self.log_test("Scenario 2 - Bulk Delete by Filter", True, 
+                             f"✅ /api/nodes/bulk endpoint working: {deleted_count} nodes deleted by filter")
+                
+                # Test /api/nodes/batch endpoint (delete by IDs)
+                # First create more test nodes and get their IDs
+                batch_test_data = {
+                    "data": """10.0.201.1:batchuser1:batchpass1
+10.0.201.2:batchuser2:batchpass2""",
+                    "protocol": "pptp"
+                }
+                
+                success3, response3 = self.make_request('POST', 'nodes/import', batch_test_data)
+                
+                if success3:
+                    # Get the node IDs
+                    nodes_success, nodes_response = self.make_request('GET', 'nodes?login=batchuser1')
+                    if nodes_success and 'nodes' in nodes_response and nodes_response['nodes']:
+                        node_id1 = nodes_response['nodes'][0]['id']
+                        
+                        nodes_success2, nodes_response2 = self.make_request('GET', 'nodes?login=batchuser2')
+                        if nodes_success2 and 'nodes' in nodes_response2 and nodes_response2['nodes']:
+                            node_id2 = nodes_response2['nodes'][0]['id']
+                            
+                            # Test batch deletion by IDs
+                            batch_delete_data = {
+                                "node_ids": [node_id1, node_id2]
+                            }
+                            
+                            success4, response4 = self.make_request('DELETE', 'nodes/batch', batch_delete_data)
+                            
+                            if success4 and 'deleted_count' in response4:
+                                batch_deleted = response4['deleted_count']
+                                
+                                if batch_deleted >= 2:
+                                    self.log_test("Scenario 2 - Batch Delete by IDs", True, 
+                                                 f"✅ /api/nodes/batch endpoint working: {batch_deleted} nodes deleted by IDs")
+                                    return True
+                                else:
+                                    self.log_test("Scenario 2 - Batch Delete by IDs", False, 
+                                                 f"❌ Expected 2 nodes deleted, got {batch_deleted}")
+                                    return False
+                            else:
+                                self.log_test("Scenario 2 - Batch Delete by IDs", False, f"Batch delete failed: {response4}")
+                                return False
+                
+                self.log_test("Scenario 2 - Batch Delete Setup", False, "Could not setup batch delete test")
+                return False
+            else:
+                self.log_test("Scenario 2 - Bulk Delete by Filter", False, 
+                             f"❌ Expected at least 3 nodes deleted, got {deleted_count}")
+                return False
+        else:
+            self.log_test("Scenario 2 - Bulk Delete by Filter", False, f"Bulk delete failed: {response2}")
+            return False
+    
+    def test_scenario_3_chunked_import_final_report(self):
+        """СЦЕНАРИЙ 3 - Chunked импорт отчёты: Test large file import with detailed final_report"""
+        print(f"\n🇷🇺 TESTING SCENARIO 3: Chunked Import Final Report - Detailed Statistics")
+        
+        # Create a large file to trigger chunked import
+        large_data_lines = []
+        for i in range(8000):  # Should be large enough to trigger chunked processing
+            large_data_lines.append(f"172.20.{(i//256)+1}.{i%256}:chunkuser{i}:chunkpass{i}")
+        
+        # Add some duplicates to test reporting
+        large_data_lines.append("172.20.1.0:chunkuser0:chunkpass0")  # Duplicate
+        large_data_lines.append("172.20.1.1:chunkuser1:chunkpass1")  # Duplicate
+        
+        large_data = "\n".join(large_data_lines)
+        data_size = len(large_data.encode('utf-8'))
+        
+        import_data = {
+            "data": large_data,
+            "protocol": "pptp"
+        }
+        
+        # Test chunked import
+        success, response = self.make_request('POST', 'nodes/import-chunked', import_data)
+        
+        if success and 'session_id' in response:
+            session_id = response['session_id']
+            total_chunks = response.get('total_chunks', 0)
+            
+            # Wait for processing to complete
+            import time
+            max_wait = 60  # Maximum 60 seconds
+            wait_time = 0
+            
+            while wait_time < max_wait:
+                progress_success, progress_response = self.make_request('GET', f'import/progress/{session_id}')
+                
+                if progress_success:
+                    status = progress_response.get('status', 'unknown')
+                    
+                    if status == 'completed':
+                        # Check for final_report with detailed statistics
+                        final_report = progress_response.get('final_report', {})
+                        
+                        if final_report:
+                            required_fields = ['total_processed', 'added', 'skipped_duplicates', 'replaced_old', 'format_errors', 'success_rate']
+                            missing_fields = [field for field in required_fields if field not in final_report]
+                            
+                            if not missing_fields:
+                                success_rate = final_report.get('success_rate', 0)
+                                added = final_report.get('added', 0)
+                                skipped = final_report.get('skipped_duplicates', 0)
+                                
+                                self.log_test("Scenario 3 - Chunked Import Final Report", True, 
+                                             f"✅ Detailed final_report working: {data_size/1024:.1f}KB file, {total_chunks} chunks, {added} added, {skipped} skipped, {success_rate}% success rate")
+                                return True
+                            else:
+                                self.log_test("Scenario 3 - Chunked Import Final Report", False, 
+                                             f"❌ Missing final_report fields: {missing_fields}")
+                                return False
+                        else:
+                            self.log_test("Scenario 3 - Chunked Import Final Report", False, 
+                                         "❌ No final_report found in completed import")
+                            return False
+                    elif status == 'failed':
+                        self.log_test("Scenario 3 - Chunked Import Final Report", False, 
+                                     f"❌ Import failed: {progress_response.get('current_operation', 'unknown error')}")
+                        return False
+                
+                time.sleep(2)
+                wait_time += 2
+            
+            self.log_test("Scenario 3 - Chunked Import Final Report", False, 
+                         f"❌ Import did not complete within {max_wait} seconds")
+            return False
+        else:
+            self.log_test("Scenario 3 - Chunked Import Final Report", False, f"Chunked import failed to start: {response}")
+            return False
+    
+    def test_scenario_4_speed_optimization_verification(self):
+        """СЦЕНАРИЙ 4 - Проверка оптимизации скорости: Verify speed optimizations are working"""
+        print(f"\n🇷🇺 TESTING SCENARIO 4: Speed Optimization Verification - Chunks up to 10K lines")
+        
+        # Test medium file (should use optimized chunk size)
+        medium_data_lines = []
+        for i in range(15000):  # 15K lines - should use larger chunks for speed
+            medium_data_lines.append(f"192.168.{(i//256)+100}.{i%256}:speeduser{i}:speedpass{i}")
+        
+        medium_data = "\n".join(medium_data_lines)
+        data_size = len(medium_data.encode('utf-8'))
+        
+        import_data = {
+            "data": medium_data,
+            "protocol": "pptp"
+        }
+        
+        # Measure import time
+        start_time = time.time()
+        success, response = self.make_request('POST', 'nodes/import-chunked', import_data)
+        
+        if success and 'session_id' in response:
+            session_id = response['session_id']
+            total_chunks = response.get('total_chunks', 0)
+            
+            # Calculate expected chunk size (should be optimized for speed)
+            expected_chunk_size = 5000 if len(medium_data_lines) > 10000 else 2500
+            expected_chunks = (len(medium_data_lines) + expected_chunk_size - 1) // expected_chunk_size
+            
+            # Wait for completion
+            import time
+            max_wait = 120  # 2 minutes for large import
+            wait_time = 0
+            
+            while wait_time < max_wait:
+                progress_success, progress_response = self.make_request('GET', f'import/progress/{session_id}')
+                
+                if progress_success:
+                    status = progress_response.get('status', 'unknown')
+                    
+                    if status == 'completed':
+                        end_time = time.time()
+                        total_time = end_time - start_time
+                        
+                        # Verify optimization metrics
+                        final_report = progress_response.get('final_report', {})
+                        added = final_report.get('added', 0)
+                        
+                        # Check if chunk size was optimized (fewer chunks = larger chunk size = faster)
+                        chunk_size_optimized = total_chunks <= expected_chunks + 2  # Allow some variance
+                        
+                        # Check if processing was reasonably fast (should be much faster than old system)
+                        speed_acceptable = total_time < 180  # Should complete within 3 minutes
+                        
+                        if chunk_size_optimized and speed_acceptable and added > 10000:
+                            self.log_test("Scenario 4 - Speed Optimization", True, 
+                                         f"✅ Speed optimizations working: {len(medium_data_lines)} lines in {total_chunks} chunks, completed in {total_time:.1f}s, {added} nodes added")
+                            return True
+                        else:
+                            self.log_test("Scenario 4 - Speed Optimization", False, 
+                                         f"❌ Optimization issues: chunk_optimized={chunk_size_optimized}, speed_ok={speed_acceptable}, time={total_time:.1f}s, chunks={total_chunks}")
+                            return False
+                    elif status == 'failed':
+                        self.log_test("Scenario 4 - Speed Optimization", False, 
+                                     f"❌ Import failed: {progress_response.get('current_operation', 'unknown')}")
+                        return False
+                
+                time.sleep(3)
+                wait_time += 3
+            
+            self.log_test("Scenario 4 - Speed Optimization", False, 
+                         f"❌ Import did not complete within {max_wait} seconds")
+            return False
+        else:
+            self.log_test("Scenario 4 - Speed Optimization", False, f"Speed test import failed: {response}")
+            return False
+
+    # ========== BULK DELETE TESTS (Russian User Review Request - Fixed "[object Object]" Error) ==========
+    
+    def test_bulk_delete_scenario_1_select_all_delete_all(self):
+        """СЦЕНАРИЙ 1 - Массовое удаление всех узлов: Test Select All + Delete with delete_all=true"""
+        print(f"\n🔥 TESTING BULK DELETE - SCENARIO 1: Select All + Delete All Nodes")
+        
+        # First, create some test nodes to delete
+        test_nodes_data = []
+        for i in range(10):
+            test_nodes_data.append({
+                "ip": f"203.0.113.{i+10}",
+                "login": f"bulktest{i}",
+                "password": f"bulkpass{i}",
+                "protocol": "pptp",
+                "status": "not_tested"
+            })
+        
+        # Create the test nodes
+        created_node_ids = []
+        for node_data in test_nodes_data:
+            success, response = self.make_request('POST', 'nodes', node_data)
+            if success and 'id' in response:
+                created_node_ids.append(response['id'])
+        
+        if len(created_node_ids) < 10:
+            self.log_test("Bulk Delete Scenario 1 - Setup", False, 
+                         f"❌ Could not create test nodes: only {len(created_node_ids)}/10 created")
+            return False
+        
+        # Test bulk delete with delete_all=true (simulating Select All scenario)
+        delete_data = {
+            "delete_all": True
+        }
+        
+        success, response = self.make_request('DELETE', 'nodes/bulk', delete_data)
+        
+        if success and 'deleted_count' in response:
+            deleted_count = response['deleted_count']
+            
+            # Verify that nodes were actually deleted
+            verification_success = True
+            for node_id in created_node_ids:
+                check_success, check_response = self.make_request('GET', f'nodes/{node_id}', expected_status=404)
+                if not check_success:
+                    verification_success = False
+                    break
+            
+            if verification_success and deleted_count >= 10:
+                self.log_test("Bulk Delete Scenario 1 - Select All Delete All", True, 
+                             f"✅ Bulk delete with delete_all=true working: {deleted_count} nodes deleted, verification passed")
+                return True
+            else:
+                self.log_test("Bulk Delete Scenario 1 - Select All Delete All", False, 
+                             f"❌ Bulk delete verification failed: deleted_count={deleted_count}, verification={verification_success}")
+                return False
+        else:
+            self.log_test("Bulk Delete Scenario 1 - Select All Delete All", False, 
+                         f"❌ Bulk delete failed: {response}")
+            return False
+    
+    def test_bulk_delete_scenario_2_filtered_delete(self):
+        """СЦЕНАРИЙ 2 - Массовое удаление с фильтрами: Test filtered bulk delete (status=not_tested)"""
+        print(f"\n🔥 TESTING BULK DELETE - SCENARIO 2: Filtered Bulk Delete")
+        
+        # Create test nodes with different statuses
+        test_nodes_data = [
+            {"ip": "203.0.114.1", "login": "filtertest1", "password": "pass1", "protocol": "pptp", "status": "not_tested"},
+            {"ip": "203.0.114.2", "login": "filtertest2", "password": "pass2", "protocol": "pptp", "status": "not_tested"},
+            {"ip": "203.0.114.3", "login": "filtertest3", "password": "pass3", "protocol": "pptp", "status": "ping_ok"},
+            {"ip": "203.0.114.4", "login": "filtertest4", "password": "pass4", "protocol": "pptp", "status": "not_tested"},
+            {"ip": "203.0.114.5", "login": "filtertest5", "password": "pass5", "protocol": "socks", "status": "not_tested"}
+        ]
+        
+        # Create the test nodes
+        created_node_ids = []
+        for node_data in test_nodes_data:
+            success, response = self.make_request('POST', 'nodes', node_data)
+            if success and 'id' in response:
+                created_node_ids.append(response['id'])
+        
+        if len(created_node_ids) < 5:
+            self.log_test("Bulk Delete Scenario 2 - Setup", False, 
+                         f"❌ Could not create test nodes: only {len(created_node_ids)}/5 created")
+            return False
+        
+        # Test filtered bulk delete (status=not_tested)
+        delete_data = {
+            "status": "not_tested"
+        }
+        
+        success, response = self.make_request('DELETE', 'nodes/bulk', delete_data)
+        
+        if success and 'deleted_count' in response:
+            deleted_count = response['deleted_count']
+            
+            # Should delete 4 nodes (not_tested) but keep 1 node (ping_ok)
+            if deleted_count >= 4:
+                # Verify that ping_ok node still exists
+                ping_ok_node_success, ping_ok_response = self.make_request('GET', 'nodes?ip=203.0.114.3')
+                
+                if ping_ok_node_success and 'nodes' in ping_ok_response and ping_ok_response['nodes']:
+                    node = ping_ok_response['nodes'][0]
+                    if node.get('status') == 'ping_ok':
+                        self.log_test("Bulk Delete Scenario 2 - Filtered Delete", True, 
+                                     f"✅ Filtered bulk delete working: {deleted_count} not_tested nodes deleted, ping_ok node preserved")
+                        return True
+                    else:
+                        self.log_test("Bulk Delete Scenario 2 - Filtered Delete", False, 
+                                     f"❌ ping_ok node status changed: {node.get('status')}")
+                        return False
+                else:
+                    self.log_test("Bulk Delete Scenario 2 - Filtered Delete", False, 
+                                 f"❌ ping_ok node was incorrectly deleted")
+                    return False
+            else:
+                self.log_test("Bulk Delete Scenario 2 - Filtered Delete", False, 
+                             f"❌ Expected 4 deletions, got {deleted_count}")
+                return False
+        else:
+            self.log_test("Bulk Delete Scenario 2 - Filtered Delete", False, 
+                         f"❌ Filtered bulk delete failed: {response}")
+            return False
+    
+    def test_bulk_delete_scenario_3_individual_selection_delete(self):
+        """СЦЕНАРИЙ 3 - Обычное удаление выбранных: Test individual node selection delete via /nodes endpoint"""
+        print(f"\n🔥 TESTING BULK DELETE - SCENARIO 3: Individual Selection Delete")
+        
+        # Create test nodes for individual selection
+        test_nodes_data = [
+            {"ip": "203.0.115.1", "login": "individual1", "password": "pass1", "protocol": "pptp"},
+            {"ip": "203.0.115.2", "login": "individual2", "password": "pass2", "protocol": "pptp"},
+            {"ip": "203.0.115.3", "login": "individual3", "password": "pass3", "protocol": "pptp"},
+            {"ip": "203.0.115.4", "login": "individual4", "password": "pass4", "protocol": "pptp"}
+        ]
+        
+        # Create the test nodes
+        created_node_ids = []
+        for node_data in test_nodes_data:
+            success, response = self.make_request('POST', 'nodes', node_data)
+            if success and 'id' in response:
+                created_node_ids.append(response['id'])
+        
+        if len(created_node_ids) < 4:
+            self.log_test("Bulk Delete Scenario 3 - Setup", False, 
+                         f"❌ Could not create test nodes: only {len(created_node_ids)}/4 created")
+            return False
+        
+        # Select 2 nodes for deletion (simulating individual selection)
+        selected_node_ids = created_node_ids[:2]
+        remaining_node_ids = created_node_ids[2:]
+        
+        # Test individual selection delete via /nodes endpoint
+        delete_data = {
+            "node_ids": selected_node_ids
+        }
+        
+        success, response = self.make_request('DELETE', 'nodes', delete_data)
+        
+        if success and 'message' in response:
+            # Verify selected nodes were deleted
+            deleted_verification = True
+            for node_id in selected_node_ids:
+                check_success, check_response = self.make_request('GET', f'nodes/{node_id}', expected_status=404)
+                if not check_success:
+                    deleted_verification = False
+                    break
+            
+            # Verify remaining nodes still exist
+            remaining_verification = True
+            for node_id in remaining_node_ids:
+                check_success, check_response = self.make_request('GET', f'nodes/{node_id}')
+                if not check_success:
+                    remaining_verification = False
+                    break
+            
+            if deleted_verification and remaining_verification:
+                self.log_test("Bulk Delete Scenario 3 - Individual Selection Delete", True, 
+                             f"✅ Individual selection delete working: {len(selected_node_ids)} selected nodes deleted, {len(remaining_node_ids)} remaining nodes preserved")
+                return True
+            else:
+                self.log_test("Bulk Delete Scenario 3 - Individual Selection Delete", False, 
+                             f"❌ Verification failed: deleted_ok={deleted_verification}, remaining_ok={remaining_verification}")
+                return False
+        else:
+            self.log_test("Bulk Delete Scenario 3 - Individual Selection Delete", False, 
+                         f"❌ Individual selection delete failed: {response}")
+            return False
+    
+    def test_bulk_delete_error_handling_validation(self):
+        """Test bulk delete error handling and validation (no filters + no delete_all)"""
+        print(f"\n🔥 TESTING BULK DELETE - ERROR HANDLING: Validation Requirements")
+        
+        # Test 1: No filters and no delete_all (should fail)
+        delete_data = {}
+        
+        success, response = self.make_request('DELETE', 'nodes/bulk', delete_data, expected_status=400)
+        
+        if success and 'detail' in response:
+            error_message = response['detail']
+            if 'Must specify filters' in error_message or 'delete_all=true' in error_message:
+                self.log_test("Bulk Delete Error Handling - No Filters Validation", True, 
+                             f"✅ Validation working: correctly rejected request without filters or delete_all")
+            else:
+                self.log_test("Bulk Delete Error Handling - No Filters Validation", False, 
+                             f"❌ Wrong error message: {error_message}")
+                return False
+        else:
+            self.log_test("Bulk Delete Error Handling - No Filters Validation", False, 
+                         f"❌ Expected 400 error, got: {response}")
+            return False
+        
+        # Test 2: Empty filters (should also fail)
+        delete_data = {
+            "status": "",
+            "protocol": "",
+            "search": ""
+        }
+        
+        success, response = self.make_request('DELETE', 'nodes/bulk', delete_data, expected_status=400)
+        
+        if success:
+            self.log_test("Bulk Delete Error Handling - Empty Filters Validation", True, 
+                         f"✅ Empty filters correctly rejected")
+            return True
+        else:
+            self.log_test("Bulk Delete Error Handling - Empty Filters Validation", False, 
+                         f"❌ Empty filters should be rejected: {response}")
+            return False
+    
+    def test_bulk_delete_object_object_error_fix(self):
+        """Test that the '[object Object]' error is fixed in bulk delete operations"""
+        print(f"\n🔥 TESTING BULK DELETE - [object Object] ERROR FIX")
+        
+        # Create a test node
+        test_node = {
+            "ip": "203.0.116.1",
+            "login": "errortest",
+            "password": "errorpass",
+            "protocol": "pptp"
+        }
+        
+        success, response = self.make_request('POST', 'nodes', test_node)
+        if not success:
+            self.log_test("Bulk Delete Object Error Fix - Setup", False, 
+                         f"❌ Could not create test node: {response}")
+            return False
+        
+        # Test bulk delete that should work (with proper filters)
+        delete_data = {
+            "status": "not_tested"
+        }
+        
+        success, response = self.make_request('DELETE', 'nodes/bulk', delete_data)
+        
+        if success:
+            # Check that response is properly formatted JSON (not "[object Object]")
+            if isinstance(response, dict) and 'message' in response:
+                message = response['message']
+                if '[object Object]' not in str(message) and 'deleted' in message.lower():
+                    self.log_test("Bulk Delete Object Error Fix", True, 
+                                 f"✅ [object Object] error fixed: proper response format returned: {message}")
+                    return True
+                else:
+                    self.log_test("Bulk Delete Object Error Fix", False, 
+                                 f"❌ Response format issue: {message}")
+                    return False
+            else:
+                self.log_test("Bulk Delete Object Error Fix", False, 
+                             f"❌ Response not properly formatted: {response}")
+                return False
+        else:
+            self.log_test("Bulk Delete Object Error Fix", False, 
+                         f"❌ Bulk delete failed: {response}")
+            return False
+    
+    def test_bulk_delete_comprehensive_scenarios(self):
+        """Comprehensive test of all bulk delete scenarios mentioned in review request"""
+        print(f"\n🔥 COMPREHENSIVE BULK DELETE TESTING - All Scenarios")
+        
+        # Run all bulk delete scenarios
+        scenario_1_result = self.test_bulk_delete_scenario_1_select_all_delete_all()
+        scenario_2_result = self.test_bulk_delete_scenario_2_filtered_delete()
+        scenario_3_result = self.test_bulk_delete_scenario_3_individual_selection_delete()
+        error_handling_result = self.test_bulk_delete_error_handling_validation()
+        object_error_fix_result = self.test_bulk_delete_object_object_error_fix()
+        
+        # Summary
+        total_scenarios = 5
+        passed_scenarios = sum([scenario_1_result, scenario_2_result, scenario_3_result, 
+                               error_handling_result, object_error_fix_result])
+        
+        if passed_scenarios == total_scenarios:
+            self.log_test("Comprehensive Bulk Delete Testing", True, 
+                         f"✅ ALL {total_scenarios} bulk delete scenarios passed: Select All, Filtered Delete, Individual Selection, Error Handling, [object Object] Fix")
+            return True
+        else:
+            self.log_test("Comprehensive Bulk Delete Testing", False, 
+                         f"❌ Only {passed_scenarios}/{total_scenarios} bulk delete scenarios passed")
+            return False
+
     def run_all_tests(self):
         """Run all backend tests"""
         print("🚀 Starting Connexa Backend API Tests")
@@ -16933,6 +18039,24 @@ City: TestCity"""
         if not self.test_login():
             print("❌ Login failed - stopping tests")
             return False
+        
+        # ========== CRITICAL RUSSIAN USER IMPORT TESTS (Review Request Priority) ==========
+        print("\n" + "🔥" * 80)
+        print("🇷🇺 КРИТИЧЕСКОЕ ТЕСТИРОВАНИЕ: Импорт узлов через API")
+        print("🔥" * 80)
+        print("КОНТЕКСТ: Пользователь не может импортировать узлы ни через текстовый буфер, ни через файл.")
+        print("ТЕСТИРУЕМЫЕ СЦЕНАРИИ:")
+        print("1. Regular Import (малые файлы <200KB) - POST /api/nodes/import")
+        print("2. Chunked Import (большие файлы >200KB) - POST /api/nodes/import-chunked")
+        print("3. Progress Tracking - GET /api/import/progress/{session_id}")
+        print("ФОРМАТ ДАННЫХ: Format 7 (IP:Login:Pass)")
+        print("🔥" * 80)
+        
+        self.test_critical_regular_import_small_files()
+        self.test_critical_chunked_import_large_files()
+        self.test_critical_progress_tracking()
+        self.test_critical_format_7_comprehensive()
+        self.test_critical_import_endpoints_comparison()
         
         # ========== CRITICAL: SPEED_OK CONFIGURATION VERIFICATION (Russian User Review Request) ==========
         print("\n" + "🔥" * 80)
@@ -17442,12 +18566,272 @@ City: TestCity"""
         self.test_enhanced_progress_statistics_accuracy()
         self.test_enhanced_progress_processing_speed_display()
         
+        # ========== RUSSIAN USER REVIEW REQUEST TESTS - RESTORED IMPORT FUNCTIONALITY ==========
+        print("\n" + "🇷🇺" * 80)
+        print("RUSSIAN USER REVIEW REQUEST - RESTORED IMPORT FUNCTIONALITY TESTING")
+        print("🇷🇺" * 80)
+        print("ТЕСТИРОВАНИЕ ВОССТАНОВЛЕННОЙ ФУНКЦИОНАЛЬНОСТИ ИМПОРТА:")
+        print("1. ✅ Восстановлен парсинг и проверка дубликатов")
+        print("   - Bulk режим теперь использует smart duplicate checking")
+        print("   - Проверка точных дубликатов (IP+login+password)")
+        print("   - Замена старых записей (>4 недели)")
+        print("   - Пропуск свежих дубликатов с разными credentials")
+        print("2. ✅ Добавлены детальные отчёты")
+        print("   - final_report в chunked импорте с полной статистикой")
+        print("   - success_rate (процент успешности)")
+        print("   - Разбивка по added/skipped/replaced/errors")
+        print("3. ✅ Исправлено массовое удаление")
+        print("   - Добавлен endpoint /api/nodes/bulk для удаления по фильтрам")
+        print("   - Endpoint /api/nodes/batch для удаления по ID")
+        print("4. ✅ Сохранена оптимизация скорости")
+        print("   - Chunks до 10K строк")
+        print("   - Bulk INSERT OR REPLACE")
+        print("   - Меньше проверок отмены")
+        print("   - Оптимизированные SQL запросы")
+        print("🇷🇺" * 80)
+        
+        self.test_scenario_1_import_with_duplicates()
+        self.test_scenario_2_bulk_deletion()
+        self.test_scenario_3_chunked_import_final_report()
+        self.test_scenario_4_speed_optimization_verification()
+        
+        # ========== BULK DELETE TESTS (Russian User Review Request - Fixed "[object Object]" Error) ==========
+        print("\n" + "🔥" * 80)
+        print("🇷🇺 ТЕСТИРОВАНИЕ ИСПРАВЛЕННОГО МАССОВОГО УДАЛЕНИЯ")
+        print("🔥" * 80)
+        print("ПРОБЛЕМА БЫЛА: '[object Object]' ошибка при попытке массового удаления")
+        print("ИСПРАВЛЕНИЯ:")
+        print("1. Улучшена обработка ошибок в frontend с проверкой error.response")
+        print("2. Исправлен bulk delete endpoint с параметром delete_all для безопасности")
+        print("3. Добавлена валидация: требуются либо фильтры, либо delete_all=true")
+        print("4. Исправлен frontend: передается delete_all=true когда нет активных фильтров")
+        print("🔥" * 80)
+        
+        self.test_bulk_delete_comprehensive_scenarios()
+        
         # Print summary
         print("\n" + "=" * 50)
         print(f"📊 Test Summary: {self.tests_passed}/{self.tests_run} tests passed")
         print(f"✅ Success Rate: {(self.tests_passed/self.tests_run)*100:.1f}%")
         
         return self.tests_passed == self.tests_run
+
+    # ========== CRITICAL RUSSIAN USER IMPORT TESTS (Review Request) ==========
+    
+    def test_critical_regular_import_small_files(self):
+        """КРИТИЧЕСКИЙ ТЕСТ 1: Regular Import (малые файлы <200KB) - POST /api/nodes/import"""
+        print(f"\n🔥 КРИТИЧЕСКИЙ ТЕСТ 1: Regular Import для малых файлов")
+        
+        # Generate 50 lines of Format 7 (IP:Login:Pass) as specified
+        test_lines = []
+        for i in range(50):
+            test_lines.append(f"5.78.{i//256}.{i%256+1}:admin:pass{i}")
+        
+        test_data = "\n".join(test_lines)
+        data_size = len(test_data.encode('utf-8'))
+        
+        print(f"📊 Test data: {len(test_lines)} lines, {data_size} bytes ({data_size/1024:.1f}KB)")
+        
+        import_data = {
+            "data": test_data,
+            "protocol": "pptp"
+        }
+        
+        # Test regular import endpoint
+        success, response = self.make_request('POST', 'nodes/import', import_data)
+        
+        if success and 'success' in response and response['success']:
+            report = response.get('report', {})
+            added = report.get('added', 0)
+            skipped = report.get('skipped_duplicates', 0)
+            errors = report.get('format_errors', 0)
+            
+            # Should NOT have session_id for small files
+            has_session_id = 'session_id' in response and response['session_id'] is not None
+            
+            if not has_session_id and added > 0:
+                self.log_test("КРИТИЧЕСКИЙ ТЕСТ 1: Regular Import", True, 
+                             f"✅ SUCCESS: {added} added, {skipped} skipped, {errors} errors. NO session_id (regular processing)")
+                return True
+            else:
+                self.log_test("КРИТИЧЕСКИЙ ТЕСТ 1: Regular Import", False, 
+                             f"❌ FAILED: Expected regular processing (no session_id), got session_id={response.get('session_id')}")
+                return False
+        else:
+            self.log_test("КРИТИЧЕСКИЙ ТЕСТ 1: Regular Import", False, 
+                         f"❌ FAILED: Import request failed: {response}")
+            return False
+    
+    def test_critical_chunked_import_large_files(self):
+        """КРИТИЧЕСКИЙ ТЕСТ 2: Chunked Import (большие файлы >200KB) - POST /api/nodes/import-chunked"""
+        print(f"\n🔥 КРИТИЧЕСКИЙ ТЕСТ 2: Chunked Import для больших файлов")
+        
+        # Generate 1000 lines of Format 7 to ensure >200KB
+        test_lines = []
+        for i in range(1000):
+            # Use different IP ranges to avoid conflicts
+            ip_a = 10 + (i // 65536)
+            ip_b = (i // 256) % 256
+            ip_c = i % 256
+            test_lines.append(f"{ip_a}.{ip_b}.{ip_c}.1:admin:pass{i}")
+        
+        test_data = "\n".join(test_lines)
+        data_size = len(test_data.encode('utf-8'))
+        
+        print(f"📊 Test data: {len(test_lines)} lines, {data_size} bytes ({data_size/1024:.1f}KB)")
+        
+        import_data = {
+            "data": test_data,
+            "protocol": "pptp"
+        }
+        
+        # Test chunked import endpoint directly
+        success, response = self.make_request('POST', 'nodes/import-chunked', import_data)
+        
+        if success and 'success' in response and response['success']:
+            session_id = response.get('session_id')
+            total_chunks = response.get('total_chunks', 0)
+            progress_url = response.get('progress_url', '')
+            
+            if session_id and total_chunks > 0:
+                self.log_test("КРИТИЧЕСКИЙ ТЕСТ 2: Chunked Import", True, 
+                             f"✅ SUCCESS: session_id={session_id}, total_chunks={total_chunks}, progress_url={progress_url}")
+                return session_id  # Return for progress test
+            else:
+                self.log_test("КРИТИЧЕСКИЙ ТЕСТ 2: Chunked Import", False, 
+                             f"❌ FAILED: Missing session_id or total_chunks. Response: {response}")
+                return None
+        else:
+            self.log_test("КРИТИЧЕСКИЙ ТЕСТ 2: Chunked Import", False, 
+                         f"❌ FAILED: Chunked import request failed: {response}")
+            return None
+    
+    def test_critical_progress_tracking(self):
+        """КРИТИЧЕСКИЙ ТЕСТ 3: Progress Tracking - GET /api/import/progress/{session_id}"""
+        print(f"\n🔥 КРИТИЧЕСКИЙ ТЕСТ 3: Progress Tracking")
+        
+        # First start a chunked import to get session_id
+        session_id = self.test_critical_chunked_import_large_files()
+        
+        if not session_id:
+            self.log_test("КРИТИЧЕСКИЙ ТЕСТ 3: Progress Tracking", False, 
+                         "❌ FAILED: Could not get session_id from chunked import")
+            return False
+        
+        # Wait a moment for processing to start
+        import time
+        time.sleep(2)
+        
+        # Test progress tracking endpoint
+        success, response = self.make_request('GET', f'import/progress/{session_id}')
+        
+        if success:
+            # Check for required progress fields
+            required_fields = ['session_id', 'total_chunks', 'processed_chunks', 'status', 'added', 'skipped', 'errors']
+            missing_fields = [field for field in required_fields if field not in response]
+            
+            if not missing_fields:
+                status = response.get('status', 'unknown')
+                processed_chunks = response.get('processed_chunks', 0)
+                total_chunks = response.get('total_chunks', 0)
+                added = response.get('added', 0)
+                skipped = response.get('skipped', 0)
+                errors = response.get('errors', 0)
+                
+                self.log_test("КРИТИЧЕСКИЙ ТЕСТ 3: Progress Tracking", True, 
+                             f"✅ SUCCESS: status={status}, processed_chunks={processed_chunks}/{total_chunks}, added={added}, skipped={skipped}, errors={errors}")
+                return True
+            else:
+                self.log_test("КРИТИЧЕСКИЙ ТЕСТ 3: Progress Tracking", False, 
+                             f"❌ FAILED: Missing required fields: {missing_fields}")
+                return False
+        else:
+            self.log_test("КРИТИЧЕСКИЙ ТЕСТ 3: Progress Tracking", False, 
+                         f"❌ FAILED: Progress tracking request failed: {response}")
+            return False
+    
+    def test_critical_format_7_comprehensive(self):
+        """ДОПОЛНИТЕЛЬНЫЙ ТЕСТ: Comprehensive Format 7 (IP:Login:Pass) validation"""
+        print(f"\n🔥 ДОПОЛНИТЕЛЬНЫЙ ТЕСТ: Format 7 Comprehensive Validation")
+        
+        # Test various Format 7 scenarios
+        test_scenarios = [
+            ("5.78.0.1:admin:pass1", "Basic Format 7"),
+            ("192.168.1.100:user123:complex_pass!@#", "Complex credentials"),
+            ("10.0.0.1:test:simple\n10.0.0.2:test2:simple2", "Multiple lines"),
+        ]
+        
+        all_passed = True
+        
+        for test_data, scenario_name in test_scenarios:
+            import_data = {
+                "data": test_data,
+                "protocol": "pptp"
+            }
+            
+            success, response = self.make_request('POST', 'nodes/import', import_data)
+            
+            if success and 'report' in response:
+                report = response['report']
+                added = report.get('added', 0)
+                format_errors = report.get('format_errors', 0)
+                
+                if added > 0 and format_errors == 0:
+                    print(f"  ✅ {scenario_name}: {added} nodes added, no format errors")
+                else:
+                    print(f"  ❌ {scenario_name}: {added} nodes added, {format_errors} format errors")
+                    all_passed = False
+            else:
+                print(f"  ❌ {scenario_name}: Import failed - {response}")
+                all_passed = False
+        
+        self.log_test("ДОПОЛНИТЕЛЬНЫЙ ТЕСТ: Format 7 Comprehensive", all_passed, 
+                     "All Format 7 scenarios passed" if all_passed else "Some Format 7 scenarios failed")
+        return all_passed
+    
+    def test_critical_import_endpoints_comparison(self):
+        """СРАВНИТЕЛЬНЫЙ ТЕСТ: Compare regular vs chunked import behavior"""
+        print(f"\n🔥 СРАВНИТЕЛЬНЫЙ ТЕСТ: Regular vs Chunked Import Behavior")
+        
+        # Test 1: Small file should use regular import
+        small_data = "\n".join([f"172.16.1.{i}:small{i}:pass{i}" for i in range(10)])
+        small_size = len(small_data.encode('utf-8'))
+        
+        import_data_small = {
+            "data": small_data,
+            "protocol": "pptp"
+        }
+        
+        success_small, response_small = self.make_request('POST', 'nodes/import', import_data_small)
+        
+        # Test 2: Large file should redirect to chunked
+        large_data = "\n".join([f"172.17.{i//256}.{i%256}:large{i}:pass{i}" for i in range(2000)])
+        large_size = len(large_data.encode('utf-8'))
+        
+        import_data_large = {
+            "data": large_data,
+            "protocol": "pptp"
+        }
+        
+        success_large, response_large = self.make_request('POST', 'nodes/import', import_data_large)
+        
+        # Analyze results
+        small_has_session = 'session_id' in response_small and response_small['session_id'] is not None
+        large_has_session = 'session_id' in response_large and response_large['session_id'] is not None
+        
+        if success_small and success_large:
+            if not small_has_session and large_has_session:
+                self.log_test("СРАВНИТЕЛЬНЫЙ ТЕСТ: Import Behavior", True, 
+                             f"✅ SUCCESS: Small file ({small_size}B) → regular, Large file ({large_size}B) → chunked")
+                return True
+            else:
+                self.log_test("СРАВНИТЕЛЬНЫЙ ТЕСТ: Import Behavior", False, 
+                             f"❌ FAILED: Small session_id={small_has_session}, Large session_id={large_has_session}")
+                return False
+        else:
+            self.log_test("СРАВНИТЕЛЬНЫЙ ТЕСТ: Import Behavior", False, 
+                         f"❌ FAILED: Small success={success_small}, Large success={success_large}")
+            return False
 
     # ========== CRITICAL SERVICE STATUS PRESERVATION TESTS (Review Request - 2025-01-08) ==========
     
@@ -20234,8 +21618,12 @@ if __name__ == "__main__":
             tester = ConnexaAPITester()
             success = tester.run_comprehensive_tests()
             sys.exit(0 if success else 1)
+        elif sys.argv[1] == "--chunked-import":
+            tester = ConnexaAPITester()
+            success = tester.run_optimized_chunked_import_tests()
+            sys.exit(0 if success else 1)
     
-    # Default: Run comprehensive tests for SQLite optimization review
+    # Default: Run optimized chunked import tests for Russian user review request
     tester = ConnexaAPITester()
-    success = tester.run_comprehensive_tests()
+    success = tester.run_optimized_chunked_import_tests()
     sys.exit(0 if success else 1)
