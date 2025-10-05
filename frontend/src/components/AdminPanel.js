@@ -789,10 +789,16 @@ const AdminPanel = () => {
         isOpen={showImportModal}
         onClose={() => setShowImportModal(false)}
         onComplete={(report) => {
-          loadNodes(currentPage);
-          loadStats();
-          if (report) {
-            handleImportComplete(report);
+          try {
+            console.log('Import complete, reloading data...', report);
+            loadNodes(currentPage);
+            loadStats();
+            if (report) {
+              handleImportComplete(report);
+            }
+          } catch (error) {
+            console.error('Error in onComplete handler:', error);
+            toast.error('Ошибка при обновлении данных');
           }
         }}
       />
