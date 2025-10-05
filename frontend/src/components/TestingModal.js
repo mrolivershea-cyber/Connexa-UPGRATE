@@ -289,11 +289,9 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], selectAllMode = f
     try {
       let endpoint;
       
-      // ALWAYS use progress-enabled batch endpoints
-      if (testType === 'ping_light') {
-        endpoint = 'manual/ping-light-batch-progress';  // Use batch endpoint for progress and concurrency
-      } else if (testType === 'ping') {
-        endpoint = 'manual/ping-test-batch-progress';
+      // Use batch progress endpoints for all test types
+      if (testType === 'ping' || testType === 'ping_light') {
+        endpoint = 'manual/ping-test-batch-progress';  // Supports both ping and ping_light
       } else if (testType === 'speed') {
         endpoint = 'manual/speed-test-batch-progress';
       }
