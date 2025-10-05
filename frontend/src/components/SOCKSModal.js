@@ -24,7 +24,7 @@ import {
 import axios from 'axios';
 import { useAuth } from '../contexts/AuthContext';
 
-const SOCKSModal = ({ isOpen, onClose, selectedNodeIds = [] }) => {
+const SOCKSModal = ({ isOpen, onClose, selectedNodeIds = [], selectAllMode = false, totalCount = 0, activeFilters = {} }) => {
   const { API } = useAuth();
   const [loading, setLoading] = useState(false);
   const [selectedNodesInfo, setSelectedNodesInfo] = useState([]);
