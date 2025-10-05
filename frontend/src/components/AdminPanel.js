@@ -40,6 +40,7 @@ const AdminPanel = () => {
   const [selectedNodes, setSelectedNodes] = useState([]);
   const [allSelectedIds, setAllSelectedIds] = useState([]);  // All selected node IDs across all pages
   const [selectAllMode, setSelectAllMode] = useState(false);  // True when "Select All" is active
+  const [selectAllCount, setSelectAllCount] = useState(0);  // Total count when selectAllMode is active
   const [stats, setStats] = useState({});
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
