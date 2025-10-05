@@ -97,7 +97,7 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], selectAllMode = f
         setProgress(0);
         setIsMinimized(false);
         setProcessedNodes(0);
-        setTotalNodes(selectedNodeIds.length);
+        setTotalNodes(selectAllMode ? totalCount : selectedNodeIds.length);
         setProgressData(null);
         setSessionId(null);
         setUseNewSystem(false);
