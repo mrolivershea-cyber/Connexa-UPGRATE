@@ -223,16 +223,23 @@ const SOCKSModal = ({ isOpen, onClose, selectedNodeIds = [], selectAllMode = fal
   };
 
   const handleStopSocks = async () => {
-    if (selectedNodeIds.length === 0) {
+    if (!selectAllMode && selectedNodeIds.length === 0) {
       toast.error('Выберите узлы для остановки SOCKS сервисов');
       return;
     }
 
     setLoading(true);
     try {
-      const response = await axios.post(`${API}/socks/stop`, {
-        node_ids: selectedNodeIds
-      });
+      const requestData = {};
+      
+      // Для selectAllMode передаём фильтры вместо node_ids
+      if (selectAllMode) {
+        requestData.filters = activeFilters;
+      } else {
+        requestData.node_ids = selectedNodeIds;
+      }
+      
+      const response = await axios.post(`${API}/socks/stop`, requestData);
 
       const results = response.data.results;
       const successCount = results.filter(r => r.success).length;
