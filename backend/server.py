@@ -1344,22 +1344,50 @@ def parse_nodes_text(text: str, protocol: str = "pptp") -> dict:
         if remaining_lines:
             remaining_text = '\n'.join(remaining_lines)
             
-            # Check for multiple Format 1 entries (multiple "Ip:")
-            if remaining_text.count('Ip:') > 1 or remaining_text.count('IP:') > 1:
-                # Split by "Ip:" to separate multiple configs
-                entries = re.split(r'(?=\bIp:|\bIP:)', remaining_text, flags=re.IGNORECASE)
+            # PRIORITY 1: Check for Format 6 entries FIRST (PPTP header or 🚨 PPTP Connection)
+            # This prevents Format 6 blocks from being split by "IP:" in the next condition
+            if '> PPTP_SVOIM_VPN:' in remaining_text or '🚨 PPTP Connection' in remaining_text:
+                # Check if multiple Format 6 entries
+                if remaining_text.count('> PPTP_SVOIM_VPN:') > 1:
+                    entries = re.split(r'(?=> PPTP_SVOIM_VPN:)', remaining_text)
+                    for entry in entries:
+                        entry = entry.strip()
+                        if entry:
+                            blocks.append(entry)
+                # Check if multiple "🚨 PPTP Connection" entries
+                elif remaining_text.count('🚨 PPTP Connection') > 1:
+                    entries = re.split(r'(?=🚨 PPTP Connection)', remaining_text)
+                    for entry in entries:
+                        entry = entry.strip()
+                        if entry:
+                            blocks.append(entry)
+                # Single Format 6 block
+                else:
+                    blocks.append(remaining_text.strip())
+            
+            # PRIORITY 2: Check for multiple Format 1/5 entries (multiple "Ip:" with lowercase 'p')
+            # Use lowercase 'p' check to avoid catching Format 6 "IP:" (uppercase P)
+            elif remaining_text.count('Ip:') > 1:
+                # Split by "Ip:" with lowercase 'p' only
+                entries = re.split(r'(?=\bIp:)', remaining_text)
                 for entry in entries:
                     entry = entry.strip()
-                    if entry and ('Ip:' in entry or 'IP:' in entry):
+                    if entry and 'Ip:' in entry:
                         blocks.append(entry)
             
-            # Check for multiple Format 6 entries (PPTP header)
-            elif remaining_text.count('> PPTP_SVOIM_VPN:') > 1:
-                entries = re.split(r'(?=> PPTP_SVOIM_VPN:)', remaining_text)
-                for entry in entries:
-                    entry = entry.strip()
-                    if entry:
-                        blocks.append(entry)
+            # PRIORITY 3: Check for Format 5 entries (IP: with uppercase, but NOT Format 6)
+            # Only if no Format 6 markers present
+            elif remaining_text.count('IP:') > 1:
+                # Check if this is Format 5 (has "Credentials:" but no Format 6 markers)
+                if 'Credentials:' in remaining_text and '> PPTP_SVOIM_VPN:' not in remaining_text:
+                    entries = re.split(r'(?=\bIP:)', remaining_text)
+                    for entry in entries:
+                        entry = entry.strip()
+                        if entry and 'IP:' in entry:
+                            blocks.append(entry)
+                else:
+                    # Treat as single block
+                    blocks.append(remaining_text.strip())
             
             # Single multi-line block
             elif remaining_text.strip():
