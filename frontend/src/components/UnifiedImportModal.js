@@ -34,11 +34,18 @@ const UnifiedImportModal = ({ isOpen, onClose, onComplete }) => {
       let progressValue = 0;
       const interval = setInterval(() => {
         progressValue += Math.random() * 5 + 2;
-        if (progressValue >= 90) progressValue = 90;
+        if (progressValue >= 90) {
+          progressValue = 90;
+          clearInterval(interval); // STOP at 90% to allow backend to complete
+          return;
+        }
         setRegularImportProgress(Math.round(progressValue));
       }, 150);
       
       return () => clearInterval(interval);
+    } else {
+      // Reset progress when not submitting
+      setRegularImportProgress(0);
     }
   }, [submitting, sessionId]);
 
