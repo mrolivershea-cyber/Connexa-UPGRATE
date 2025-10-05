@@ -162,6 +162,7 @@ const AdminPanel = () => {
     if (selectAllMode) {
       // Deselect all
       setSelectAllMode(false);
+      setSelectAllCount(0);
       setSelectedNodes([]);
       setAllSelectedIds([]);
       toast.info('Сброшен выбор всех узлов');
