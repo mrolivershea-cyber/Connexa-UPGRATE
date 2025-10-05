@@ -814,6 +814,7 @@ const AdminPanel = () => {
         selectedNodeIds={selectAllMode ? [] : selectedNodes}
         selectAllMode={selectAllMode}
         totalCount={selectAllMode ? (selectAllCount || stats.total || 0) : selectedNodes.length}
+        activeFilters={selectAllMode ? activeFilters : {}}
         onTestComplete={() => {
           loadNodes(currentPage);
           loadStats();
