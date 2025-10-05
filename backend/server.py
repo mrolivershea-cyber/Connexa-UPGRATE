@@ -4405,11 +4405,21 @@ async def stop_socks_services(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Stop SOCKS services for selected nodes"""
+    """Stop SOCKS services for selected nodes or filtered nodes"""
     node_ids = request_data.get("node_ids", [])
+    filters = request_data.get("filters", {})
     
+    # Если node_ids пустой - используем фильтры для Select All режима
     if not node_ids:
-        raise HTTPException(status_code=400, detail="No node IDs provided")
+        if filters:
+            logger.info(f"🌐 SOCKS STOP: Select All mode with filters: {filters}")
+            query = db.query(Node)
+            query = apply_node_filters(query, filters)
+            nodes = query.all()
+            node_ids = [node.id for node in nodes]
+            logger.info(f"📊 SOCKS STOP: Will stop SOCKS for {len(node_ids)} filtered nodes")
+        else:
+            raise HTTPException(status_code=400, detail="No node IDs or filters provided")
     
     results = []
     
