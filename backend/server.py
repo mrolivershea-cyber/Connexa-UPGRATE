@@ -1978,11 +1978,19 @@ def process_parsed_nodes_bulk(db: Session, parsed_data: dict, testing_mode: str)
     # Optimized bulk insert with duplicate handling
     if bulk_insert_data:
         try:
-            # Use INSERT OR REPLACE for handling duplicates properly
-            insert_stmt = text("""
-                INSERT OR REPLACE INTO nodes (ip, login, password, protocol, status, last_update)
-                VALUES (:ip, :login, :password, :protocol, :status, datetime('now'))
-            """)
+            # Use different INSERT strategy based on database state
+            if is_empty_db:
+                # Fast INSERT for empty database
+                insert_stmt = text("""
+                    INSERT INTO nodes (ip, login, password, protocol, status, last_update)
+                    VALUES (:ip, :login, :password, :protocol, :status, datetime('now'))
+                """)
+            else:
+                # INSERT OR REPLACE for handling duplicates properly
+                insert_stmt = text("""
+                    INSERT OR REPLACE INTO nodes (ip, login, password, protocol, status, last_update)
+                    VALUES (:ip, :login, :password, :protocol, :status, datetime('now'))
+                """)
             
             db.execute(insert_stmt, bulk_insert_data)
             db.commit()
