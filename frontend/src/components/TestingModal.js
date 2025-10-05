@@ -678,12 +678,12 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], selectAllMode = f
             </CardHeader>
             <CardContent>
               <div className="text-sm text-gray-600">
-                {selectedNodeIds.length > 0 ? (
-                  <p>Выбрано {selectedNodeIds.length} узлов для тестирования</p>
+                {(selectAllMode || selectedNodeIds.length > 0) ? (
+                  <p>Выбрано {selectAllMode ? `ВСЕ узлы (${selectedNodeIds.length} видимых)` : `${selectedNodeIds.length} узлов`} для тестирования</p>
                 ) : (
                   <p>Используйте чекбоксы в таблице для выбора узлов</p>
                 )}
-                {(!selectedNodeIds || selectedNodeIds.length === 0) && (
+                {!selectAllMode && (!selectedNodeIds || selectedNodeIds.length === 0) && (
                   <div className="text-sm text-red-600">Нет выбранных узлов. Выберите узлы в таблице или используйте Select All.</div>
                 )}
               </div>
