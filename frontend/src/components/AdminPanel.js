@@ -824,7 +824,10 @@ const AdminPanel = () => {
       <SOCKSModal 
         isOpen={showSOCKSModal}
         onClose={() => setShowSOCKSModal(false)}
-        selectedNodeIds={selectAllMode ? allSelectedIds : selectedNodes}
+        selectedNodeIds={selectAllMode ? [] : selectedNodes}
+        selectAllMode={selectAllMode}
+        totalCount={selectAllMode ? (selectAllCount || stats.total || 0) : selectedNodes.length}
+        activeFilters={selectAllMode ? activeFilters : {}}
       />
       
       {/* Format Error Modal */}
