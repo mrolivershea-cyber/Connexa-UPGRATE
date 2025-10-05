@@ -576,9 +576,13 @@ const UnifiedImportModal = ({ isOpen, onClose, onComplete }) => {
             ) : (
               <Button 
                 onClick={() => {
-                  // Clear report from localStorage when closing after viewing results
+                  // Скрыть результаты и подготовить к новому импорту
                   localStorage.removeItem('lastImportReport');
-                  onClose();
+                  setShowPreview(false);
+                  setPreviewResult(null);
+                  setImportData('');
+                  setProtocol('pptp');
+                  toast.success('✅ Готово! Можете начать новый импорт');
                 }} 
                 variant="default" 
                 data-testid="close-after-import-btn"
