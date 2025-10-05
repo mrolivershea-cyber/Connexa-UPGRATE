@@ -503,6 +503,350 @@ class PerformanceTester:
         
         return passed_tests == total_tests
 
+    def test_import_performance_small_file_regular(self):
+        """ТЕСТ 1: Маленький файл (10 строк) - Regular Import"""
+        print(f"\n🔥 ДИАГНОСТИКА ПРОИЗВОДИТЕЛЬНОСТИ ИМПОРТА - ТЕСТ 1: Маленький файл (10 строк)")
+        
+        # Generate 10 lines in Format 7 (IP:Login:Pass)
+        test_data_lines = []
+        for i in range(10):
+            test_data_lines.append(f"5.78.0.{i+1}:admin:pass{i+1}")
+        
+        test_data = "\n".join(test_data_lines)
+        data_size = len(test_data.encode('utf-8'))
+        
+        import_data = {
+            "data": test_data,
+            "protocol": "pptp"
+        }
+        
+        print(f"📊 Данные: {len(test_data_lines)} строк, {data_size} байт")
+        print(f"📝 Формат: IP:Login:Pass (Format 7)")
+        
+        # Measure execution time
+        start_time = time.time()
+        success, response = self.make_request('POST', 'nodes/import', import_data)
+        end_time = time.time()
+        
+        execution_time = end_time - start_time
+        
+        if success and 'report' in response:
+            report = response['report']
+            added_count = report.get('added', 0)
+            skipped_count = report.get('skipped_duplicates', 0)
+            errors_count = report.get('format_errors', 0) + report.get('processing_errors', 0)
+            
+            self.log_test("Import Performance - Small File (10 lines)", True, 
+                         f"✅ Время выполнения: {execution_time:.3f}s, Добавлено: {added_count}, Пропущено: {skipped_count}, Ошибки: {errors_count}")
+            
+            print(f"⏱️  Время выполнения: {execution_time:.3f} секунд")
+            print(f"📈 Добавлено узлов: {added_count}")
+            print(f"⚠️  Дубликатов пропущено: {skipped_count}")
+            print(f"❌ Ошибок: {errors_count}")
+            
+            return {
+                'success': True,
+                'execution_time': execution_time,
+                'added_count': added_count,
+                'skipped_count': skipped_count,
+                'errors_count': errors_count,
+                'data_size': data_size
+            }
+        else:
+            self.log_test("Import Performance - Small File (10 lines)", False, 
+                         f"❌ Импорт не удался: {response}")
+            print(f"❌ Импорт не удался: {response}")
+            return {
+                'success': False,
+                'execution_time': execution_time,
+                'error': response
+            }
+    
+    def test_import_performance_medium_file_regular(self):
+        """ТЕСТ 2: Средний файл (1000 строк) - Regular Import"""
+        print(f"\n🔥 ДИАГНОСТИКА ПРОИЗВОДИТЕЛЬНОСТИ ИМПОРТА - ТЕСТ 2: Средний файл (1000 строк)")
+        
+        # Generate 1000 lines in Format 7 (IP:Login:Pass)
+        test_data_lines = []
+        for i in range(1000):
+            ip_c = (i // 256) + 1
+            ip_d = i % 256
+            test_data_lines.append(f"5.79.{ip_c}.{ip_d}:admin:pass{i+1}")
+        
+        test_data = "\n".join(test_data_lines)
+        data_size = len(test_data.encode('utf-8'))
+        
+        import_data = {
+            "data": test_data,
+            "protocol": "pptp"
+        }
+        
+        print(f"📊 Данные: {len(test_data_lines)} строк, {data_size} байт ({data_size/1024:.1f} KB)")
+        print(f"📝 Формат: IP:Login:Pass (Format 7)")
+        
+        # Measure execution time
+        start_time = time.time()
+        success, response = self.make_request('POST', 'nodes/import', import_data)
+        end_time = time.time()
+        
+        execution_time = end_time - start_time
+        
+        if success and 'report' in response:
+            report = response['report']
+            added_count = report.get('added', 0)
+            skipped_count = report.get('skipped_duplicates', 0)
+            errors_count = report.get('format_errors', 0) + report.get('processing_errors', 0)
+            
+            self.log_test("Import Performance - Medium File (1000 lines)", True, 
+                         f"✅ Время выполнения: {execution_time:.3f}s, Добавлено: {added_count}, Пропущено: {skipped_count}, Ошибки: {errors_count}")
+            
+            print(f"⏱️  Время выполнения: {execution_time:.3f} секунд")
+            print(f"📈 Добавлено узлов: {added_count}")
+            print(f"⚠️  Дубликатов пропущено: {skipped_count}")
+            print(f"❌ Ошибок: {errors_count}")
+            print(f"🚀 Скорость: {len(test_data_lines)/execution_time:.1f} строк/сек")
+            
+            return {
+                'success': True,
+                'execution_time': execution_time,
+                'added_count': added_count,
+                'skipped_count': skipped_count,
+                'errors_count': errors_count,
+                'data_size': data_size,
+                'processing_speed': len(test_data_lines)/execution_time
+            }
+        else:
+            self.log_test("Import Performance - Medium File (1000 lines)", False, 
+                         f"❌ Импорт не удался: {response}")
+            print(f"❌ Импорт не удался: {response}")
+            return {
+                'success': False,
+                'execution_time': execution_time,
+                'error': response
+            }
+    
+    def test_import_performance_large_file_chunked(self):
+        """ТЕСТ 3: Большой файл (5000 строк) - Chunked Import"""
+        print(f"\n🔥 ДИАГНОСТИКА ПРОИЗВОДИТЕЛЬНОСТИ ИМПОРТА - ТЕСТ 3: Большой файл (5000 строк)")
+        
+        # Generate 5000 lines in Format 7 (IP:Login:Pass)
+        test_data_lines = []
+        for i in range(5000):
+            ip_b = (i // 65536) + 80
+            ip_c = (i // 256) % 256
+            ip_d = i % 256
+            test_data_lines.append(f"5.{ip_b}.{ip_c}.{ip_d}:admin:pass{i+1}")
+        
+        test_data = "\n".join(test_data_lines)
+        data_size = len(test_data.encode('utf-8'))
+        
+        import_data = {
+            "data": test_data,
+            "protocol": "pptp"
+        }
+        
+        print(f"📊 Данные: {len(test_data_lines)} строк, {data_size} байт ({data_size/1024:.1f} KB)")
+        print(f"📝 Формат: IP:Login:Pass (Format 7)")
+        
+        # Measure execution time for chunked import
+        start_time = time.time()
+        success, response = self.make_request('POST', 'nodes/import-chunked', import_data)
+        
+        if success and 'session_id' in response:
+            session_id = response['session_id']
+            total_chunks = response.get('total_chunks', 0)
+            
+            print(f"🔄 Chunked import started: session_id={session_id}, total_chunks={total_chunks}")
+            
+            # Monitor progress until completion
+            completed = False
+            max_wait_time = 300  # 5 minutes max
+            check_interval = 2   # Check every 2 seconds
+            checks_made = 0
+            max_checks = max_wait_time // check_interval
+            
+            final_status = None
+            final_progress = None
+            
+            while not completed and checks_made < max_checks:
+                time.sleep(check_interval)
+                checks_made += 1
+                
+                progress_success, progress_response = self.make_request('GET', f'import/progress/{session_id}')
+                
+                if progress_success:
+                    status = progress_response.get('status', 'unknown')
+                    processed_chunks = progress_response.get('processed_chunks', 0)
+                    current_operation = progress_response.get('current_operation', '')
+                    
+                    print(f"📊 Прогресс: {processed_chunks}/{total_chunks} chunks, статус: {status}, операция: {current_operation}")
+                    
+                    if status in ['completed', 'failed', 'cancelled']:
+                        completed = True
+                        final_status = status
+                        final_progress = progress_response
+                        break
+                else:
+                    print(f"⚠️  Ошибка получения прогресса: {progress_response}")
+            
+            end_time = time.time()
+            total_execution_time = end_time - start_time
+            
+            if completed and final_status == 'completed':
+                added_count = final_progress.get('added', 0)
+                skipped_count = final_progress.get('skipped', 0)
+                errors_count = final_progress.get('errors', 0)
+                
+                self.log_test("Import Performance - Large File Chunked (5000 lines)", True, 
+                             f"✅ Общее время: {total_execution_time:.3f}s, Добавлено: {added_count}, Пропущено: {skipped_count}, Ошибки: {errors_count}")
+                
+                print(f"⏱️  Общее время до завершения: {total_execution_time:.3f} секунд")
+                print(f"📈 Добавлено узлов: {added_count}")
+                print(f"⚠️  Дубликатов пропущено: {skipped_count}")
+                print(f"❌ Ошибок: {errors_count}")
+                print(f"🚀 Скорость: {len(test_data_lines)/total_execution_time:.1f} строк/сек")
+                print(f"📦 Chunks обработано: {final_progress.get('processed_chunks', 0)}/{total_chunks}")
+                
+                return {
+                    'success': True,
+                    'execution_time': total_execution_time,
+                    'added_count': added_count,
+                    'skipped_count': skipped_count,
+                    'errors_count': errors_count,
+                    'data_size': data_size,
+                    'processing_speed': len(test_data_lines)/total_execution_time,
+                    'total_chunks': total_chunks,
+                    'session_id': session_id
+                }
+            else:
+                self.log_test("Import Performance - Large File Chunked (5000 lines)", False, 
+                             f"❌ Импорт не завершился: статус={final_status}, время={total_execution_time:.3f}s")
+                print(f"❌ Импорт не завершился в отведенное время")
+                print(f"📊 Финальный статус: {final_status}")
+                print(f"⏱️  Время ожидания: {total_execution_time:.3f} секунд")
+                
+                return {
+                    'success': False,
+                    'execution_time': total_execution_time,
+                    'final_status': final_status,
+                    'session_id': session_id
+                }
+        else:
+            end_time = time.time()
+            execution_time = end_time - start_time
+            
+            self.log_test("Import Performance - Large File Chunked (5000 lines)", False, 
+                         f"❌ Chunked import не запустился: {response}")
+            print(f"❌ Chunked import не запустился: {response}")
+            
+            return {
+                'success': False,
+                'execution_time': execution_time,
+                'error': response
+            }
+
+    def run_import_performance_tests(self):
+        """Run import performance tests"""
+        print("🔥" * 80)
+        print("🇷🇺 ДИАГНОСТИКА ПРОИЗВОДИТЕЛЬНОСТИ ИМПОРТА - REVIEW REQUEST")
+        print("🔥" * 80)
+        print("ЗАДАЧА: Проверить скорость импорта и найти узкие места")
+        print("ТЕСТ 1: Маленький файл (10 строк) - Regular Import")
+        print("ТЕСТ 2: Средний файл (1000 строк) - Regular Import")
+        print("ТЕСТ 3: Большой файл (5000 строк) - Chunked Import")
+        print("ФОРМАТ ДАННЫХ: IP:Login:Pass (Format 7)")
+        print("🔥" * 80)
+        
+        # Login first
+        if not self.test_login():
+            print("❌ Login failed - stopping tests")
+            return False
+        
+        # Run all three performance tests
+        test1_result = self.test_import_performance_small_file_regular()
+        test2_result = self.test_import_performance_medium_file_regular()
+        test3_result = self.test_import_performance_large_file_chunked()
+        
+        print(f"\n📊 СВОДКА РЕЗУЛЬТАТОВ ПРОИЗВОДИТЕЛЬНОСТИ")
+        print("=" * 80)
+        
+        # Analyze results
+        if test1_result['success']:
+            print(f"✅ ТЕСТ 1 (10 строк): {test1_result['execution_time']:.3f}s, {test1_result['added_count']} узлов")
+        else:
+            print(f"❌ ТЕСТ 1 (10 строк): FAILED")
+        
+        if test2_result['success']:
+            print(f"✅ ТЕСТ 2 (1000 строк): {test2_result['execution_time']:.3f}s, {test2_result['added_count']} узлов, {test2_result['processing_speed']:.1f} строк/сек")
+        else:
+            print(f"❌ ТЕСТ 2 (1000 строк): FAILED")
+        
+        if test3_result['success']:
+            print(f"✅ ТЕСТ 3 (5000 строк): {test3_result['execution_time']:.3f}s, {test3_result['added_count']} узлов, {test3_result['processing_speed']:.1f} строк/сек")
+        else:
+            print(f"❌ ТЕСТ 3 (5000 строк): FAILED")
+        
+        # Identify bottlenecks
+        print(f"\n🔍 АНАЛИЗ УЗКИХ МЕСТ:")
+        
+        if test1_result['success'] and test2_result['success']:
+            # Compare per-line processing time
+            time_per_line_small = test1_result['execution_time'] / 10
+            time_per_line_medium = test2_result['execution_time'] / 1000
+            
+            print(f"📈 Время на строку (маленький файл): {time_per_line_small*1000:.2f}ms")
+            print(f"📈 Время на строку (средний файл): {time_per_line_medium*1000:.2f}ms")
+            
+            if time_per_line_medium > time_per_line_small * 1.5:
+                print(f"⚠️  УЗКОЕ МЕСТО: Производительность падает с увеличением размера файла")
+            else:
+                print(f"✅ Производительность масштабируется линейно")
+        
+        if test2_result['success'] and test3_result['success']:
+            # Compare regular vs chunked
+            regular_speed = test2_result['processing_speed']
+            chunked_speed = test3_result['processing_speed']
+            
+            print(f"🔄 Скорость Regular Import: {regular_speed:.1f} строк/сек")
+            print(f"🔄 Скорость Chunked Import: {chunked_speed:.1f} строк/сек")
+            
+            if chunked_speed < regular_speed * 0.7:
+                print(f"⚠️  УЗКОЕ МЕСТО: Chunked import медленнее regular import")
+            else:
+                print(f"✅ Chunked import показывает хорошую производительность")
+        
+        # Overall assessment
+        all_successful = test1_result['success'] and test2_result['success'] and test3_result['success']
+        
+        if all_successful:
+            print(f"\n🎉 ВСЕ ТЕСТЫ ПРОИЗВОДИТЕЛЬНОСТИ ПРОЙДЕНЫ УСПЕШНО")
+            print(f"📊 Результаты тестирования:")
+            print(f"   - Маленький файл: {test1_result['execution_time']:.3f}s")
+            print(f"   - Средний файл: {test2_result['execution_time']:.3f}s ({test2_result['processing_speed']:.1f} строк/сек)")
+            print(f"   - Большой файл: {test3_result['execution_time']:.3f}s ({test3_result['processing_speed']:.1f} строк/сек)")
+        else:
+            failed_tests = []
+            if not test1_result['success']: failed_tests.append("ТЕСТ 1")
+            if not test2_result['success']: failed_tests.append("ТЕСТ 2")
+            if not test3_result['success']: failed_tests.append("ТЕСТ 3")
+            
+            print(f"\n❌ НЕУДАЧНЫЕ ТЕСТЫ: {', '.join(failed_tests)}")
+        
+        print(f"\n📊 Test Summary: {self.tests_passed}/{self.tests_run} tests passed")
+        print(f"✅ Success Rate: {(self.tests_passed/self.tests_run)*100:.1f}%")
+        
+        return all_successful
+
+
 if __name__ == "__main__":
-    tester = PerformanceTester()
-    tester.run_performance_tests()
+    import sys
+    
+    if len(sys.argv) > 1 and sys.argv[1] == "import":
+        # Run import performance tests
+        tester = PerformanceTester()
+        success = tester.run_import_performance_tests()
+        sys.exit(0 if success else 1)
+    else:
+        # Run regular performance tests
+        tester = PerformanceTester()
+        tester.run_performance_tests()
