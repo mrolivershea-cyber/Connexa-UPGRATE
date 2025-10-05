@@ -289,9 +289,11 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], selectAllMode = f
     try {
       let endpoint;
       
-      // Use batch progress endpoints for all test types
-      if (testType === 'ping' || testType === 'ping_light') {
-        endpoint = 'manual/ping-test-batch-progress';  // Supports both ping and ping_light
+      // Use appropriate endpoints for each test type
+      if (testType === 'ping_light') {
+        endpoint = 'manual/ping-light-test';  // Fast TCP check without auth
+      } else if (testType === 'ping') {
+        endpoint = 'manual/ping-test-batch-progress';  // Full ping with auth
       } else if (testType === 'speed') {
         endpoint = 'manual/speed-test-batch-progress';
       }
