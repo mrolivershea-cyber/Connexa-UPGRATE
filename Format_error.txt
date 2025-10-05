@@ -12,3 +12,9 @@
 2. Block 7: Format 3 - Dash/pipe format:
 3. Block 9: Format 4 - Colon separated:
 4. Block 15: Format 7 - Simple IP:Login:Pass:
+
+
+=== Format Errors - 2025-10-05 11:35:37 ===
+1. Invalid IP in block 257: 198.51.100.256:sqltest256:sqlpass256
+198.51.100.257:sqltest257:sqlpass257
+198.51.100.258:sqltest258:
