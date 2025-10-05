@@ -2152,15 +2152,28 @@ def process_parsed_nodes(db: Session, parsed_data: dict, testing_mode: str = "no
                 if 'status' not in node_data_with_defaults:
                     node_data_with_defaults['status'] = 'not_tested'
                 
-                new_node = Node(**node_data_with_defaults)
-                new_node.last_update = datetime.utcnow()  # Set current time on creation
-                db.add(new_node)
-                db.flush()  # Get ID without committing
-                results["added"].append({
-                    "id": new_node.id,
-                    "ip": node_data['ip'],
-                    "reason": dup_result["reason"]
-                })
+                try:
+                    new_node = Node(**node_data_with_defaults)
+                    new_node.last_update = datetime.utcnow()  # Set current time on creation
+                    db.add(new_node)
+                    db.flush()  # Get ID without committing
+                    results["added"].append({
+                        "id": new_node.id,
+                        "ip": node_data['ip'],
+                        "reason": dup_result["reason"]
+                    })
+                except Exception as e:
+                    # Handle UNIQUE constraint violation (duplicate caught by DB)
+                    if "UNIQUE constraint failed" in str(e) or "unique" in str(e).lower():
+                        logger.warning(f"⚠️ DB rejected duplicate: {node_data['ip']}:{node_data['login']} (caught by UNIQUE constraint)")
+                        results["skipped"].append({
+                            "ip": node_data['ip'],
+                            "existing_id": None,
+                            "reason": "duplicate_caught_by_db"
+                        })
+                        db.rollback()
+                    else:
+                        raise
             
             elif dup_result["action"] == "skip":
                 results["skipped"].append({
