@@ -258,3 +258,7 @@ android-sdk/ -e
 *.env
 *.env.*
 backend/connexa.db
+-e 
+# Environment files
+*.env
+*.env.*
