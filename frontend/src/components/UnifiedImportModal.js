@@ -494,7 +494,7 @@ const UnifiedImportModal = ({ isOpen, onClose, onComplete }) => {
               value={importData}
               onChange={(e) => setImportData(e.target.value)}
               placeholder="Вставьте данные узлов здесь или загрузите файл..."
-              rows={12}
+              rows={8}
               className="font-mono text-sm"
               data-testid="import-data-textarea"
             />
