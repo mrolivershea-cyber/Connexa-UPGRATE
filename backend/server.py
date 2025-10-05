@@ -201,6 +201,63 @@ def test_dedupe_cleanup():
     for k in to_del:
         _test_recent.pop(k, None)
 
+# Helper to apply filters to SQLAlchemy query
+def apply_node_filters(query, filters: dict):
+    """Apply filters to a Node query. Returns filtered query."""
+    if not filters:
+        return query
+    
+    # Status filter
+    if 'status' in filters and filters['status']:
+        query = query.filter(Node.status == filters['status'])
+    
+    # Protocol filter
+    if 'protocol' in filters and filters['protocol']:
+        query = query.filter(Node.protocol == filters['protocol'])
+    
+    # Search filter (IP, login, password)
+    if 'search' in filters and filters['search']:
+        search_term = filters['search']
+        query = query.filter(
+            (Node.ip.contains(search_term)) |
+            (Node.login.contains(search_term)) |
+            (Node.password.contains(search_term))
+        )
+    
+    # Country filter
+    if 'country' in filters and filters['country']:
+        query = query.filter(Node.country == filters['country'])
+    
+    # State filter
+    if 'state' in filters and filters['state']:
+        query = query.filter(Node.state == filters['state'])
+    
+    # City filter
+    if 'city' in filters and filters['city']:
+        query = query.filter(Node.city == filters['city'])
+    
+    # IP Address filter
+    if 'ip' in filters and filters['ip']:
+        query = query.filter(Node.ip.contains(filters['ip']))
+    
+    # Provider filter
+    if 'provider' in filters and filters['provider']:
+        query = query.filter(Node.provider.contains(filters['provider']))
+    
+    # Login filter
+    if 'login' in filters and filters['login']:
+        query = query.filter(Node.login.contains(filters['login']))
+    
+    # ZIP code filter
+    if 'zip' in filters and filters['zip']:
+        query = query.filter(Node.zip.contains(filters['zip']))
+    
+    # Comment filter
+    if 'comment' in filters and filters['comment']:
+        query = query.filter(Node.comment.contains(filters['comment']))
+    
+    return query
+
 # Helper to choose ping ports based on node configuration
 # B) Keep general TCP ping (no protocol handshake) but use DB-configured ports with fallbacks
 
