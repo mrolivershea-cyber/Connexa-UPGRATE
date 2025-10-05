@@ -251,6 +251,14 @@ const UnifiedImportModal = ({ isOpen, onClose, onComplete }) => {
       setPreviewResult(report || null);
       setShowPreview(true);
 
+      // Save report to localStorage for recovery
+      if (report) {
+        localStorage.setItem('lastImportReport', JSON.stringify({
+          report: report,
+          timestamp: Date.now()
+        }));
+      }
+
       toast.success(`✅ Импорт завершён: ${report?.added || 0} добавлено, ${report?.skipped_duplicates || 0} дубликатов`);
       toast.info('📊 Для тестирования используйте кнопку "Testing" в админ-панели');
 
