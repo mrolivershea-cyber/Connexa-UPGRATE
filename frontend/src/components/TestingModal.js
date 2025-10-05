@@ -11,7 +11,7 @@ import { toast } from 'sonner';
 import { Activity, Zap, Wifi, Timer, Minus, X } from 'lucide-react';
 import axios from 'axios';
 
-const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], selectAllMode = false, totalCount = 0, onTestComplete }) => {
+const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], selectAllMode = false, totalCount = 0, activeFilters = {}, onTestComplete }) => {
   const { API } = useAuth();
   const { getActiveImportSession, updateSession, removeSession, addSession } = useTesting();
   const [loading, setLoading] = useState(false);
