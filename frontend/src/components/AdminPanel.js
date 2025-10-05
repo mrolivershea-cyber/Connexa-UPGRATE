@@ -210,32 +210,26 @@ const AdminPanel = () => {
   };
 
   const handleSelectNode = (nodeId) => {
+    // ОПТИМИЗИРОВАНО: используем Set для O(1) операций
     setSelectedNodes(prev => {
-      const isCurrentlySelected = prev.includes(nodeId);
-      if (isCurrentlySelected) {
+      const selectedSet = new Set(prev);
+      
+      if (selectedSet.has(nodeId)) {
         // Deselecting node
-        const newSelected = prev.filter(id => id !== nodeId);
+        selectedSet.delete(nodeId);
         
-        // If we're in select all mode, remove from allSelectedIds too
-        if (selectAllMode) {
-          setAllSelectedIds(allIds => allIds.filter(id => id !== nodeId));
-          // Check if we should exit select all mode
-          if (allSelectedIds.length <= 1) {
-            setSelectAllMode(false);
-          }
+        // If in select all mode, just update visual selection
+        // Don't modify allSelectedIds for performance
+        if (selectAllMode && selectedSet.size === 0) {
+          setSelectAllMode(false);
+          setSelectAllCount(0);
         }
         
-        return newSelected;
+        return Array.from(selectedSet);
       } else {
         // Selecting node
-        const newSelected = [...prev, nodeId];
-        
-        // If we're in select all mode, add to allSelectedIds too
-        if (selectAllMode) {
-          setAllSelectedIds(allIds => allIds.includes(nodeId) ? allIds : [...allIds, nodeId]);
-        }
-        
-        return newSelected;
+        selectedSet.add(nodeId);
+        return Array.from(selectedSet);
       }
     });
   };
