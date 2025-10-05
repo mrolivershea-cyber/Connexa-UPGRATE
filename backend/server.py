@@ -2902,8 +2902,13 @@ async def manual_ping_light_test(
 ):
     """Manual PING LIGHT testing - быстрая проверка TCP порта без авторизации"""
     node_ids = data.get('node_ids', [])
+    
+    # Если node_ids пустой - тестируем ВСЕ узлы (Select All режим)
     if not node_ids:
-        raise HTTPException(status_code=400, detail="No node IDs provided")
+        logger.info("🌐 Select All mode detected - loading all nodes from database")
+        all_nodes = db.query(Node).all()
+        node_ids = [node.id for node in all_nodes]
+        logger.info(f"📊 Will test {len(node_ids)} nodes (all nodes in database)")
     
     results = []
     
