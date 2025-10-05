@@ -1873,23 +1873,23 @@ def process_parsed_nodes_bulk(db: Session, parsed_data: dict, testing_mode: str)
     existing_ips = {}
     try:
         # Get all existing IPs with their creation dates for smart duplicate handling
-        ip_list = [node.get('ip', '').strip() for node in parsed_data.get('nodes', [])[:1000]]
+        ip_list = [node.get('ip', '').strip() for node in parsed_data.get('nodes', [])]
         if ip_list:
-            placeholders = ','.join('?' * len(ip_list))
+            # Use tuple for IN clause (SQLAlchemy bindparam approach)
+            placeholders = ','.join(f':ip{i}' for i in range(len(ip_list)))
+            params = {f'ip{i}': ip for i, ip in enumerate(ip_list)}
             result = db.execute(text(f"""
                 SELECT ip, login, password, last_update 
                 FROM nodes 
                 WHERE ip IN ({placeholders})
-            """), ip_list)
-        else:
-            result = []
-        
-        for row in result.fetchall():
-            existing_ips[row[0]] = {
-                'login': row[1], 
-                'password': row[2], 
-                'last_update': row[3]
-            }
+            """), params)
+            
+            for row in result.fetchall():
+                existing_ips[row[0]] = {
+                    'login': row[1], 
+                    'password': row[2], 
+                    'last_update': row[3]
+                }
     except Exception as e:
         logger.error(f"Error getting existing IPs: {e}")
         # Continue without duplicate checking if query fails
