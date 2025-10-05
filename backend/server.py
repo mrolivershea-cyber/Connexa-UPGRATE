@@ -3636,15 +3636,14 @@ async def process_ping_light_batches(session_id: str, node_ids: list, db_session
                         local_db.commit()
                         
                         # Add result to progress
-                        if session_id in progress_store:
-                            result_data = {
-                                "node_id": node.id,
-                                "ip": node.ip,
-                                "status": node.status,
-                                "success": success,
-                                "original_status": original_status
-                            }
-                            progress_store[session_id].add_result(result_data)
+                        result_data = {
+                            "node_id": node.id,
+                            "ip": node.ip,
+                            "status": node.status,
+                            "success": success,
+                            "original_status": original_status
+                        }
+                        progress_increment(session_id, f"✅ PING LIGHT {node.ip} - {node.status}", result_data)
                         
                         return success
                         
