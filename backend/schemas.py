@@ -122,7 +122,7 @@ class ServiceAction(BaseModel):
     action: str  # start, stop, restart
 
 class TestRequest(BaseModel):
-    node_ids: List[int]
+    node_ids: Optional[List[int]] = []  # Empty list means "test all nodes"
     test_type: str = "ping"  # ping, speed
     # Optional tuning
     ping_concurrency: Optional[int] = None
