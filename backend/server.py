@@ -3136,6 +3136,55 @@ async def manual_ping_test_batch(
 
 # Removed incomplete process_ping_testing_batches function - using process_testing_batches instead
 
+@api_router.post("/manual/ping-light-test-batch-progress")
+async def manual_ping_light_test_batch_progress(
+    test_request: TestRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Batch PING LIGHT test with real-time progress tracking - быстрая проверка TCP порта без авторизации"""
+    
+    # ЗАЩИТА ОТ ПЕРЕГРУЗКИ: проверяем лимит сессий
+    if not can_start_new_session():
+        raise HTTPException(
+            status_code=503, 
+            detail=f"Сервер перегружен. Максимум {MAX_CONCURRENT_SESSIONS} тестовых сессий. Попробуйте позже."
+        )
+    
+    # Generate session ID for progress tracking
+    session_id = str(uuid.uuid4())
+    active_sessions.add(session_id)
+    
+    # Если node_ids пустой - тестируем ВСЕ узлы (Select All режим)
+    node_ids_to_test = test_request.node_ids
+    if not node_ids_to_test:
+        logger.info("🌐 PING LIGHT BATCH: Select All mode detected - loading all nodes from database")
+        all_nodes = db.query(Node).all()
+        node_ids_to_test = [node.id for node in all_nodes]
+        logger.info(f"📊 PING LIGHT BATCH: Will test {len(node_ids_to_test)} nodes (all nodes in database)")
+    
+    # Get all valid nodes
+    nodes = []
+    for node_id in node_ids_to_test:
+        node = db.query(Node).filter(Node.id == node_id).first()
+        if node:
+            nodes.append(node)
+    
+    if not nodes:
+        return {"session_id": session_id, "message": "Нет узлов для тестирования", "started": False}
+    
+    # Initialize progress tracker
+    progress = ProgressTracker(session_id, len(nodes))
+    progress.update(0, f"Начинаем PING LIGHT тестирование {len(nodes)} узлов...")
+    
+    # Start background batch testing with ping_light mode
+    asyncio.create_task(process_ping_light_batches(
+        session_id, [n.id for n in nodes], db,
+        ping_concurrency=test_request.ping_concurrency or 20  # Еще выше для PING LIGHT
+    ))
+    
+    return {"session_id": session_id, "message": f"Запущено PING LIGHT тестирование {len(nodes)} узлов", "started": True}
+
 @api_router.post("/manual/ping-test-batch-progress")
 async def manual_ping_test_batch_progress(
     test_request: TestRequest,
