@@ -399,120 +399,58 @@ const UnifiedImportModal = ({ isOpen, onClose, onComplete }) => {
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4 mt-4">
-          {/* Progress Report для chunked импорта */}
-          {(submitting || isImportActive) && sessionId && (
-            <Card className="border-blue-400 bg-blue-50 shadow-lg">
-              <CardHeader className="pb-2 bg-blue-100 border-b border-blue-300">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-lg font-bold flex items-center text-blue-800">
-                    <Activity className="h-5 w-5 mr-2 text-blue-600" />
-                    📂 Chunked Import - Большой файл
-                  </CardTitle>
-                  <div className="flex space-x-2">
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      onClick={onClose}
-                      className="bg-white hover:bg-gray-100"
-                    >
-                      📋 Свернуть в фон
-                    </Button>
-                    <Button 
-                      variant="destructive" 
-                      size="sm" 
-                      onClick={cancelImport}
-                      disabled={!sessionId}
-                    >
-                      ⏹️ Отменить
-                    </Button>
+        <div className="space-y-3 mt-2">
+          {/* Compact Progress Bar (если идет импорт) */}
+          {(submitting || isImportActive) && sessionId && progress && (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 space-y-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className="text-3xl font-bold text-blue-600">
+                    {Math.round(((progress?.processed_chunks || 0) / (progress?.total_chunks || 1)) * 100)}%
+                  </div>
+                  <div>
+                    <div className="text-sm font-semibold text-gray-700">Прогресс импорта</div>
+                    <div className="text-xs text-gray-600">
+                      Файл: {(importData.length / 1024).toFixed(1)}KB | Протокол: {protocol.toUpperCase()}
+                    </div>
                   </div>
                 </div>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {/* Progress Bar with Enhanced Info */}
-                <div className="space-y-2">
-                  {/* Main Progress Display */}
-                  <div className="text-center bg-white p-4 rounded-lg border-2 border-blue-300">
-                    <div className="text-5xl font-extrabold text-blue-600 mb-2">
-                      {Math.round(((progress?.processed_chunks || 0) / (progress?.total_chunks || 1)) * 100)}%
-                    </div>
-                    <div className="text-lg font-semibold text-gray-700 mb-1">
-                      Прогресс импорта
-                    </div>
-                    <div className="text-sm text-gray-600">
-                      Обработано {progress?.processed_chunks || 0} из {progress?.total_chunks || 0} частей
-                    </div>
-                  </div>
-                  
-                  {/* Visual Progress Bar */}
-                  <div className="relative w-full bg-gray-200 rounded-full h-4 overflow-hidden">
-                    <div 
-                      className="bg-gradient-to-r from-blue-500 to-blue-600 h-4 rounded-full transition-all duration-500 ease-out flex items-center justify-end pr-2"
-                      style={{ width: `${Math.max(((progress?.processed_chunks || 0) / (progress?.total_chunks || 1)) * 100, 5)}%` }}
-                    >
-                      <span className="text-xs text-white font-semibold">
-                        {progress?.processed_chunks > 0 ? `${Math.round(((progress?.processed_chunks || 0) / (progress?.total_chunks || 1)) * 100)}%` : ''}
-                      </span>
-                    </div>
-                  </div>
-                  
-                  {/* Processing Speed Info */}
-                  {progress?.processed_chunks > 0 && (
-                    <div className="text-xs text-center text-gray-500">
-                      🚀 Скорость: ~{Math.max(1, Math.round((progress.added + progress.skipped) / Math.max(1, progress.processed_chunks) * 10))} узлов/сек
-                    </div>
-                  )}
+                <div className="flex space-x-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={onClose}
+                    className="text-xs"
+                  >
+                    📋 Свернуть
+                  </Button>
+                  <Button 
+                    variant="destructive" 
+                    size="sm" 
+                    onClick={cancelImport}
+                    disabled={!sessionId}
+                    className="text-xs"
+                  >
+                    ⏹️ Отменить
+                  </Button>
                 </div>
-                
-                {/* Detailed Statistics */}
-                <div className="grid grid-cols-4 gap-2 text-sm">
-                  <div className="text-center p-3 bg-green-100 rounded-lg border border-green-200">
-                    <div className="text-xl font-bold text-green-800">{progress?.added || 0}</div>
-                    <div className="text-xs text-green-600">✅ Добавлено</div>
-                  </div>
-                  <div className="text-center p-3 bg-yellow-100 rounded-lg border border-yellow-200">
-                    <div className="text-xl font-bold text-yellow-800">{progress?.skipped || 0}</div>
-                    <div className="text-xs text-yellow-600">⚠️ Пропущено</div>
-                  </div>
-                  <div className="text-center p-3 bg-red-100 rounded-lg border border-red-200">
-                    <div className="text-xl font-bold text-red-800">{progress?.errors || 0}</div>
-                    <div className="text-xs text-red-600">❌ Ошибок</div>
-                  </div>
-                  <div className="text-center p-3 bg-blue-100 rounded-lg border border-blue-200">
-                    <div className="text-xl font-bold text-blue-800">
-                      {((progress?.added || 0) + (progress?.skipped || 0) + (progress?.errors || 0))}
-                    </div>
-                    <div className="text-xs text-blue-600">📊 Всего</div>
-                  </div>
-                </div>
-                
-                {/* Current Operation with Timestamp */}
-                <div className="bg-gray-50 border border-gray-200 p-3 rounded-lg">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-semibold text-gray-700">💼 Текущая операция</span>
-                    <span className="text-xs text-gray-500">
-                      {new Date().toLocaleTimeString()}
-                    </span>
-                  </div>
-                  <div className="text-sm text-gray-800 bg-white p-2 rounded border">
-                    {progress?.current_operation || 'Инициализация обработки...'}
-                  </div>
-                  
-                  {/* Progress Status Indicator */}
-                  <div className="flex items-center mt-2 space-x-2">
-                    <div className="flex space-x-1">
-                      <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></div>
-                      <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
-                      <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
-                    </div>
-                    <span className="text-xs text-blue-600 font-medium">Активная обработка</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+              </div>
+              
+              {/* Progress Bar */}
+              <div className="relative w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                <div 
+                  className="bg-gradient-to-r from-blue-500 to-blue-600 h-3 rounded-full transition-all duration-500"
+                  style={{ width: `${Math.max(((progress?.processed_chunks || 0) / (progress?.total_chunks || 1)) * 100, 2)}%` }}
+                />
+              </div>
+              
+              <div className="text-xs text-center text-gray-600">
+                Обработано {progress?.processed_chunks || 0} из {progress?.total_chunks || 0} частей
+              </div>
+            </div>
           )}
-
+          
+          {/* Progress Report для chunked импорта - УДАЛЕНО, заменено компактной версией выше */}
           
           {/* Настройки импорта */}
           {!submitting && (
