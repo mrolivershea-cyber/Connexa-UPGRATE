@@ -180,9 +180,20 @@ const AdminPanel = () => {
       const response = await axios.get(`${API}/nodes/count`, { params });
       const totalCount = response.data.count || 0;
       
+      // Загружаем ВСЕ ID для тестирования
+      const allNodesResponse = await axios.get(`${API}/nodes`, {
+        params: {
+          ...activeFilters,
+          page: 1,
+          limit: totalCount  // Получаем все узлы
+        }
+      });
+      
+      const allIds = allNodesResponse.data.nodes.map(node => node.id);
+      
       setSelectAllMode(true);
       setSelectAllCount(totalCount);  // Save total count
-      setAllSelectedIds([]); // Не загружаем все ID в память
+      setAllSelectedIds(allIds);  // Сохраняем ВСЕ ID
       
       // Выбираем только текущую страницу визуально
       const currentPageIds = nodes.map(node => node.id);
