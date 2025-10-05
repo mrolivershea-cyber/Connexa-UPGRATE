@@ -92,7 +92,7 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], selectAllMode = f
         
         // Reset for new testing only if no active sessions found
         console.log('No active sessions found, resetting to default state');
-        setTestType('ping');
+        setTestType('ping_light');
         setResults(null);
         setProgress(0);
         setIsMinimized(false);
