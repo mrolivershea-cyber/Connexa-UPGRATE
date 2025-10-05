@@ -266,7 +266,16 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], selectAllMode = f
   const [speedTimeout, setSpeedTimeout] = useState(2);         // ЭКСТРЕМАЛЬНО быстро
 
   const handleTest = async () => {
+    // DEBUG: проверяем что приходит
+    console.log('🔍 handleTest called');
+    console.log('selectedNodeIds:', selectedNodeIds);
+    console.log('selectedNodeIds type:', Array.isArray(selectedNodeIds) ? 'Array' : typeof selectedNodeIds);
+    console.log('selectedNodeIds.length:', selectedNodeIds.length);
+    console.log('selectAllMode:', selectAllMode);
+    console.log('testType:', testType);
+    
     if (!selectAllMode && selectedNodeIds.length === 0) {
+      console.log('❌ Stopping: no nodes selected');
       toast.error('Выберите узлы для тестирования');
       return;
     }
@@ -274,6 +283,8 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], selectAllMode = f
     if (selectAllMode) {
       toast.info('🚀 Запуск тестирования всех узлов в базе...');
     }
+    
+    console.log('✅ Validation passed, starting test...');
 
     setLoading(true);
     setProgress(0);
