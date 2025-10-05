@@ -2109,15 +2109,20 @@ def process_parsed_nodes(db: Session, parsed_data: dict, testing_mode: str = "no
         "format_errors": parsed_data['format_errors']
     }
     
+    # Log initial parsing stats
+    logger.info(f"📊 Import Statistics - Total parsed: {len(parsed_data['nodes'])}, Format errors: {len(parsed_data.get('format_errors', []))}")
+    
     # STEP 1: Deduplicate WITHIN the import batch (before checking DB)
     seen_in_import = set()  # Track (ip, login, password) tuples in this import
     unique_nodes = []
+    duplicates_in_import_count = 0
     
     for node_data in parsed_data['nodes']:
         node_key = (node_data['ip'], node_data.get('login', ''), node_data.get('password', ''))
         
         if node_key in seen_in_import:
             # Skip duplicate within import
+            duplicates_in_import_count += 1
             results["skipped"].append({
                 "ip": node_data['ip'],
                 "existing_id": None,
@@ -2127,6 +2132,8 @@ def process_parsed_nodes(db: Session, parsed_data: dict, testing_mode: str = "no
         
         seen_in_import.add(node_key)
         unique_nodes.append(node_data)
+    
+    logger.info(f"🔍 Deduplication - Unique configs: {len(unique_nodes)}, Duplicates removed: {duplicates_in_import_count}")
     
     # STEP 2: Process unique nodes against database
     for node_data in unique_nodes:
