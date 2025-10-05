@@ -22,7 +22,7 @@ engine = create_engine(
     poolclass=NullPool,  # Disable pooling to avoid QueuePool timeouts with SQLite
     connect_args={
         "check_same_thread": False,
-        "timeout": 30,
+        "timeout": 120,
         "isolation_level": None
     }
 )
