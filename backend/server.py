@@ -1873,15 +1873,16 @@ def process_parsed_nodes_bulk(db: Session, parsed_data: dict, testing_mode: str)
     
     # Get existing IPs in batches for performance (FIXED: process in chunks to avoid huge queries)
     existing_ips = {}
-    try:
     is_empty_db = False
-        # Get all IPs to check
+    try:
         # First check if database is empty for optimization
         total_count = db.execute(text("SELECT COUNT(*) FROM nodes")).scalar()
         is_empty_db = (total_count == 0)
         
         if is_empty_db:
             logger.info("Empty database detected - using optimized INSERT mode")
+        
+        # Get all IPs to check
         
         ip_list = [node.get('ip', '').strip() for node in parsed_data.get('nodes', [])]
         
