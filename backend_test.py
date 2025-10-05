@@ -18704,6 +18704,27 @@ City: TestCity"""
             print("❌ Login failed - stopping tests")
             return False
         
+        # ========== SELECT ALL WITH FILTERS TESTS (Russian User Review Request) ==========
+        print("\n" + "🔥" * 80)
+        print("🇷🇺 COMPREHENSIVE TESTING: Select All with Filters для Testing и SOCKS")
+        print("🔥" * 80)
+        print("ТЕСТОВЫЕ СЦЕНАРИИ:")
+        print("СЦЕНАРИЙ 1: Testing PING LIGHT с фильтром по статусу status=not_tested")
+        print("СЦЕНАРИЙ 2: Testing PING OK с фильтром по протоколу protocol=PPTP")
+        print("СЦЕНАРИЙ 3: SOCKS Start с фильтром status=ping_ok")
+        print("СЦЕНАРИЙ 4: SOCKS Stop с фильтром status=online")
+        print("КРИТИЧЕСКИЕ ПРОВЕРКИ:")
+        print("- Логи должны показывать применение фильтров")
+        print("- Количество обрабатываемых узлов должно соответствовать отфильтрованным")
+        print("- НЕ должны обрабатываться узлы вне фильтра")
+        print("🔥" * 80)
+        
+        self.test_select_all_filters_scenario_1_ping_light_status_filter()
+        self.test_select_all_filters_scenario_2_ping_ok_protocol_filter()
+        self.test_select_all_filters_scenario_3_socks_start_status_filter()
+        self.test_select_all_filters_scenario_4_socks_stop_status_filter()
+        self.test_select_all_filters_backend_logs_verification()
+        
         # ========== CRITICAL RUSSIAN USER IMPORT TESTS (Review Request Priority) ==========
         print("\n" + "🔥" * 80)
         print("🇷🇺 КРИТИЧЕСКОЕ ТЕСТИРОВАНИЕ: Импорт узлов через API")
