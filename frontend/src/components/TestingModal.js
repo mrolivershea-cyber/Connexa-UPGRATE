@@ -690,7 +690,7 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], selectAllMode = f
             <CardContent>
               <div className="text-sm text-gray-600">
                 {(selectAllMode || selectedNodeIds.length > 0) ? (
-                  <p>Выбрано {selectAllMode ? `ВСЕ узлы (${selectedNodeIds.length} видимых)` : `${selectedNodeIds.length} узлов`} для тестирования</p>
+                  <p>Выбрано {selectAllMode ? `ВСЕ узлы базы (${totalCount} total)` : `${selectedNodeIds.length} узлов`} для тестирования</p>
                 ) : (
                   <p>Используйте чекбоксы в таблице для выбора узлов</p>
                 )}
