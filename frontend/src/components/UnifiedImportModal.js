@@ -638,7 +638,15 @@ const UnifiedImportModal = ({ isOpen, onClose, onComplete }) => {
 
         <DialogFooter>
           <div className="flex space-x-2">
-            <Button type="button" variant="outline" onClick={onClose}>
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={() => {
+                // Clear report from localStorage when manually closing
+                localStorage.removeItem('lastImportReport');
+                onClose();
+              }}
+            >
               Закрыть
             </Button>
             {!showPreview ? (
@@ -650,7 +658,15 @@ const UnifiedImportModal = ({ isOpen, onClose, onComplete }) => {
                 ) : 'Импортировать узлы'}
               </Button>
             ) : (
-              <Button onClick={onClose} variant="default" data-testid="close-after-import-btn">
+              <Button 
+                onClick={() => {
+                  // Clear report from localStorage when closing after viewing results
+                  localStorage.removeItem('lastImportReport');
+                  onClose();
+                }} 
+                variant="default" 
+                data-testid="close-after-import-btn"
+              >
                 Готово
               </Button>
             )}
