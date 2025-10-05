@@ -15,7 +15,7 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], onTestComplete })
   const { API } = useAuth();
   const { getActiveImportSession, updateSession, removeSession, addSession } = useTesting();
   const [loading, setLoading] = useState(false);
-  const [testType, setTestType] = useState('ping');
+  const [testType, setTestType] = useState('ping_light');
   const [results, setResults] = useState(null);
   const [progress, setProgress] = useState(0);
   const [isMinimized, setIsMinimized] = useState(false);
