@@ -173,10 +173,6 @@ const UnifiedImportModal = ({ isOpen, onClose, onComplete }) => {
 
       toast.success(`✅ Импорт завершён: ${report?.added || 0} добавлено, ${report?.skipped_duplicates || 0} дубликатов`);
       toast.info('📊 Для тестирования используйте кнопку "Testing" в админ-панели');
-      
-      setTimeout(() => {
-        onClose();
-      }, 2000);
 
       if (onComplete) onComplete(report);
     } catch (error) {
