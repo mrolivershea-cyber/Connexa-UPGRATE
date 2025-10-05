@@ -235,10 +235,6 @@ const UnifiedImportModal = ({ isOpen, onClose, onComplete }) => {
             toast.success(`✅ Импорт большого файла завершён: ${progressData.added} добавлено, ${progressData.skipped} дубликатов`);
           toast.info('📊 Для тестирования используйте кнопку "Testing" в админ-панели');
           
-          setTimeout(() => {
-            onClose();
-          }, 3000);
-          
           if (onComplete) {
             onComplete({
               added: progressData.added,
