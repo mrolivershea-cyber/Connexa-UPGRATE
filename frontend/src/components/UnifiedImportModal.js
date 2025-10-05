@@ -9,7 +9,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { Upload, Activity } from 'lucide-react';
 import axios from 'axios';
-import ProgressDisplay from './ProgressDisplay';
 
 const UnifiedImportModal = ({ isOpen, onClose, onComplete }) => {
   const { API } = useAuth();
