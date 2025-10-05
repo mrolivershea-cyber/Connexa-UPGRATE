@@ -5,7 +5,7 @@ import json
 import time
 
 # Configuration
-BASE_URL = "https://socks-manager.preview.emergentagent.com"
+BASE_URL = "https://nodeparsing-fix.preview.emergentagent.com"
 API_URL = f"{BASE_URL}/api"
 
 def login():

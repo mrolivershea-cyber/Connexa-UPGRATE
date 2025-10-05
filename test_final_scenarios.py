@@ -6,7 +6,7 @@ import time
 import random
 
 # Test the restored import functionality
-base_url = "https://socks-manager.preview.emergentagent.com"
+base_url = "https://nodeparsing-fix.preview.emergentagent.com"
 api_url = f"{base_url}/api"
 
 # Login
