@@ -322,7 +322,7 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], selectAllMode = f
       const nodeCount = selectAllMode ? totalCount : selectedNodeIds.length;
       console.log(`Starting ${testType} test for ${nodeCount} nodes using ${endpoint}`);
       
-      // Для selectAllMode НЕ передаём node_ids - backend сам получит все узлы
+      // Для selectAllMode НЕ передаём node_ids - backend сам получит узлы по фильтрам
       const requestData = {
         test_type: testType,
         ping_concurrency: pingConcurrency,
@@ -335,6 +335,9 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], selectAllMode = f
       // Только для режима выбора отдельных узлов передаём node_ids
       if (!selectAllMode) {
         requestData.node_ids = selectedNodeIds;
+      } else {
+        // Передаём фильтры для Select All режима
+        requestData.filters = activeFilters;
       }
       
       const response = await axios.post(`${API}/${endpoint}`, requestData, {
