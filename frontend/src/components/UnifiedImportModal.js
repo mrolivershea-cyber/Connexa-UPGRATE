@@ -500,37 +500,6 @@ const UnifiedImportModal = ({ isOpen, onClose, onComplete }) => {
             />
           </div>
 
-          {/* Progress для chunked import */}
-          {(isImportActive && sessionId && progress) && (
-            <ProgressDisplay
-              type="chunked"
-              progress={progress}
-              regularProgress={null}
-              regularStats={null}
-              fileInfo={null}
-              onMinimize={onClose}
-              onCancel={() => cancelImport()}
-            />
-          )}
-          
-          {/* Progress для regular import */}
-          {submitting && !sessionId && (
-            <ProgressDisplay
-              type="regular"
-              progress={null}
-              regularProgress={regularImportProgress}
-              regularStats={regularImportStats}
-              fileInfo={{ size: importData ? (new Blob([importData]).size / 1024).toFixed(1) + 'KB' : '0KB', protocol }}
-              onMinimize={onClose}
-              onCancel={() => {
-                if (regularImportController) {
-                  regularImportController.abort();
-                  toast.info('⏹️ Импорт отменён');
-                }
-              }}
-            />
-          )}
-
           {/* Итоговый отчёт импорта */}
           {showPreview && previewResult && (
             <Card>
