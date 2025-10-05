@@ -4285,14 +4285,24 @@ async def start_socks_services(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Start SOCKS services for selected nodes"""
+    """Start SOCKS services for selected nodes or filtered nodes"""
     node_ids = request_data.get("node_ids", [])
+    filters = request_data.get("filters", {})
     masking_settings = request_data.get("masking_settings", {})
     performance_settings = request_data.get("performance_settings", {})
     security_settings = request_data.get("security_settings", {})
     
+    # Если node_ids пустой - используем фильтры для Select All режима
     if not node_ids:
-        raise HTTPException(status_code=400, detail="No node IDs provided")
+        if filters:
+            logger.info(f"🌐 SOCKS START: Select All mode with filters: {filters}")
+            query = db.query(Node)
+            query = apply_node_filters(query, filters)
+            nodes = query.all()
+            node_ids = [node.id for node in nodes]
+            logger.info(f"📊 SOCKS START: Will start SOCKS for {len(node_ids)} filtered nodes")
+        else:
+            raise HTTPException(status_code=400, detail="No node IDs or filters provided")
     
     results = []
     
