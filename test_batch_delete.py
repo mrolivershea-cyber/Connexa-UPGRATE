@@ -4,7 +4,7 @@ import requests
 import json
 
 # Test the batch delete functionality
-base_url = "https://socks-admin.preview.emergentagent.com"
+base_url = "https://socks-manager.preview.emergentagent.com"
 api_url = f"{base_url}/api"
 
 # Login

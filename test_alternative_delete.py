@@ -4,7 +4,7 @@ import requests
 import json
 
 # Test alternative delete endpoints
-base_url = "https://socks-admin.preview.emergentagent.com"
+base_url = "https://socks-manager.preview.emergentagent.com"
 api_url = f"{base_url}/api"
 
 # Login
