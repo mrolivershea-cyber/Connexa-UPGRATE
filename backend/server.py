@@ -1344,30 +1344,48 @@ def parse_nodes_text(text: str, protocol: str = "pptp") -> dict:
         if remaining_lines:
             remaining_text = '\n'.join(remaining_lines)
             
-            # PRIORITY 1: Check for Format 6 entries FIRST (PPTP header or 🚨 PPTP Connection)
-            # This prevents Format 6 blocks from being split by "IP:" in the next condition
+            # PRIORITY 1: Check for Format 6 entries and extract them first
             if '> PPTP_SVOIM_VPN:' in remaining_text or '🚨 PPTP Connection' in remaining_text:
-                # Check if multiple Format 6 entries
+                # Extract Format 6 blocks
+                format6_blocks = []
+                remaining_after_format6 = remaining_text
+                
+                # Split by Format 6 markers
                 if remaining_text.count('> PPTP_SVOIM_VPN:') > 1:
                     entries = re.split(r'(?=> PPTP_SVOIM_VPN:)', remaining_text)
                     for entry in entries:
                         entry = entry.strip()
-                        if entry:
-                            blocks.append(entry)
-                # Check if multiple "🚨 PPTP Connection" entries
+                        if entry and '> PPTP_SVOIM_VPN:' in entry:
+                            format6_blocks.append(entry)
+                        elif entry and 'IP:' in entry:
+                            # This is not Format 6, keep for later processing
+                            remaining_after_format6 = entry
                 elif remaining_text.count('🚨 PPTP Connection') > 1:
                     entries = re.split(r'(?=🚨 PPTP Connection)', remaining_text)
                     for entry in entries:
                         entry = entry.strip()
-                        if entry:
-                            blocks.append(entry)
-                # Single Format 6 block
+                        if entry and '🚨 PPTP Connection' in entry:
+                            format6_blocks.append(entry)
+                        elif entry and 'IP:' in entry:
+                            remaining_after_format6 = entry
                 else:
-                    blocks.append(remaining_text.strip())
+                    # Single Format 6 block - check if it's really Format 6
+                    if '> PPTP_SVOIM_VPN:' in remaining_text[:100] or '🚨 PPTP Connection' in remaining_text[:100]:
+                        format6_blocks.append(remaining_text.strip())
+                        remaining_after_format6 = ''
+                    else:
+                        # Format 6 markers are somewhere in the middle, not at start
+                        # This is likely mixed content - keep all for Format 5 processing
+                        remaining_after_format6 = remaining_text
+                
+                # Add Format 6 blocks
+                blocks.extend(format6_blocks)
+                
+                # Now process remaining text for Format 5/1 if any left
+                remaining_text = remaining_after_format6
             
-            # PRIORITY 2: Check for multiple Format 1/5 entries (multiple "Ip:" with lowercase 'p')
-            # Use lowercase 'p' check to avoid catching Format 6 "IP:" (uppercase P)
-            elif remaining_text.count('Ip:') > 1:
+            # PRIORITY 2: Check for multiple Format 1 entries (multiple "Ip:" with lowercase 'p')
+            if remaining_text and remaining_text.count('Ip:') > 1:
                 # Split by "Ip:" with lowercase 'p' only
                 entries = re.split(r'(?=\bIp:)', remaining_text)
                 for entry in entries:
