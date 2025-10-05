@@ -788,17 +788,30 @@ const AdminPanel = () => {
       <UnifiedImportModal 
         isOpen={showImportModal}
         onClose={() => setShowImportModal(false)}
-        onComplete={(report) => {
+        onComplete={async (report) => {
           try {
-            console.log('Import complete, reloading data...', report);
-            loadNodes(currentPage);
-            loadStats();
+            console.log('✅ Import complete, starting data reload...', report);
+            
+            // Use React 18 startTransition to batch updates and prevent blocking
+            React.startTransition(() => {
+              // Reload data in background
+              loadNodes(currentPage);
+              loadStats();
+            });
+            
             if (report) {
               handleImportComplete(report);
             }
+            
+            console.log('✅ Data reload triggered successfully');
           } catch (error) {
-            console.error('Error in onComplete handler:', error);
+            console.error('❌ Error in onComplete handler:', error);
             toast.error('Ошибка при обновлении данных');
+            
+            // Prevent page reload on error
+            if (error.stack) {
+              console.error('Stack trace:', error.stack);
+            }
           }
         }}
       />
