@@ -3539,6 +3539,152 @@ async def process_testing_batches(session_id: str, node_ids: list, testing_mode:
         
         logger.info(f"📊 Testing batch processing completed: {processed_nodes} processed, {failed_tests} failed")
 
+async def process_ping_light_batches(session_id: str, node_ids: list, db_session, *,
+                                      ping_concurrency: int = 20):
+    """Process PING LIGHT testing in batches - быстрая проверка TCP порта без авторизации"""
+    
+    total_nodes = len(node_ids)
+    # АГРЕССИВНЫЕ большие батчи для максимальной скорости PING LIGHT
+    if total_nodes < 100:
+        BATCH_SIZE = 100   # Большие батчи даже для малых объемов
+    elif total_nodes < 1000:
+        BATCH_SIZE = 300   # Очень большие батчи
+    else:
+        BATCH_SIZE = 500   # МАКСИМАЛЬНЫЕ батчи для PING LIGHT
+    
+    processed_nodes = 0
+    failed_tests = 0
+    
+    try:
+        # Get fresh database session for background processing
+        db = SessionLocal()
+        
+        logger.info(f"🚀 PING LIGHT Batch: Starting {total_nodes} nodes in batches of {BATCH_SIZE}")
+        
+        # Import testing functions
+        from ping_speed_test import test_node_ping_light
+        
+        # Process nodes in batches
+        for batch_start in range(0, total_nodes, BATCH_SIZE):
+            batch_end = min(batch_start + BATCH_SIZE, total_nodes)
+            current_batch = node_ids[batch_start:batch_end]
+            
+            logger.info(f"📦 PING LIGHT batch {batch_start//BATCH_SIZE + 1}: nodes {batch_start+1}-{batch_end}")
+            
+            # Check if operation was cancelled
+            if session_id in progress_store and progress_store[session_id].status == "cancelled":
+                logger.info(f"🚫 PING LIGHT testing cancelled by user for session {session_id}")
+                break
+            
+            # Process current batch with concurrency
+            session_sem = asyncio.Semaphore(ping_concurrency)
+            tasks = []
+
+            async def process_one(node_id: int, global_index: int):
+                async with session_sem:
+                    local_db = SessionLocal()
+                    try:
+                        node = local_db.query(Node).filter(Node.id == node_id).first()
+                        if not node:
+                            logger.warning(f"❌ PING LIGHT batch: Node {node_id} not found in database")
+                            return False
+
+                        # Update progress: starting this node
+                        if session_id in progress_store:
+                            progress_store[session_id].update(global_index, f"PING LIGHT тест {node.ip} ({global_index+1}/{total_nodes})")
+
+                        original_status = node.status
+                        logger.info(f"🔍 PING LIGHT batch: Node {node.id} ({node.ip}) original status: {original_status}")
+
+                        # Выполнить PING LIGHT тест
+                        ping_result = await test_node_ping_light(node.ip)
+                        
+                        # Обновить статус на основе результата (С ЗАЩИТОЙ для ping_light)
+                        if ping_result['success']:
+                            node.status = "ping_light"
+                            logger.info(f"✅ PING LIGHT batch: Node {node_id} SUCCESS - status: {original_status} -> ping_light")
+                            success = True
+                        else:
+                            # ЗАЩИТА: если уже был ping_light (порт работал хотя бы раз), сохраняем статус
+                            if original_status in ("ping_light", "ping_ok", "speed_ok", "online"):
+                                node.status = original_status  # Сохраняем! Не откатываем до ping_failed
+                                logger.info(f"🛡️ PING LIGHT batch: Node {node_id} FAILED but preserving status {original_status}")
+                            else:
+                                node.status = "ping_failed"
+                                logger.info(f"❌ PING LIGHT batch: Node {node_id} FAILED - status: {original_status} -> ping_failed")
+                            success = False
+                        
+                        node.last_check = datetime.utcnow()
+                        node.last_update = datetime.utcnow()
+                        
+                        local_db.commit()
+                        
+                        # Add result to progress
+                        if session_id in progress_store:
+                            result_data = {
+                                "node_id": node.id,
+                                "ip": node.ip,
+                                "status": node.status,
+                                "success": success,
+                                "original_status": original_status
+                            }
+                            progress_store[session_id].add_result(result_data)
+                        
+                        return success
+                        
+                    except Exception as e:
+                        logger.error(f"❌ PING LIGHT batch: Error testing node {node_id}: {str(e)}")
+                        return False
+                    finally:
+                        local_db.close()
+
+            # Create tasks for this batch
+            for i, node_id in enumerate(current_batch):
+                global_index = batch_start + i
+                tasks.append(process_one(node_id, global_index))
+
+            # Execute batch
+            batch_results = await asyncio.gather(*tasks, return_exceptions=True)
+            
+            # Count results
+            for result in batch_results:
+                if isinstance(result, Exception):
+                    failed_tests += 1
+                elif result is True:
+                    processed_nodes += 1
+                else:
+                    failed_tests += 1
+            
+            # Commit batch changes
+            try:
+                db.commit()
+            except Exception as commit_error:
+                logger.error(f"❌ PING LIGHT batch commit error: {commit_error}")
+                db.rollback()
+            
+            logger.info(f"✅ PING LIGHT batch {batch_start//BATCH_SIZE + 1} completed: {len(current_batch)} nodes processed")
+    
+    except Exception as e:
+        logger.error(f"❌ PING LIGHT batch processing error: {str(e)}", exc_info=True)
+        if session_id in progress_store:
+            progress_store[session_id].complete("failed")
+    
+    finally:
+        # Complete progress tracking
+        if session_id in progress_store:
+            progress_store[session_id].complete("completed")
+            progress_store[session_id].update(
+                total_nodes, 
+                f"PING LIGHT тестирование завершено: {processed_nodes} успешно, {failed_tests} ошибок"
+            )
+        
+        db.close()
+        
+        # КРИТИЧНО: Очистка активной сессии для предотвращения блокировок
+        active_sessions.discard(session_id)
+        
+        logger.info(f"📊 PING LIGHT batch processing completed: {processed_nodes} processed, {failed_tests} failed")
+
 @api_router.post("/manual/ping-speed-test-batch")
 async def manual_ping_speed_test_batch(
     test_request: TestRequest,
