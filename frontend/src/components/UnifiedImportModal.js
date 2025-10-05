@@ -483,51 +483,37 @@ const UnifiedImportModal = ({ isOpen, onClose, onComplete }) => {
             />
           </div>
 
-          {/* Progress bar for large file processing */}
-          {progress && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-sm flex items-center">
-                  <Activity className="h-4 w-4 mr-2 animate-spin" />
-                  Обработка большого файла
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  <div className="flex justify-between text-sm">
-                    <span>Прогресс:</span>
-                    <span>{progress.processed_chunks}/{progress.total_chunks} частей</span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div 
-                      className="bg-blue-600 h-2 rounded-full transition-all duration-300" 
-                      style={{ width: `${(progress.processed_chunks / progress.total_chunks) * 100}%` }}
-                    ></div>
-                  </div>
-                  <div className="text-xs text-gray-600">{progress.current_operation}</div>
-                  {progress.added > 0 && (
-                    <div className="grid grid-cols-4 gap-2 text-xs">
-                      <div className="text-center">
-                        <div className="font-bold text-green-600">{progress.added}</div>
-                        <div>Добавлено</div>
-                      </div>
-                      <div className="text-center">
-                        <div className="font-bold text-yellow-600">{progress.skipped}</div>
-                        <div>Дубликатов</div>
-                      </div>
-                      <div className="text-center">
-                        <div className="font-bold text-blue-600">{progress.replaced}</div>
-                        <div>Заменено</div>
-                      </div>
-                      <div className="text-center">
-                        <div className="font-bold text-red-600">{progress.errors}</div>
-                        <div>Ошибок</div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+          {/* УНИФИЦИРОВАННЫЙ КОМПОНЕНТ ПРОГРЕССА для всех типов импорта */}
+          {(submitting || isImportActive) && (sessionId || regularImportController) && (
+            <ProgressDisplay
+              type={sessionId ? 'chunked' : 'regular'}
+              progress={sessionId ? progress : null}
+              regularProgress={regularImportProgress}
+              regularStats={regularImportStats}
+              fileInfo={(() => {
+                const savedState = localStorage.getItem('activeRegularImport');
+                if (savedState) {
+                  try {
+                    const state = JSON.parse(savedState);
+                    return { size: state.fileSize, protocol: state.protocol };
+                  } catch (e) {
+                    return null;
+                  }
+                }
+                return null;
+              })()}
+              onMinimize={onClose}
+              onCancel={() => {
+                if (sessionId) {
+                  cancelImport();
+                } else if (regularImportController) {
+                  regularImportController.abort();
+                  setSubmitting(false);
+                  setRegularImportController(null);
+                  toast.info('⏹️ Импорт отменён');
+                }
+              }}
+            />
           )}
 
           {/* Итоговый отчёт импорта */}
