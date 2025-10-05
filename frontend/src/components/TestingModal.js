@@ -269,9 +269,10 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], selectAllMode = f
     // DEBUG: проверяем что приходит
     console.log('🔍 handleTest called');
     console.log('selectedNodeIds:', selectedNodeIds);
-    console.log('selectedNodeIds type:', Array.isArray(selectedNodeIds) ? 'Array' : typeof selectedNodeIds);
     console.log('selectedNodeIds.length:', selectedNodeIds.length);
     console.log('selectAllMode:', selectAllMode);
+    console.log('totalCount (prop):', totalCount);
+    console.log('totalNodes (state):', totalNodes);
     console.log('testType:', testType);
     
     if (!selectAllMode && selectedNodeIds.length === 0) {
