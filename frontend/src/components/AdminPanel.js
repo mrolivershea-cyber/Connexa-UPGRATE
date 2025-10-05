@@ -180,6 +180,7 @@ const AdminPanel = () => {
       const totalCount = response.data.count || 0;
       
       setSelectAllMode(true);
+      setSelectAllCount(totalCount);  // Save total count
       setAllSelectedIds([]); // Не загружаем все ID в память
       
       // Выбираем только текущую страницу визуально
