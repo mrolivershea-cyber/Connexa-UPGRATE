@@ -77,13 +77,11 @@ const UnifiedImportModal = ({ isOpen, onClose, onComplete }) => {
       if (activeRegular) {
         try {
           const regularData = JSON.parse(activeRegular);
-          if (regularData.active && regularData.timestamp > Date.now() - 30 * 60 * 1000) {
-            console.log('Resuming active regular import, progress:', regularData.progress);
-            setRegularImportController(new AbortController());
-            setIsImportActive(true);
+          if (regularData.timestamp > Date.now() - 5 * 60 * 1000) { // 5 minutes
+            console.log('Resuming active regular import');
             setSubmitting(true);
-            setRegularImportProgress(regularData.progress || 0);
-            toast.info('📂 Восстанавливаем активный импорт...');
+            setRegularImportProgress(regularData.progress || 50);
+            toast.info('📂 Обнаружен активный импорт. Продолжаем...');
             return; // Don't reset states
           } else {
             localStorage.removeItem('activeRegularImport');
@@ -93,7 +91,27 @@ const UnifiedImportModal = ({ isOpen, onClose, onComplete }) => {
         }
       }
       
-      // Reset form ONLY if no active imports
+      // НОВОЕ: Check for last completed import report
+      const lastReport = localStorage.getItem('lastImportReport');
+      if (lastReport) {
+        try {
+          const reportData = JSON.parse(lastReport);
+          // Show report if it's within 30 minutes
+          if (reportData.timestamp > Date.now() - 30 * 60 * 1000) {
+            console.log('Restoring last import report');
+            setPreviewResult(reportData.report);
+            setShowPreview(true);
+            toast.info('📊 Показываю результаты последнего импорта');
+            return; // Don't reset states
+          } else {
+            localStorage.removeItem('lastImportReport');
+          }
+        } catch (e) {
+          localStorage.removeItem('lastImportReport');
+        }
+      }
+      
+      // Reset form ONLY if no active imports or reports
       setImportData('');
       setProtocol('pptp');
       setPreviewResult(null);
@@ -106,8 +124,6 @@ const UnifiedImportModal = ({ isOpen, onClose, onComplete }) => {
       setRegularImportController(null);
       setRegularImportProgress(0);
       setRegularImportStats({ added: 0, skipped: 0, errors: 0 });
-      localStorage.removeItem('activeImportSession');
-      localStorage.removeItem('activeRegularImport');
     }
   }, [isOpen]);
 
