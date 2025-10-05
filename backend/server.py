@@ -1869,27 +1869,34 @@ def process_parsed_nodes_bulk(db: Session, parsed_data: dict, testing_mode: str)
     replaced_nodes = []
     error_nodes = []
     
-    # Get existing IPs in batches for performance
+    # Get existing IPs in batches for performance (FIXED: process in chunks to avoid huge queries)
     existing_ips = {}
     try:
-        # Get all existing IPs with their creation dates for smart duplicate handling
+        # Get all IPs to check
         ip_list = [node.get('ip', '').strip() for node in parsed_data.get('nodes', [])]
+        
         if ip_list:
-            # Use tuple for IN clause (SQLAlchemy bindparam approach)
-            placeholders = ','.join(f':ip{i}' for i in range(len(ip_list)))
-            params = {f'ip{i}': ip for i, ip in enumerate(ip_list)}
-            result = db.execute(text(f"""
-                SELECT ip, login, password, last_update 
-                FROM nodes 
-                WHERE ip IN ({placeholders})
-            """), params)
-            
-            for row in result.fetchall():
-                existing_ips[row[0]] = {
-                    'login': row[1], 
-                    'password': row[2], 
-                    'last_update': row[3]
-                }
+            # Process in batches of 1000 IPs to avoid SQLite query size limits
+            batch_size = 1000
+            for batch_start in range(0, len(ip_list), batch_size):
+                batch_ips = ip_list[batch_start:batch_start + batch_size]
+                
+                # Create placeholders for this batch
+                placeholders = ','.join(f':ip{i}' for i in range(len(batch_ips)))
+                params = {f'ip{i}': ip for i, ip in enumerate(batch_ips)}
+                
+                result = db.execute(text(f"""
+                    SELECT ip, login, password, last_update 
+                    FROM nodes 
+                    WHERE ip IN ({placeholders})
+                """), params)
+                
+                for row in result.fetchall():
+                    existing_ips[row[0]] = {
+                        'login': row[1], 
+                        'password': row[2], 
+                        'last_update': row[3]
+                    }
     except Exception as e:
         logger.error(f"Error getting existing IPs: {e}")
         # Continue without duplicate checking if query fails
