@@ -896,6 +896,8 @@ async def process_chunks_async(chunks: list, protocol: str, session_id: str, use
     try:
         # Create new database session for background processing
         db = SessionLocal()
+        # Begin explicit transaction for better SQLite handling
+        db.begin()
         
         total_added = 0
         total_skipped = 0
