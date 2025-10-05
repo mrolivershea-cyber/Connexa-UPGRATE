@@ -813,7 +813,7 @@ const AdminPanel = () => {
         onClose={() => setShowTestingModal(false)}
         selectedNodeIds={selectAllMode ? [] : selectedNodes}
         selectAllMode={selectAllMode}
-        totalCount={selectAllCount}
+        totalCount={selectAllMode ? (selectAllCount || stats.total || 0) : selectedNodes.length}
         onTestComplete={() => {
           loadNodes(currentPage);
           loadStats();
