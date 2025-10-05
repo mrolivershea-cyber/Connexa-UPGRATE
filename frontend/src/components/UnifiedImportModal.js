@@ -179,58 +179,10 @@ const UnifiedImportModal = ({ isOpen, onClose, onComplete }) => {
       }
     }
 
-    // Small file - use regular processing with cancel support  
-    let progressInterval = null;
-    
+    // Small file - use regular processing
     try {
-      // Create AbortController for cancel functionality
       const controller = new AbortController();
       setRegularImportController(controller);
-      setRegularImportProgress(0);
-      
-      // Save regular import state to localStorage
-      localStorage.setItem('activeRegularImport', JSON.stringify({
-        active: true,
-        progress: 0,
-        protocol,
-        fileSize: (dataSize/1024).toFixed(1) + 'KB',
-        timestamp: Date.now()
-      }));
-      
-      // Simulate progress for user feedback
-      let progressValue = 0;
-      let estimatedTotal = Math.round(importData.split('\n').filter(line => line.trim()).length);
-      
-      progressInterval = setInterval(() => {
-        progressValue += Math.random() * 8 + 2; // 2-10% per interval
-        if (progressValue >= 95) progressValue = 95;
-        const currentProgress = Math.round(progressValue);
-        setRegularImportProgress(currentProgress);
-        
-        // Simulate stats based on progress
-        const processedNodes = Math.round(estimatedTotal * (currentProgress / 100));
-        const estimatedAdded = Math.round(processedNodes * 0.7);
-        const estimatedSkipped = Math.round(processedNodes * 0.25);
-        const estimatedErrors = Math.max(0, processedNodes - estimatedAdded - estimatedSkipped);
-        
-        setRegularImportStats({
-          added: estimatedAdded,
-          skipped: estimatedSkipped,
-          errors: estimatedErrors
-        });
-        
-        // Update localStorage
-        const savedState = localStorage.getItem('activeRegularImport');
-        if (savedState) {
-          try {
-            const state = JSON.parse(savedState);
-            state.progress = currentProgress;
-            localStorage.setItem('activeRegularImport', JSON.stringify(state));
-          } catch (e) {
-            console.error('Error updating progress:', e);
-          }
-        }
-      }, 100);
       
       const response = await axios.post(`${API}/nodes/import`, {
         data: importData,
@@ -239,30 +191,16 @@ const UnifiedImportModal = ({ isOpen, onClose, onComplete }) => {
       }, {
         signal: controller.signal
       });
-      
-      // Complete progress
-      clearInterval(progressInterval);
-      progressInterval = null;
-      setRegularImportProgress(100);
 
       const { success, report, message } = response.data || {};
 
       if (!success) {
         toast.error(message || 'Ошибка импорта');
         setSubmitting(false);
-        setRegularImportController(null);
-        setRegularImportStats({ added: 0, skipped: 0, errors: 0 });
         return;
       }
 
-      // Update stats with real data
-      setRegularImportStats({
-        added: report?.added || 0,
-        skipped: report?.skipped_duplicates || 0,
-        errors: report?.format_errors || 0
-      });
-
-      // Regular processing completed
+      // Show results
       setPreviewResult(report || null);
       setShowPreview(true);
 
@@ -271,36 +209,18 @@ const UnifiedImportModal = ({ isOpen, onClose, onComplete }) => {
 
       if (onComplete) onComplete(report);
       
-      // Clear localStorage
-      localStorage.removeItem('activeRegularImport');
-      
     } catch (error) {
-      // Clear interval on error
-      if (progressInterval) {
-        clearInterval(progressInterval);
-      }
-      
       if (error.name === 'AbortError' || error.name === 'CanceledError') {
         toast.info('⏹️ Импорт отменён пользователем');
-        setRegularImportProgress(0);
-        setRegularImportStats({ added: 0, skipped: 0, errors: 0 });
         return;
       }
       
       console.error('Error importing:', error);
       const errorMsg = error.response?.data?.message || 'Не удалось импортировать данные';
       toast.error(errorMsg);
-      setRegularImportProgress(0);
-      setRegularImportStats({ added: 0, skipped: 0, errors: 0 });
     } finally {
-      // Clean up
-      if (progressInterval) {
-        clearInterval(progressInterval);
-      }
       setSubmitting(false);
       setRegularImportController(null);
-      setRegularImportProgress(0);
-      setRegularImportStats({ added: 0, skipped: 0, errors: 0 });
     }
   };
 
