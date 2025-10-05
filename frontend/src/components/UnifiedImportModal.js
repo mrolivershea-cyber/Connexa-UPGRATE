@@ -510,16 +510,22 @@ const UnifiedImportModal = ({ isOpen, onClose, onComplete }) => {
             />
           )}
           
-          {/* Простой индикатор для regular import */}
+          {/* Progress для regular import */}
           {submitting && !sessionId && (
-            <Card className="border-blue-200 bg-blue-50">
-              <CardContent className="py-4">
-                <div className="flex items-center justify-center space-x-3">
-                  <Activity className="h-6 w-6 text-blue-600 animate-spin" />
-                  <span className="text-lg font-semibold text-blue-800">Импорт выполняется...</span>
-                </div>
-              </CardContent>
-            </Card>
+            <ProgressDisplay
+              type="regular"
+              progress={null}
+              regularProgress={regularImportProgress}
+              regularStats={regularImportStats}
+              fileInfo={{ size: importData ? (new Blob([importData]).size / 1024).toFixed(1) + 'KB' : '0KB', protocol }}
+              onMinimize={onClose}
+              onCancel={() => {
+                if (regularImportController) {
+                  regularImportController.abort();
+                  toast.info('⏹️ Импорт отменён');
+                }
+              }}
+            />
           )}
 
           {/* Итоговый отчёт импорта */}
