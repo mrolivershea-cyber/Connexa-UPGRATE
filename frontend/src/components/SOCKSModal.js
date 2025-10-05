@@ -125,7 +125,7 @@ const SOCKSModal = ({ isOpen, onClose, selectedNodeIds = [], selectAllMode = fal
   };
 
   const handleStartSocks = async () => {
-    if (selectedNodeIds.length === 0) {
+    if (!selectAllMode && selectedNodeIds.length === 0) {
       toast.error('⚠️ Выберите узлы для запуска SOCKS сервисов', {
         description: 'Сначала закройте это окно, отметьте узлы со статусом "ping_ok" или "speed_ok" в таблице, затем откройте SOCKS снова'
       });
@@ -134,12 +134,20 @@ const SOCKSModal = ({ isOpen, onClose, selectedNodeIds = [], selectAllMode = fal
 
     setLoading(true);
     try {
-      const response = await axios.post(`${API}/socks/start`, {
-        node_ids: selectedNodeIds,
+      const requestData = {
         masking_settings: maskingSettings,
         performance_settings: performanceSettings,
         security_settings: securitySettings
-      });
+      };
+      
+      // Для selectAllMode передаём фильтры вместо node_ids
+      if (selectAllMode) {
+        requestData.filters = activeFilters;
+      } else {
+        requestData.node_ids = selectedNodeIds;
+      }
+      
+      const response = await axios.post(`${API}/socks/start`, requestData);
 
       const results = response.data.results;
       const successCount = results.filter(r => r.success).length;
