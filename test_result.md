@@ -130,6 +130,19 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
+frontend:
+  - task: "Russian User Import Modal Auto-Close Issue"
+    implemented: true
+    working: false
+    file: "UnifiedImportModal.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: false
+        agent: "testing"
+        comment: "❌ CRITICAL RUSSIAN USER IMPORT MODAL ISSUES IDENTIFIED (2025-01-05): Conducted comprehensive testing of Russian user's specific import functionality review request. DETAILED FINDINGS: 1) ✅ ТЕСТ 1 - ИМПОРТ ЧЕРЕЗ ТЕКСТОВЫЙ БУФЕР: Login (admin/admin) working, Import modal opens correctly, test data (5.78.10.1:admin:pass1, 5.78.10.2:admin:pass2, 5.78.10.3:admin:pass3) successfully pasted and imported, nodes visible in table after import 2) ❌ MODAL AUTO-CLOSE ISSUE: Modal закрывается автоматически after import completion - this violates the requirement that 'Модалка НЕ закрывается автоматически' 3) ❌ ТЕСТ 2 BLOCKED: Large file test (3000 lines, 94KB) could not be completed because modal closed after Test 1, preventing access to textarea for file upload 4) ⚠️ IMPORT RESULTS DISPLAY: While nodes were successfully added to the database, the graphical report with detailed statistics (Добавлено/Дубликатов/etc.) was not clearly visible during testing 5) ❌ PROGRESS DISPLAY MISSING: For large file imports, the expected ProgressDisplay with percentages, 'Свернуть в фон' and 'Отменить' buttons was not accessible due to modal closure issue. ROOT CAUSE: The import modal has an automatic closure mechanism (likely setTimeout in lines 177-179 of UnifiedImportModal.js) that conflicts with the Russian user's requirement for persistent modal display. IMMEDIATE ACTION REQUIRED: Remove or modify the automatic modal closure behavior to keep the modal open after import completion, allowing users to review results and perform additional imports."
+
   - task: "SOCKS Service Launch System - Frontend UI Components"
     implemented: true
     working: true
