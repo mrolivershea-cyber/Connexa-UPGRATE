@@ -497,37 +497,29 @@ const UnifiedImportModal = ({ isOpen, onClose, onComplete }) => {
             />
           </div>
 
-          {/* УНИФИЦИРОВАННЫЙ КОМПОНЕНТ ПРОГРЕССА для всех типов импорта */}
-          {((submitting && !sessionId) || (isImportActive && sessionId)) && (
+          {/* Progress для chunked import */}
+          {(isImportActive && sessionId && progress) && (
             <ProgressDisplay
-              type={sessionId ? 'chunked' : 'regular'}
-              progress={sessionId ? progress : null}
-              regularProgress={regularImportProgress}
-              regularStats={regularImportStats}
-              fileInfo={(() => {
-                const savedState = localStorage.getItem('activeRegularImport');
-                if (savedState) {
-                  try {
-                    const state = JSON.parse(savedState);
-                    return { size: state.fileSize, protocol: state.protocol };
-                  } catch (e) {
-                    return null;
-                  }
-                }
-                return null;
-              })()}
+              type="chunked"
+              progress={progress}
+              regularProgress={null}
+              regularStats={null}
+              fileInfo={null}
               onMinimize={onClose}
-              onCancel={() => {
-                if (sessionId) {
-                  cancelImport();
-                } else if (regularImportController) {
-                  regularImportController.abort();
-                  setSubmitting(false);
-                  setRegularImportController(null);
-                  toast.info('⏹️ Импорт отменён');
-                }
-              }}
+              onCancel={() => cancelImport()}
             />
+          )}
+          
+          {/* Простой индикатор для regular import */}
+          {submitting && !sessionId && (
+            <Card className="border-blue-200 bg-blue-50">
+              <CardContent className="py-4">
+                <div className="flex items-center justify-center space-x-3">
+                  <Activity className="h-6 w-6 text-blue-600 animate-spin" />
+                  <span className="text-lg font-semibold text-blue-800">Импорт выполняется...</span>
+                </div>
+              </CardContent>
+            </Card>
           )}
 
           {/* Итоговый отчёт импорта */}
