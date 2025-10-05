@@ -1348,7 +1348,7 @@ def parse_nodes_text(text: str, protocol: str = "pptp") -> dict:
             if '> PPTP_SVOIM_VPN:' in remaining_text or '🚨 PPTP Connection' in remaining_text:
                 # Extract Format 6 blocks
                 format6_blocks = []
-                remaining_after_format6 = remaining_text
+                non_format6_entries = []  # Collect non-Format-6 content
                 
                 # Split by Format 6 markers
                 if remaining_text.count('> PPTP_SVOIM_VPN:') > 1:
@@ -1358,8 +1358,8 @@ def parse_nodes_text(text: str, protocol: str = "pptp") -> dict:
                         if entry and '> PPTP_SVOIM_VPN:' in entry:
                             format6_blocks.append(entry)
                         elif entry and 'IP:' in entry:
-                            # This is not Format 6, keep for later processing
-                            remaining_after_format6 = entry
+                            # This is not Format 6, save for later processing
+                            non_format6_entries.append(entry)
                 elif remaining_text.count('🚨 PPTP Connection') > 1:
                     entries = re.split(r'(?=🚨 PPTP Connection)', remaining_text)
                     for entry in entries:
@@ -1367,22 +1367,22 @@ def parse_nodes_text(text: str, protocol: str = "pptp") -> dict:
                         if entry and '🚨 PPTP Connection' in entry:
                             format6_blocks.append(entry)
                         elif entry and 'IP:' in entry:
-                            remaining_after_format6 = entry
+                            non_format6_entries.append(entry)
                 else:
                     # Single Format 6 block - check if it's really Format 6
                     if '> PPTP_SVOIM_VPN:' in remaining_text[:100] or '🚨 PPTP Connection' in remaining_text[:100]:
                         format6_blocks.append(remaining_text.strip())
-                        remaining_after_format6 = ''
+                        non_format6_entries = []
                     else:
                         # Format 6 markers are somewhere in the middle, not at start
                         # This is likely mixed content - keep all for Format 5 processing
-                        remaining_after_format6 = remaining_text
+                        non_format6_entries = [remaining_text]
                 
                 # Add Format 6 blocks
                 blocks.extend(format6_blocks)
                 
-                # Now process remaining text for Format 5/1 if any left
-                remaining_text = remaining_after_format6
+                # Reassemble remaining text from non-Format-6 entries
+                remaining_text = '\n'.join(non_format6_entries) if non_format6_entries else ''
             
             # PRIORITY 2: Check for multiple Format 1 entries (multiple "Ip:" with lowercase 'p')
             if remaining_text and remaining_text.count('Ip:') > 1:
