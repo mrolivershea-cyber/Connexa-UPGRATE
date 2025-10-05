@@ -732,7 +732,12 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], selectAllMode = f
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
                     <span>
-                      {progressData?.current_task || `Выполняется ${testType === 'ping' ? 'ping' : testType === 'speed' ? 'speed' : 'комбинированное'} тестирование...`}
+                      {progressData?.current_task || `Выполняется ${
+                        testType === 'ping_light' ? 'PING LIGHT (быстрая проверка TCP порта)' :
+                        testType === 'ping' ? 'PING OK (с авторизацией)' : 
+                        testType === 'speed' ? 'тест скорости' : 
+                        'комбинированное'
+                      } тестирование...`}
                     </span>
                     <span>{Math.round((processedNodes / totalNodes) * 100) || progress}%</span>
                   </div>
