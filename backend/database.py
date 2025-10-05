@@ -23,7 +23,7 @@ engine = create_engine(
     connect_args={
         "check_same_thread": False,
         "timeout": 120,
-        "isolation_level": None
+        "isolation_level": "DEFERRED"
     }
 )
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
