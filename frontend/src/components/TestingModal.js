@@ -311,17 +311,25 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], selectAllMode = f
       
       // No more progress simulation - SSE will provide real progress
       
-      console.log(`Starting ${testType} test for ${selectedNodeIds.length} nodes using ${endpoint}`);
+      const nodeCount = selectAllMode ? totalCount : selectedNodeIds.length;
+      console.log(`Starting ${testType} test for ${nodeCount} nodes using ${endpoint}`);
       
-      const response = await axios.post(`${API}/${endpoint}`, {
-        node_ids: selectedNodeIds,
+      // Для selectAllMode НЕ передаём node_ids - backend сам получит все узлы
+      const requestData = {
         test_type: testType,
         ping_concurrency: pingConcurrency,
         speed_concurrency: speedConcurrency,
         ping_timeouts: pingTimeouts.split(',').map(v => parseFloat(v.trim())).filter(v => !isNaN(v)),
         speed_sample_kb: Number(speedSampleKB) || 512,
         speed_timeout: Number(speedTimeout) || 15
-      }, {
+      };
+      
+      // Только для режима выбора отдельных узлов передаём node_ids
+      if (!selectAllMode) {
+        requestData.node_ids = selectedNodeIds;
+      }
+      
+      const response = await axios.post(`${API}/${endpoint}`, requestData, {
         timeout: 180000 // 3 minutes for single tests
       });
       
