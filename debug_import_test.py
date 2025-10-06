@@ -4,7 +4,7 @@ import requests
 import json
 
 # Configuration
-BASE_URL = "https://nodeparsing-fix.preview.emergentagent.com"
+BASE_URL = "https://impl-review.preview.emergentagent.com"
 API_URL = f"{BASE_URL}/api"
 
 def login():

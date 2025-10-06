@@ -4,7 +4,7 @@ import requests
 import json
 
 # Test node retrieval
-base_url = "https://nodeparsing-fix.preview.emergentagent.com"
+base_url = "https://impl-review.preview.emergentagent.com"
 api_url = f"{base_url}/api"
 
 # Login

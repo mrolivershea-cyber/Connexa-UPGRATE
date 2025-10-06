@@ -7,7 +7,7 @@ import time
 from datetime import datetime
 
 class AdditionalImportTester:
-    def __init__(self, base_url="https://nodeparsing-fix.preview.emergentagent.com"):
+    def __init__(self, base_url="https://impl-review.preview.emergentagent.com"):
         self.base_url = base_url
         self.api_url = f"{base_url}/api"
         self.token = None

@@ -5,7 +5,7 @@ import json
 import time
 
 # Test the import functionality
-base_url = "https://nodeparsing-fix.preview.emergentagent.com"
+base_url = "https://impl-review.preview.emergentagent.com"
 api_url = f"{base_url}/api"
 
 # Login
