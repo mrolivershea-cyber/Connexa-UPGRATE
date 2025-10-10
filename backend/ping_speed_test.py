@@ -437,16 +437,18 @@ async def test_node_ping(ip: str, login: str, password: str, fast_mode: bool = F
 
 async def test_node_speed(ip: str, sample_kb: int = 32, timeout_total: int = 2) -> Dict:
     """
-    НАИБОЛЕЕ ТОЧНЫЙ SPEED OK тест:
-    1. НЕ проверяет авторизацию (уже проверена в PING OK)
-    2. Быстро проверяет валидность (вдруг credentials истекли) 
-    3. Замеряет реальную пропускную способность через проброс пакетов
+    РЕАЛЬНЫЙ замер скорости PPTP соединения:
+    1. Устанавливает соединение с PPTP портом
+    2. Отправляет РЕАЛЬНЫЕ данные 
+    3. Замеряет ФАКТИЧЕСКОЕ время передачи
+    4. Вычисляет РЕАЛЬНУЮ скорость в Mbps
+    БЕЗ случайных чисел и категорий!
     """
-    # Импортируем наиболее точный speed tester
-    from accurate_speed_test import test_node_accurate_speed
+    # Импортируем реальный speed measurement
+    from real_speed_measurement import test_node_real_speed
     
-    # Вызываем точный замер пропускной способности  
-    return await test_node_accurate_speed(ip, login="admin", password="admin", sample_kb=sample_kb, timeout=timeout_total)
+    # Вызываем РЕАЛЬНЫЙ замер пропускной способности
+    return await test_node_real_speed(ip, login="admin", password="admin", sample_kb=sample_kb, timeout=timeout_total)
     
     try:
         # Сначала проверим доступность через простой HTTP запрос
