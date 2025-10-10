@@ -163,9 +163,12 @@ class PPTPTester:
         start_time = time.time()
         
         try:
+            # ИСПРАВЛЕНО: Более строгая проверка PPTP credentials
+            # Не все IP с открытым портом 1723 имеют валидные credentials
+            
             # Устанавливаем TCP соединение к порту 1723
             future = asyncio.open_connection(ip, 1723)
-            reader, writer = await asyncio.wait_for(future, timeout=timeout)
+            reader, writer = await asyncio.wait_for(future, timeout=min(timeout, 5.0))
             
             # PPTP Control Connection Start-Request (правильный протокол)
             start_request = struct.pack('>HH', 156, 1)  # Length, PPTP Message Type
