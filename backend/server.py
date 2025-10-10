@@ -3246,18 +3246,20 @@ async def manual_ping_test(
             except Exception:
                 ping_result["packet_loss"] = 100.0 if not ping_result.get("success") else 0.0
 
-            # Update status based on result with rollback to ping_ok
+            # Update status based on AUTHENTIC PPTP result (ИСПРАВЛЕНО)
             if ping_result['success']:
                 node.status = "ping_ok"
-                logger.info(f"✅ Node {node_id} ping SUCCESS - status: {original_status} -> ping_ok")
+                logger.info(f"✅ Node {node_id} AUTHENTIC PPTP SUCCESS - status: {original_status} -> ping_ok")
             else:
-                # Откат до ping_ok для высоких статусов (speed_ok, online)
-                if has_ping_baseline(original_status):
-                    node.status = "ping_ok"  # откатываем до ping_ok (НЕ сохраняем текущий)
-                    logger.info(f"🔄 Node {node_id} ping FAILED - rolling back from {original_status} to ping_ok")
+                # ИСПРАВЛЕНО: При провале PING OK теста статус должен быть ping_failed
+                # Исключение: только для speed_ok и online делаем откат до ping_ok (они уже прошли валидацию)
+                if original_status in ("speed_ok", "online"):
+                    node.status = "ping_ok"  # откат до baseline для высоких статусов
+                    logger.info(f"🔄 Node {node_id} AUTHENTIC PPTP FAILED - rolling back from {original_status} to ping_ok (baseline preserved)")
                 else:
+                    # Для ping_ok и других статусов - четко ping_failed при провале авторизации
                     node.status = "ping_failed"
-                    logger.info(f"❌ Node {node_id} ping FAILED - status: {original_status} -> ping_failed")
+                    logger.info(f"❌ Node {node_id} AUTHENTIC PPTP FAILED - status: {original_status} -> ping_failed (invalid credentials)")
             
             node.last_check = datetime.utcnow()
             node.last_update = datetime.utcnow()
