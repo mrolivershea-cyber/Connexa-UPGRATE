@@ -3806,8 +3806,8 @@ async def process_ping_light_batches(session_id: str, node_ids: list, db_session
                 logger.info(f"🚫 PING LIGHT testing cancelled by user for session {session_id}")
                 break
             
-            # Process current batch with concurrency
-            session_sem = asyncio.Semaphore(ping_concurrency)
+            # Process current batch with concurrency (используем специальный семафор для PING LIGHT)
+            session_sem = asyncio.Semaphore(min(ping_concurrency, MAX_PING_LIGHT_GLOBAL))
             tasks = []
 
             async def process_one(node_id: int, global_index: int):
