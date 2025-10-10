@@ -93,18 +93,20 @@ class AccurateSpeedTester:
     @staticmethod
     async def _measure_throughput(ip: str, sample_kb: int, timeout: float) -> Dict:
         """
-        НАИБОЛЕЕ ТОЧНЫЙ замер пропускной способности:
-        Отправляет пакеты данных через TCP соединение и замеряет throughput
+        УПРОЩЕННЫЙ но точный замер пропускной способности:
+        Измеряет время подключения и отправки данных для оценки скорости
         """
         try:
             # Подключаемся к PPTP порту для throughput теста
+            connect_start = time.time()
             future = asyncio.open_connection(ip, 1723)
-            reader, writer = await asyncio.wait_for(future, timeout=5.0)
+            reader, writer = await asyncio.wait_for(future, timeout=3.0)
+            connect_time = (time.time() - connect_start) * 1000.0  # ms
             
-            # Генерируем тестовые данные для отправки
-            test_data_size = max(1024, sample_kb * 1024)  # Минимум 1KB
-            test_data = b'THROUGHPUT_TEST_' * (test_data_size // 16)
-            test_data = test_data[:test_data_size]  # Точный размер
+            # Простой throughput тест - отправляем данные и измеряем время
+            test_data_size = max(512, sample_kb * 1024)  # От 512B до sample_kb
+            test_data = b'SPEED_TEST_DATA_' * (test_data_size // 16 + 1)
+            test_data = test_data[:test_data_size]
             
             # === DOWNSTREAM TEST (скорость скачивания) ===
             download_speeds = []
