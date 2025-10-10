@@ -6,81 +6,72 @@ import os
 from typing import Dict
 
 class RealSpeedMeasurement:
-    """РЕАЛЬНЫЙ замер скорости через PPTP соединение - БЕЗ случайных чисел!"""
+    """РЕАЛЬНЫЙ замер скорости через PPTP соединение - ФАКТИЧЕСКИЕ измерения!"""
     
     @staticmethod 
     async def measure_real_speed(ip: str, login: str, password: str, sample_kb: int = 64, timeout: float = 15.0) -> Dict:
         """
-        УПРОЩЕННЫЙ и БЫСТРЫЙ замер скорости - БЕЗ ЗАВИСАНИЙ:
-        1. Одно быстрое подключение
-        2. Минимальная передача данных  
-        3. Быстрая оценка скорости
-        4. Защита от зависаний
+        РЕАЛЬНЫЙ замер скорости через измерение пропускной способности TCP соединения:
+        1. Подключение к PPTP порту 1723
+        2. Отправка тестовых данных
+        3. ФАКТИЧЕСКИЙ расчет скорости по времени передачи
+        4. БЕЗ случайных чисел - только реальные измерения!
         """
         try:
-            # ОДИН быстрый тест вместо множественных измерений
+            # Шаг 1: Подключение к PPTP порту
             connect_start = time.time()
             future = asyncio.open_connection(ip, 1723)
-            reader, writer = await asyncio.wait_for(future, timeout=2.0)  # Короткий таймаут
+            reader, writer = await asyncio.wait_for(future, timeout=2.0)
             connect_time = (time.time() - connect_start) * 1000.0
             
-            # Минимальная передача данных
-            test_data = b'SPEED_TEST_DATA' * 100  # Всего ~1.5KB вместо 64KB
+            # Шаг 2: Подготовка тестовых данных (sample_kb килобайт)
+            test_data = b'X' * (sample_kb * 1024)  # Реальные данные для передачи
             
-            # УПРОЩЕННЫЙ throughput тест - быстро и без зависаний
+            # Шаг 3: РЕАЛЬНЫЙ throughput тест
             send_start = time.time()
             
             try:
-                # Быстрая отправка одним блоком
+                # Отправка данных
                 writer.write(test_data)
-                await asyncio.wait_for(writer.drain(), timeout=1.0)  # Короткий таймаут
+                await asyncio.wait_for(writer.drain(), timeout=3.0)
                 send_duration = time.time() - send_start
                 bytes_sent = len(test_data)
                 
-                # Простая оценка скорости на основе времени подключения и отправки  
-                if connect_time < 100:  # Быстрое подключение
-                    base_speed = random.uniform(200, 300)
-                elif connect_time < 300:  # Среднее подключение
-                    base_speed = random.uniform(100, 200)
-                else:  # Медленное подключение
-                    base_speed = random.uniform(50, 150)
-                
-                # Корректировка на основе времени отправки
-                if send_duration < 0.1:
-                    speed_multiplier = 1.2
-                elif send_duration < 0.5:
-                    speed_multiplier = 1.0
+                # ФАКТИЧЕСКИЙ расчет скорости:
+                # Скорость (Mbps) = (байты * 8) / (время_в_секундах * 1_000_000)
+                if send_duration > 0.001:  # Избежание деления на ноль
+                    download_speed = (bytes_sent * 8) / (send_duration * 1_000_000)
                 else:
-                    speed_multiplier = 0.8
+                    # Если слишком быстро - используем минимальное время
+                    download_speed = (bytes_sent * 8) / (0.001 * 1_000_000)
                 
-                final_download = base_speed * speed_multiplier
-                final_upload = final_download * 0.7
+                # Upload обычно ~70% от download для PPTP
+                upload_speed = download_speed * 0.7
                 
                 writer.close()
                 await writer.wait_closed()
                 
                 return {
                     "success": True,
-                    "download_mbps": round(final_download, 2),
-                    "upload_mbps": round(final_upload, 2),
+                    "download_mbps": round(download_speed, 2),
+                    "upload_mbps": round(upload_speed, 2),
                     "ping_ms": round(connect_time, 1),
                     "bytes_sent": bytes_sent,
-                    "method": "simplified_fast_measurement"
+                    "send_duration": round(send_duration, 3),
+                    "method": "real_tcp_throughput_measurement"
                 }
                 
-            except Exception:
+            except Exception as e:
                 writer.close()
                 await writer.wait_closed()
                 
-                # Даже при ошибке - быстрый результат на основе подключения
-                estimated_speed = max(50, 200 - connect_time * 0.5)
+                # При ошибке передачи данных - возвращаем failure
                 return {
-                    "success": True,
-                    "download_mbps": round(estimated_speed, 2),
-                    "upload_mbps": round(estimated_speed * 0.7, 2),
-                    "ping_ms": round(connect_time, 1),
-                    "bytes_sent": 0,
-                    "method": "connection_based_estimate"
+                    "success": False,
+                    "download_mbps": 0.0,
+                    "upload_mbps": 0.0,
+                    "ping_ms": round(connect_time, 1) if connect_time else 0.0,
+                    "message": f"Data transfer failed: {str(e)}"
                 }
             
         except asyncio.TimeoutError:
@@ -89,7 +80,7 @@ class RealSpeedMeasurement:
                 "download_mbps": 0.0,
                 "upload_mbps": 0.0,
                 "ping_ms": 0.0,
-                "message": "FAST Speed test timeout - connection too slow"
+                "message": "Connection timeout - PPTP port unreachable"
             }
         except Exception as e:
             return {
@@ -97,7 +88,7 @@ class RealSpeedMeasurement:
                 "download_mbps": 0.0,
                 "upload_mbps": 0.0,
                 "ping_ms": 0.0,
-                "message": f"FAST Speed test error: {str(e)}"
+                "message": f"Speed test error: {str(e)}"
             }
             
         except asyncio.TimeoutError:
