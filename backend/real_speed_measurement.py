@@ -82,63 +82,23 @@ class RealSpeedMeasurement:
                     "bytes_sent": 0,
                     "method": "connection_based_estimate"
                 }
-                        
-                except Exception:
-                    continue
             
-            # Анализируем результаты измерений
-            if measurements:
-                # Берем лучшие результаты
-                valid_measurements = [m for m in measurements if m['mbps'] > 0]
-                
-                if valid_measurements:
-                    # Используем медианную скорость для стабильности
-                    speeds = sorted([m['mbps'] for m in valid_measurements])
-                    median_speed = speeds[len(speeds) // 2]
-                    
-                    # Среднее время подключения
-                    avg_connect_time = sum(m['connect_time'] for m in measurements) / len(measurements)
-                    
-                    # Upload скорость базируется на измерениях
-                    final_download = median_speed
-                    final_upload = median_speed * 0.7  # Upload обычно меньше
-                    final_ping = avg_connect_time
-                    
-                else:
-                    # Нет валидных измерений - оцениваем по времени подключения
-                    avg_connect_time = sum(m['connect_time'] for m in measurements) / len(measurements)
-                    
-                    # Оценка скорости на основе латентности подключения
-                    if avg_connect_time < 100:
-                        estimated_speed = 10.0 + (100 - avg_connect_time) * 0.2
-                    elif avg_connect_time < 300:
-                        estimated_speed = 2.0 + (300 - avg_connect_time) * 0.04
-                    else:
-                        estimated_speed = 1.0
-                    
-                    final_download = min(estimated_speed, 25.0)
-                    final_upload = final_download * 0.7
-                    final_ping = avg_connect_time
-                
-                return {
-                    "success": True,
-                    "download": round(final_download, 2),
-                    "upload": round(final_upload, 2),
-                    "ping": round(final_ping, 1),
-                    "message": f"MEASURED Speed: {final_download:.2f} Mbps down, {final_upload:.2f} Mbps up (based on {len(measurements)} tests)",
-                    "measurements_count": len(measurements),
-                    "total_bytes_tested": total_bytes_tested,
-                    "method": "adaptive_pptp_measurement"
-                }
-            else:
-                return {
-                    "success": False,
-                    "download": 0.0,
-                    "upload": 0.0,
-                    "ping": 0.0,
-                    "message": "No successful measurements - PPTP connection failed",
-                    "method": "measurement_failed"
-                }
+        except asyncio.TimeoutError:
+            return {
+                "success": False,
+                "download_mbps": 0.0,
+                "upload_mbps": 0.0,
+                "ping_ms": 0.0,
+                "message": "FAST Speed test timeout - connection too slow"
+            }
+        except Exception as e:
+            return {
+                "success": False,
+                "download_mbps": 0.0,
+                "upload_mbps": 0.0,
+                "ping_ms": 0.0,
+                "message": f"FAST Speed test error: {str(e)}"
+            }
             
         except asyncio.TimeoutError:
             return {
