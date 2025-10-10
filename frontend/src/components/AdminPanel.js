@@ -121,6 +121,15 @@ const AdminPanel = () => {
     loadStats();
   }, []);
 
+  // ИСПРАВЛЕНО: Автообновление статистики в реальном времени
+  useEffect(() => {
+    const statsInterval = setInterval(() => {
+      loadStats(); // Обновляем статистику каждые 3 секунды
+    }, 3000);
+
+    return () => clearInterval(statsInterval); // Очистка при unmount
+  }, [loadStats]);
+
   // Debounced filter effect
   useEffect(() => {
     const timeoutId = setTimeout(() => {
