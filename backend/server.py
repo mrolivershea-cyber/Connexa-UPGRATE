@@ -3770,8 +3770,8 @@ async def process_testing_batches(session_id: str, node_ids: list, testing_mode:
         logger.info(f"📊 Testing batch processing completed: {processed_nodes} processed, {failed_tests} failed")
 
 async def process_ping_light_batches(session_id: str, node_ids: list, db_session, *,
-                                      ping_concurrency: int = 20):
-    """Process PING LIGHT testing in batches - быстрая проверка TCP порта без авторизации"""
+                                      ping_concurrency: int = 100):
+    """Process PING LIGHT testing in batches - быстрая проверка TCP порта без авторизации с повышенным параллелизмом"""
     
     total_nodes = len(node_ids)
     # АГРЕССИВНЫЕ большие батчи для максимальной скорости PING LIGHT
