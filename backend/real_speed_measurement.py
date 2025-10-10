@@ -90,26 +90,10 @@ class RealSpeedMeasurement:
                 "ping_ms": 0.0,
                 "message": f"Speed test error: {str(e)}"
             }
-            
-        except asyncio.TimeoutError:
-            return {
-                "success": False,
-                "download": 0.0,
-                "upload": 0.0,
-                "ping": 0.0,
-                "message": f"Real speed test timeout - PPTP port unreachable on {ip}"
-            }
-        except Exception as e:
-            return {
-                "success": False,
-                "download": 0.0,
-                "upload": 0.0,
-                "ping": 0.0,
-                "message": f"Real speed test error: {str(e)}"
-            }
+
 
 # Интеграция с основной системой
-async def test_node_real_speed(ip: str, login: str = "admin", password: str = "admin", sample_kb: int = 64, timeout: int = 15) -> Dict:
+async def test_node_real_speed(ip: str, login: str = "admin", password: str = "admin", sample_kb: int = 32, timeout: int = 15) -> Dict:
     """
     РЕАЛЬНЫЙ замер скорости PPTP соединения
     Никаких случайных чисел - только фактические измерения!
@@ -130,13 +114,15 @@ async def test_real_measurement():
         print(f"\n🔍 REAL Speed Test: {ip}")
         result = await test_node_real_speed(ip, login, password, sample_kb=32, timeout=10)
         print(f"   Результат: {'✅ ИЗМЕРЕНО' if result['success'] else '❌ FAILED'}")
-        print(f"   Download: {result['download']} Mbps")
-        print(f"   Upload: {result['upload']} Mbps")
-        print(f"   Ping: {result['ping']} ms")
-        print(f"   Сообщение: {result['message']}")
+        print(f"   Download: {result.get('download_mbps', 0)} Mbps")
+        print(f"   Upload: {result.get('upload_mbps', 0)} Mbps")
+        print(f"   Ping: {result.get('ping_ms', 0)} ms")
+        if 'message' in result:
+            print(f"   Сообщение: {result['message']}")
         if 'bytes_sent' in result:
             print(f"   Отправлено: {result['bytes_sent']} байт")
-            print(f"   Получено: {result['bytes_received']} байт")
+        if 'send_duration' in result:
+            print(f"   Время передачи: {result['send_duration']} сек")
 
 if __name__ == "__main__":
     asyncio.run(test_real_measurement())
