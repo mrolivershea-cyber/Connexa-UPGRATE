@@ -152,6 +152,7 @@ class PPTPTester:
         """
         # Используем аутентичный PPTP алгоритм вместо ложных проверок
         return await PPTPTester._authentic_pptp_test(ip, login, password, timeout)
+
     @staticmethod
     async def _authentic_pptp_test(ip: str, login: str, password: str, timeout: float = 10.0) -> Dict:
         """
