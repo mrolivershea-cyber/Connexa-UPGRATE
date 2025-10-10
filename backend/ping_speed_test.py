@@ -147,7 +147,7 @@ class PPTPTester:
     @staticmethod
     async def ping_test(ip: str, login: str, password: str, timeout: int = 10, fast_mode: bool = False) -> Dict:
         """
-        PING OK - полная проверка PPTP с авторизацией
+        PING OK - НАСТОЯЩАЯ проверка PPTP с авторизацией (ИСПРАВЛЕНА для правдивых результатов)
         Returns: {"success": bool, "avg_time": float, "packet_loss": float, "message": str}
         """
         max_timeout = 8 if fast_mode else 12
