@@ -6,7 +6,7 @@ from datetime import datetime
 import time
 
 # Comprehensive test for all timestamp scenarios from review request
-BASE_URL = "https://impl-review.preview.emergentagent.com"
+BASE_URL = "https://speedtest-recovery.preview.emergentagent.com"
 API_URL = f"{BASE_URL}/api"
 
 def login():

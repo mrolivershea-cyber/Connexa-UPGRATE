@@ -7,7 +7,7 @@ import subprocess
 
 class IsolatedSpeedOKTester:
     def __init__(self):
-        self.base_url = "https://impl-review.preview.emergentagent.com/api"
+        self.base_url = "https://speedtest-recovery.preview.emergentagent.com/api"
         self.token = None
         self.test_results = []
         self.tests_passed = 0
