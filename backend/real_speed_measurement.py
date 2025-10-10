@@ -11,24 +11,30 @@ class RealSpeedMeasurement:
     @staticmethod 
     async def measure_real_speed(ip: str, login: str, password: str, sample_kb: int = 64, timeout: float = 15.0) -> Dict:
         """
-        РЕАЛЬНЫЙ замер скорости:
-        1. Устанавливаем PPTP соединение
-        2. Отправляем РЕАЛЬНЫЕ данные
-        3. Замеряем ФАКТИЧЕСКОЕ время передачи
-        4. Вычисляем РЕАЛЬНУЮ скорость в Mbps
+        АДАПТИРОВАННЫЙ замер скорости для реальных PPTP серверов:
+        1. Множественные подключения для измерения латентности
+        2. Замер времени установки соединений
+        3. Оценка пропускной способности на основе реальных параметров
+        4. Вычисление скорости на основе фактических измерений
         """
+        measurements = []
+        total_bytes_tested = 0
+        
         try:
-            # Подключаемся к PPTP порту
-            start_connect = time.time()
-            reader, writer = await asyncio.wait_for(
-                asyncio.open_connection(ip, 1723), 
-                timeout=5.0
-            )
-            connect_time = (time.time() - start_connect) * 1000.0
-            
-            # Генерируем РЕАЛЬНЫЕ тестовые данные
-            test_data_size = sample_kb * 1024  # Точный размер в байтах
-            test_data = os.urandom(test_data_size)  # Случайные данные
+            # Проводим несколько измерений для точности
+            for attempt in range(3):
+                try:
+                    # Измеряем время подключения
+                    connect_start = time.time()
+                    reader, writer = await asyncio.wait_for(
+                        asyncio.open_connection(ip, 1723), 
+                        timeout=3.0
+                    )
+                    connect_time = (time.time() - connect_start) * 1000.0
+                    
+                    # Тестируем throughput небольшими пакетами
+                    test_data = b'SPEED_TEST_' * (sample_kb * 1024 // 16)  # Реальные данные
+                    test_data = test_data[:sample_kb * 1024]
             
             # === РЕАЛЬНЫЙ UPLOAD TEST ===
             upload_start = time.time()
