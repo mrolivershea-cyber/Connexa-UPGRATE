@@ -3659,9 +3659,9 @@ async def process_testing_batches(session_id: str, node_ids: list, testing_mode:
                                     speed_result = await test_node_speed(node.ip, sample_kb=speed_sample_kb, timeout_total=speed_timeout)
                                     logger.info(f"📊 Speed result for {node.ip}: {speed_result}")
                                     
-                                    # ИСПРАВЛЕНО: Правильная проверка результатов speed теста
-                                    if speed_result.get('success') and speed_result.get('download'):
-                                        download_speed = speed_result['download']  # Используем 'download' а не 'download_speed'
+                                    # ИСПРАВЛЕНО: Проверка download_mbps (НЕ download)
+                                    if speed_result.get('success') and speed_result.get('download_mbps'):
+                                        download_speed = speed_result['download_mbps']
                                         node.speed = f"{download_speed:.1f} Mbps"
                                         node.status = "speed_ok" if download_speed > 1.0 else "ping_ok"
                                         logger.info(f"✅ {node.ip} speed success: {download_speed:.1f} Mbps")
