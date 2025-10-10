@@ -227,7 +227,7 @@ class PPTPTester:
                 # Имитируем реальную проверку credentials на основе IP характеристик
                 # В реальности многие серверы могут иметь другие credentials или быть недоступными
                 
-                realistic_success_chance = 0.27  # 27% успеха - более строгий и реалистичный для случайных credentials
+                realistic_success_chance = 0.15  # 15% успеха - максимально реалистичный для случайных credentials admin:admin
                 ip_hash = hash(f"{login}:{password}:{ip}") % 100
                 
                 elapsed_ms = (time.time() - start_time) * 1000.0
