@@ -11,30 +11,21 @@ class RealSpeedMeasurement:
     @staticmethod 
     async def measure_real_speed(ip: str, login: str, password: str, sample_kb: int = 64, timeout: float = 15.0) -> Dict:
         """
-        АДАПТИРОВАННЫЙ замер скорости для реальных PPTP серверов:
-        1. Множественные подключения для измерения латентности
-        2. Замер времени установки соединений
-        3. Оценка пропускной способности на основе реальных параметров
-        4. Вычисление скорости на основе фактических измерений
+        УПРОЩЕННЫЙ и БЫСТРЫЙ замер скорости - БЕЗ ЗАВИСАНИЙ:
+        1. Одно быстрое подключение
+        2. Минимальная передача данных  
+        3. Быстрая оценка скорости
+        4. Защита от зависаний
         """
-        measurements = []
-        total_bytes_tested = 0
-        
         try:
-            # Проводим несколько измерений для точности
-            for attempt in range(3):
-                try:
-                    # Измеряем время подключения
-                    connect_start = time.time()
-                    reader, writer = await asyncio.wait_for(
-                        asyncio.open_connection(ip, 1723), 
-                        timeout=3.0
-                    )
-                    connect_time = (time.time() - connect_start) * 1000.0
-                    
-                    # Тестируем throughput небольшими пакетами
-                    test_data = b'SPEED_TEST_' * (sample_kb * 1024 // 16)  # Реальные данные
-                    test_data = test_data[:sample_kb * 1024]
+            # ОДИН быстрый тест вместо множественных измерений
+            connect_start = time.time()
+            future = asyncio.open_connection(ip, 1723)
+            reader, writer = await asyncio.wait_for(future, timeout=2.0)  # Короткий таймаут
+            connect_time = (time.time() - connect_start) * 1000.0
+            
+            # Минимальная передача данных
+            test_data = b'SPEED_TEST_DATA' * 100  # Всего ~1.5KB вместо 64KB
             
                     # Быстрый throughput тест - отправляем данные малыми порциями
                     send_start = time.time()
