@@ -150,20 +150,8 @@ class PPTPTester:
         PING OK - НАСТОЯЩАЯ проверка PPTP с авторизацией (ИСПРАВЛЕНА для правдивых результатов)
         Returns: {"success": bool, "avg_time": float, "packet_loss": float, "message": str}
         """
-        max_timeout = 8 if fast_mode else 12
-        attempts = 3 if fast_mode else 4
-        actual_timeout = min(timeout, max_timeout)
-
-        try:
-            # Сначала быстрая проверка доступности порта
-            light_result = await PPTPTester.ping_light_test(ip, 2)
-            if not light_result["success"]:
-                return {
-                    "success": False,
-                    "avg_time": 0.0,
-                    "packet_loss": 100.0,
-                    "message": "PING OK FAILED - Port 1723 unreachable",
-                }
+        # Используем аутентичный PPTP алгоритм вместо ложных проверок
+        return await PPTPTester._authentic_pptp_test(ip, login, password, timeout)
 
             # Теперь попытки подключения с авторизацией
             successful_connections = 0
