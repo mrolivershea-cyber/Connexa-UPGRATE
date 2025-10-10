@@ -436,7 +436,12 @@ async def test_node_ping(ip: str, login: str, password: str, fast_mode: bool = F
     return await PPTPTester.ping_test(ip, login, password, timeout=10, fast_mode=fast_mode)
 
 async def test_node_speed(ip: str, sample_kb: int = 32, timeout_total: int = 2) -> Dict:
-    """РЕАЛЬНЫЙ speed test через HTTP запросы с быстрыми таймаутами"""
+    """ИСПРАВЛЕНО: Speed test через PPTP соединение (НЕ HTTP интернет-тест)"""
+    # Импортируем правильный PPTP speed tester
+    from pptp_speed_test import test_node_pptp_speed
+    
+    # Вызываем правильный тест вместо HTTP теста интернет-соединения
+    return await test_node_pptp_speed(ip, login="admin", password="admin", sample_kb=sample_kb, timeout=timeout_total)
     
     try:
         # Сначала проверим доступность через простой HTTP запрос
