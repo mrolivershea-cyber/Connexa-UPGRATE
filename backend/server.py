@@ -39,8 +39,12 @@ import_progress = {}  # For chunked import progress tracking
 MAX_PING_GLOBAL = 20   # МАКСИМАЛЬНО увеличено для скорости ping
 MAX_SPEED_GLOBAL = 10  # МАКСИМАЛЬНО увеличено для скорости speed
 
+# СПЕЦИАЛЬНЫЕ ЛИМИТЫ ДЛЯ PING LIGHT (ТЗ требование)
+MAX_PING_LIGHT_GLOBAL = 100  # Увеличенный параллелизм для быстрой проверки портов без авторизации
+
 global_ping_sem = asyncio.Semaphore(MAX_PING_GLOBAL)
 global_speed_sem = asyncio.Semaphore(MAX_SPEED_GLOBAL)
+global_ping_light_sem = asyncio.Semaphore(MAX_PING_LIGHT_GLOBAL)
 
 # Система защиты от перегрузки (увеличена для скорости)
 active_sessions = set()
