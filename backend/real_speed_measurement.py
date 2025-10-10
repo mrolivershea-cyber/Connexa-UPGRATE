@@ -8,7 +8,7 @@ from typing import Dict
 class RealSpeedMeasurement:
     """РЕАЛЬНЫЙ замер скорости через PPTP соединение - БЕЗ случайных чисел!"""
     
-    @staticmethod
+    @staticmethod 
     async def measure_real_speed(ip: str, login: str, password: str, sample_kb: int = 64, timeout: float = 15.0) -> Dict:
         """
         РЕАЛЬНЫЙ замер скорости:
