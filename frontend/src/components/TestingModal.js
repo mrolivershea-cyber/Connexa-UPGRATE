@@ -313,6 +313,52 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], selectAllMode = f
     }
   }, [testType]);
 
+  // Retry Failed функция
+  const retryFailed = async () => {
+    setShowRetryPrompt(false);
+    
+    try {
+      const token = localStorage.getItem('token');
+      
+      // Получить все failed узлы
+      const failedResponse = await axios.get(`${API}/nodes?status=ping_failed&limit=1000`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      const failedIds = failedResponse.data.nodes.map(n => n.id);
+      
+      if (failedIds.length === 0) {
+        alert('Нет failed узлов для retry');
+        return;
+      }
+      
+      // Установить увеличенный timeout (5s)
+      setPingTimeouts('5');
+      
+      // Запустить тест с failed узлами
+      console.log(`🔄 Retry ${failedIds.length} failed nodes with 5s timeout`);
+      
+      const requestData = {
+        node_ids: failedIds,
+        ping_concurrency: 100,
+        ping_timeouts: [5.0]
+      };
+      
+      const response = await axios.post(`${API}/manual/ping-light-test-batch-progress`, requestData, {
+        headers: { Authorization: `Bearer ${token}` },
+        timeout: 180000
+      });
+      
+      setSessionId(response.data.session_id);
+      setLoading(true);
+      setError(null);
+      
+    } catch (err) {
+      console.error('Retry failed:', err);
+      setError(err.response?.data?.detail || err.message || 'Retry failed');
+    }
+  };
+
   const handleTest = async () => {
     // DEBUG: проверяем что приходит
     console.log('🔍 handleTest called');
