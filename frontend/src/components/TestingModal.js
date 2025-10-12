@@ -26,6 +26,7 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], selectAllMode = f
   const [progressData, setProgressData] = useState(null);
   const [sessionId, setSessionId] = useState(null);
   const [useNewSystem, setUseNewSystem] = useState(false);
+  const [error, setError] = useState(null);
 
   React.useEffect(() => {
     if (isOpen) {
