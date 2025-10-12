@@ -269,7 +269,7 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], selectAllMode = f
   const [pingConcurrency, setPingConcurrency] = useState(15);   // АГРЕССИВНО увеличено для скорости
   const [speedConcurrency, setSpeedConcurrency] = useState(8);  // АГРЕССИВНО увеличено для скорости
   const [pingTimeouts, setPingTimeouts] = useState('0.5');     // СВЕРХ-БЫСТРЫЙ единственный таймаут
-  const [speedSampleKB, setSpeedSampleKB] = useState(32);      // МИНИМИЗИРОВАНО для максимальной скорости
+  const [speedSampleKB, setSpeedSampleKB] = useState(16); // Оптимизировано: 16KB быстрее чем 32KB      // МИНИМИЗИРОВАНО для максимальной скорости
   const [speedTimeout, setSpeedTimeout] = useState(2);         // ЭКСТРЕМАЛЬНО быстро
 
   // Автоматическое изменение параметров при выборе PING LIGHT (ТЗ требование)
