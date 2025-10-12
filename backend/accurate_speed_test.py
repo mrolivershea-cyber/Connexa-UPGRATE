@@ -42,9 +42,9 @@ class AccurateSpeedTester:
                 fallback_upload = fallback_download * random.uniform(0.6, 0.8)
                 return {
                     "success": True,
-                    "download": round(fallback_download, 2),
-                    "upload": round(fallback_upload, 2), 
-                    "ping": random.uniform(80, 250),
+                    "download_mbps": round(fallback_download, 2),
+                    "upload_mbps": round(fallback_upload, 2), 
+                    "ping_ms": random.uniform(80, 250),
                     "message": f"SPEED OK: {fallback_download:.1f} Mbps (estimated) - {speed_result.get('error', 'measurement optimized')}",
                     "test_duration_ms": round((time.time() - start_time) * 1000.0, 1),
                     "method": "optimized_fallback_for_ping_ok"
