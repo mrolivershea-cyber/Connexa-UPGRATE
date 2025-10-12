@@ -131,7 +131,10 @@ class AccurateSpeedTester:
                     response = b''
                 
                 writer.close()
-                await writer.wait_closed()
+                try:
+                    await asyncio.wait_for(writer.wait_closed(), timeout=1.0)
+                except:
+                    pass  # Игнорируем ошибки закрытия
                 
                 # ИСПРАВЛЕНО: Более реалистичные скорости для PPTP соединений
                 # Если узел имеет ping_ok статус - он способен на хорошие скорости
