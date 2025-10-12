@@ -194,9 +194,26 @@ def test_dedupe_should_skip(node_id: int, mode: str) -> bool:
         return True
     return False
 
+def test_dedupe_get_remaining_time(node_id: int, mode: str) -> int:
+    """Получить оставшееся время блокировки в секундах"""
+    now = datetime.utcnow().timestamp()
+    exp = _test_recent.get((node_id, mode))
+    if exp and exp > now:
+        return int(exp - now)
+    return 0
+
 def test_dedupe_mark_enqueued(node_id: int, mode: str):
     now = datetime.utcnow().timestamp()
-    _test_recent[(node_id, mode)] = now + TEST_DEDUPE_TTL
+    
+    # Выбор TTL в зависимости от типа теста
+    if mode == "ping":
+        ttl = TEST_DEDUPE_TTL_PING
+    elif mode == "speed":
+        ttl = TEST_DEDUPE_TTL_SPEED
+    else:
+        ttl = TEST_DEDUPE_TTL_DEFAULT
+    
+    _test_recent[(node_id, mode)] = now + ttl
     _test_inflight.add(node_id)
 
 def test_dedupe_mark_finished(node_id: int):
