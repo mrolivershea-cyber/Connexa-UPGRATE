@@ -3720,13 +3720,36 @@ async def process_testing_batches(session_id: str, node_ids: list, testing_mode:
                 # cancellation
                 if session_id in progress_store and progress_store[session_id].status == "cancelled":
                     break
-                # Dedupe before scheduling
-                mode_key = "ping" if testing_mode in ["ping_only", "ping_speed"] else ("speed" if testing_mode in ["speed_only"] else testing_mode)
-                if test_dedupe_should_skip(node_id, mode_key):
-                    logger.info(f"⏭️ Testing: Skipping node {node_id} (dedupe {mode_key})")
-                    progress_increment(session_id, f"⏭️ Пропуск {node_id} (повтор {mode_key})")
+                
+                # Определить какие типы тестов будут выполняться
+                mode_keys = []
+                if testing_mode in ["ping_only", "ping_speed"]:
+                    mode_keys.append("ping")
+                if testing_mode in ["speed_only", "ping_speed"]:
+                    mode_keys.append("speed")
+                if not mode_keys:  # Для остальных режимов (no_test и т.д.)
+                    mode_keys.append(testing_mode)
+                
+                # Проверить дедупликацию для ВСЕХ типов тестов
+                should_skip = False
+                skip_reason = ""
+                remaining_time = 0
+                for mode_key in mode_keys:
+                    if test_dedupe_should_skip(node_id, mode_key):
+                        skip_reason = mode_key
+                        remaining_time = test_dedupe_get_remaining_time(node_id, mode_key)
+                        should_skip = True
+                        break
+                
+                if should_skip:
+                    logger.info(f"⏭️ Testing: Skipping node {node_id} (dedupe {skip_reason}, wait {remaining_time}s)")
+                    progress_increment(session_id, f"⏭️ Узел {node_id} недавно тестировался ({skip_reason}), подождите {remaining_time}с")
                     continue
-                test_dedupe_mark_enqueued(node_id, mode_key)
+                
+                # Отметить все типы тестов в dedupe
+                for mode_key in mode_keys:
+                    test_dedupe_mark_enqueued(node_id, mode_key)
+                
                 tasks.append(asyncio.create_task(process_one(node_id, global_index)))
 
             if tasks:
