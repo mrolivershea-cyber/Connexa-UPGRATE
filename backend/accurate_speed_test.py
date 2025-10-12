@@ -84,7 +84,10 @@ class AccurateSpeedTester:
             
             response = await asyncio.wait_for(reader.read(1024), timeout=2.0)
             writer.close()
-            await writer.wait_closed()
+            try:
+                await asyncio.wait_for(writer.wait_closed(), timeout=1.0)
+            except:
+                pass  # Игнорируем ошибки закрытия
             
             if len(response) >= 21:
                 result_code = struct.unpack('>B', response[20:21])[0]
