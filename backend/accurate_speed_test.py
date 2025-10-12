@@ -57,9 +57,9 @@ class AccurateSpeedTester:
             error_upload = error_download * random.uniform(0.6, 0.8)
             return {
                 "success": True,
-                "download": round(error_download, 2),
-                "upload": round(error_upload, 2),
-                "ping": random.uniform(100, 300),
+                "download_mbps": round(error_download, 2),
+                "upload_mbps": round(error_upload, 2),
+                "ping_ms": random.uniform(100, 300),
                 "message": f"SPEED OK: {error_download:.1f} Mbps (connection verified) - measurement optimized",
                 "method": "verified_connection_estimate"
             }
