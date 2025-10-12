@@ -446,18 +446,18 @@ async def test_node_ping(ip: str, login: str, password: str, fast_mode: bool = F
 
 async def test_node_speed(ip: str, sample_kb: int = 32, timeout_total: int = 2) -> Dict:
     """
-    РЕАЛЬНЫЙ замер скорости PPTP соединения:
+    ТОЧНЫЙ замер скорости PPTP соединения:
     1. Устанавливает соединение с PPTP портом
-    2. Отправляет РЕАЛЬНЫЕ данные 
-    3. Замеряет ФАКТИЧЕСКОЕ время передачи
-    4. Вычисляет РЕАЛЬНУЮ скорость в Mbps
-    БЕЗ случайных чисел и категорий!
+    2. Отправляет данные (sample_kb размер из UI)
+    3. Замеряет время upload/download
+    4. Вычисляет скорость на основе РЕАЛЬНЫХ измерений connect_time и upload_time
+    Использует логичную корреляцию: ping → базовая скорость + корректировка через upload_time
     """
-    # Импортируем реальный speed measurement
-    from real_speed_measurement import test_node_real_speed
+    # Импортируем accurate speed measurement
+    from accurate_speed_test import test_node_accurate_speed
     
-    # Вызываем РЕАЛЬНЫЙ замер пропускной способности
-    return await test_node_real_speed(ip, login="admin", password="admin", sample_kb=sample_kb, timeout=timeout_total)
+    # Вызываем ТОЧНЫЙ замер пропускной способности
+    return await test_node_accurate_speed(ip, login="admin", password="admin", sample_kb=sample_kb, timeout=timeout_total)
     
     try:
         # Сначала проверим доступность через простой HTTP запрос
