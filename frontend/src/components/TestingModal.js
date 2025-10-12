@@ -238,6 +238,22 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], selectAllMode = f
               if (onTestComplete) {
                 onTestComplete();
               }
+              
+              // Проверить наличие failed узлов для retry
+              if (testType === 'ping_light') {
+                try {
+                  const statsResponse = await axios.get(`${API}/stats`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                  });
+                  const failedCount = statsResponse.data.ping_failed || 0;
+                  if (failedCount > 0) {
+                    setFailedNodeCount(failedCount);
+                    setShowRetryPrompt(true);
+                  }
+                } catch (err) {
+                  console.error('Failed to get stats for retry:', err);
+                }
+              }
             } else if (data.status === 'failed') {
               updateSession(sessionId, { status: 'failed' });
               setTimeout(() => {
