@@ -28,9 +28,9 @@ class AccurateSpeedTester:
                 total_time = (time.time() - start_time) * 1000.0
                 return {
                     "success": True,
-                    "download": speed_result['download_mbps'],
-                    "upload": speed_result['upload_mbps'], 
-                    "ping": speed_result['ping_ms'],
+                    "download_mbps": speed_result['download_mbps'],
+                    "upload_mbps": speed_result['upload_mbps'], 
+                    "ping_ms": speed_result['ping_ms'],
                     "message": f"SPEED OK: {speed_result['download_mbps']:.2f} Mbps down, {speed_result['upload_mbps']:.2f} Mbps up, {speed_result['ping_ms']:.0f}ms ping",
                     "test_duration_ms": round(total_time, 1),
                     "method": "pptp_throughput_measurement"
