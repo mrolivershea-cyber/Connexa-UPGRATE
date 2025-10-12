@@ -704,6 +704,19 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], selectAllMode = f
                 </div>
                 <div>
                   <label className="block text-xs text-gray-600 mb-1">Таймауты Ping (сек, через запятую)</label>
+                  {testType === 'ping_light' && (
+                    <div className="flex gap-2 mb-2">
+                      <button onClick={() => setPingTimeouts('2')} className={`px-2 py-1 text-xs rounded ${pingTimeouts === '2' ? 'bg-green-500 text-white' : 'bg-gray-100'}`}>
+                        ⚡ Fast (2s) ~78%
+                      </button>
+                      <button onClick={() => setPingTimeouts('3')} className={`px-2 py-1 text-xs rounded ${pingTimeouts === '3' ? 'bg-green-500 text-white' : 'bg-gray-100'}`}>
+                        ⚖️ Balanced (3s) ~82%
+                      </button>
+                      <button onClick={() => setPingTimeouts('5')} className={`px-2 py-1 text-xs rounded ${pingTimeouts === '5' ? 'bg-green-500 text-white' : 'bg-gray-100'}`}>
+                        🎯 Thorough (5s) ~88%
+                      </button>
+                    </div>
+                  )}
                   <input type="text" value={pingTimeouts} onChange={e => setPingTimeouts(e.target.value)} className="w-full border rounded px-2 py-1" />
                 </div>
                 <div>
