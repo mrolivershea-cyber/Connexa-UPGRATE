@@ -3878,8 +3878,8 @@ async def process_ping_light_batches(session_id: str, node_ids: list, db_session
                         original_status = node.status
                         logger.info(f"🔍 PING LIGHT batch: Node {node.id} ({node.ip}) original status: {original_status}")
 
-                        # Выполнить PING LIGHT тест
-                        ping_result = await test_node_ping_light(node.ip)
+                        # Выполнить PING LIGHT тест с заданным timeout
+                        ping_result = await test_node_ping_light(node.ip, timeout=timeout)
                         
                         # Обновить статус на основе результата (С ЗАЩИТОЙ для ping_light)
                         if ping_result['success']:
