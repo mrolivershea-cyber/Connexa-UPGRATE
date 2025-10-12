@@ -3750,6 +3750,9 @@ async def process_testing_batches(session_id: str, node_ids: list, testing_mode:
                 if should_skip:
                     logger.info(f"⏭️ Testing: Skipping node {node_id} (dedupe {skip_reason}, wait {remaining_time}s)")
                     progress_increment(session_id, f"⏭️ Узел {node_id} недавно тестировался ({skip_reason}), подождите {remaining_time}с")
+                    # Очистить из inflight если время истекло (wait 0s)
+                    if remaining_time == 0:
+                        _test_inflight.discard(node_id)
                     continue
                 
                 # Отметить все типы тестов в dedupe
