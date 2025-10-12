@@ -171,7 +171,10 @@ class AccurateSpeedTester:
                 
             except Exception as send_error:
                 writer.close()
-                await writer.wait_closed()
+                try:
+                    await asyncio.wait_for(writer.wait_closed(), timeout=1.0)
+                except:
+                    pass  # Игнорируем ошибки закрытия
                 
                 # ИСПРАВЛЕНО: Более высокие оценки для ping_ok узлов при ошибках
                 # ping_ok означает что соединение работает - даем оптимистичную оценку
