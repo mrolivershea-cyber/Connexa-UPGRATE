@@ -271,6 +271,10 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], selectAllMode = f
   const [pingTimeouts, setPingTimeouts] = useState('0.5');     // СВЕРХ-БЫСТРЫЙ единственный таймаут
   const [speedSampleKB, setSpeedSampleKB] = useState(16); // Оптимизировано: 16KB быстрее чем 32KB      // МИНИМИЗИРОВАНО для максимальной скорости
   const [speedTimeout, setSpeedTimeout] = useState(2);         // ЭКСТРЕМАЛЬНО быстро
+  
+  // Retry Failed state
+  const [showRetryPrompt, setShowRetryPrompt] = useState(false);
+  const [failedNodeCount, setFailedNodeCount] = useState(0);
 
   // Автоматическое изменение параметров при выборе PING LIGHT (ТЗ требование)
   React.useEffect(() => {
