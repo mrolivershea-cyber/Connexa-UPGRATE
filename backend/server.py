@@ -3404,9 +3404,15 @@ async def manual_ping_light_test_batch_progress(
     progress.update(0, f"Начинаем PING LIGHT тестирование {len(nodes)} узлов...")
     
     # Start background batch testing with ping_light mode
+    # Получаем timeout из ping_timeouts (первое значение)
+    ping_light_timeout = 2.0  # default
+    if test_request.ping_timeouts and len(test_request.ping_timeouts) > 0:
+        ping_light_timeout = test_request.ping_timeouts[0]
+    
     asyncio.create_task(process_ping_light_batches(
         session_id, [n.id for n in nodes], db,
-        ping_concurrency=test_request.ping_concurrency or 20  # Еще выше для PING LIGHT
+        ping_concurrency=test_request.ping_concurrency or 20,  # Еще выше для PING LIGHT
+        timeout=ping_light_timeout
     ))
     
     return {"session_id": session_id, "message": f"Запущено PING LIGHT тестирование {len(nodes)} узлов", "started": True}
