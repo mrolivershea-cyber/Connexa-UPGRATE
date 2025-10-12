@@ -436,9 +436,9 @@ class PPTPTester:
             }
 
 # Async helper functions for server integration (kept for compatibility)
-async def test_node_ping_light(ip: str) -> Dict:
+async def test_node_ping_light(ip: str, timeout: float = 2.0) -> Dict:
     """PING LIGHT - быстрая проверка TCP соединения к порту 1723"""
-    return await PPTPTester.ping_light_test(ip, timeout=2)
+    return await PPTPTester.ping_light_test(ip, timeout=timeout)
 
 async def test_node_ping(ip: str, login: str, password: str, fast_mode: bool = False) -> Dict:
     """PING OK - полная проверка PPTP с авторизацией"""
