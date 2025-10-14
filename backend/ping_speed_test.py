@@ -199,7 +199,14 @@ class PPTPTester:
                 magic = struct.unpack('>L', response_data[4:8])[0]
                 
                 if magic != 0x1a2b3c4d:
-                    raise Exception("Invalid PPTP magic cookie")
+                    writer.close()
+                    await writer.wait_closed()
+                    return {
+                        "success": False,
+                        "avg_time": 0.0,
+                        "packet_loss": 100.0,
+                        "message": "PPTP FAILED - Invalid magic cookie",
+                    }
                     
                 # Проверяем что это Start-Reply
                 control_type = struct.unpack('>H', response_data[8:10])[0]
