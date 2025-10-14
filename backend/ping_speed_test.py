@@ -221,9 +221,6 @@ class PPTPTester:
                     }
                     
                 # КРИТИЧЕСКАЯ ПРОВЕРКА: Result Code
-                if len(response_data) < 21:
-                    raise Exception("Response too short for result code")
-                    
                 result_code = struct.unpack('>B', response_data[20:21])[0]
                 if result_code != 1:  # Success = 1, все остальное = отказ
                     writer.close()
