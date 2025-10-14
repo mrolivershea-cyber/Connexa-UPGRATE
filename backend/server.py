@@ -4031,6 +4031,7 @@ async def manual_ping_speed_test_batch(
             
             # Step 2: Ping successful, now test speed
             node.status = "ping_ok"
+            node.port = 1723  # ✅ Устанавливаем port при успехе
             node.last_update = datetime.utcnow()
             
             # Note: Database will auto-commit via get_db() dependency
