@@ -229,7 +229,7 @@ class PPTPTester:
                         "success": False,
                         "avg_time": 0.0,
                         "packet_loss": 100.0,
-                        "message": f"AUTHENTIC PPTP FAILED - Control connection rejected (result={result_code})",
+                        "message": f"PPTP FAILED - Control connection rejected (result={result_code})",
                     }
                 
                 # РЕАЛЬНАЯ ПРОВЕРКА CREDENTIALS: Добавляем строгость
