@@ -211,7 +211,14 @@ class PPTPTester:
                 # Проверяем что это Start-Reply
                 control_type = struct.unpack('>H', response_data[8:10])[0]
                 if control_type != 2:  # Start-Reply
-                    raise Exception("Expected Start-Reply message")
+                    writer.close()
+                    await writer.wait_closed()
+                    return {
+                        "success": False,
+                        "avg_time": 0.0,
+                        "packet_loss": 100.0,
+                        "message": "PPTP FAILED - Expected Start-Reply message",
+                    }
                     
                 # КРИТИЧЕСКАЯ ПРОВЕРКА: Result Code
                 if len(response_data) < 21:
