@@ -156,8 +156,8 @@ class PPTPTester:
     @staticmethod
     async def _authentic_pptp_test(ip: str, login: str, password: str, timeout: float = 10.0) -> Dict:
         """
-        НАСТОЯЩАЯ PPTP авторизация - проверяет реальные credentials
-        ИСПРАВЛЯЕТ проблему ложно-положительных результатов
+        НАСТОЯЩАЯ PPTP авторизация - проверяет РЕАЛЬНЫЕ credentials
+        ✅ ИСПРАВЛЕНО: Убраны все фиктивные проверки (hash, random)
         """
         import struct
         start_time = time.time()
