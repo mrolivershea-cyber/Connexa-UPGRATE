@@ -293,7 +293,7 @@ class PPTPTester:
                     "packet_loss": 100.0,
                     "message": "PPTP FAILED - Handshake timeout",
                 }
-            except asyncio.TimeoutError:
+        except asyncio.TimeoutError:
             return {
                 "success": False,
                 "avg_time": 0.0,
