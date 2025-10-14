@@ -6,7 +6,7 @@ import time
 import random
 
 # Test the restored import functionality
-base_url = "https://speedtest-recovery.preview.emergentagent.com"
+base_url = "https://netprobe-2.preview.emergentagent.com"
 api_url = f"{base_url}/api"
 
 # Login
