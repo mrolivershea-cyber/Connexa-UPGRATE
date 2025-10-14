@@ -298,7 +298,7 @@ class PPTPTester:
                 "success": False,
                 "avg_time": 0.0,
                 "packet_loss": 100.0,
-                "message": f"PPTP FAILED - Connection timeout",
+                "message": "PPTP FAILED - Connection timeout",
             }
         except Exception as e:
             return {
