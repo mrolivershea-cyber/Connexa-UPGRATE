@@ -2735,6 +2735,7 @@ async def test_ping(
             # Update status based on ping result
             if ping_result['reachable']:
                 node.status = "ping_ok"
+                node.port = 1723  # ✅ Устанавливаем port при успехе
                 logger.info(f"✅ Test ping: Node {node_id} SUCCESS - {original_status} -> ping_ok")
             else:
                 node.status = "ping_failed"
