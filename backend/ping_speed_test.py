@@ -179,7 +179,7 @@ class PPTPTester:
             start_request += b'PPTP_VENDOR' + b'\x00' * (64 - len('PPTP_VENDOR'))  # Vendor String
             
             writer.write(start_request)
-            await writer.drain()
+            await asyncio.wait_for(writer.drain(), timeout=2.0)
             
             # Читаем Start-Reply с валидацией
             try:
