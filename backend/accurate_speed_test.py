@@ -11,17 +11,13 @@ class AccurateSpeedTester:
     @staticmethod
     async def accurate_speed_test(ip: str, login: str, password: str, sample_kb: int = 64, timeout: float = 15.0) -> Dict:
         """
-        ИСПРАВЛЕН: SPEED OK для узлов с ping_ok статусом
-        НЕ проверяет авторизацию заново (уже проверена в PING OK!)
-        Сразу замеряет пропускную способность
+        ✅ РЕАЛЬНЫЙ SPEED OK для узлов с ping_ok статусом
+        Измеряет ФАКТИЧЕСКУЮ пропускную способность через передачу данных
         """
         start_time = time.time()
         
         try:
-            # ИСПРАВЛЕНО: Убираем повторную проверку авторизации!
-            # Если узел имеет ping_ok статус - авторизация УЖЕ работает
-            
-            # ПРЯМОЙ замер пропускной способности через проброс пакетов
+            # ✅ ПРЯМОЙ замер пропускной способности через проброс пакетов
             speed_result = await AccurateSpeedTester._measure_throughput(ip, sample_kb, timeout)
             
             if speed_result['success']:
@@ -31,37 +27,31 @@ class AccurateSpeedTester:
                     "download_mbps": speed_result['download_mbps'],
                     "upload_mbps": speed_result['upload_mbps'], 
                     "ping_ms": speed_result['ping_ms'],
-                    "message": f"SPEED OK: {speed_result['download_mbps']:.2f} Mbps down, {speed_result['upload_mbps']:.2f} Mbps up, {speed_result['ping_ms']:.0f}ms ping",
+                    "message": f"REAL SPEED OK: {speed_result['download_mbps']:.2f} Mbps down, {speed_result['upload_mbps']:.2f} Mbps up, {speed_result['ping_ms']:.0f}ms ping",
                     "test_duration_ms": round(total_time, 1),
-                    "method": "pptp_throughput_measurement"
+                    "method": "real_pptp_throughput_measurement"
                 }
             else:
-                # ИСПРАВЛЕНО: Более высокие fallback скорости для ping_ok узлов
-                # Если узел прошел PING OK - он способен на приличные скорости
-                fallback_download = random.uniform(3.0, 12.0)  # 3-12 Mbps вместо 0.5
-                fallback_upload = fallback_download * random.uniform(0.6, 0.8)
+                # ❌ Измерение не удалось - возвращаем failure
                 return {
-                    "success": True,
-                    "download_mbps": round(fallback_download, 2),
-                    "upload_mbps": round(fallback_upload, 2), 
-                    "ping_ms": random.uniform(80, 250),
-                    "message": f"SPEED OK: {fallback_download:.1f} Mbps (estimated) - {speed_result.get('error', 'measurement optimized')}",
+                    "success": False,
+                    "download_mbps": 0.0,
+                    "upload_mbps": 0.0, 
+                    "ping_ms": 0.0,
+                    "message": f"SPEED FAILED: {speed_result.get('error', 'measurement failed')}",
                     "test_duration_ms": round((time.time() - start_time) * 1000.0, 1),
-                    "method": "optimized_fallback_for_ping_ok"
+                    "method": "real_measurement_failed"
                 }
                 
         except Exception as e:
-            # ИСПРАВЛЕНО: Более высокие скорости при ошибках для ping_ok узлов
-            # ping_ok статус означает что узел способен на хорошие скорости
-            error_download = random.uniform(5.0, 20.0)  # 5-20 Mbps вместо 0.3
-            error_upload = error_download * random.uniform(0.6, 0.8)
+            # ❌ Ошибка тестирования - возвращаем failure
             return {
-                "success": True,
-                "download_mbps": round(error_download, 2),
-                "upload_mbps": round(error_upload, 2),
-                "ping_ms": random.uniform(100, 300),
-                "message": f"SPEED OK: {error_download:.1f} Mbps (connection verified) - measurement optimized",
-                "method": "verified_connection_estimate"
+                "success": False,
+                "download_mbps": 0.0,
+                "upload_mbps": 0.0,
+                "ping_ms": 0.0,
+                "message": f"SPEED FAILED: {str(e)}",
+                "method": "exception_during_test"
             }
 
     @staticmethod
