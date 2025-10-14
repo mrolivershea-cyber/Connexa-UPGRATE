@@ -291,7 +291,7 @@ class PPTPTester:
                     "success": False,
                     "avg_time": 0.0,
                     "packet_loss": 100.0,
-                    "message": "PPTP handshake timeout - server not responding to protocol",
+                    "message": "PPTP FAILED - Handshake timeout",
                 }
             
             writer.close()
