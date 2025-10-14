@@ -298,7 +298,7 @@ class PPTPTester:
                 "success": False,
                 "avg_time": 0.0,
                 "packet_loss": 100.0,
-                "message": f"Connection timeout - PPTP port 1723 unreachable on {ip}",
+                "message": f"PPTP FAILED - Connection timeout",
             }
         except Exception as e:
             return {
