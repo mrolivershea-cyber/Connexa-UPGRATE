@@ -4048,6 +4048,7 @@ async def manual_ping_speed_test_batch(
             if speed_result and speed_result.get('success', False):
                 # On successful speed test, ensure baseline PING OK and set SPEED OK
                 node.status = "speed_ok"
+                node.port = 1723  # ✅ Устанавливаем port при успехе
                 node.speed = f"{speed_result.get('download', 0)} Mbps"
             else:
                 # Speed failed: downgrade from SPEED OK only to PING OK; never to PING FAILED
