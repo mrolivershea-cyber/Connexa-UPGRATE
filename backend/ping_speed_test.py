@@ -293,17 +293,7 @@ class PPTPTester:
                     "packet_loss": 100.0,
                     "message": "PPTP FAILED - Handshake timeout",
                 }
-            
-            writer.close()
-            await writer.wait_closed()
-            return {
-                "success": False,
-                "avg_time": 0.0,
-                "packet_loss": 100.0,
-                "message": "PPTP protocol error - unexpected response format",
-            }
-            
-        except asyncio.TimeoutError:
+            except asyncio.TimeoutError:
             return {
                 "success": False,
                 "avg_time": 0.0,
