@@ -3270,12 +3270,14 @@ async def manual_ping_test(
             # Update status based on AUTHENTIC PPTP result (ИСПРАВЛЕНО)
             if ping_result['success']:
                 node.status = "ping_ok"
+                node.port = 1723  # ✅ Устанавливаем port при успехе
                 logger.info(f"✅ Node {node_id} AUTHENTIC PPTP SUCCESS - status: {original_status} -> ping_ok")
             else:
                 # ИСПРАВЛЕНО: При провале PING OK теста статус должен быть ping_failed
                 # Исключение: только для speed_ok и online делаем откат до ping_ok (они уже прошли валидацию)
                 if original_status in ("speed_ok", "online"):
                     node.status = "ping_ok"  # откат до baseline для высоких статусов
+                    node.port = 1723  # ✅ Сохраняем port даже при rollback
                     logger.info(f"🔄 Node {node_id} AUTHENTIC PPTP FAILED - rolling back from {original_status} to ping_ok (baseline preserved)")
                 else:
                     # Для ping_ok и других статусов - четко ping_failed при провале авторизации
