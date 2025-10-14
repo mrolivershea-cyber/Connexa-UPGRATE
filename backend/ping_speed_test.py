@@ -185,7 +185,14 @@ class PPTPTester:
             try:
                 response_data = await asyncio.wait_for(reader.read(1024), timeout=5.0)
                 if len(response_data) < 21:  # Минимальная длина ответа
-                    raise Exception("Invalid PPTP response length")
+                    writer.close()
+                    await writer.wait_closed()
+                    return {
+                        "success": False,
+                        "avg_time": 0.0,
+                        "packet_loss": 100.0,
+                        "message": "PPTP FAILED - Invalid response length",
+                    }
                 
                 # Парсим и валидируем PPTP ответ
                 length, msg_type = struct.unpack('>HH', response_data[:4])
