@@ -305,7 +305,7 @@ class PPTPTester:
                 "success": False,
                 "avg_time": 0.0,
                 "packet_loss": 100.0,
-                "message": f"PPTP connection error: {str(e)}",
+                "message": f"PPTP FAILED - {str(e)}",
             }
 
     @staticmethod
