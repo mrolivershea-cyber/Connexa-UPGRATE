@@ -3676,7 +3676,20 @@ async def process_testing_batches(session_id: str, node_ids: list, testing_mode:
                                 # Пользователь хочет чтобы тест ВСЕГДА запускался
                                 do_ping = True
                             elif testing_mode == "speed_only":
-                                do_speed = True
+                                # ПО ТЗ: Для SPEED теста нужен ping_ok статус
+                                # Если статус ping_light → сначала PING OK, потом SPEED
+                                if original_status == "ping_light":
+                                    # Умная последовательность: сначала авторизация, потом скорость
+                                    do_ping = True  # Сначала авторизуемся
+                                    do_speed = True  # Потом (если успех) тест скорости
+                                elif original_status in ("ping_ok", "speed_ok", "online"):
+                                    # Уже авторизован - сразу SPEED
+                                    do_speed = True
+                                else:
+                                    # not_tested или ping_failed - пропускаем
+                                    logger.info(f"⏭️ Skipping SPEED test for {node.ip}: требуется ping_light или выше (current: {original_status})")
+                                    progress_increment(session_id, f"⏭️ {node.ip} - пропущен (требуется ping_light)", {"node_id": node.id, "ip": node.ip, "status": original_status, "success": False})
+                                    return True
                             else:
                                 # Treat any other as skip
                                 return True
