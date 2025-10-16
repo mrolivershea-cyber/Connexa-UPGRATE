@@ -125,19 +125,46 @@ class AccurateSpeedTester:
             max_ping = max(ping_times)
             jitter = max_ping - min_ping
             
-            # Тест upload скорости (упрощенный но реальный)
-            test_data_size = sample_kb * 1024
+            # РЕАЛЬНЫЙ тест upload/download скорости с большим размером данных
+            # Увеличен размер теста чтобы превысить OS буфер (обычно 64-256 KB)
+            actual_test_size = max(sample_kb, 512)  # Минимум 512 KB
+            test_data_size = actual_test_size * 1024
             test_data = b'X' * test_data_size
             
+            # UPLOAD TEST - измерение реальной скорости отправки
             reader, writer = await asyncio.wait_for(
                 asyncio.open_connection(ip, 1723),
-                timeout=3.0
+                timeout=5.0
             )
             
+            # Отключаем буферизацию для более точных измерений
+            try:
+                writer.get_extra_info('socket').setsockopt(
+                    socket.IPPROTO_TCP, socket.TCP_NODELAY, 1
+                )
+            except:
+                pass  # Если не удалось установить TCP_NODELAY, продолжаем
+            
             upload_start = time.time()
-            writer.write(test_data)
-            await asyncio.wait_for(writer.drain(), timeout=5.0)
+            # Отправляем данные частями для более точного измерения
+            chunk_size = 8192  # 8 KB chunks
+            for i in range(0, test_data_size, chunk_size):
+                chunk = test_data[i:i+chunk_size]
+                writer.write(chunk)
+                await asyncio.wait_for(writer.drain(), timeout=10.0)
             upload_time = time.time() - upload_start
+            
+            # DOWNLOAD TEST - пытаемся прочитать ответ от сервера
+            download_start = time.time()
+            downloaded_bytes = 0
+            try:
+                # Пытаемся прочитать данные в течение 2 секунд
+                data = await asyncio.wait_for(reader.read(test_data_size), timeout=2.0)
+                downloaded_bytes = len(data)
+            except asyncio.TimeoutError:
+                # Нормально - сервер может не отправлять данные обратно
+                pass
+            download_time = time.time() - download_start
             
             writer.close()
             try:
@@ -145,31 +172,41 @@ class AccurateSpeedTester:
             except:
                 pass
             
-            # Вычисляем upload скорость
-            if upload_time > 0.001:
+            # Вычисляем РЕАЛЬНУЮ upload скорость (без hardcoded значений!)
+            if upload_time > 0.01:  # Более реалистичный порог
                 upload_mbps = (test_data_size * 8) / (upload_time * 1_000_000)
             else:
-                upload_mbps = 0.1
+                # Если слишком быстро, значит измерение неточное
+                return {
+                    "success": False,
+                    "error": f"Upload too fast ({upload_time:.4f}s for {actual_test_size}KB) - likely measuring buffer, not network"
+                }
             
-            # Оценка download с учетом качества соединения
-            if avg_ping < 50 and jitter < 20:
-                download_factor = 1.5  # Отличное соединение
-            elif avg_ping < 100 and jitter < 50:
-                download_factor = 1.3  # Хорошее
-            elif avg_ping < 200:
-                download_factor = 1.2  # Среднее
+            # Вычисляем РЕАЛЬНУЮ download скорость (если были данные)
+            if downloaded_bytes > 0 and download_time > 0.01:
+                download_mbps = (downloaded_bytes * 8) / (download_time * 1_000_000)
             else:
-                download_factor = 1.1  # Медленное
+                # Если нет download данных, используем upload с коэффициентом
+                # (но это все равно оценка, не измерение)
+                if avg_ping < 50 and jitter < 20:
+                    download_factor = 1.5
+                elif avg_ping < 100 and jitter < 50:
+                    download_factor = 1.3
+                elif avg_ping < 200:
+                    download_factor = 1.2
+                else:
+                    download_factor = 1.1
+                download_mbps = upload_mbps * download_factor
             
-            download_mbps = upload_mbps * download_factor
-            
+            # Возвращаем РЕАЛЬНЫЕ значения без min() caps
             return {
                 "success": True,
-                "download_mbps": round(max(0.1, download_mbps), 2),
-                "upload_mbps": round(max(0.05, upload_mbps), 2),
+                "download_mbps": round(download_mbps, 2),
+                "upload_mbps": round(upload_mbps, 2),
                 "ping_ms": round(avg_ping, 1),
                 "jitter_ms": round(jitter, 1),
-                "test_data_size_kb": sample_kb
+                "test_data_size_kb": actual_test_size,
+                "downloaded_bytes": downloaded_bytes
             }
             
         except Exception as e:
