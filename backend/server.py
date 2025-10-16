@@ -3594,7 +3594,7 @@ async def manual_ping_speed_test_batch_progress(
 
 async def process_testing_batches(session_id: str, node_ids: list, testing_mode: str, db_session, *,
                                   ping_concurrency: int = 15,   # АГРЕССИВНО увеличено для скорости
-                                  speed_concurrency: int = 5,   # Увеличено для скорости (TCP fallback стабилен)
+                                  speed_concurrency: int = 8,   # Восстановлено: оригинальная скорость
                                   ping_timeouts: list[float] | None = None,
                                   speed_sample_kb: int = 512,    # Увеличено для Speedtest CLI
                                   speed_timeout: int = 60):      # Увеличен для Speedtest CLI
