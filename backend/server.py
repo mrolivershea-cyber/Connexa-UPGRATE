@@ -3718,10 +3718,10 @@ async def process_testing_batches(session_id: str, node_ids: list, testing_mode:
                                     # ИСПРАВЛЕНО: Проверка download_mbps (НЕ download)
                                     if speed_result.get('success') and speed_result.get('download_mbps'):
                                         download_speed = speed_result['download_mbps']
-                                        node.speed = f"{download_speed:.1f} Mbps"
-                                        node.status = "speed_ok" if download_speed > 1.0 else "ping_ok"
+                                        node.speed = f"{download_speed:.2f} Mbps"
+                                        node.status = "speed_ok"  # ✅ ВСЕГДА speed_ok если тест прошел
                                         node.port = 1723  # ✅ Устанавливаем port при успехе
-                                        logger.info(f"✅ {node.ip} speed success: {download_speed:.1f} Mbps")
+                                        logger.info(f"✅ {node.ip} speed success: {download_speed:.2f} Mbps → speed_ok")
                                     else:
                                         node.status = "ping_ok" if has_ping_baseline(original_status) else "ping_failed"
                                         node.speed = None
