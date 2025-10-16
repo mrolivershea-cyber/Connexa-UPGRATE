@@ -145,7 +145,7 @@ logger = logging.getLogger(__name__)
 # Status helpers according to new business rules (sticky PING OK baseline)
 
 def has_ping_baseline(status: str) -> bool:
-    return status in ("ping_ok", "speed_ok", "online")
+    return status in ("ping_light", "ping_ok", "speed_ok", "online")
 
 
 # Create tables on startup
