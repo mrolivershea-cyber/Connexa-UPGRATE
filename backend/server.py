@@ -3696,6 +3696,7 @@ async def process_testing_batches(session_id: str, node_ids: list, testing_mode:
                                         download_speed = speed_result['download_mbps']
                                         node.speed = f"{download_speed:.1f} Mbps"
                                         node.status = "speed_ok" if download_speed > 1.0 else "ping_ok"
+                                        node.port = 1723  # ✅ Устанавливаем port при успехе
                                         logger.info(f"✅ {node.ip} speed success: {download_speed:.1f} Mbps")
                                     else:
                                         node.status = "ping_ok" if has_ping_baseline(original_status) else "ping_failed"
