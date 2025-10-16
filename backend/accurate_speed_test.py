@@ -178,14 +178,152 @@ class AccurateSpeedTester:
                 "error": f"Speed test error: {str(e)}"
             }
 
+# ============================================================================
+# SPEEDTEST.NET CLI INTEGRATION - REAL SPEED MEASUREMENT
+# ============================================================================
+
+class SpeedtestCLI:
+    """Интеграция с Speedtest.net CLI by Ookla для РЕАЛЬНЫХ измерений скорости"""
+    
+    @staticmethod
+    async def run_speedtest_cli(timeout: int = 60) -> Dict:
+        """
+        Запускает Speedtest CLI и возвращает РЕАЛЬНЫЕ результаты
+        
+        Returns:
+            Dict с ключами: success, download_mbps, upload_mbps, ping_ms, jitter_ms, message
+        """
+        start_time = time.time()
+        
+        try:
+            # Запускаем speedtest с JSON выводом
+            process = await asyncio.create_subprocess_exec(
+                'speedtest',
+                '--accept-license',
+                '--accept-gdpr',
+                '--format=json',
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE
+            )
+            
+            # Ждем завершения с timeout
+            try:
+                stdout, stderr = await asyncio.wait_for(
+                    process.communicate(),
+                    timeout=timeout
+                )
+            except asyncio.TimeoutError:
+                process.kill()
+                await process.wait()
+                return {
+                    "success": False,
+                    "download_mbps": 0.0,
+                    "upload_mbps": 0.0,
+                    "ping_ms": 0.0,
+                    "jitter_ms": 0.0,
+                    "message": f"SPEED FAILED: Speedtest timeout after {timeout}s",
+                    "test_duration_ms": round((time.time() - start_time) * 1000.0, 1),
+                    "method": "speedtest_cli_timeout"
+                }
+            
+            # Проверяем код возврата
+            if process.returncode != 0:
+                error_msg = stderr.decode('utf-8', errors='ignore').strip()
+                return {
+                    "success": False,
+                    "download_mbps": 0.0,
+                    "upload_mbps": 0.0,
+                    "ping_ms": 0.0,
+                    "jitter_ms": 0.0,
+                    "message": f"SPEED FAILED: Speedtest error - {error_msg[:100]}",
+                    "test_duration_ms": round((time.time() - start_time) * 1000.0, 1),
+                    "method": "speedtest_cli_error"
+                }
+            
+            # Парсим JSON результат
+            result_text = stdout.decode('utf-8', errors='ignore')
+            result_json = json.loads(result_text)
+            
+            # Извлекаем данные из JSON
+            # Speedtest CLI возвращает bandwidth в bytes/sec, нужно конвертировать в Mbps
+            # 1 Mbps = 125,000 bytes/sec (1,000,000 bits/sec / 8 bits/byte)
+            download_bps = result_json.get('download', {}).get('bandwidth', 0)
+            upload_bps = result_json.get('upload', {}).get('bandwidth', 0)
+            
+            # Конвертация: bytes/sec -> Mbps
+            download_mbps = round(download_bps / 125000.0, 2)
+            upload_mbps = round(upload_bps / 125000.0, 2)
+            
+            # Извлекаем ping и jitter
+            ping_data = result_json.get('ping', {})
+            ping_ms = round(ping_data.get('latency', 0.0), 1)
+            jitter_ms = round(ping_data.get('jitter', 0.0), 1)
+            
+            # Информация о сервере и ISP
+            server_name = result_json.get('server', {}).get('name', 'Unknown')
+            server_location = result_json.get('server', {}).get('location', 'Unknown')
+            isp = result_json.get('isp', 'Unknown ISP')
+            
+            test_duration = round((time.time() - start_time) * 1000.0, 1)
+            
+            return {
+                "success": True,
+                "download_mbps": download_mbps,
+                "upload_mbps": upload_mbps,
+                "ping_ms": ping_ms,
+                "jitter_ms": jitter_ms,
+                "message": f"SPEED OK (Speedtest.net): {download_mbps:.2f} Mbps down, {upload_mbps:.2f} Mbps up, {ping_ms:.1f}ms ping",
+                "test_duration_ms": test_duration,
+                "method": "speedtest_cli_real",
+                "server_name": server_name,
+                "server_location": server_location,
+                "isp": isp,
+                "result_url": result_json.get('result', {}).get('url', '')
+            }
+            
+        except json.JSONDecodeError as e:
+            return {
+                "success": False,
+                "download_mbps": 0.0,
+                "upload_mbps": 0.0,
+                "ping_ms": 0.0,
+                "jitter_ms": 0.0,
+                "message": f"SPEED FAILED: Failed to parse Speedtest result - {str(e)}",
+                "test_duration_ms": round((time.time() - start_time) * 1000.0, 1),
+                "method": "speedtest_cli_parse_error"
+            }
+        except Exception as e:
+            return {
+                "success": False,
+                "download_mbps": 0.0,
+                "upload_mbps": 0.0,
+                "ping_ms": 0.0,
+                "jitter_ms": 0.0,
+                "message": f"SPEED FAILED: {str(e)}",
+                "test_duration_ms": round((time.time() - start_time) * 1000.0, 1),
+                "method": "speedtest_cli_exception"
+            }
+
 # Интеграция с основной системой
-async def test_node_accurate_speed(ip: str, login: str = "admin", password: str = "admin", sample_kb: int = 64, timeout: int = 15) -> Dict:
+async def test_node_accurate_speed(ip: str, login: str = "admin", password: str = "admin", sample_kb: int = 64, timeout: int = 60) -> Dict:
     """
-    ТОЧНЫЙ SPEED OK тест:
-    1. Быстрая проверка валидности credentials (вдруг истекли)
-    2. Замер реальной пропускной способности через проброс пакетов
+    ТОЧНЫЙ SPEED OK тест с использованием Speedtest.net CLI:
+    
+    ВАЖНО: Этот тест измеряет скорость ТЕКУЩЕГО подключения (где запущен сервер),
+    а НЕ скорость через VPN туннель к конкретному узлу.
+    
+    Для измерения скорости через VPN туннель потребуется:
+    1. Установить VPN соединение (pptp, openvpn, etc.)
+    2. Перенаправить трафик через туннель
+    3. Запустить Speedtest через этот туннель
+    
+    Параметры ip, login, password в текущей реализации не используются,
+    так как Speedtest CLI измеряет скорость текущего интернет-соединения.
+    
+    Returns:
+        Dict с результатами теста скорости
     """
-    return await AccurateSpeedTester.accurate_speed_test(ip, login, password, sample_kb, timeout)
+    return await SpeedtestCLI.run_speedtest_cli(timeout=timeout)
 
 # Тестовая функция
 async def test_accurate_speed():
