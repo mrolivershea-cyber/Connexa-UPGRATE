@@ -3378,7 +3378,7 @@ async def manual_ping_test_batch(
     asyncio.create_task(process_testing_batches(
         session_id, [n.id for n in nodes], "ping_only", db,
         ping_concurrency=test_request.ping_concurrency or 15,  # АГРЕССИВНО увеличено
-        speed_concurrency=test_request.speed_concurrency or 1,   # КРИТИЧЕСКИ ВАЖНО: Speedtest CLI ограничение
+        speed_concurrency=test_request.speed_concurrency or 5,   # Увеличено: TCP fallback стабилен
         ping_timeouts=test_request.ping_timeouts or [0.8,1.2,1.6],
         speed_sample_kb=test_request.speed_sample_kb or 512,
         speed_timeout=test_request.speed_timeout or 60  # Увеличен для Speedtest CLI
@@ -3498,7 +3498,7 @@ async def manual_ping_test_batch_progress(
     asyncio.create_task(process_testing_batches(
         session_id, [n.id for n in nodes], "ping_only", db,
         ping_concurrency=test_request.ping_concurrency or 15,  # АГРЕССИВНО увеличено
-        speed_concurrency=test_request.speed_concurrency or 1,   # КРИТИЧЕСКИ ВАЖНО: Speedtest CLI ограничение
+        speed_concurrency=test_request.speed_concurrency or 5,   # Увеличено: TCP fallback стабилен
         ping_timeouts=test_request.ping_timeouts or [0.8,1.2,1.6],
         speed_sample_kb=test_request.speed_sample_kb or 512,
         speed_timeout=test_request.speed_timeout or 60  # Увеличен для Speedtest CLI
@@ -3556,7 +3556,7 @@ async def manual_speed_test_batch_progress(
     asyncio.create_task(process_testing_batches(
         session_id, [n.id for n in nodes], "speed_only", db,
         ping_concurrency=test_request.ping_concurrency or 15,  # АГРЕССИВНО увеличено
-        speed_concurrency=test_request.speed_concurrency or 1,   # КРИТИЧЕСКИ ВАЖНО: Speedtest CLI ограничение
+        speed_concurrency=test_request.speed_concurrency or 5,   # Увеличено: TCP fallback стабилен
         ping_timeouts=test_request.ping_timeouts or [0.8,1.2,1.6],
         speed_sample_kb=test_request.speed_sample_kb or 512,
         speed_timeout=test_request.speed_timeout or 60  # Увеличен для Speedtest CLI
@@ -3585,7 +3585,7 @@ async def manual_ping_speed_test_batch_progress(
     asyncio.create_task(process_testing_batches(
         session_id, [n.id for n in nodes], "speed_only", db,
         ping_concurrency=test_request.ping_concurrency or 15,  # АГРЕССИВНО увеличено
-        speed_concurrency=test_request.speed_concurrency or 1,   # КРИТИЧЕСКИ ВАЖНО: Speedtest CLI ограничение
+        speed_concurrency=test_request.speed_concurrency or 5,   # Увеличено: TCP fallback стабилен
         ping_timeouts=test_request.ping_timeouts or [0.8,1.2,1.6],
         speed_sample_kb=test_request.speed_sample_kb or 512,
         speed_timeout=test_request.speed_timeout or 60  # Увеличен для Speedtest CLI
