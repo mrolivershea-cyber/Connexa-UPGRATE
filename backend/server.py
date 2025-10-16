@@ -3605,8 +3605,9 @@ async def process_testing_batches(session_id: str, node_ids: list, testing_mode:
         
         logger.info(f"🚀 Testing Batch: Starting {total_nodes} nodes in batches of {BATCH_SIZE}, mode: {testing_mode}")
         
-        # Import testing functions
-        from ping_speed_test import test_node_ping, test_node_speed
+        # ✅ НЕ используем ping_speed_test.py (поврежден null bytes)
+        # Вместо этого используем pptp_auth_test.py напрямую
+        from pptp_auth_test import PPTPAuthenticator
         
         # Process nodes in batches
         for batch_start in range(0, total_nodes, BATCH_SIZE):
