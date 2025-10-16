@@ -92,13 +92,13 @@ class AccurateSpeedTester:
     @staticmethod
     async def _measure_throughput(ip: str, sample_kb: int, timeout: float) -> Dict:
         """
-        ✅ УЛУЧШЕННЫЙ РЕАЛЬНЫЙ замер пропускной способности
-        Множественные тесты для точности + оценка качества соединения
+        ✅ РАБОЧИЙ метод замера скорости с улучшениями
+        Множественные измерения для точности
         """
         try:
-            # Шаг 1: Множественные ping тесты (5 раз)
+            # Множественные ping тесты для оценки латентности
             ping_times = []
-            for i in range(5):
+            for i in range(3):
                 ping_start = time.time()
                 try:
                     reader, writer = await asyncio.wait_for(
@@ -108,7 +108,10 @@ class AccurateSpeedTester:
                     ping_time = (time.time() - ping_start) * 1000
                     ping_times.append(ping_time)
                     writer.close()
-                    await writer.wait_closed()
+                    try:
+                        await asyncio.wait_for(writer.wait_closed(), timeout=1.0)
+                    except:
+                        pass
                 except:
                     continue
             
@@ -120,55 +123,41 @@ class AccurateSpeedTester:
             max_ping = max(ping_times)
             jitter = max_ping - min_ping
             
-            # Шаг 2: Тест пропускной способности (3 раза для точности)
+            # Тест upload скорости (упрощенный но реальный)
             test_data_size = sample_kb * 1024
             test_data = b'X' * test_data_size
             
-            throughput_times = []
-            for i in range(3):
-                try:
-                    reader, writer = await asyncio.wait_for(
-                        asyncio.open_connection(ip, 1723),
-                        timeout=3.0
-                    )
-                    
-                    send_start = time.time()
-                    writer.write(test_data)
-                    await asyncio.wait_for(writer.drain(), timeout=10.0)
-                    send_time = time.time() - send_start
-                    
-                    if send_time > 0.001:  # Минимум 1ms
-                        throughput_times.append(send_time)
-                    
-                    writer.close()
-                    await writer.wait_closed()
-                except:
-                    continue
+            reader, writer = await asyncio.wait_for(
+                asyncio.open_connection(ip, 1723),
+                timeout=3.0
+            )
             
-            if not throughput_times:
-                return {"success": False, "error": "Throughput test failed"}
+            upload_start = time.time()
+            writer.write(test_data)
+            await asyncio.wait_for(writer.drain(), timeout=5.0)
+            upload_time = time.time() - upload_start
             
-            # Берем MEDIAN время (устойчивее к выбросам)
-            throughput_times.sort()
-            median_time = throughput_times[len(throughput_times) // 2]
+            writer.close()
+            try:
+                await asyncio.wait_for(writer.wait_closed(), timeout=1.0)
+            except:
+                pass
             
-            # Вычисляем РЕАЛЬНУЮ upload скорость в Mbps
-            upload_mbps = (test_data_size * 8) / (median_time * 1_000_000)
-            
-            # Оценка download на основе характеристик соединения
-            # Учитываем ping и jitter для точности
-            if avg_ping < 50 and jitter < 20:
-                # Отличное соединение (низкая латентность, стабильное)
-                download_factor = 1.5
-            elif avg_ping < 100 and jitter < 50:
-                # Хорошее соединение
-                download_factor = 1.3
-            elif avg_ping < 200 and jitter < 100:
-                # Среднее соединение
-                download_factor = 1.2
+            # Вычисляем upload скорость
+            if upload_time > 0.001:
+                upload_mbps = (test_data_size * 8) / (upload_time * 1_000_000)
             else:
-                # Медленное или нестабильное соединение
-                download_factor = 1.1
+                upload_mbps = 0.1
+            
+            # Оценка download с учетом качества соединения
+            if avg_ping < 50 and jitter < 20:
+                download_factor = 1.5  # Отличное соединение
+            elif avg_ping < 100 and jitter < 50:
+                download_factor = 1.3  # Хорошее
+            elif avg_ping < 200:
+                download_factor = 1.2  # Среднее
+            else:
+                download_factor = 1.1  # Медленное
             
             download_mbps = upload_mbps * download_factor
             
@@ -178,9 +167,7 @@ class AccurateSpeedTester:
                 "upload_mbps": round(max(0.05, upload_mbps), 2),
                 "ping_ms": round(avg_ping, 1),
                 "jitter_ms": round(jitter, 1),
-                "connect_time_ms": round(min_ping, 1),
-                "test_data_size_kb": sample_kb,
-                "samples": len(throughput_times)
+                "test_data_size_kb": sample_kb
             }
             
         except Exception as e:
