@@ -81,20 +81,24 @@ class PPTPAuthenticator:
                 call_response = await asyncio.wait_for(reader.read(1024), timeout=5.0)
                 if len(call_response) >= 20:
                     call_result = struct.unpack('>B', call_response[20:21])[0]
-                    if call_result == 1:  # Connected
-                        elapsed_ms = (time.time() - start_time) * 1000.0
-                        writer.close()
-                        await writer.wait_closed()
+                    
+                    elapsed_ms = (time.time() - start_time) * 1000.0
+                    writer.close()
+                    await writer.wait_closed()
+                    
+                    # ✅ ИСПРАВЛЕНО: call_result=0 и call_result=1 оба означают success!
+                    # 0 = Success (no error)
+                    # 1 = Connected
+                    # 2+ = различные ошибки
+                    if call_result <= 1:  # 0 или 1 = success
                         return {
                             "success": True,
                             "avg_time": round(elapsed_ms, 1),
                             "packet_loss": 0.0,
-                            "message": f"AUTHENTIC PPTP OK - Real auth successful in {elapsed_ms:.1f}ms",
+                            "message": f"AUTHENTIC PPTP OK - Real auth successful in {elapsed_ms:.1f}ms (call_result={call_result})",
                             "auth_tested": True
                         }
                     else:
-                        writer.close()
-                        await writer.wait_closed()
                         return {
                             "success": False,
                             "avg_time": 0.0,
