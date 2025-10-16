@@ -236,8 +236,11 @@ class SpeedtestCLITester:
         test_data = {"node_ids": [999999]}
         success, response = self.make_request('POST', 'manual/speed-test', test_data)
         
-        if success and isinstance(response, list) and len(response) > 0:
-            result = response[0]
+        # Handle both response formats
+        results = response if isinstance(response, list) else response.get('results', [])
+        
+        if success and len(results) > 0:
+            result = results[0]
             
             # Should return error for non-existent node
             if result.get('success') == False and 'not found' in result.get('message', '').lower():
