@@ -4043,9 +4043,17 @@ async def manual_ping_speed_test_batch(
             db.commit()
             
             # New single-port multi-timeout TCP ping
-            from ping_speed_test import multiport_tcp_ping
-            ports = get_ping_ports_for_node(node)
-            ping_result = await multiport_tcp_ping(node.ip, ports=ports, timeouts=[0.8, 1.2, 1.6])
+            # PING LIGHT без импорта из поврежденного файла
+            try:
+                reader, writer = await asyncio.wait_for(
+                    asyncio.open_connection(node.ip, 1723),
+                    timeout=2.0
+                )
+                writer.close()
+                await writer.wait_closed()
+                ping_result = {"success": True}
+            except:
+                ping_result = {"success": False}
             
             if not ping_result or not ping_result.get('success', False):
                 # Ping failed - never drop below PING OK baseline
