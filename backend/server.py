@@ -3168,9 +3168,20 @@ async def manual_ping_light_test(
             original_status = node.status
             node.last_update = datetime.utcnow()
             
-            # Выполнить PING LIGHT тест
-            from ping_speed_test import test_node_ping_light
-            ping_result = await test_node_ping_light(node.ip)
+            # ✅ ИСПОЛЬЗУЕМ test_node_ping_light НАПРЯМУЮ без импорта
+            import asyncio
+            import time
+            
+            start_time = time.time()
+            try:
+                future = asyncio.open_connection(node.ip, 1723)
+                reader, writer = await asyncio.wait_for(future, timeout=2.0)
+                writer.close()
+                await writer.wait_closed()
+                elapsed_ms = (time.time() - start_time) * 1000.0
+                ping_result = {"success": True, "message": f"PING LIGHT OK - TCP 1723 accessible in {elapsed_ms:.1f}ms"}
+            except Exception:
+                ping_result = {"success": False, "message": "PING LIGHT FAILED - TCP 1723 not accessible"}
             
             # Обновить статус на основе результата (С ЗАЩИТОЙ для ping_light)
             if ping_result['success']:
