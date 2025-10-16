@@ -22854,8 +22854,12 @@ if __name__ == "__main__":
             tester = ConnexaAPITester()
             success = tester.run_optimized_chunked_import_tests()
             sys.exit(0 if success else 1)
+        elif sys.argv[1] == "--speed-ok":
+            tester = ConnexaAPITester()
+            success = tester.run_speed_ok_tests_with_real_data()
+            sys.exit(0 if success else 1)
     
-    # Default: Run optimized chunked import tests for Russian user review request
+    # Default: Run Speed OK tests with real data verification
     tester = ConnexaAPITester()
-    success = tester.run_optimized_chunked_import_tests()
+    success = tester.run_speed_ok_tests_with_real_data()
     sys.exit(0 if success else 1)
