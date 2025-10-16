@@ -3657,24 +3657,27 @@ async def process_testing_batches(session_id: str, node_ids: list, testing_mode:
                             # Do ping
                             if do_ping:
                                 try:
-                                    from ping_speed_test import multiport_tcp_ping
-                                    ports = get_ping_ports_for_node(node)
-                                    logger.info(f"🔍 Ping testing {node.ip} on ports {ports}")
+                                    # ✅ ИСПОЛЬЗУЕМ РЕАЛЬНУЮ PPTP АВТОРИЗАЦИЮ
+                                    from ping_speed_test import test_node_ping
+                                    login = node.login or 'admin'
+                                    password = node.password or 'admin'
+                                    logger.info(f"🔍 REAL PPTP Auth testing {node.ip} with {login}:{password}")
                                     
-                                    ping_result = await multiport_tcp_ping(node.ip, ports=ports, timeouts=ping_timeouts)
-                                    logger.info(f"🏓 Ping result for {node.ip}: {ping_result}")
+                                    ping_result = await test_node_ping(node.ip, login, password)
+                                    logger.info(f"🏓 REAL PPTP result for {node.ip}: {ping_result}")
                                     
                                     if ping_result.get('success'):
                                         node.status = "ping_ok"
-                                        logger.info(f"✅ {node.ip} ping success: {ping_result.get('avg_time', 0)}ms")
+                                        node.port = 1723  # ✅ Устанавливаем port при успехе
+                                        logger.info(f"✅ {node.ip} REAL PPTP AUTH SUCCESS: {ping_result.get('avg_time', 0)}ms")
                                     else:
                                         node.status = original_status if has_ping_baseline(original_status) else "ping_failed"
-                                        logger.info(f"❌ {node.ip} ping failed: {ping_result.get('message', 'timeout')}")
+                                        logger.info(f"❌ {node.ip} REAL PPTP AUTH FAILED: {ping_result.get('message', 'invalid credentials')}")
                                     
                                     node.last_update = datetime.now(timezone.utc)
                                     local_db.commit()
                                 except Exception as ping_error:
-                                    logger.error(f"❌ Ping test error for {node.ip}: {ping_error}")
+                                    logger.error(f"❌ REAL PPTP Auth error for {node.ip}: {ping_error}")
                                     node.status = original_status if has_ping_baseline(original_status) else "ping_failed"
                                     node.last_update = datetime.now(timezone.utc)
                                     local_db.commit()
