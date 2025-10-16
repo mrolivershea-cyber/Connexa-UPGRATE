@@ -1242,10 +1242,10 @@ test_plan:
 
 test_plan:
   current_focus:
-    - "Admin Panel Performance Optimization - UI Responsiveness Fixes"
+    - "Fix SPEED OK Algorithm - Remove Fake Data (Speedtest CLI Integration)"
   stuck_tasks: []
   test_all: false
-  test_priority: "high_first"
+  test_priority: "critical"
 
 agent_communication:
    - agent: "main"
