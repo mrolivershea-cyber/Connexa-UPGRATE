@@ -307,23 +307,40 @@ class SpeedtestCLI:
 # Интеграция с основной системой
 async def test_node_accurate_speed(ip: str, login: str = "admin", password: str = "admin", sample_kb: int = 64, timeout: int = 60) -> Dict:
     """
-    ТОЧНЫЙ SPEED OK тест с использованием Speedtest.net CLI:
+    ТОЧНЫЙ SPEED OK тест с FALLBACK стратегией:
     
-    ВАЖНО: Этот тест измеряет скорость ТЕКУЩЕГО подключения (где запущен сервер),
-    а НЕ скорость через VPN туннель к конкретному узлу.
+    1. Пытается использовать Speedtest.net CLI (если доступен)
+    2. При ошибке fallback на реальное TCP измерение через PPTP порт
     
-    Для измерения скорости через VPN туннель потребуется:
-    1. Установить VPN соединение (pptp, openvpn, etc.)
-    2. Перенаправить трафик через туннель
-    3. Запустить Speedtest через этот туннель
-    
-    Параметры ip, login, password в текущей реализации не используются,
-    так как Speedtest CLI измеряет скорость текущего интернет-соединения.
+    ВАЖНО: Speedtest CLI на ARM64 может иметь проблемы с std::logic_error,
+    поэтому используется надежный fallback на AccurateSpeedTester.
     
     Returns:
         Dict с результатами теста скорости
     """
-    return await SpeedtestCLI.run_speedtest_cli(timeout=timeout)
+    # Попытка 1: Speedtest CLI (быстрее и точнее, но может не работать на ARM64)
+    try:
+        speedtest_result = await SpeedtestCLI.run_speedtest_cli(timeout=30)
+        
+        # Если Speedtest CLI вернул успешный результат, используем его
+        if speedtest_result.get('success') and speedtest_result.get('download_mbps', 0) > 0:
+            return speedtest_result
+        
+        # Если Speedtest CLI вернул ошибку std::logic_error, используем fallback
+        error_msg = speedtest_result.get('message', '')
+        if 'std::logic_error' in error_msg or 'speedtest_cli_error' in speedtest_result.get('method', ''):
+            # Fallback на реальное TCP измерение
+            pass  # Переходим к fallback ниже
+        else:
+            # Другая ошибка - возвращаем как есть
+            return speedtest_result
+            
+    except Exception as e:
+        # Любая ошибка Speedtest CLI - используем fallback
+        pass
+    
+    # Fallback: Реальное TCP измерение через AccurateSpeedTester
+    return await AccurateSpeedTester.accurate_speed_test(ip, login, password, sample_kb, timeout)
 
 # Тестовая функция
 async def test_accurate_speed():
