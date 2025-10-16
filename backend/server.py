@@ -3716,9 +3716,9 @@ async def process_testing_batches(session_id: str, node_ids: list, testing_mode:
                                     local_db.commit()
                                 except Exception as ping_error:
                                     logger.error(f"❌ REAL PPTP Auth error for {node.ip}: {ping_error}")
-                                    # ПО ТЗ: При ошибке сохраняем baseline
-                                    if original_status in ("ping_light", "ping_ok", "speed_ok", "online"):
-                                        node.status = original_status
+                                    # ПО ТЗ: При ошибке откат до baseline ping_light
+                                    if has_ping_baseline(original_status):
+                                        node.status = "ping_light"
                                     else:
                                         node.status = "ping_failed"
                                     node.last_update = datetime.now(timezone.utc)
