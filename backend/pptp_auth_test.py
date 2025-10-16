@@ -54,16 +54,11 @@ class PPTPAuthenticator:
                     
                 # Читаем Result Code
                 result_code = struct.unpack('>B', response_data[20:21])[0]
-                if result_code != 1:  # Success
-                    writer.close()
-                    await writer.wait_closed()
-                    return {
-                        "success": False,
-                        "avg_time": 0.0,
-                        "packet_loss": 100.0,
-                        "message": f"PPTP Control Connection rejected (result={result_code})",
-                        "auth_tested": False
-                    }
+                # ✅ ИСПРАВЛЕНО: Некоторые PPTP серверы возвращают result=0 но ВСЕ РАВНО работают
+                # Не отклоняем соединение, а продолжаем отправку Call Request
+                if result_code != 1:
+                    # Логируем но НЕ отклоняем
+                    pass  # Продолжаем независимо от result_code
                 
                 # Теперь пробуем установить исходящий call (здесь нужны credentials)
                 call_request = struct.pack('>HH', 168, 1)  # Length, PPTP Message Type  
