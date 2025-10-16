@@ -3270,7 +3270,8 @@ async def manual_ping_test(
             # Note: get_db() will auto-commit
             
             # Perform full PING OK test with authentication
-            from ping_speed_test import test_node_ping
+            # ИСПОЛЬЗУЕМ pptp_auth_test напрямую
+            from pptp_auth_test import PPTPAuthenticator
             ping_result = await test_node_ping(node.ip, node.login or 'admin', node.password or 'admin')
             # Add packet_loss for UI compatibility (100 - success_rate)
             try:
