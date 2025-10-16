@@ -75,17 +75,25 @@ class SpeedtestCLITester:
         """Test 1: Manual Speed Test with Speedtest CLI - Verify REAL data"""
         print(f"\n🔥 TEST 1: SPEEDTEST CLI INTEGRATION - Manual Speed Test")
         
-        # Get a test node
-        nodes_success, nodes_response = self.make_request('GET', 'nodes', {'limit': 1})
+        # Get a test node with ping_ok or speed_ok status (required for speed testing)
+        nodes_success, nodes_response = self.make_request('GET', 'nodes', {'status': 'ping_ok', 'limit': 1})
         
         if not nodes_success or not nodes_response.get('nodes'):
-            self.log_test("Speedtest CLI Manual Speed Test", False, "No nodes available")
+            # Try speed_ok nodes
+            nodes_success, nodes_response = self.make_request('GET', 'nodes', {'status': 'speed_ok', 'limit': 1})
+            
+        if not nodes_success or not nodes_response.get('nodes'):
+            # Try not_tested nodes
+            nodes_success, nodes_response = self.make_request('GET', 'nodes', {'status': 'not_tested', 'limit': 1})
+        
+        if not nodes_success or not nodes_response.get('nodes'):
+            self.log_test("Speedtest CLI Manual Speed Test", False, "No suitable nodes available for speed testing")
             return False
         
         test_node = nodes_response['nodes'][0]
         node_id = test_node['id']
         
-        print(f"📊 Testing speed test on node {node_id} (IP: {test_node.get('ip', 'unknown')})")
+        print(f"📊 Testing speed test on node {node_id} (IP: {test_node.get('ip', 'unknown')}, Status: {test_node.get('status', 'unknown')})")
         
         # Call manual speed test endpoint
         test_data = {"node_ids": [node_id]}
@@ -96,8 +104,11 @@ class SpeedtestCLITester:
         
         test_duration = end_time - start_time
         
-        if success and isinstance(response, list) and len(response) > 0:
-            result = response[0]
+        # Handle both response formats: direct list or {'results': [...]}
+        results = response if isinstance(response, list) else response.get('results', [])
+        
+        if success and len(results) > 0:
+            result = results[0]
             
             if not result.get('success'):
                 self.log_test("Speedtest CLI Manual Speed Test", False, 
