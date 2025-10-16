@@ -3586,10 +3586,10 @@ async def manual_ping_speed_test_batch_progress(
 
 async def process_testing_batches(session_id: str, node_ids: list, testing_mode: str, db_session, *,
                                   ping_concurrency: int = 15,   # АГРЕССИВНО увеличено для скорости
-                                  speed_concurrency: int = 8,   # АГРЕССИВНО увеличено для скорости  
+                                  speed_concurrency: int = 1,   # КРИТИЧЕСКИ ВАЖНО: Speedtest CLI ограничение на одновременные подключения
                                   ping_timeouts: list[float] | None = None,
-                                  speed_sample_kb: int = 32,    # МИНИМИЗИРОВАНО для максимальной скорости
-                                  speed_timeout: int = 2):      # ЭКСТРЕМАЛЬНО быстро
+                                  speed_sample_kb: int = 512,    # Увеличено для Speedtest CLI
+                                  speed_timeout: int = 60):      # Увеличен для Speedtest CLI
     """Process testing in batches for any test type with concurrency controls"""
     
     total_nodes = len(node_ids)
