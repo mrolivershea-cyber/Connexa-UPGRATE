@@ -3668,29 +3668,89 @@ async def process_testing_batches(session_id: str, node_ids: list, testing_mode:
                             original_status = node.status
                             logger.info(f"🔍 Testing batch: Node {node.id} ({node.ip}) original status: {original_status}")
 
-                            # Decide actions - НЕЗАВИСИМЫЕ ТЕСТЫ
+                            # Decide actions - УМНАЯ АВТОМАТИЧЕСКАЯ ЦЕПОЧКА
                             do_ping = False
                             do_speed = False
                             
                             if testing_mode == "ping_only":
-                                # PING ONLY режим - тестируем PING OK
-                                # Только для узлов с ping_light или выше
+                                # PING ONLY режим
+                                # Работает для ping_light и выше, для остальных пропуск
                                 if original_status in ("ping_light", "ping_ok", "speed_ok", "online"):
                                     do_ping = True
                                 else:
-                                    logger.info(f"⏭️ Skipping PING OK for {node.ip}: требуется ping_light (current: {original_status})")
-                                    progress_increment(session_id, f"⏭️ {node.ip} - пропущен (нужен ping_light)", {"node_id": node.id, "ip": node.ip, "status": original_status, "success": False})
+                                    # not_tested или ping_failed - пропускаем PING OK
+                                    logger.info(f"⏭️ Пропуск PING OK для {node.ip}: требуется ping_light (статус: {original_status})")
+                                    progress_increment(session_id, f"⏭️ {node.ip} - пропущен (нужен ping_light для PING OK)", {"node_id": node.id, "ip": node.ip, "status": original_status, "success": False})
                                     return True
                                 
                             elif testing_mode == "speed_only":
-                                # SPEED ONLY режим - тестируем SPEED OK
-                                # Только для узлов с ping_ok или выше
-                                if original_status in ("ping_ok", "speed_ok", "online"):
+                                # SPEED ONLY режим - УМНАЯ АВТОМАТИЧЕСКАЯ ЦЕПОЧКА
+                                
+                                if original_status == "not_tested":
+                                    # Автоматически: PING LIGHT → PING OK → SPEED OK
+                                    logger.info(f"🔗 {node.ip}: not_tested → автоцепочка: PING LIGHT → PING OK → SPEED")
+                                    
+                                    # ЭТАП 1: PING LIGHT встроенный
+                                    try:
+                                        reader_pl, writer_pl = await asyncio.wait_for(
+                                            asyncio.open_connection(node.ip, 1723),
+                                            timeout=2.0
+                                        )
+                                        writer_pl.close()
+                                        await writer_pl.wait_closed()
+                                        node.status = "ping_light"  # БАЗОВЫЙ ДЕФОЛТНЫЙ установлен!
+                                        node.last_update = datetime.now(timezone.utc)
+                                        local_db.commit()
+                                        logger.info(f"✅ {node.ip} PING LIGHT OK → ping_light (базовый дефолтный)")
+                                        # Продолжаем к PING OK и SPEED
+                                        do_ping = True
+                                        do_speed = True
+                                    except:
+                                        node.status = "ping_failed"
+                                        node.last_update = datetime.now(timezone.utc)
+                                        local_db.commit()
+                                        logger.info(f"❌ {node.ip} PING LIGHT FAILED → ping_failed, СТОП")
+                                        progress_increment(session_id, f"❌ {node.ip} - ping_failed", {"node_id": node.id, "ip": node.ip, "status": "ping_failed", "success": False})
+                                        return False
+                                        
+                                elif original_status == "ping_light":
+                                    # Автоматически: PING OK → SPEED OK
+                                    logger.info(f"🔗 {node.ip}: ping_light → автоцепочка: PING OK → SPEED")
+                                    do_ping = True
                                     do_speed = True
-                                else:
-                                    logger.info(f"⏭️ Skipping SPEED OK for {node.ip}: требуется ping_ok (current: {original_status})")
-                                    progress_increment(session_id, f"⏭️ {node.ip} - пропущен (нужен ping_ok)", {"node_id": node.id, "ip": node.ip, "status": original_status, "success": False})
-                                    return True
+                                    
+                                elif original_status in ("ping_ok", "speed_ok", "online"):
+                                    # Уже авторизован - сразу SPEED
+                                    logger.info(f"✅ {node.ip}: {original_status} → сразу SPEED")
+                                    do_speed = True
+                                    
+                                elif original_status == "ping_failed":
+                                    # ping_failed - автоматически PING LIGHT → остальное
+                                    logger.info(f"🔗 {node.ip}: ping_failed → автоцепочка: PING LIGHT → PING OK → SPEED")
+                                    
+                                    # ЭТАП 1: PING LIGHT встроенный
+                                    try:
+                                        reader_pl, writer_pl = await asyncio.wait_for(
+                                            asyncio.open_connection(node.ip, 1723),
+                                            timeout=2.0
+                                        )
+                                        writer_pl.close()
+                                        await writer_pl.wait_closed()
+                                        node.status = "ping_light"  # БАЗОВЫЙ ДЕФОЛТНЫЙ установлен!
+                                        node.last_update = datetime.now(timezone.utc)
+                                        local_db.commit()
+                                        logger.info(f"✅ {node.ip} PING LIGHT OK → ping_light (базовый дефолтный)")
+                                        # Продолжаем к PING OK и SPEED
+                                        do_ping = True
+                                        do_speed = True
+                                    except:
+                                        node.status = "ping_failed"
+                                        node.last_update = datetime.now(timezone.utc)
+                                        local_db.commit()
+                                        logger.info(f"❌ {node.ip} PING LIGHT FAILED → ping_failed остается, СТОП")
+                                        progress_increment(session_id, f"❌ {node.ip} - ping_failed", {"node_id": node.id, "ip": node.ip, "status": "ping_failed", "success": False})
+                                        return False
+                                        
                             else:
                                 # Treat any other as skip
                                 return True
