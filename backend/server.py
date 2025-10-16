@@ -3773,10 +3773,11 @@ async def process_testing_batches(session_id: str, node_ids: list, testing_mode:
                                     
                                     if ping_result.get('success'):
                                         node.status = "ping_ok"
-                                        node.port = 1723  # ✅ Устанавливаем port при успехе
-                                        logger.info(f"✅ {node.ip} REAL PPTP AUTH SUCCESS: {ping_result.get('avg_time', 0)}ms")
+                                        node.port = 1723
+                                        logger.info(f"✅ {node.ip} REAL PPTP AUTH SUCCESS: {ping_result.get('avg_time', 0)}ms → ping_ok")
+                                        # PING OK прошел - можно продолжать к SPEED (если был запланирован)
                                     else:
-                                        # ПО ТЗ: При неудаче PING OK откатываемся до базового ping_light
+                                        # ПО ТЗ: При неудаче PING OK откатываемся до базового дефолтного ping_light
                                         if has_ping_baseline(original_status):
                                             node.status = "ping_light"  # Откат до базового дефолтного!
                                             logger.info(f"❌ {node.ip} REAL PPTP AUTH FAILED - откат до базового дефолтного: ping_light")
@@ -3785,6 +3786,10 @@ async def process_testing_batches(session_id: str, node_ids: list, testing_mode:
                                             logger.warning(f"⚠️ PING OK без PING LIGHT baseline для {node.ip}")
                                             node.status = "ping_failed"
                                             logger.info(f"❌ {node.ip} REAL PPTP AUTH FAILED - нет baseline: ping_failed")
+                                        
+                                        # КРИТИЧЕСКИ ВАЖНО: PING OK не прошел → НЕ запускать SPEED
+                                        do_speed = False
+                                        logger.info(f"🛑 {node.ip} PING OK FAILED → SPEED тест ОТМЕНЕН")
                                     
                                     node.last_update = datetime.now(timezone.utc)
                                     local_db.commit()
