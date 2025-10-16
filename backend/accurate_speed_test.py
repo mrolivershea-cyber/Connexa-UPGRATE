@@ -9,15 +9,15 @@ class AccurateSpeedTester:
     """Наиболее точный замер пропускной способности через PPTP"""
     
     @staticmethod
-    async def accurate_speed_test(ip: str, login: str, password: str, sample_kb: int = 64, timeout: float = 15.0) -> Dict:
+    async def accurate_speed_test(ip: str, login: str, password: str, sample_kb: int = 512, timeout: float = 30.0) -> Dict:
         """
-        ✅ РЕАЛЬНЫЙ SPEED OK для узлов с ping_ok статусом
-        Измеряет ФАКТИЧЕСКУЮ пропускную способность через передачу данных
+        ✅ УЛУЧШЕННЫЙ замер скорости с БОЛЬШИМ объемом данных
+        Чем больше данных передаем, тем точнее результат
         """
         start_time = time.time()
         
         try:
-            # ✅ ПРЯМОЙ замер пропускной способности через проброс пакетов
+            # УВЕЛИЧЕН размер теста для точности: 512KB вместо 64KB
             speed_result = await AccurateSpeedTester._measure_throughput(ip, sample_kb, timeout)
             
             if speed_result['success']:
@@ -27,12 +27,13 @@ class AccurateSpeedTester:
                     "download_mbps": speed_result['download_mbps'],
                     "upload_mbps": speed_result['upload_mbps'], 
                     "ping_ms": speed_result['ping_ms'],
-                    "message": f"REAL SPEED OK: {speed_result['download_mbps']:.2f} Mbps down, {speed_result['upload_mbps']:.2f} Mbps up, {speed_result['ping_ms']:.0f}ms ping",
+                    "jitter_ms": speed_result.get('jitter_ms', 0),
+                    "message": f"SPEED OK: {speed_result['download_mbps']:.2f} Mbps down, {speed_result['upload_mbps']:.2f} Mbps up, {speed_result['ping_ms']:.0f}ms ping",
                     "test_duration_ms": round(total_time, 1),
-                    "method": "real_pptp_throughput_measurement"
+                    "method": "improved_throughput_test",
+                    "test_size_kb": sample_kb
                 }
             else:
-                # ❌ Измерение не удалось - возвращаем failure
                 return {
                     "success": False,
                     "download_mbps": 0.0,
@@ -40,11 +41,10 @@ class AccurateSpeedTester:
                     "ping_ms": 0.0,
                     "message": f"SPEED FAILED: {speed_result.get('error', 'measurement failed')}",
                     "test_duration_ms": round((time.time() - start_time) * 1000.0, 1),
-                    "method": "real_measurement_failed"
+                    "method": "test_failed"
                 }
                 
         except Exception as e:
-            # ❌ Ошибка тестирования - возвращаем failure
             return {
                 "success": False,
                 "download_mbps": 0.0,
