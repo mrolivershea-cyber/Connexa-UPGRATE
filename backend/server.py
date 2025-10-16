@@ -217,7 +217,15 @@ def test_dedupe_mark_enqueued(node_id: int, mode: str):
     _test_inflight.add(node_id)
 
 def test_dedupe_mark_finished(node_id: int):
+    """
+    Очищает узел из очереди тестирования
+    ИСПРАВЛЕНО: Теперь также очищает _test_recent для немедленного повторного тестирования
+    """
     _test_inflight.discard(node_id)
+    # Очищаем из _test_recent для всех режимов
+    keys_to_remove = [k for k in _test_recent.keys() if k[0] == node_id]
+    for key in keys_to_remove:
+        _test_recent.pop(key, None)
 
 def test_dedupe_cleanup():
     now = datetime.utcnow().timestamp()
