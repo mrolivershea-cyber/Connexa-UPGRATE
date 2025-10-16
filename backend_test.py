@@ -2692,7 +2692,7 @@ Random text that should cause errors""",
         user_data = """StealUrVPN
 @StealUrVPN_bot
 
-Ip: 71.84.237.32	a_reg_107
+Ip: 71.84.237.32        a_reg_107
 Login: admin
 Pass: admin
 State: California
@@ -2833,7 +2833,7 @@ ZIP: 78701"""
         user_data = """StealUrVPN
 @StealUrVPN_bot
 
-Ip: 71.84.237.32	a_reg_107
+Ip: 71.84.237.32        a_reg_107
 Login: admin
 Pass: admin
 State: California
@@ -3058,6 +3058,193 @@ ZIP: 78701"""
 
     def test_logout(self):
         """Test logout functionality"""
+
+    # ========== SPEEDTEST CLI INTEGRATION TESTS (Critical Fix - Replace Fake Data) ==========
+    
+    def test_speedtest_cli_manual_speed_test(self):
+        """Test 1: Manual Speed Test with Speedtest CLI - Verify REAL data (not fake random.uniform)"""
+        print(f"\n🔥 TESTING SPEEDTEST CLI INTEGRATION - Manual Speed Test")
+        
+        # First, get a test node (any node will work since we're testing admin server speed)
+        nodes_success, nodes_response = self.make_request('GET', 'nodes?limit=1')
+        
+        if not nodes_success or not nodes_response.get('nodes'):
+            self.log_test("Speedtest CLI Manual Speed Test", False, 
+                         "❌ No nodes available for testing")
+            return False
+        
+        test_node = nodes_response['nodes'][0]
+        node_id = test_node['id']
+        
+        print(f"📊 Testing speed test on node {node_id} (IP: {test_node.get('ip', 'unknown')})")
+        
+        # Call manual speed test endpoint
+        test_data = {
+            "node_ids": [node_id]
+        }
+        
+        import time
+        start_time = time.time()
+        success, response = self.make_request('POST', 'manual/speed-test', test_data)
+        end_time = time.time()
+        
+        test_duration = end_time - start_time
+        
+        if success and isinstance(response, list) and len(response) > 0:
+            result = response[0]
+            
+            # Verify result structure
+            if not result.get('success'):
+                self.log_test("Speedtest CLI Manual Speed Test", False, 
+                             f"❌ Speed test failed: {result.get('message', 'Unknown error')}")
+                return False
+            
+            speed_result = result.get('speed_result', {})
+            
+            # CRITICAL CHECKS: Verify REAL data (not fake random.uniform)
+            download_mbps = speed_result.get('download_mbps', 0)
+            upload_mbps = speed_result.get('upload_mbps', 0)
+            ping_ms = speed_result.get('ping_ms', 0)
+            jitter_ms = speed_result.get('jitter_ms', 0)
+            message = speed_result.get('message', '')
+            method = speed_result.get('method', '')
+            
+            # Check 1: Values are not 0 (fake data would be 0 or random)
+            if download_mbps == 0 or upload_mbps == 0:
+                self.log_test("Speedtest CLI Manual Speed Test", False, 
+                             f"❌ FAKE DATA DETECTED: download={download_mbps}, upload={upload_mbps} (should not be 0)")
+                return False
+            
+            # Check 2: Method field indicates real Speedtest CLI
+            if method != "speedtest_cli_real":
+                self.log_test("Speedtest CLI Manual Speed Test", False, 
+                             f"❌ WRONG METHOD: Expected 'speedtest_cli_real', got '{method}'")
+                return False
+            
+            # Check 3: Message contains "SPEED OK (Speedtest.net):" prefix
+            if not message.startswith("SPEED OK (Speedtest.net):"):
+                self.log_test("Speedtest CLI Manual Speed Test", False, 
+                             f"❌ WRONG MESSAGE FORMAT: Expected 'SPEED OK (Speedtest.net):' prefix, got '{message[:50]}'")
+                return False
+            
+            # Check 4: Values are realistic for Google Cloud server (likely >100 Mbps)
+            if download_mbps < 10 or upload_mbps < 10:
+                self.log_test("Speedtest CLI Manual Speed Test", False, 
+                             f"⚠️ SUSPICIOUS VALUES: download={download_mbps}, upload={upload_mbps} (expected >10 Mbps for Google Cloud)")
+                return False
+            
+            # Check 5: Ping is reasonable (<100ms for Google Cloud)
+            if ping_ms > 100:
+                self.log_test("Speedtest CLI Manual Speed Test", False, 
+                             f"⚠️ HIGH PING: {ping_ms}ms (expected <100ms for Google Cloud)")
+                return False
+            
+            # Check 6: Test duration is reasonable (15-60 seconds)
+            if test_duration < 10 or test_duration > 120:
+                self.log_test("Speedtest CLI Manual Speed Test", False, 
+                             f"⚠️ UNUSUAL DURATION: {test_duration:.1f}s (expected 15-60s)")
+                return False
+            
+            # All checks passed
+            self.log_test("Speedtest CLI Manual Speed Test", True, 
+                         f"✅ REAL DATA VERIFIED: {download_mbps:.2f} Mbps down, {upload_mbps:.2f} Mbps up, {ping_ms:.1f}ms ping, {jitter_ms:.1f}ms jitter, duration: {test_duration:.1f}s, method: {method}")
+            return True
+        else:
+            self.log_test("Speedtest CLI Manual Speed Test", False, 
+                         f"❌ Invalid response: {response}")
+            return False
+    
+    def test_speedtest_cli_result_structure(self):
+        """Test 2: Verify Result Structure - All required fields present"""
+        print(f"\n🔥 TESTING SPEEDTEST CLI RESULT STRUCTURE")
+        
+        # Get a test node
+        nodes_success, nodes_response = self.make_request('GET', 'nodes?limit=1')
+        
+        if not nodes_success or not nodes_response.get('nodes'):
+            self.log_test("Speedtest CLI Result Structure", False, 
+                         "❌ No nodes available for testing")
+            return False
+        
+        test_node = nodes_response['nodes'][0]
+        node_id = test_node['id']
+        
+        # Call manual speed test
+        test_data = {"node_ids": [node_id]}
+        success, response = self.make_request('POST', 'manual/speed-test', test_data)
+        
+        if success and isinstance(response, list) and len(response) > 0:
+            result = response[0]
+            speed_result = result.get('speed_result', {})
+            
+            # Check for all required fields
+            required_fields = ['success', 'download_mbps', 'upload_mbps', 'ping_ms', 'jitter_ms', 'message', 'method']
+            missing_fields = []
+            
+            for field in required_fields:
+                if field not in speed_result:
+                    missing_fields.append(field)
+            
+            if missing_fields:
+                self.log_test("Speedtest CLI Result Structure", False, 
+                             f"❌ Missing required fields: {missing_fields}")
+                return False
+            
+            # Verify field types
+            if not isinstance(speed_result['success'], bool):
+                self.log_test("Speedtest CLI Result Structure", False, 
+                             f"❌ 'success' should be bool, got {type(speed_result['success'])}")
+                return False
+            
+            if not isinstance(speed_result['download_mbps'], (int, float)):
+                self.log_test("Speedtest CLI Result Structure", False, 
+                             f"❌ 'download_mbps' should be number, got {type(speed_result['download_mbps'])}")
+                return False
+            
+            if not isinstance(speed_result['upload_mbps'], (int, float)):
+                self.log_test("Speedtest CLI Result Structure", False, 
+                             f"❌ 'upload_mbps' should be number, got {type(speed_result['upload_mbps'])}")
+                return False
+            
+            if not isinstance(speed_result['message'], str):
+                self.log_test("Speedtest CLI Result Structure", False, 
+                             f"❌ 'message' should be string, got {type(speed_result['message'])}")
+                return False
+            
+            self.log_test("Speedtest CLI Result Structure", True, 
+                         f"✅ All required fields present with correct types: {list(speed_result.keys())}")
+            return True
+        else:
+            self.log_test("Speedtest CLI Result Structure", False, 
+                         f"❌ Invalid response: {response}")
+            return False
+    
+    def test_speedtest_cli_error_handling(self):
+        """Test 3: Error Handling - Test what happens if speedtest fails (using invalid node)"""
+        print(f"\n🔥 TESTING SPEEDTEST CLI ERROR HANDLING")
+        
+        # Try to test a non-existent node
+        test_data = {"node_ids": [999999]}
+        
+        success, response = self.make_request('POST', 'manual/speed-test', test_data)
+        
+        if success and isinstance(response, list) and len(response) > 0:
+            result = response[0]
+            
+            # Should return error for non-existent node
+            if result.get('success') == False and 'not found' in result.get('message', '').lower():
+                self.log_test("Speedtest CLI Error Handling", True, 
+                             f"✅ Error handling working: {result.get('message', 'Unknown error')}")
+                return True
+            else:
+                self.log_test("Speedtest CLI Error Handling", False, 
+                             f"❌ Expected error for non-existent node, got: {result}")
+                return False
+        else:
+            self.log_test("Speedtest CLI Error Handling", False, 
+                         f"❌ Invalid response: {response}")
+            return False
+
         success, response = self.make_request('POST', 'auth/logout')
         
         if success:
