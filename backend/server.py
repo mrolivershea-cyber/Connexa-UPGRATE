@@ -3894,17 +3894,21 @@ async def process_ping_light_batches(session_id: str, node_ids: list, db_session
                         # Выполнить PING LIGHT тест с заданным timeout
                         ping_result = await test_node_ping_light(node.ip, timeout=timeout)
                         
-                        # Обновить статус на основе результата (С ЗАЩИТОЙ для ping_light)
+                        # Обновить статус на основе результата
                         if ping_result['success']:
                             node.status = "ping_light"
                             logger.info(f"✅ PING LIGHT batch: Node {node_id} SUCCESS - status: {original_status} -> ping_light")
                             success = True
                         else:
-                            # ✅ ИСПРАВЛЕНО: PING LIGHT не меняет статус при неудаче
-                            # Это только быстрая проверка TCP порта - не финальный тест!
-                            # Сохраняем исходный статус (обычно 'not_tested')
-                            node.status = original_status
-                            logger.info(f"⏭️ PING LIGHT batch: Node {node_id} FAILED - keeping status {original_status} (PING LIGHT is not a final test)")
+                            # ✅ ПРАВИЛЬНАЯ ЛОГИКА: PING LIGHT - это РЕАЛЬНЫЙ тест
+                            # Если порт 1723 закрыт → узел не работает → ping_failed
+                            # ЗАЩИТА: сохраняем статус для узлов которые УЖЕ прошли тесты
+                            if original_status in ("ping_light", "ping_ok", "speed_ok", "online"):
+                                node.status = original_status  # Не откатываем успешные статусы
+                                logger.info(f"🛡️ PING LIGHT batch: Node {node_id} FAILED - preserving {original_status}")
+                            else:
+                                node.status = "ping_failed"  # Узел не прошел базовый тест
+                                logger.info(f"❌ PING LIGHT batch: Node {node_id} FAILED - status: {original_status} -> ping_failed")
                             success = False
                         
                         node.last_check = datetime.utcnow()
