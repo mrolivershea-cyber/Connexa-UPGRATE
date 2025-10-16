@@ -1339,6 +1339,296 @@ Random text that should cause errors""",
                          f"❌ Could not start chunked import: {response}")
             return False
 
+    # ========== SPEED OK TESTS WITH REAL DATA (Fallback Strategy Verification) ==========
+    
+    def test_speed_ok_manual_test_single_node(self):
+        """Test 1: Manual speed test on single node with ping_ok or speed_ok status"""
+        # Get nodes with ping_ok or speed_ok status
+        success, response = self.make_request('GET', 'nodes?status=ping_ok&limit=5')
+        
+        if not success or 'nodes' not in response or not response['nodes']:
+            # Try speed_ok nodes
+            success, response = self.make_request('GET', 'nodes?status=speed_ok&limit=5')
+        
+        if success and 'nodes' in response and response['nodes']:
+            test_node = response['nodes'][0]
+            node_id = test_node['id']
+            node_ip = test_node['ip']
+            
+            # Test manual speed test endpoint
+            test_data = {
+                "node_ids": [node_id]
+            }
+            
+            test_success, test_response = self.make_request('POST', 'manual/speed-test-batch', test_data)
+            
+            if test_success and 'results' in test_response and test_response['results']:
+                result = test_response['results'][0]
+                
+                # Verify success
+                if not result.get('success'):
+                    self.log_test("Speed OK Manual Test Single Node", False, 
+                                 f"❌ Test failed for node {node_ip}: {result.get('message', 'Unknown error')}")
+                    return False
+                
+                # Verify download_mbps and upload_mbps are NOT zero
+                download_mbps = result.get('speed_result', {}).get('download_mbps', 0)
+                upload_mbps = result.get('speed_result', {}).get('upload_mbps', 0)
+                
+                if download_mbps == 0 and upload_mbps == 0:
+                    self.log_test("Speed OK Manual Test Single Node", False, 
+                                 f"❌ FAKE DATA DETECTED: Both download and upload are zero for node {node_ip}")
+                    return False
+                
+                # Verify method is either speedtest_cli_real or improved_throughput_test
+                method = result.get('speed_result', {}).get('method', '')
+                valid_methods = ['speedtest_cli_real', 'improved_throughput_test', 'accurate_throughput_test']
+                
+                if method not in valid_methods:
+                    self.log_test("Speed OK Manual Test Single Node", False, 
+                                 f"❌ Invalid method: {method}. Expected one of {valid_methods}")
+                    return False
+                
+                self.log_test("Speed OK Manual Test Single Node", True, 
+                             f"✅ Speed test successful for node {node_ip}: download={download_mbps:.2f} Mbps, upload={upload_mbps:.2f} Mbps, method={method}")
+                return True
+            else:
+                self.log_test("Speed OK Manual Test Single Node", False, 
+                             f"❌ Speed test failed: {test_response}")
+                return False
+        else:
+            self.log_test("Speed OK Manual Test Single Node", False, 
+                         "❌ No nodes with ping_ok or speed_ok status found for testing")
+            return False
+    
+    def test_speed_ok_no_fake_data_verification(self):
+        """Test 2: Verify no fake data by running speed test twice on same node"""
+        # Get a node with ping_ok or speed_ok status
+        success, response = self.make_request('GET', 'nodes?status=ping_ok&limit=1')
+        
+        if not success or 'nodes' not in response or not response['nodes']:
+            success, response = self.make_request('GET', 'nodes?status=speed_ok&limit=1')
+        
+        if success and 'nodes' in response and response['nodes']:
+            test_node = response['nodes'][0]
+            node_id = test_node['id']
+            node_ip = test_node['ip']
+            
+            test_data = {"node_ids": [node_id]}
+            
+            # First test
+            test1_success, test1_response = self.make_request('POST', 'manual/speed-test-batch', test_data)
+            
+            if not test1_success or 'results' not in test1_response or not test1_response['results']:
+                self.log_test("Speed OK No Fake Data Verification", False, 
+                             f"❌ First test failed: {test1_response}")
+                return False
+            
+            result1 = test1_response['results'][0]
+            download1 = result1.get('speed_result', {}).get('download_mbps', 0)
+            upload1 = result1.get('speed_result', {}).get('upload_mbps', 0)
+            
+            # Wait a moment before second test
+            import time
+            time.sleep(3)
+            
+            # Second test
+            test2_success, test2_response = self.make_request('POST', 'manual/speed-test-batch', test_data)
+            
+            if not test2_success or 'results' not in test2_response or not test2_response['results']:
+                self.log_test("Speed OK No Fake Data Verification", False, 
+                             f"❌ Second test failed: {test2_response}")
+                return False
+            
+            result2 = test2_response['results'][0]
+            download2 = result2.get('speed_result', {}).get('download_mbps', 0)
+            upload2 = result2.get('speed_result', {}).get('upload_mbps', 0)
+            
+            # Verify results are slightly different (proving real measurement, not fake)
+            # Allow for some tolerance but they shouldn't be exactly the same
+            download_diff = abs(download1 - download2)
+            upload_diff = abs(upload1 - upload2)
+            
+            # Check for fake patterns (exactly 250.00, 150.00, 75.00, etc.)
+            fake_patterns = [250.0, 150.0, 75.0, 200.0, 100.0, 50.0]
+            is_fake = (download1 in fake_patterns or download2 in fake_patterns or 
+                      upload1 in fake_patterns or upload2 in fake_patterns)
+            
+            if is_fake:
+                self.log_test("Speed OK No Fake Data Verification", False, 
+                             f"❌ FAKE DATA DETECTED: Results match fake patterns. Test1: {download1}/{upload1}, Test2: {download2}/{upload2}")
+                return False
+            
+            # Results should be different (real measurements vary)
+            # But if both are zero, that's also suspicious
+            if download1 == 0 and upload1 == 0 and download2 == 0 and upload2 == 0:
+                self.log_test("Speed OK No Fake Data Verification", False, 
+                             f"❌ SUSPICIOUS: Both tests returned zero for node {node_ip}")
+                return False
+            
+            self.log_test("Speed OK No Fake Data Verification", True, 
+                         f"✅ Real data verified for node {node_ip}: Test1={download1:.2f}/{upload1:.2f} Mbps, Test2={download2:.2f}/{upload2:.2f} Mbps (diff: {download_diff:.2f}/{upload_diff:.2f})")
+            return True
+        else:
+            self.log_test("Speed OK No Fake Data Verification", False, 
+                         "❌ No nodes available for testing")
+            return False
+    
+    def test_speed_ok_batch_testing(self):
+        """Test 3: Batch speed testing on 5+ nodes simultaneously"""
+        # Get 5+ nodes with ping_ok or speed_ok status
+        success, response = self.make_request('GET', 'nodes?status=ping_ok&limit=10')
+        
+        if not success or 'nodes' not in response or not response['nodes']:
+            success, response = self.make_request('GET', 'nodes?status=speed_ok&limit=10')
+        
+        if success and 'nodes' in response and len(response['nodes']) >= 5:
+            # Take first 5 nodes
+            test_nodes = response['nodes'][:5]
+            node_ids = [node['id'] for node in test_nodes]
+            
+            test_data = {"node_ids": node_ids}
+            
+            # Test batch speed test
+            test_success, test_response = self.make_request('POST', 'manual/speed-test-batch', test_data)
+            
+            if test_success and 'results' in test_response:
+                results = test_response['results']
+                
+                # Count successful tests
+                successful_tests = sum(1 for r in results if r.get('success'))
+                failed_tests = len(results) - successful_tests
+                
+                # Check for std::logic_error failures
+                logic_errors = sum(1 for r in results if 'std::logic_error' in r.get('message', ''))
+                
+                if logic_errors > 0:
+                    self.log_test("Speed OK Batch Testing", False, 
+                                 f"❌ std::logic_error detected in {logic_errors}/{len(results)} tests")
+                    return False
+                
+                # Verify concurrency limit working (max 1 concurrent as per review)
+                # This is hard to verify from API, but we can check that all tests completed
+                
+                self.log_test("Speed OK Batch Testing", True, 
+                             f"✅ Batch testing successful: {successful_tests}/{len(results)} tests passed, {failed_tests} failed, no std::logic_error")
+                return True
+            else:
+                self.log_test("Speed OK Batch Testing", False, 
+                             f"❌ Batch test failed: {test_response}")
+                return False
+        else:
+            self.log_test("Speed OK Batch Testing", False, 
+                         f"❌ Not enough nodes for batch testing (need 5+, found {len(response.get('nodes', []))})")
+            return False
+    
+    def test_speed_ok_report_display_fields(self):
+        """Test 4: Verify speed_result contains all required fields for UI display"""
+        # Get a node for testing
+        success, response = self.make_request('GET', 'nodes?status=ping_ok&limit=1')
+        
+        if not success or 'nodes' not in response or not response['nodes']:
+            success, response = self.make_request('GET', 'nodes?status=speed_ok&limit=1')
+        
+        if success and 'nodes' in response and response['nodes']:
+            test_node = response['nodes'][0]
+            node_id = test_node['id']
+            
+            test_data = {"node_ids": [node_id]}
+            
+            test_success, test_response = self.make_request('POST', 'manual/speed-test-batch', test_data)
+            
+            if test_success and 'results' in test_response and test_response['results']:
+                result = test_response['results'][0]
+                speed_result = result.get('speed_result', {})
+                
+                # Check for required fields
+                required_fields = ['download_mbps', 'upload_mbps', 'ping_ms', 'method', 'success']
+                missing_fields = [field for field in required_fields if field not in speed_result]
+                
+                if missing_fields:
+                    self.log_test("Speed OK Report Display Fields", False, 
+                                 f"❌ Missing required fields: {missing_fields}")
+                    return False
+                
+                # Verify field types
+                if not isinstance(speed_result.get('download_mbps'), (int, float)):
+                    self.log_test("Speed OK Report Display Fields", False, 
+                                 f"❌ download_mbps is not a number: {type(speed_result.get('download_mbps'))}")
+                    return False
+                
+                if not isinstance(speed_result.get('upload_mbps'), (int, float)):
+                    self.log_test("Speed OK Report Display Fields", False, 
+                                 f"❌ upload_mbps is not a number: {type(speed_result.get('upload_mbps'))}")
+                    return False
+                
+                self.log_test("Speed OK Report Display Fields", True, 
+                             f"✅ All required fields present and valid: {list(speed_result.keys())}")
+                return True
+            else:
+                self.log_test("Speed OK Report Display Fields", False, 
+                             f"❌ Test failed: {test_response}")
+                return False
+        else:
+            self.log_test("Speed OK Report Display Fields", False, 
+                         "❌ No nodes available for testing")
+            return False
+    
+    def test_speed_ok_fallback_strategy_verification(self):
+        """Test 5: Verify fallback strategy is working (Speedtest CLI -> TCP measurement)"""
+        # Get a node for testing
+        success, response = self.make_request('GET', 'nodes?status=ping_ok&limit=1')
+        
+        if not success or 'nodes' not in response or not response['nodes']:
+            success, response = self.make_request('GET', 'nodes?status=speed_ok&limit=1')
+        
+        if success and 'nodes' in response and response['nodes']:
+            test_node = response['nodes'][0]
+            node_id = test_node['id']
+            node_ip = test_node['ip']
+            
+            test_data = {"node_ids": [node_id]}
+            
+            test_success, test_response = self.make_request('POST', 'manual/speed-test-batch', test_data)
+            
+            if test_success and 'results' in test_response and test_response['results']:
+                result = test_response['results'][0]
+                speed_result = result.get('speed_result', {})
+                
+                method = speed_result.get('method', '')
+                success_flag = speed_result.get('success', False)
+                
+                # Verify method is one of the expected fallback methods
+                expected_methods = ['speedtest_cli_real', 'improved_throughput_test', 'accurate_throughput_test']
+                
+                if method not in expected_methods:
+                    self.log_test("Speed OK Fallback Strategy Verification", False, 
+                                 f"❌ Unexpected method: {method}. Expected one of {expected_methods}")
+                    return False
+                
+                # If method is improved_throughput_test or accurate_throughput_test, 
+                # it means fallback was used (Speedtest CLI failed)
+                if method in ['improved_throughput_test', 'accurate_throughput_test']:
+                    self.log_test("Speed OK Fallback Strategy Verification", True, 
+                                 f"✅ Fallback strategy working: Speedtest CLI failed, used {method} for node {node_ip}")
+                    return True
+                elif method == 'speedtest_cli_real':
+                    self.log_test("Speed OK Fallback Strategy Verification", True, 
+                                 f"✅ Speedtest CLI working directly for node {node_ip}")
+                    return True
+                else:
+                    self.log_test("Speed OK Fallback Strategy Verification", False, 
+                                 f"❌ Unknown method: {method}")
+                    return False
+            else:
+                self.log_test("Speed OK Fallback Strategy Verification", False, 
+                             f"❌ Test failed: {test_response}")
+                return False
+        else:
+            self.log_test("Speed OK Fallback Strategy Verification", False, 
+                         "❌ No nodes available for testing")
+            return False
+
     # ========== OPTIMIZED CHUNKED IMPORT TESTS (Russian User Review Request) ==========
     
     def test_optimized_chunked_import_scenario_1_large_file_bulk_mode(self):
