@@ -37,7 +37,7 @@ import_progress = {}  # For chunked import progress tracking
 
 # Global testing concurrency controls
 MAX_PING_GLOBAL = 20   # МАКСИМАЛЬНО увеличено для скорости ping
-MAX_SPEED_GLOBAL = 1  # КРИТИЧЕСКИ ВАЖНО: Speedtest CLI имеет жесткое ограничение на одновременные подключения
+MAX_SPEED_GLOBAL = 5  # Увеличено: Speedtest CLI fallback работает стабильно с TCP измерениями
 
 # СПЕЦИАЛЬНЫЕ ЛИМИТЫ ДЛЯ PING LIGHT (ТЗ требование)
 MAX_PING_LIGHT_GLOBAL = 100  # Увеличенный параллелизм для быстрой проверки портов без авторизации
