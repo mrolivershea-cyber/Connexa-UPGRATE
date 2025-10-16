@@ -4016,7 +4016,9 @@ async def manual_ping_speed_test_batch(
 ):
     """Optimized batch ping + speed test with sequential execution"""
     import asyncio
-    from ping_speed_test import test_node_ping, test_node_speed
+    # Import testing functions (БЕЗ ping_speed_test.py - он поврежден!)
+    from pptp_auth_test import PPTPAuthenticator
+    from accurate_speed_test import test_node_accurate_speed
     
     # Get all nodes first
     nodes = []
