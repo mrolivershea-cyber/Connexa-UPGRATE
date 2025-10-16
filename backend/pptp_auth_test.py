@@ -77,8 +77,8 @@ class PPTPAuthenticator:
                 writer.write(call_request)
                 await writer.drain()
                 
-                # Читаем Call-Reply
-                call_response = await asyncio.wait_for(reader.read(1024), timeout=5.0)
+                # Читаем Call-Reply (увеличен timeout для медленных серверов)
+                call_response = await asyncio.wait_for(reader.read(1024), timeout=10.0)
                 if len(call_response) >= 20:
                     call_result = struct.unpack('>B', call_response[20:21])[0]
                     
