@@ -3702,8 +3702,14 @@ async def process_testing_batches(session_id: str, node_ids: list, testing_mode:
                                         node.port = 1723  # ✅ Устанавливаем port при успехе
                                         logger.info(f"✅ {node.ip} REAL PPTP AUTH SUCCESS: {ping_result.get('avg_time', 0)}ms")
                                     else:
-                                        node.status = original_status if has_ping_baseline(original_status) else "ping_failed"
-                                        logger.info(f"❌ {node.ip} REAL PPTP AUTH FAILED: {ping_result.get('message', 'invalid credentials')}")
+                                        # ПО ТЗ: При неудаче PING OK сохраняем baseline статус
+                                        if original_status in ("ping_light", "ping_ok", "speed_ok", "online"):
+                                            node.status = original_status  # Сохраняем baseline
+                                        else:
+                                            # PING OK без PING LIGHT baseline - это нарушение последовательности
+                                            logger.warning(f"⚠️ PING OK без PING LIGHT baseline для {node.ip} (original: {original_status})")
+                                            node.status = "ping_failed"
+                                        logger.info(f"❌ {node.ip} REAL PPTP AUTH FAILED: {ping_result.get('message', 'invalid credentials')} - status: {node.status}")
                                     
                                     node.last_update = datetime.now(timezone.utc)
                                     local_db.commit()
