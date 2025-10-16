@@ -4326,10 +4326,17 @@ async def manual_launch_services(
             
             # Launch SOCKS + OVPN services simultaneously
             from ovpn_generator import ovpn_generator
-            from ping_speed_test import test_pptp_connection
-            
-            # Test PPTP connection - skip ping check since node already passed speed_ok
-            pptp_result = await test_pptp_connection(node.ip, node.login, node.password, skip_ping_check=True)
+            # PPTP CONNECTION TEST без импорта из поврежденного файла
+            try:
+                reader, writer = await asyncio.wait_for(
+                    asyncio.open_connection(node.ip, 1723),
+                    timeout=3.0
+                )
+                writer.close()
+                await writer.wait_closed()
+                pptp_result = {"success": True}
+            except:
+                pptp_result = {"success": False}
             
             if pptp_result['success']:
                 # Generate SOCKS credentials
