@@ -3858,8 +3858,8 @@ async def process_ping_light_batches(session_id: str, node_ids: list, db_session
         
         logger.info(f"🚀 PING LIGHT Batch: Starting {total_nodes} nodes in batches of {BATCH_SIZE}")
         
-        # Import testing functions
-        from ping_speed_test import test_node_ping_light
+        # ✅ ИСПОЛЬЗУЕМ test_node_ping_light НАПРЯМУЮ без импорта
+        # Прямая реализация для избежания ошибок с поврежденным ping_speed_test.py
         
         # Process nodes in batches
         for batch_start in range(0, total_nodes, BATCH_SIZE):
