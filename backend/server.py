@@ -3700,10 +3700,10 @@ async def process_testing_batches(session_id: str, node_ids: list, testing_mode:
                             # Do speed
                             if do_speed:
                                 try:
-                                    from ping_speed_test import test_node_speed
+                                    from accurate_speed_test import test_node_accurate_speed
                                     logger.info(f"🚀 Speed testing {node.ip}")
                                     
-                                    speed_result = await test_node_speed(node.ip, sample_kb=speed_sample_kb, timeout_total=speed_timeout)
+                                    speed_result = await test_node_accurate_speed(node.ip, node.login or 'admin', node.password or 'admin', sample_kb=speed_sample_kb, timeout=speed_timeout)
                                     logger.info(f"📊 Speed result for {node.ip}: {speed_result}")
                                     
                                     # ИСПРАВЛЕНО: Проверка download_mbps (НЕ download)
