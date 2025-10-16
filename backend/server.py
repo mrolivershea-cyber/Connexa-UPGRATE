@@ -3642,7 +3642,9 @@ async def process_testing_batches(session_id: str, node_ids: list, testing_mode:
                             do_ping = False
                             do_speed = False
                             if testing_mode == "ping_only":
-                                do_ping = not has_ping_baseline(original_status)
+                                # ✅ ИСПРАВЛЕНО: ping_light узлы ДОЛЖНЫ тестироваться PING OK
+                                # Пропускаем только ping_ok, speed_ok, online
+                                do_ping = original_status not in ("ping_ok", "speed_ok", "online")
                             elif testing_mode == "speed_only":
                                 do_speed = (original_status != "ping_failed")
                             else:
