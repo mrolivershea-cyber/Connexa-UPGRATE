@@ -4155,7 +4155,7 @@ async def manual_ping_speed_test_batch(
     """Optimized batch ping + speed test with sequential execution"""
     import asyncio
     # Import testing functions с улучшенной retry logic
-    from pptp_auth_test import test_node_ping_authentic_with_retry
+    from pptp_auth_test import PPTPAuthenticator
     from accurate_speed_test import test_node_accurate_speed as test_node_speed
     
     # Get all nodes first
