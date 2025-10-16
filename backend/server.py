@@ -3900,13 +3900,11 @@ async def process_ping_light_batches(session_id: str, node_ids: list, db_session
                             logger.info(f"✅ PING LIGHT batch: Node {node_id} SUCCESS - status: {original_status} -> ping_light")
                             success = True
                         else:
-                            # ЗАЩИТА: если уже был ping_light (порт работал хотя бы раз), сохраняем статус
-                            if original_status in ("ping_light", "ping_ok", "speed_ok", "online"):
-                                node.status = original_status  # Сохраняем! Не откатываем до ping_failed
-                                logger.info(f"🛡️ PING LIGHT batch: Node {node_id} FAILED but preserving status {original_status}")
-                            else:
-                                node.status = "ping_failed"
-                                logger.info(f"❌ PING LIGHT batch: Node {node_id} FAILED - status: {original_status} -> ping_failed")
+                            # ✅ ИСПРАВЛЕНО: PING LIGHT не меняет статус при неудаче
+                            # Это только быстрая проверка TCP порта - не финальный тест!
+                            # Сохраняем исходный статус (обычно 'not_tested')
+                            node.status = original_status
+                            logger.info(f"⏭️ PING LIGHT batch: Node {node_id} FAILED - keeping status {original_status} (PING LIGHT is not a final test)")
                             success = False
                         
                         node.last_check = datetime.utcnow()
