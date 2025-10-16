@@ -129,7 +129,7 @@ class PPTPAuthenticator:
                 "success": False,
                 "avg_time": 0.0,
                 "packet_loss": 100.0,
-                "message": f"Connection timeout - port 1723 unreachable",
+                "message": "Connection timeout - port 1723 unreachable",
                 "auth_tested": False
             }
         except Exception as e:
