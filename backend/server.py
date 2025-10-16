@@ -3616,7 +3616,7 @@ async def process_testing_batches(session_id: str, node_ids: list, testing_mode:
         
         # ✅ НЕ используем ping_speed_test.py (поврежден null bytes)
         # Вместо этого используем pptp_auth_test.py и accurate_speed_test.py напрямую
-        from pptp_auth_test import PPTPAuthenticator
+        from pptp_auth_test import test_node_ping_authentic_with_retry
         from accurate_speed_test import test_node_accurate_speed as test_node_speed
         
         # Process nodes in batches
