@@ -3741,15 +3741,15 @@ async def process_testing_batches(session_id: str, node_ids: list, testing_mode:
                                         node.port = 1723  # ✅ Устанавливаем port при успехе
                                         logger.info(f"✅ {node.ip} speed success: {download_speed:.2f} Mbps → speed_ok")
                                     else:
-                                        # ПО ТЗ: При неудаче SPEED OK остается ping_ok (или выше)
-                                        if original_status in ("ping_ok", "speed_ok", "online"):
-                                            node.status = original_status  # Сохраняем baseline
+                                        # ПО ТЗ: При неудаче SPEED OK откатываемся до базового ping_light
+                                        if has_ping_baseline(original_status):
+                                            node.status = "ping_light"  # Откат до baseline!
+                                            logger.info(f"❌ {node.ip} speed failed - откат до baseline: ping_light")
                                         else:
-                                            # SPEED тест без ping_ok baseline - ошибка последовательности
-                                            logger.warning(f"⚠️ SPEED OK без ping_ok baseline для {node.ip} (original: {original_status})")
-                                            node.status = original_status if has_ping_baseline(original_status) else "ping_failed"
+                                            # Нет baseline - ошибка последовательности
+                                            logger.warning(f"⚠️ SPEED OK без baseline для {node.ip}")
+                                            node.status = "ping_failed"
                                         node.speed = None
-                                        logger.info(f"❌ {node.ip} speed failed - status: {node.status}")
                                     
                                     node.last_update = datetime.now(timezone.utc)
                                     local_db.commit()
