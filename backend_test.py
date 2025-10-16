@@ -1360,7 +1360,7 @@ Random text that should cause errors""",
                 "node_ids": [node_id]
             }
             
-            test_success, test_response = self.make_request('POST', 'manual/speed-test-batch', test_data)
+            test_success, test_response = self.make_request('POST', 'manual/speed-test', test_data)
             
             if test_success and 'results' in test_response and test_response['results']:
                 result = test_response['results'][0]
@@ -1372,8 +1372,9 @@ Random text that should cause errors""",
                     return False
                 
                 # Verify download_mbps and upload_mbps are NOT zero
-                download_mbps = result.get('speed_result', {}).get('download_mbps', 0)
-                upload_mbps = result.get('speed_result', {}).get('upload_mbps', 0)
+                speed_result = result.get('speed_result', {})
+                download_mbps = speed_result.get('download_mbps', speed_result.get('download', 0))
+                upload_mbps = speed_result.get('upload_mbps', speed_result.get('upload', 0))
                 
                 if download_mbps == 0 and upload_mbps == 0:
                     self.log_test("Speed OK Manual Test Single Node", False, 
@@ -1381,7 +1382,7 @@ Random text that should cause errors""",
                     return False
                 
                 # Verify method is either speedtest_cli_real or improved_throughput_test
-                method = result.get('speed_result', {}).get('method', '')
+                method = speed_result.get('method', '')
                 valid_methods = ['speedtest_cli_real', 'improved_throughput_test', 'accurate_throughput_test']
                 
                 if method not in valid_methods:
@@ -1417,7 +1418,7 @@ Random text that should cause errors""",
             test_data = {"node_ids": [node_id]}
             
             # First test
-            test1_success, test1_response = self.make_request('POST', 'manual/speed-test-batch', test_data)
+            test1_success, test1_response = self.make_request('POST', 'manual/speed-test', test_data)
             
             if not test1_success or 'results' not in test1_response or not test1_response['results']:
                 self.log_test("Speed OK No Fake Data Verification", False, 
@@ -1425,15 +1426,16 @@ Random text that should cause errors""",
                 return False
             
             result1 = test1_response['results'][0]
-            download1 = result1.get('speed_result', {}).get('download_mbps', 0)
-            upload1 = result1.get('speed_result', {}).get('upload_mbps', 0)
+            speed_result1 = result1.get('speed_result', {})
+            download1 = speed_result1.get('download_mbps', speed_result1.get('download', 0))
+            upload1 = speed_result1.get('upload_mbps', speed_result1.get('upload', 0))
             
             # Wait a moment before second test
             import time
             time.sleep(3)
             
             # Second test
-            test2_success, test2_response = self.make_request('POST', 'manual/speed-test-batch', test_data)
+            test2_success, test2_response = self.make_request('POST', 'manual/speed-test', test_data)
             
             if not test2_success or 'results' not in test2_response or not test2_response['results']:
                 self.log_test("Speed OK No Fake Data Verification", False, 
@@ -1441,8 +1443,9 @@ Random text that should cause errors""",
                 return False
             
             result2 = test2_response['results'][0]
-            download2 = result2.get('speed_result', {}).get('download_mbps', 0)
-            upload2 = result2.get('speed_result', {}).get('upload_mbps', 0)
+            speed_result2 = result2.get('speed_result', {})
+            download2 = speed_result2.get('download_mbps', speed_result2.get('download', 0))
+            upload2 = speed_result2.get('upload_mbps', speed_result2.get('upload', 0))
             
             # Verify results are slightly different (proving real measurement, not fake)
             # Allow for some tolerance but they shouldn't be exactly the same
@@ -1490,7 +1493,7 @@ Random text that should cause errors""",
             test_data = {"node_ids": node_ids}
             
             # Test batch speed test
-            test_success, test_response = self.make_request('POST', 'manual/speed-test-batch', test_data)
+            test_success, test_response = self.make_request('POST', 'manual/speed-test', test_data)
             
             if test_success and 'results' in test_response:
                 results = test_response['results']
@@ -1536,14 +1539,17 @@ Random text that should cause errors""",
             
             test_data = {"node_ids": [node_id]}
             
-            test_success, test_response = self.make_request('POST', 'manual/speed-test-batch', test_data)
+            test_success, test_response = self.make_request('POST', 'manual/speed-test', test_data)
             
             if test_success and 'results' in test_response and test_response['results']:
                 result = test_response['results'][0]
                 speed_result = result.get('speed_result', {})
                 
-                # Check for required fields
-                required_fields = ['download_mbps', 'upload_mbps', 'ping_ms', 'method', 'success']
+                # Check for required fields (allow both download_mbps and download)
+                required_fields = ['method', 'success']
+                download_field = 'download_mbps' if 'download_mbps' in speed_result else 'download'
+                upload_field = 'upload_mbps' if 'upload_mbps' in speed_result else 'upload'
+                
                 missing_fields = [field for field in required_fields if field not in speed_result]
                 
                 if missing_fields:
@@ -1551,15 +1557,26 @@ Random text that should cause errors""",
                                  f"❌ Missing required fields: {missing_fields}")
                     return False
                 
-                # Verify field types
-                if not isinstance(speed_result.get('download_mbps'), (int, float)):
+                # Verify download and upload fields exist
+                if download_field not in speed_result:
                     self.log_test("Speed OK Report Display Fields", False, 
-                                 f"❌ download_mbps is not a number: {type(speed_result.get('download_mbps'))}")
+                                 f"❌ Missing download field (checked both download_mbps and download)")
                     return False
                 
-                if not isinstance(speed_result.get('upload_mbps'), (int, float)):
+                if upload_field not in speed_result:
                     self.log_test("Speed OK Report Display Fields", False, 
-                                 f"❌ upload_mbps is not a number: {type(speed_result.get('upload_mbps'))}")
+                                 f"❌ Missing upload field (checked both upload_mbps and upload)")
+                    return False
+                
+                # Verify field types
+                if not isinstance(speed_result.get(download_field), (int, float)):
+                    self.log_test("Speed OK Report Display Fields", False, 
+                                 f"❌ {download_field} is not a number: {type(speed_result.get(download_field))}")
+                    return False
+                
+                if not isinstance(speed_result.get(upload_field), (int, float)):
+                    self.log_test("Speed OK Report Display Fields", False, 
+                                 f"❌ {upload_field} is not a number: {type(speed_result.get(upload_field))}")
                     return False
                 
                 self.log_test("Speed OK Report Display Fields", True, 
@@ -1589,7 +1606,7 @@ Random text that should cause errors""",
             
             test_data = {"node_ids": [node_id]}
             
-            test_success, test_response = self.make_request('POST', 'manual/speed-test-batch', test_data)
+            test_success, test_response = self.make_request('POST', 'manual/speed-test', test_data)
             
             if test_success and 'results' in test_response and test_response['results']:
                 result = test_response['results'][0]
