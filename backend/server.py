@@ -3700,7 +3700,7 @@ async def process_testing_batches(session_id: str, node_ids: list, testing_mode:
                                         # Продолжаем к PING OK
                                         do_ping = True
                                         do_speed = True  # Только если PING OK пройдет
-                                    except:
+                                    except Exception:
                                         node.status = "ping_failed"
                                         node.last_update = datetime.now(timezone.utc)
                                         local_db.commit()
