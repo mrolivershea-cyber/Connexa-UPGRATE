@@ -3,6 +3,8 @@ import socket
 import struct  
 import time
 import random
+import subprocess
+import json
 from typing import Dict
 
 class AccurateSpeedTester:
