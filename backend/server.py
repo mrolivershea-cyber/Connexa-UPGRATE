@@ -3748,6 +3748,7 @@ async def process_testing_batches(session_id: str, node_ids: list, testing_mode:
                                         node.status = "ping_ok"
                                         node.port = 1723  # ✅ Устанавливаем port при успехе
                                         logger.info(f"✅ {node.ip} REAL PPTP AUTH SUCCESS: {ping_result.get('avg_time', 0)}ms")
+                                        # PING OK прошел - можно продолжать к SPEED (если он был запланирован)
                                     else:
                                         # ПО ТЗ: При неудаче PING OK откатываемся до базового ping_light
                                         if has_ping_baseline(original_status):
@@ -3758,6 +3759,10 @@ async def process_testing_batches(session_id: str, node_ids: list, testing_mode:
                                             logger.warning(f"⚠️ PING OK без PING LIGHT baseline для {node.ip}")
                                             node.status = "ping_failed"
                                             logger.info(f"❌ {node.ip} REAL PPTP AUTH FAILED - нет baseline: ping_failed")
+                                        
+                                        # КРИТИЧЕСКИ ВАЖНО: PING OK не прошел → НЕ запускать SPEED
+                                        do_speed = False
+                                        logger.info(f"🛑 {node.ip} PING OK не прошел → SPEED тест отменен")
                                     
                                     node.last_update = datetime.now(timezone.utc)
                                     local_db.commit()
