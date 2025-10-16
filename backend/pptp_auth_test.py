@@ -155,6 +155,47 @@ async def test_node_ping_authentic(ip: str, login: str = "admin", password: str 
     """Настоящий PPTP тест с авторизацией - заменяет неточный ping_test"""
     return await PPTPAuthenticator.authentic_pptp_test(ip, login, password, timeout=10.0)
 
+# Улучшенная функция с retry logic и паузами (защита от bruteforce)
+async def test_node_ping_authentic_with_retry(ip: str, login: str = "admin", password: str = "admin", max_retries: int = 2) -> Dict:
+    """
+    PPTP тест с retry logic для повышения success rate
+    
+    Особенности:
+    - Паузы между попытками (защита от bruteforce)
+    - Retry только для временных ошибок (timeout, connection)
+    - Не retry для постоянных ошибок (invalid credentials, protocol)
+    """
+    for attempt in range(max_retries):
+        # Пауза перед попыткой (кроме первой) для защиты от bruteforce
+        if attempt > 0:
+            backoff = 2.0 * (1.5 ** attempt)  # 2s, 3s, 4.5s
+            await asyncio.sleep(backoff)
+        
+        result = await PPTPAuthenticator.authentic_pptp_test(ip, login, password, timeout=10.0)
+        
+        # Если успех - возвращаем сразу
+        if result['success']:
+            if attempt > 0:
+                result['message'] += f" (успех с {attempt + 1}-й попытки)"
+            return result
+        
+        # Анализируем ошибку
+        error_msg = result.get('message', '').lower()
+        
+        # Retry только для временных ошибок
+        retry_keywords = ['timeout', 'unreachable', 'connection', 'reset']
+        should_retry = any(keyword in error_msg for keyword in retry_keywords)
+        
+        if should_retry and attempt < max_retries - 1:
+            # Логируем retry попытку
+            result['retry_attempt'] = attempt + 1
+            continue
+        
+        # Для других ошибок или последней попытки - возвращаем как есть
+        return result
+    
+    return result
+
 # Тест функция
 async def test_authentic_algorithm():
     """Тестирует новый алгоритм на известных узлах"""
