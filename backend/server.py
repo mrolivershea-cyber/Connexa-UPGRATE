@@ -1128,10 +1128,10 @@ async def process_import_testing_batches(session_id: str, node_ids: list, testin
     await process_testing_batches(
         session_id, node_ids, testing_mode, db_session,
         ping_concurrency=50,
-        speed_concurrency=8,
+        speed_concurrency=1,  # КРИТИЧЕСКИ ВАЖНО: Speedtest CLI ограничение на одновременные подключения
         ping_timeouts=[0.8,1.2,1.6],
         speed_sample_kb=512,
-        speed_timeout=15
+        speed_timeout=60  # Увеличен timeout для Speedtest CLI
     )
 
 # Import/Export Routes
