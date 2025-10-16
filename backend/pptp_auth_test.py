@@ -36,7 +36,7 @@ class PPTPAuthenticator:
             
             # Читаем Start-Reply (увеличен timeout для медленных серверов)
             try:
-                response_data = await asyncio.wait_for(reader.read(1024), timeout=10.0)
+                response_data = await asyncio.wait_for(reader.read(1024), timeout=8.0)
                 if len(response_data) < 16:
                     raise Exception("Invalid PPTP response length")
                 
