@@ -17858,6 +17858,63 @@ City: TestCity"""
                          f"❌ Failed to start import for speed test: {response}")
             return False
 
+    def run_speed_ok_tests_with_real_data(self):
+        """Run Speed OK tests with real data verification (Fallback Strategy)"""
+        print("🔥 STARTING SPEED OK TESTS WITH REAL DATA VERIFICATION")
+        print("=" * 80)
+        print("TESTING SPEED OK FUNCTIONALITY WITH FALLBACK STRATEGY")
+        print("Testing scenarios:")
+        print("1. Manual speed test on single node")
+        print("2. No fake data verification (run twice, verify different results)")
+        print("3. Batch testing on 5+ nodes")
+        print("4. Report display fields verification")
+        print("5. Fallback strategy verification (Speedtest CLI -> TCP measurement)")
+        print("=" * 80)
+        
+        # Login first
+        if not self.test_login():
+            print("❌ Login failed - stopping tests")
+            return False
+        
+        # Run speed tests
+        test_results = []
+        
+        # Test 1: Manual speed test on single node
+        test_results.append(self.test_speed_ok_manual_test_single_node())
+        
+        # Test 2: No fake data verification
+        test_results.append(self.test_speed_ok_no_fake_data_verification())
+        
+        # Test 3: Batch testing
+        test_results.append(self.test_speed_ok_batch_testing())
+        
+        # Test 4: Report display fields
+        test_results.append(self.test_speed_ok_report_display_fields())
+        
+        # Test 5: Fallback strategy verification
+        test_results.append(self.test_speed_ok_fallback_strategy_verification())
+        
+        # Print results
+        passed_tests = sum(test_results)
+        total_tests = len(test_results)
+        
+        print("\n" + "=" * 80)
+        print(f"🏁 SPEED OK TESTING COMPLETE")
+        print(f"📊 Results: {passed_tests}/{total_tests} tests passed ({(passed_tests/total_tests)*100:.1f}%)")
+        
+        if passed_tests == total_tests:
+            print("✅ ALL SPEED OK TESTS PASSED!")
+            print("🚀 VERIFIED:")
+            print("   ✅ Speed tests return real data (not fake random.uniform)")
+            print("   ✅ No std::logic_error failures")
+            print("   ✅ Fallback strategy working (Speedtest CLI -> TCP measurement)")
+            print("   ✅ Results displayable in UI")
+            print("   ✅ System stable under concurrent testing")
+            return True
+        else:
+            print(f"❌ {total_tests - passed_tests} speed tests failed")
+            return False
+
     def run_optimized_chunked_import_tests(self):
         """Run optimized chunked import tests specifically requested in Russian review"""
         print("🔥 STARTING OPTIMIZED CHUNKED IMPORT TESTING SUITE")
