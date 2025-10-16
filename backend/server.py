@@ -35,9 +35,9 @@ import uuid
 progress_store = {}
 import_progress = {}  # For chunked import progress tracking
 
-# Global testing concurrency controls (АГРЕССИВНО увеличено для скорости)
+# Global testing concurrency controls
 MAX_PING_GLOBAL = 20   # МАКСИМАЛЬНО увеличено для скорости ping
-MAX_SPEED_GLOBAL = 10  # МАКСИМАЛЬНО увеличено для скорости speed
+MAX_SPEED_GLOBAL = 1  # КРИТИЧЕСКИ ВАЖНО: Speedtest CLI имеет жесткое ограничение на одновременные подключения
 
 # СПЕЦИАЛЬНЫЕ ЛИМИТЫ ДЛЯ PING LIGHT (ТЗ требование)
 MAX_PING_LIGHT_GLOBAL = 100  # Увеличенный параллелизм для быстрой проверки портов без авторизации
