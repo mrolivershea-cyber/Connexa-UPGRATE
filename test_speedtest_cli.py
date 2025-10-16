@@ -176,7 +176,11 @@ class SpeedtestCLITester:
         """Test 2: Verify Result Structure"""
         print(f"\n🔥 TEST 2: SPEEDTEST CLI RESULT STRUCTURE")
         
-        nodes_success, nodes_response = self.make_request('GET', 'nodes', {'limit': 1})
+        # Get a suitable node
+        nodes_success, nodes_response = self.make_request('GET', 'nodes', {'status': 'ping_ok', 'limit': 1})
+        
+        if not nodes_success or not nodes_response.get('nodes'):
+            nodes_success, nodes_response = self.make_request('GET', 'nodes', {'status': 'not_tested', 'limit': 1})
         
         if not nodes_success or not nodes_response.get('nodes'):
             self.log_test("Speedtest CLI Result Structure", False, "No nodes available")
@@ -188,8 +192,11 @@ class SpeedtestCLITester:
         test_data = {"node_ids": [node_id]}
         success, response = self.make_request('POST', 'manual/speed-test', test_data)
         
-        if success and isinstance(response, list) and len(response) > 0:
-            result = response[0]
+        # Handle both response formats
+        results = response if isinstance(response, list) else response.get('results', [])
+        
+        if success and len(results) > 0:
+            result = results[0]
             speed_result = result.get('speed_result', {})
             
             # Check for all required fields
