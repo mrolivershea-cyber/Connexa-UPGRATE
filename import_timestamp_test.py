@@ -6,7 +6,7 @@ from datetime import datetime
 import time
 
 # Test import with correct format
-BASE_URL = "https://netprobe-2.preview.emergentagent.com"
+BASE_URL = "https://netnode-tester.preview.emergentagent.com"
 API_URL = f"{BASE_URL}/api"
 
 def login():

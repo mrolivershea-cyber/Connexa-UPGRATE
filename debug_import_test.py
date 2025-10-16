@@ -4,7 +4,7 @@ import requests
 import json
 
 # Configuration
-BASE_URL = "https://netprobe-2.preview.emergentagent.com"
+BASE_URL = "https://netnode-tester.preview.emergentagent.com"
 API_URL = f"{BASE_URL}/api"
 
 def login():
