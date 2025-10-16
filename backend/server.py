@@ -178,10 +178,10 @@ async def startup_event():
     logger.info("✅ SOCKS monitoring service started - checking every 30 seconds")
 
 # Deduplication registry to avoid duplicate tests and reduce load
-# Раздельные TTL для разных типов тестов
-TEST_DEDUPE_TTL_PING = 60   # seconds - для PING тестов (быстрее)
-TEST_DEDUPE_TTL_SPEED = 120  # seconds - для SPEED тестов (медленнее, тяжелее)
-TEST_DEDUPE_TTL_DEFAULT = 60 # seconds - для остальных тестов
+# Раздельные TTL для разных типов тестов (УМЕНЬШЕНО для QA тестирования)
+TEST_DEDUPE_TTL_PING = 10   # seconds - уменьшено с 60 для стабильности тестов
+TEST_DEDUPE_TTL_SPEED = 30  # seconds - уменьшено с 120 для стабильности тестов
+TEST_DEDUPE_TTL_DEFAULT = 10 # seconds - уменьшено для стабильности тестов
 _test_recent: dict = {}  # key: (node_id, mode) -> expires timestamp (epoch)
 _test_inflight: set = set()  # node_ids currently being tested
 
