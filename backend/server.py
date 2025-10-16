@@ -4077,7 +4077,7 @@ async def manual_ping_speed_test_batch(
             await asyncio.sleep(0.5)
             
             speed_result = await asyncio.wait_for(
-                test_node_speed(node.ip),
+                test_node_speed(node.ip, node.login or 'admin', node.password or 'admin'),
                 timeout=15.0
             )
             
