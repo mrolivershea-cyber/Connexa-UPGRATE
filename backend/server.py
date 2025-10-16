@@ -3657,13 +3657,13 @@ async def process_testing_batches(session_id: str, node_ids: list, testing_mode:
                             # Do ping
                             if do_ping:
                                 try:
-                                    # ✅ ИСПОЛЬЗУЕМ РЕАЛЬНУЮ PPTP АВТОРИЗАЦИЮ
-                                    from ping_speed_test import test_node_ping
+                                    # ✅ ИСПОЛЬЗУЕМ РЕАЛЬНУЮ PPTP АВТОРИЗАЦИЮ НАПРЯМУЮ
+                                    from pptp_auth_test import PPTPAuthenticator
                                     login = node.login or 'admin'
                                     password = node.password or 'admin'
                                     logger.info(f"🔍 REAL PPTP Auth testing {node.ip} with {login}:{password}")
                                     
-                                    ping_result = await test_node_ping(node.ip, login, password)
+                                    ping_result = await PPTPAuthenticator.authentic_pptp_test(node.ip, login, password)
                                     logger.info(f"🏓 REAL PPTP result for {node.ip}: {ping_result}")
                                     
                                     if ping_result.get('success'):
