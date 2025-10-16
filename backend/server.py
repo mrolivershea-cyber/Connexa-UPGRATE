@@ -4231,8 +4231,8 @@ async def manual_speed_test(
             db.commit()
             
             # Perform real speed test
-            from ping_speed_test import test_node_speed
-            speed_result = await test_node_speed(node.ip)
+            from accurate_speed_test import test_node_accurate_speed
+            speed_result = await test_node_accurate_speed(node.ip, node.login or 'admin', node.password or 'admin')
             
             if speed_result.get('success') and speed_result.get('download'):
                 node.speed = f"{speed_result['download']:.1f}"
