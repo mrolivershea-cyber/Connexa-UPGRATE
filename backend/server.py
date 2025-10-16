@@ -4026,20 +4026,38 @@ async def process_ping_light_batches(session_id: str, node_ids: list, db_session
                         original_status = node.status
                         logger.info(f"🔍 PING LIGHT batch: Node {node.id} ({node.ip}) original status: {original_status}")
 
-                        # ✅ ИСПОЛЬЗУЕМ test_node_ping_light НАПРЯМУЮ без импорта
+                        # ✅ PING LIGHT с множественными timeout попытками (для стабильности)
                         import asyncio
                         import time
                         
-                        start_time = time.time()
-                        try:
-                            future = asyncio.open_connection(node.ip, 1723)
-                            reader, writer = await asyncio.wait_for(future, timeout=timeout)
-                            writer.close()
-                            await writer.wait_closed()
-                            elapsed_ms = (time.time() - start_time) * 1000.0
-                            ping_result = {"success": True, "message": f"PING LIGHT OK - TCP 1723 accessible in {elapsed_ms:.1f}ms"}
-                        except Exception:
-                            ping_result = {"success": False, "message": "PING LIGHT FAILED - TCP 1723 not accessible"}
+                        # Попытки с увеличивающимся timeout: 2s, 3s, 4s
+                        timeouts_to_try = [2.0, 3.0, 4.0]
+                        ping_result = None
+                        
+                        for attempt, timeout_val in enumerate(timeouts_to_try):
+                            start_time = time.time()
+                            try:
+                                future = asyncio.open_connection(node.ip, 1723)
+                                reader, writer = await asyncio.wait_for(future, timeout=timeout_val)
+                                writer.close()
+                                await writer.wait_closed()
+                                elapsed_ms = (time.time() - start_time) * 1000.0
+                                ping_result = {
+                                    "success": True, 
+                                    "message": f"PING LIGHT OK - TCP 1723 accessible in {elapsed_ms:.1f}ms (попытка {attempt+1})"
+                                }
+                                break  # Успех - прерываем цикл
+                            except Exception as e:
+                                # Логируем попытку
+                                if attempt < len(timeouts_to_try) - 1:
+                                    logger.debug(f"  Попытка {attempt+1} failed для {node.ip}: {str(e)}, retry...")
+                                    await asyncio.sleep(0.5)  # Короткая пауза перед retry
+                                else:
+                                    # Последняя попытка провалилась
+                                    ping_result = {
+                                        "success": False, 
+                                        "message": f"PING LIGHT FAILED - TCP 1723 not accessible после {len(timeouts_to_try)} попыток"
+                                    }
                         
                         # Обновить статус на основе результата
                         if ping_result['success']:
