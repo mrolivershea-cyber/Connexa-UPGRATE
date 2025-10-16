@@ -3754,7 +3754,12 @@ async def process_testing_batches(session_id: str, node_ids: list, testing_mode:
                                     local_db.commit()
                                 except Exception as speed_error:
                                     logger.error(f"❌ Speed test error for {node.ip}: {speed_error}")
-                                    node.status = "ping_ok" if has_ping_baseline(original_status) else "ping_failed"
+                                    # ПО ТЗ: При ошибке SPEED OK сохраняем ping_ok baseline
+                                    if original_status in ("ping_ok", "speed_ok", "online"):
+                                        node.status = original_status
+                                    else:
+                                        logger.warning(f"⚠️ SPEED test exception без ping_ok baseline для {node.ip}")
+                                        node.status = original_status if has_ping_baseline(original_status) else "ping_failed"
                                     node.speed = None
                                     node.last_update = datetime.now(timezone.utc)
                                     local_db.commit()
