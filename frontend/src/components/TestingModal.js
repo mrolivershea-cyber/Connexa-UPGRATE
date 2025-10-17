@@ -809,17 +809,17 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], selectAllMode = f
                 <div>
                   <label className="block text-xs text-gray-600 mb-1">Объём пробы Speed (KB)</label>
                   <div className="flex gap-2 mb-2">
-                    <button onClick={() => setSpeedSampleKB(8)} className={`px-2 py-1 text-xs rounded ${speedSampleKB === 8 ? 'bg-blue-500 text-white' : 'bg-gray-100'}`}>
-                      ⚡ Fast (8KB)
+                    <button onClick={() => setSpeedSampleKB(64)} className={`px-2 py-1 text-xs rounded ${speedSampleKB === 64 ? 'bg-blue-500 text-white' : 'bg-gray-100'}`}>
+                      ⚡ Fast (64KB)
                     </button>
-                    <button onClick={() => setSpeedSampleKB(16)} className={`px-2 py-1 text-xs rounded ${speedSampleKB === 16 ? 'bg-blue-500 text-white' : 'bg-gray-100'}`}>
-                      ⚖️ Balanced (16KB)
+                    <button onClick={() => setSpeedSampleKB(128)} className={`px-2 py-1 text-xs rounded ${speedSampleKB === 128 ? 'bg-blue-500 text-white' : 'bg-gray-100'}`}>
+                      ⚖️ Balanced (128KB)
                     </button>
-                    <button onClick={() => setSpeedSampleKB(32)} className={`px-2 py-1 text-xs rounded ${speedSampleKB === 32 ? 'bg-blue-500 text-white' : 'bg-gray-100'}`}>
-                      🎯 Thorough (32KB)
+                    <button onClick={() => setSpeedSampleKB(256)} className={`px-2 py-1 text-xs rounded ${speedSampleKB === 256 ? 'bg-blue-500 text-white' : 'bg-gray-100'}`}>
+                      🎯 Thorough (256KB)
                     </button>
                   </div>
-                  <input type="number" min={8} max={256} value={speedSampleKB} onChange={e => setSpeedSampleKB(parseInt(e.target.value) || 16)} className="w-full border rounded px-2 py-1" />
+                  <input type="number" min={8} max={512} value={speedSampleKB} onChange={e => setSpeedSampleKB(parseInt(e.target.value) || 128)} className="w-full border rounded px-2 py-1" />
                 </div>
                 <div>
                   <label className="block text-xs text-gray-600 mb-1">Таймаут Speed (сек)</label>
