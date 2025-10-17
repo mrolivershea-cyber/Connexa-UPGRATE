@@ -21,6 +21,9 @@ import json
 
 logger = logging.getLogger("socks_server")
 
+# Import PPTP tunnel manager
+from pptp_tunnel_manager import pptp_tunnel_manager
+
 class SOCKSProxy:
     """SOCKS5 Proxy Server with Traffic Masking"""
     
