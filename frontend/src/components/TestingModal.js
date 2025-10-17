@@ -865,43 +865,43 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], selectAllMode = f
 
                 {/* Расширенные настройки Speed - только для SPEED */}
                 {testType === 'speed' && (
-                  <details className="mt-2">
-                    <summary className="cursor-pointer text-xs text-blue-600 hover:text-blue-800 select-none">
-                      ▶ Расширенные настройки Speed
+                  <details className="mt-1">
+                    <summary className="cursor-pointer text-xs text-blue-600 hover:text-blue-800 select-none py-1">
+                      ▶ Расширенные
                     </summary>
-                    <div className="mt-3 space-y-3 pl-2 border-l-2 border-blue-200">
+                    <div className="mt-2 space-y-2 pl-2 border-l border-blue-200">
                       {/* Speed Sample Size */}
                       <div>
-                        <label className="block text-xs text-gray-600 mb-1">Объём пробы (KB)</label>
-                        <div className="flex gap-2 mb-2">
-                          <button onClick={() => setSpeedSampleKB(64)} className={`px-2 py-1 text-xs rounded ${speedSampleKB === 64 ? 'bg-purple-500 text-white' : 'bg-gray-100'}`}>
-                            ⚡ 64
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Объём пробы (KB)</label>
+                        <div className="flex gap-1 mb-1">
+                          <button onClick={() => setSpeedSampleKB(64)} className={`px-2 py-0.5 text-xs rounded ${speedSampleKB === 64 ? 'bg-purple-500 text-white' : 'bg-gray-100'}`}>
+                            ⚡64
                           </button>
-                          <button onClick={() => setSpeedSampleKB(128)} className={`px-2 py-1 text-xs rounded ${speedSampleKB === 128 ? 'bg-purple-500 text-white' : 'bg-gray-100'}`}>
-                            ⚖️ 128
+                          <button onClick={() => setSpeedSampleKB(128)} className={`px-2 py-0.5 text-xs rounded ${speedSampleKB === 128 ? 'bg-purple-500 text-white' : 'bg-gray-100'}`}>
+                            ⚖️128
                           </button>
-                          <button onClick={() => setSpeedSampleKB(256)} className={`px-2 py-1 text-xs rounded ${speedSampleKB === 256 ? 'bg-purple-500 text-white' : 'bg-gray-100'}`}>
-                            🎯 256
+                          <button onClick={() => setSpeedSampleKB(256)} className={`px-2 py-0.5 text-xs rounded ${speedSampleKB === 256 ? 'bg-purple-500 text-white' : 'bg-gray-100'}`}>
+                            🎯256
                           </button>
                         </div>
-                        <input type="number" min={8} max={512} value={speedSampleKB} onChange={e => setSpeedSampleKB(parseInt(e.target.value) || 128)} className="w-full border rounded px-2 py-1 text-sm" />
+                        <input type="number" min={8} max={512} value={speedSampleKB} onChange={e => setSpeedSampleKB(parseInt(e.target.value) || 128)} className="w-full border rounded px-2 py-1 text-xs h-7" />
                       </div>
 
                       {/* Speed Timeout */}
                       <div>
-                        <label className="block text-xs text-gray-600 mb-1">Timeout (сек)</label>
-                        <div className="flex gap-2 mb-2">
-                          <button onClick={() => setSpeedTimeout(30)} className={`px-2 py-1 text-xs rounded ${speedTimeout === 30 ? 'bg-purple-500 text-white' : 'bg-gray-100'}`}>
-                            ⚡ 30s
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Timeout (сек)</label>
+                        <div className="flex gap-1 mb-1">
+                          <button onClick={() => setSpeedTimeout(30)} className={`px-2 py-0.5 text-xs rounded ${speedTimeout === 30 ? 'bg-purple-500 text-white' : 'bg-gray-100'}`}>
+                            ⚡30s
                           </button>
-                          <button onClick={() => setSpeedTimeout(60)} className={`px-2 py-1 text-xs rounded ${speedTimeout === 60 ? 'bg-purple-500 text-white' : 'bg-gray-100'}`}>
-                            ⚖️ 60s
+                          <button onClick={() => setSpeedTimeout(60)} className={`px-2 py-0.5 text-xs rounded ${speedTimeout === 60 ? 'bg-purple-500 text-white' : 'bg-gray-100'}`}>
+                            ⚖️60s
                           </button>
-                          <button onClick={() => setSpeedTimeout(90)} className={`px-2 py-1 text-xs rounded ${speedTimeout === 90 ? 'bg-purple-500 text-white' : 'bg-gray-100'}`}>
-                            🎯 90s
+                          <button onClick={() => setSpeedTimeout(90)} className={`px-2 py-0.5 text-xs rounded ${speedTimeout === 90 ? 'bg-purple-500 text-white' : 'bg-gray-100'}`}>
+                            🎯90s
                           </button>
                         </div>
-                        <input type="number" min={10} max={120} value={speedTimeout} onChange={e => setSpeedTimeout(parseInt(e.target.value) || 60)} className="w-full border rounded px-2 py-1 text-sm" />
+                        <input type="number" min={10} max={120} value={speedTimeout} onChange={e => setSpeedTimeout(parseInt(e.target.value) || 60)} className="w-full border rounded px-2 py-1 text-xs h-7" />
                       </div>
                     </div>
                   </details>
