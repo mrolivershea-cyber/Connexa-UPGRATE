@@ -4815,6 +4815,15 @@ async def start_socks_services(
             
             logger.info(f"✅ PPTP tunnel created: {tunnel_info['interface']} ({tunnel_info['local_ip']} -> {tunnel_info['remote_ip']})")
             
+            # Настроить routing для SOCKS через PPTP туннель
+            routing_ok = socks_routing_manager.setup_routing_for_socks(
+                node_id=node_id,
+                socks_port=socks_port,
+                ppp_interface=tunnel_info['interface'],
+                ppp_local_ip=tunnel_info['local_ip']
+            )
+            logger.info(f"🔀 Routing setup result: {routing_ok}")
+            
             # Start actual SOCKS5 server (поверх PPTP туннеля)
             socks_success = start_socks_service(
                 node_id=node_id,
