@@ -5,7 +5,7 @@ import json
 import time
 
 # Configuration
-BASE_URL = "https://netnode-tester.preview.emergentagent.com"
+BASE_URL = "https://vpn-tester.preview.emergentagent.com"
 API_URL = f"{BASE_URL}/api"
 
 def login():

@@ -10,7 +10,7 @@ import random
 import string
 
 class SpeedOptimizationTester:
-    def __init__(self, base_url="https://netnode-tester.preview.emergentagent.com"):
+    def __init__(self, base_url="https://vpn-tester.preview.emergentagent.com"):
         self.base_url = base_url
         self.api_url = f"{base_url}/api"
         self.token = None
@@ -561,7 +561,7 @@ def main():
     if len(sys.argv) > 1:
         base_url = sys.argv[1]
     else:
-        base_url = "https://netnode-tester.preview.emergentagent.com"
+        base_url = "https://vpn-tester.preview.emergentagent.com"
     
     print(f"🚀 Speed Optimization Testing")
     print(f"🌐 Target URL: {base_url}")

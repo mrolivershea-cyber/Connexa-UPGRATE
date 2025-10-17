@@ -4,7 +4,7 @@ import requests
 import json
 
 # Test alternative delete endpoints
-base_url = "https://netnode-tester.preview.emergentagent.com"
+base_url = "https://vpn-tester.preview.emergentagent.com"
 api_url = f"{base_url}/api"
 
 # Login
