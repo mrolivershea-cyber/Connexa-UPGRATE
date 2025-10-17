@@ -323,66 +323,72 @@ const AdminPanel = () => {
   const handleStartServices = async () => {
     const targetIds = selectAllMode ? allSelectedIds : selectedNodes;
     
-    if (!targetIds.length) {
-      toast.error('No nodes selected');
+    if (!targetIds.length && !selectAllMode) {
+      toast.error('Узлы не выбраны');
       return;
     }
 
     try {
-      const response = await axios.post(`${API}/services/start`, {
-        node_ids: targetIds,
-        action: 'start'
-      });
+      // SOCKS START: используем правильный endpoint для запуска SOCKS5
+      const requestData = selectAllMode 
+        ? { node_ids: [], filters: activeFilters }
+        : { node_ids: targetIds, filters: {} };
+      
+      const response = await axios.post(`${API}/socks/start`, requestData);
 
       const results = response.data.results;
       const successCount = results.filter(r => r.success).length;
       const failCount = results.length - successCount;
       
       if (successCount > 0) {
-        toast.success(`Started services for ${successCount} nodes`);
+        toast.success(`✅ Запущено SOCKS5 для ${successCount} узлов`);
       }
       if (failCount > 0) {
-        toast.error(`Failed to start ${failCount} services`);
+        const failedNodes = results.filter(r => !r.success);
+        const errorMessages = failedNodes.map(n => `${n.ip || n.node_id}: ${n.message}`).join('\n');
+        toast.error(`❌ Не удалось запустить ${failCount} узлов:\n${errorMessages.substring(0, 200)}`);
       }
 
       loadNodes(currentPage);
       loadStats();
     } catch (error) {
-      console.error('Error starting services:', error);
-      toast.error('Failed to start services: ' + (error.response?.data?.detail || error.message));
+      console.error('Error starting SOCKS services:', error);
+      toast.error('Ошибка запуска SOCKS: ' + (error.response?.data?.detail || error.message));
     }
   };
 
   const handleStopServices = async () => {
     const targetIds = selectAllMode ? allSelectedIds : selectedNodes;
     
-    if (!targetIds.length) {
-      toast.error('No nodes selected');
+    if (!targetIds.length && !selectAllMode) {
+      toast.error('Узлы не выбраны');
       return;
     }
 
     try {
-      const response = await axios.post(`${API}/services/stop`, {
-        node_ids: targetIds,
-        action: 'stop'
-      });
+      // SOCKS STOP: используем правильный endpoint для остановки SOCKS5
+      const requestData = selectAllMode 
+        ? { node_ids: [], filters: activeFilters }
+        : { node_ids: targetIds, filters: {} };
+      
+      const response = await axios.post(`${API}/socks/stop`, requestData);
 
       const results = response.data.results;
       const successCount = results.filter(r => r.success).length;
       const failCount = results.length - successCount;
       
       if (successCount > 0) {
-        toast.success(`Stopped services for ${successCount} nodes`);
+        toast.success(`✅ Остановлено SOCKS5 для ${successCount} узлов`);
       }
       if (failCount > 0) {
-        toast.error(`Failed to stop ${failCount} services`);
+        toast.error(`❌ Не удалось остановить ${failCount} узлов`);
       }
 
       loadNodes(currentPage);
       loadStats();
     } catch (error) {
-      console.error('Error stopping services:', error);
-      toast.error('Failed to stop services: ' + (error.response?.data?.detail || error.message));
+      console.error('Error stopping SOCKS services:', error);
+      toast.error('Ошибка остановки SOCKS: ' + (error.response?.data?.detail || error.message));
     }
   };
 
