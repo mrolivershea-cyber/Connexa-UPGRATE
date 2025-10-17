@@ -860,7 +860,18 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], selectAllMode = f
                 </div>
                 <div>
                   <label className="block text-xs text-gray-600 mb-1">Таймаут Speed (сек)</label>
-                  <input type="number" min={1} max={10} value={speedTimeout} onChange={e => setSpeedTimeout(parseInt(e.target.value) || 2)} className="w-full border rounded px-2 py-1" />
+                  <div className="flex gap-2 mb-2">
+                    <button onClick={() => setSpeedTimeout(30)} className={`px-2 py-1 text-xs rounded ${speedTimeout === 30 ? 'bg-blue-500 text-white' : 'bg-gray-100'}`}>
+                      ⚡ Fast (30s)
+                    </button>
+                    <button onClick={() => setSpeedTimeout(60)} className={`px-2 py-1 text-xs rounded ${speedTimeout === 60 ? 'bg-blue-500 text-white' : 'bg-gray-100'}`}>
+                      ⚖️ Balanced (60s)
+                    </button>
+                    <button onClick={() => setSpeedTimeout(90)} className={`px-2 py-1 text-xs rounded ${speedTimeout === 90 ? 'bg-blue-500 text-white' : 'bg-gray-100'}`}>
+                      🎯 Thorough (90s)
+                    </button>
+                  </div>
+                  <input type="number" min={10} max={120} value={speedTimeout} onChange={e => setSpeedTimeout(parseInt(e.target.value) || 60)} className="w-full border rounded px-2 py-1" />
                 </div>
               </div>
               <div className="text-xs text-gray-500 mt-2">
