@@ -180,8 +180,9 @@ class SOCKSMonitor:
             
             if active_proxies:
                 for node in active_proxies:
-                    proxy_url = f"socks5://{node.socks_login}:{node.socks_password}@{node.socks_ip}:{node.socks_port}"
-                    proxy_lines.append(f"{proxy_url}  # Node {node.id} -> {node.ip} ({node.city}, {node.country})")
+                    # Формат: IP:PORT:LOGIN:PASS (по требованию пользователя)
+                    proxy_line = f"{node.socks_ip}:{node.socks_port}:{node.socks_login}:{node.socks_password}"
+                    proxy_lines.append(f"{proxy_line}  # Node {node.id} -> {node.ip} ({node.city}, {node.country})")
             else:
                 proxy_lines.append("# Нет активных SOCKS прокси")
             
