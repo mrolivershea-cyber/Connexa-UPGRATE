@@ -112,12 +112,13 @@ class SOCKSServer:
     """Individual SOCKS5 Server Instance with Traffic Masking"""
     
     def __init__(self, node_id: int, node_ip: str, port: int, username: str, 
-                 password: str, masking_config: dict, stats_callback=None):
+                 password: str, ppp_interface: str, masking_config: dict, stats_callback=None):
         self.node_id = node_id
         self.node_ip = node_ip
         self.port = port
         self.username = username
         self.password = password
+        self.ppp_interface = ppp_interface  # PPP интерфейс для routing
         self.masking_config = masking_config
         self.stats_callback = stats_callback
         
