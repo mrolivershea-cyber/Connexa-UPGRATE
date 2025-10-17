@@ -694,10 +694,10 @@ const AdminPanel = () => {
                 </Button>
                 <Button 
                   onClick={() => setShowSOCKSModal(true)}
-                  disabled={!selectAllMode && selectedNodes.length === 0}
                   variant="outline"
                   data-testid="socks-btn"
                   className="bg-purple-50 hover:bg-purple-100 border-purple-200"
+                  title="SOCKS управление и мониторинг (доступно всегда)"
                 >
                   <Shield className="h-4 w-4 mr-2" />
                   SOCKS
