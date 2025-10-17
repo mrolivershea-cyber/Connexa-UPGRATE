@@ -4666,7 +4666,7 @@ async def start_socks_services(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Start SOCKS services for selected nodes or filtered nodes"""
+    """Start SOCKS5 services for selected nodes with PPTP verification"""
     node_ids = request_data.get("node_ids", [])
     filters = request_data.get("filters", {})
     masking_settings = request_data.get("masking_settings", {})
@@ -4687,6 +4687,9 @@ async def start_socks_services(
     
     results = []
     
+    # Import PPTP authenticator for connection verification
+    from pptp_auth_test import PPTPAuthenticator
+    
     for node_id in node_ids:
         try:
             node = db.query(Node).filter(Node.id == node_id).first()
@@ -4704,8 +4707,40 @@ async def start_socks_services(
                     "node_id": node_id,
                     "ip": node.ip,
                     "success": False,
-                    "message": f"Node must have ping_ok or speed_ok status (current: {node.status})"
+                    "message": f"Узел должен иметь статус PING OK или SPEED OK (текущий: {node.status})"
                 })
+                continue
+            
+            # ✅ ТЗ ТРЕБОВАНИЕ: Проверить наличие активного PPTP-соединения
+            logger.info(f"🔍 SOCKS START: Проверка PPTP соединения для узла {node_id} ({node.ip})")
+            try:
+                pptp_result = await PPTPAuthenticator.authentic_pptp_test(
+                    ip=node.ip,
+                    login=node.login or "",
+                    password=node.password or "",
+                    timeout=8.0
+                )
+                
+                if not pptp_result.get("success"):
+                    results.append({
+                        "node_id": node_id,
+                        "ip": node.ip,
+                        "success": False,
+                        "message": f"PPTP соединение не установлено: {pptp_result.get('error', 'Unknown error')}"
+                    })
+                    logger.warning(f"❌ SOCKS START: PPTP проверка не прошла для узла {node_id}")
+                    continue
+                
+                logger.info(f"✅ SOCKS START: PPTP соединение проверено для узла {node_id}")
+                
+            except Exception as pptp_error:
+                results.append({
+                    "node_id": node_id,
+                    "ip": node.ip,
+                    "success": False,
+                    "message": f"Ошибка проверки PPTP: {str(pptp_error)}"
+                })
+                logger.error(f"❌ SOCKS START: Ошибка PPTP проверки для узла {node_id}: {pptp_error}")
                 continue
             
             # Generate SOCKS credentials
