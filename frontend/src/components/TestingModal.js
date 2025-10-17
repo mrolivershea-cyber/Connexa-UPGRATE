@@ -847,19 +847,19 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], selectAllMode = f
                 {/* Speed Concurrency - только для SPEED */}
                 {testType === 'speed' && (
                   <div>
-                    <label className="block text-xs text-gray-600 mb-1">Параллелизм Speed</label>
-                    <div className="flex gap-2 mb-2">
-                      <button onClick={() => setSpeedConcurrency(5)} className={`px-2 py-1 text-xs rounded ${speedConcurrency === 5 ? 'bg-purple-500 text-white' : 'bg-gray-100'}`}>
-                        🐢 5
+                    <label className="block text-xs font-medium text-gray-600 mb-1">Параллелизм Speed</label>
+                    <div className="flex gap-1 mb-1">
+                      <button onClick={() => setSpeedConcurrency(5)} className={`px-2 py-0.5 text-xs rounded ${speedConcurrency === 5 ? 'bg-purple-500 text-white' : 'bg-gray-100'}`}>
+                        5
                       </button>
-                      <button onClick={() => setSpeedConcurrency(8)} className={`px-2 py-1 text-xs rounded ${speedConcurrency === 8 ? 'bg-purple-500 text-white' : 'bg-gray-100'}`}>
-                        ⚖️ 8
+                      <button onClick={() => setSpeedConcurrency(8)} className={`px-2 py-0.5 text-xs rounded ${speedConcurrency === 8 ? 'bg-purple-500 text-white' : 'bg-gray-100'}`}>
+                        ⚖️8
                       </button>
-                      <button onClick={() => setSpeedConcurrency(10)} className={`px-2 py-1 text-xs rounded ${speedConcurrency === 10 ? 'bg-purple-500 text-white' : 'bg-gray-100'}`}>
-                        🚀 10
+                      <button onClick={() => setSpeedConcurrency(10)} className={`px-2 py-0.5 text-xs rounded ${speedConcurrency === 10 ? 'bg-purple-500 text-white' : 'bg-gray-100'}`}>
+                        🚀10
                       </button>
                     </div>
-                    <input type="number" min={1} max={20} value={speedConcurrency} onChange={e => setSpeedConcurrency(parseInt(e.target.value) || 8)} className="w-full border rounded px-2 py-1 text-sm" />
+                    <input type="number" min={1} max={20} value={speedConcurrency} onChange={e => setSpeedConcurrency(parseInt(e.target.value) || 8)} className="w-full border rounded px-2 py-1 text-xs h-7" />
                   </div>
                 )}
 
