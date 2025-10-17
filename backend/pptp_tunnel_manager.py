@@ -157,9 +157,10 @@ nodefaultroute
                 pass
             
             # Cleanup config
-            config_dir = f"/tmp/pptp_node_{node_id}"
+            peer_file = f"/etc/ppp/peers/pptp_node_{node_id}"
             try:
-                subprocess.run(f"rm -rf {config_dir}", shell=True, timeout=5)
+                if os.path.exists(peer_file):
+                    os.remove(peer_file)
             except Exception:
                 pass
             
