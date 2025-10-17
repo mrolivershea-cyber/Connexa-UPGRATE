@@ -169,15 +169,18 @@ frontend:
 
   - task: "Start/Stop Service Buttons SOCKS Integration"
     implemented: true
-    working: "NA"
+    working: false
     file: "AdminPanel.js, server.py"
-    stuck_count: 0
+    stuck_count: 1
     priority: "critical"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "ТЗ РЕАЛИЗАЦИЯ (2025-01-08): Интеграция кнопок Start/Stop Service в AdminPanel с SOCKS API. ИЗМЕНЕНИЯ: 1) ✅ handleStartServices() теперь вызывает /api/socks/start вместо /api/services/start 2) ✅ handleStopServices() теперь вызывает /api/socks/stop вместо /api/services/stop 3) ✅ Добавлена проверка PPTP соединения перед запуском SOCKS в /api/socks/start 4) ✅ Исправлена логика возврата статуса: при остановке SOCKS узел всегда возвращается в ping_ok (по ТЗ) 5) ✅ Улучшены сообщения об ошибках на русском языке. ТРЕБУЕТСЯ ТЕСТИРОВАНИЕ: Проверить Start Service с PPTP проверкой, Stop Service с возвратом в ping_ok, обработку ошибок."
+      - working: false
+        agent: "testing"
+        comment: "❌ CRITICAL DATABASE CONNECTION ISSUE BLOCKING ALL SOCKS TESTS (2025-01-08): Attempted comprehensive testing of all SOCKS Start/Stop Service button integration scenarios but encountered critical backend database connection error preventing ANY SOCKS endpoint from functioning. ERROR: 'sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) unable to open database file'. TESTS ATTEMPTED: 1) ❌ СЦЕНАРИЙ 1 (Start SOCKS on ping_light node) - Failed: Internal Server Error 500 2) ❌ СЦЕНАРИЙ 2 (Start SOCKS on speed_ok node) - Failed: Internal Server Error 500 3) ❌ СЦЕНАРИЙ 3 (Start SOCKS on invalid status node) - Failed: Internal Server Error 500 4) ❌ СЦЕНАРИЙ 4 (Stop SOCKS and return to ping_ok) - Failed: Cannot test stop without successful start 5) ❌ СЦЕНАРИЙ 6 (Credentials autogeneration) - Failed: Internal Server Error 500 6) ❌ Select All mode with filters - Failed: Internal Server Error 500 7) ❌ previous_status preservation - Failed: Internal Server Error 500. BACKEND LOGS SHOW: Database connection pool unable to open SQLite database file at /app/backend/connexa.db. ROOT CAUSE: SQLAlchemy connection pool error - database file access issue. IMPACT: ALL SOCKS functionality is completely non-functional due to this database connection issue. The SOCKS endpoints exist in code (/api/socks/start, /api/socks/stop) but cannot execute due to database connection failure. SUCCESS RATE: 0/8 SOCKS tests passed (0%). BLOCKING ISSUE: This is a critical infrastructure problem that must be resolved before any SOCKS functionality can be tested or used."
 
   - task: "SOCKS Service Launch System - Backend API"
     implemented: true
