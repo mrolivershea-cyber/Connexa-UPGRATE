@@ -38,7 +38,7 @@ class SOCKSProxy:
         self.stats_lock = Lock()
         
     def start_socks_for_node(self, node_id: int, node_ip: str, port: int, 
-                           username: str, password: str, masking_config: dict) -> bool:
+                           username: str, password: str, ppp_interface: str, masking_config: dict) -> bool:
         """Start SOCKS5 server for specific node"""
         try:
             if node_id in self.running_servers:
@@ -51,6 +51,7 @@ class SOCKSProxy:
                 port=port,
                 username=username,
                 password=password,
+                ppp_interface=ppp_interface,
                 masking_config=masking_config,
                 stats_callback=self._update_stats
             )
