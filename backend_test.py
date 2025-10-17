@@ -19240,6 +19240,320 @@ City: TestCity"""
                          f"❌ Filter test request failed: {ping_response}")
             return False
 
+
+    # ========== SOCKS START/STOP SERVICE BUTTONS INTEGRATION TESTS ==========
+    
+    def test_socks_start_on_ping_light_node(self):
+        """СЦЕНАРИЙ 1: Запуск SOCKS на узле с ping_light статусом"""
+        # Get a ping_light node
+        success, response = self.make_request('GET', 'nodes?status=ping_light&limit=1')
+        
+        if not success or 'nodes' not in response or not response['nodes']:
+            self.log_test("SOCKS Start on ping_light Node", False, "No ping_light nodes available")
+            return False
+        
+        node = response['nodes'][0]
+        node_id = node['id']
+        node_ip = node['ip']
+        
+        # Start SOCKS service
+        start_data = {
+            "node_ids": [node_id],
+            "filters": {}
+        }
+        
+        success, response = self.make_request('POST', 'socks/start', start_data)
+        
+        if success and response.get('success'):
+            # Verify node status changed to online
+            time.sleep(1)  # Wait for status update
+            node_success, node_response = self.make_request('GET', f'nodes/{node_id}')
+            
+            if node_success:
+                updated_node = node_response
+                if (updated_node.get('status') == 'online' and 
+                    updated_node.get('socks_ip') and 
+                    updated_node.get('socks_port') and 
+                    updated_node.get('socks_login') and 
+                    updated_node.get('socks_password')):
+                    self.log_test("SOCKS Start on ping_light Node", True, 
+                                 f"✅ Node {node_ip} (ID:{node_id}): ping_light→online, SOCKS data: {updated_node['socks_ip']}:{updated_node['socks_port']}")
+                    return node_id  # Return for cleanup
+                else:
+                    self.log_test("SOCKS Start on ping_light Node", False, 
+                                 f"Status: {updated_node.get('status')}, SOCKS data incomplete")
+                    return False
+            else:
+                self.log_test("SOCKS Start on ping_light Node", False, "Could not verify node status")
+                return False
+        else:
+            self.log_test("SOCKS Start on ping_light Node", False, 
+                         f"SOCKS start failed: {response.get('message', 'Unknown error')}")
+            return False
+    
+    def test_socks_start_on_speed_ok_node(self):
+        """СЦЕНАРИЙ 2: Запуск SOCKS на узле с speed_ok статусом"""
+        # Get a speed_ok node
+        success, response = self.make_request('GET', 'nodes?status=speed_ok&limit=1')
+        
+        if not success or 'nodes' not in response or not response['nodes']:
+            self.log_test("SOCKS Start on speed_ok Node", False, "No speed_ok nodes available")
+            return False
+        
+        node = response['nodes'][0]
+        node_id = node['id']
+        node_ip = node['ip']
+        
+        # Start SOCKS service
+        start_data = {
+            "node_ids": [node_id],
+            "filters": {}
+        }
+        
+        success, response = self.make_request('POST', 'socks/start', start_data)
+        
+        if success and response.get('success'):
+            # Verify node status changed to online
+            time.sleep(1)
+            node_success, node_response = self.make_request('GET', f'nodes/{node_id}')
+            
+            if node_success:
+                updated_node = node_response
+                if updated_node.get('status') == 'online':
+                    self.log_test("SOCKS Start on speed_ok Node", True, 
+                                 f"✅ Node {node_ip} (ID:{node_id}): speed_ok→online")
+                    return node_id
+                else:
+                    self.log_test("SOCKS Start on speed_ok Node", False, 
+                                 f"Status not changed: {updated_node.get('status')}")
+                    return False
+            else:
+                self.log_test("SOCKS Start on speed_ok Node", False, "Could not verify node status")
+                return False
+        else:
+            self.log_test("SOCKS Start on speed_ok Node", False, 
+                         f"SOCKS start failed: {response.get('message', 'Unknown error')}")
+            return False
+    
+    def test_socks_start_on_invalid_status_node(self):
+        """СЦЕНАРИЙ 3: Попытка запуска SOCKS на узле с неподходящим статусом"""
+        # Get a ping_failed node
+        success, response = self.make_request('GET', 'nodes?status=ping_failed&limit=1')
+        
+        if not success or 'nodes' not in response or not response['nodes']:
+            self.log_test("SOCKS Start on Invalid Status Node", False, "No ping_failed nodes available")
+            return False
+        
+        node = response['nodes'][0]
+        node_id = node['id']
+        node_ip = node['ip']
+        
+        # Try to start SOCKS service (should fail)
+        start_data = {
+            "node_ids": [node_id],
+            "filters": {}
+        }
+        
+        success, response = self.make_request('POST', 'socks/start', start_data)
+        
+        # Should fail with error message
+        if not response.get('success', True):  # success=false expected
+            error_msg = response.get('message', '')
+            if 'ping_ok' in error_msg.lower() or 'speed_ok' in error_msg.lower() or 'статус' in error_msg.lower():
+                self.log_test("SOCKS Start on Invalid Status Node", True, 
+                             f"✅ Correctly rejected node {node_ip} (ID:{node_id}) with status ping_failed. Error: {error_msg}")
+                return True
+            else:
+                self.log_test("SOCKS Start on Invalid Status Node", False, 
+                             f"Error message doesn't mention status requirement: {error_msg}")
+                return False
+        else:
+            self.log_test("SOCKS Start on Invalid Status Node", False, 
+                         "Should have failed but succeeded")
+            return False
+    
+    def test_socks_stop_and_return_to_ping_ok(self):
+        """СЦЕНАРИЙ 4: Остановка SOCKS и возврат в ping_ok"""
+        # First, start SOCKS on a node
+        node_id = self.test_socks_start_on_speed_ok_node()
+        
+        if not node_id:
+            self.log_test("SOCKS Stop and Return to ping_ok", False, "Could not start SOCKS for stop test")
+            return False
+        
+        # Get node details before stop
+        node_success, node_response = self.make_request('GET', f'nodes/{node_id}')
+        if not node_success:
+            self.log_test("SOCKS Stop and Return to ping_ok", False, "Could not get node details")
+            return False
+        
+        node_ip = node_response.get('ip')
+        
+        # Stop SOCKS service
+        stop_data = {
+            "node_ids": [node_id],
+            "filters": {}
+        }
+        
+        success, response = self.make_request('POST', 'socks/stop', stop_data)
+        
+        if success and response.get('success'):
+            # Verify node status changed to ping_ok and SOCKS data cleared
+            time.sleep(1)
+            node_success, node_response = self.make_request('GET', f'nodes/{node_id}')
+            
+            if node_success:
+                updated_node = node_response
+                if (updated_node.get('status') == 'ping_ok' and 
+                    not updated_node.get('socks_ip') and 
+                    not updated_node.get('socks_port')):
+                    self.log_test("SOCKS Stop and Return to ping_ok", True, 
+                                 f"✅ Node {node_ip} (ID:{node_id}): online→ping_ok, SOCKS data cleared")
+                    return True
+                else:
+                    self.log_test("SOCKS Stop and Return to ping_ok", False, 
+                                 f"Status: {updated_node.get('status')}, SOCKS IP: {updated_node.get('socks_ip')}")
+                    return False
+            else:
+                self.log_test("SOCKS Stop and Return to ping_ok", False, "Could not verify node status")
+                return False
+        else:
+            self.log_test("SOCKS Stop and Return to ping_ok", False, 
+                         f"SOCKS stop failed: {response.get('message', 'Unknown error')}")
+            return False
+    
+    def test_socks_credentials_autogeneration(self):
+        """СЦЕНАРИЙ 6: Проверка автогенерации credentials"""
+        # Get a speed_ok node
+        success, response = self.make_request('GET', 'nodes?status=speed_ok&limit=1')
+        
+        if not success or 'nodes' not in response or not response['nodes']:
+            self.log_test("SOCKS Credentials Autogeneration", False, "No speed_ok nodes available")
+            return False
+        
+        node = response['nodes'][0]
+        node_id = node['id']
+        node_ip = node['ip']
+        
+        # Start SOCKS service
+        start_data = {
+            "node_ids": [node_id],
+            "filters": {}
+        }
+        
+        success, response = self.make_request('POST', 'socks/start', start_data)
+        
+        if success and response.get('success'):
+            time.sleep(1)
+            node_success, node_response = self.make_request('GET', f'nodes/{node_id}')
+            
+            if node_success:
+                updated_node = node_response
+                socks_login = updated_node.get('socks_login', '')
+                socks_password = updated_node.get('socks_password', '')
+                socks_port = updated_node.get('socks_port')
+                
+                # Verify login format: socks_{node_id}
+                login_correct = socks_login == f'socks_{node_id}'
+                
+                # Verify password length: 16 characters
+                password_correct = len(socks_password) == 16
+                
+                # Verify port range: 1081-9999
+                port_correct = socks_port and 1081 <= socks_port <= 9999
+                
+                if login_correct and password_correct and port_correct:
+                    self.log_test("SOCKS Credentials Autogeneration", True, 
+                                 f"✅ Node {node_ip} (ID:{node_id}): login={socks_login}, password_len={len(socks_password)}, port={socks_port}")
+                    
+                    # Cleanup: stop SOCKS
+                    self.make_request('POST', 'socks/stop', {"node_ids": [node_id], "filters": {}})
+                    return True
+                else:
+                    self.log_test("SOCKS Credentials Autogeneration", False, 
+                                 f"Login OK: {login_correct} ({socks_login}), Password OK: {password_correct} (len={len(socks_password)}), Port OK: {port_correct} ({socks_port})")
+                    return False
+            else:
+                self.log_test("SOCKS Credentials Autogeneration", False, "Could not verify node")
+                return False
+        else:
+            self.log_test("SOCKS Credentials Autogeneration", False, 
+                         f"SOCKS start failed: {response.get('message', 'Unknown error')}")
+            return False
+    
+    def test_socks_select_all_mode(self):
+        """ДОПОЛНИТЕЛЬНАЯ ПРОВЕРКА: Проверка работы с Select All режимом (filters)"""
+        # Start SOCKS on all speed_ok nodes using filters
+        start_data = {
+            "node_ids": [],
+            "filters": {"status": "speed_ok"}
+        }
+        
+        success, response = self.make_request('POST', 'socks/start', start_data)
+        
+        if success:
+            results = response.get('results', [])
+            success_count = sum(1 for r in results if r.get('success'))
+            
+            if success_count > 0:
+                self.log_test("SOCKS Select All Mode", True, 
+                             f"✅ Started SOCKS on {success_count} nodes using filters")
+                
+                # Cleanup: stop all
+                self.make_request('POST', 'socks/stop', {"node_ids": [], "filters": {"status": "online"}})
+                return True
+            else:
+                self.log_test("SOCKS Select All Mode", False, 
+                             f"No nodes started successfully: {response}")
+                return False
+        else:
+            self.log_test("SOCKS Select All Mode", False, 
+                         f"SOCKS start with filters failed: {response}")
+            return False
+    
+    def test_socks_previous_status_preservation(self):
+        """ДОПОЛНИТЕЛЬНАЯ ПРОВЕРКА: Проверка что previous_status корректно сохраняется"""
+        # Get a speed_ok node
+        success, response = self.make_request('GET', 'nodes?status=speed_ok&limit=1')
+        
+        if not success or 'nodes' not in response or not response['nodes']:
+            self.log_test("SOCKS previous_status Preservation", False, "No speed_ok nodes available")
+            return False
+        
+        node = response['nodes'][0]
+        node_id = node['id']
+        original_status = node['status']
+        
+        # Start SOCKS
+        start_data = {"node_ids": [node_id], "filters": {}}
+        success, response = self.make_request('POST', 'socks/start', start_data)
+        
+        if not success or not response.get('success'):
+            self.log_test("SOCKS previous_status Preservation", False, "Could not start SOCKS")
+            return False
+        
+        time.sleep(1)
+        
+        # Check previous_status is saved
+        import sqlite3
+        conn = sqlite3.connect('/app/backend/connexa.db')
+        cursor = conn.cursor()
+        cursor.execute('SELECT previous_status FROM nodes WHERE id=?', (node_id,))
+        row = cursor.fetchone()
+        conn.close()
+        
+        if row and row[0] == original_status:
+            self.log_test("SOCKS previous_status Preservation", True, 
+                         f"✅ previous_status correctly saved: {original_status}")
+            
+            # Cleanup
+            self.make_request('POST', 'socks/stop', {"node_ids": [node_id], "filters": {}})
+            return True
+        else:
+            self.log_test("SOCKS previous_status Preservation", False, 
+                         f"previous_status not saved correctly: {row[0] if row else 'NULL'}")
+            return False
+
     def run_all_tests(self):
         """Run all backend tests"""
         print("🚀 Starting Connexa Backend API Tests")
