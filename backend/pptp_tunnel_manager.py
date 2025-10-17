@@ -47,7 +47,7 @@ nodefaultroute
 """)
             
             # Start PPTP connection
-            cmd = f"pppd call {peer_file} updetach logfile /tmp/pptp_node_{node_id}.log"
+            cmd = f"pppd call {config_name} updetach logfile /tmp/pptp_node_{node_id}.log"
             
             logger.info(f"📞 Starting PPTP: {cmd}")
             
