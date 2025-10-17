@@ -811,36 +811,36 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], selectAllMode = f
                 {/* Таймауты Ping - только для PING типов */}
                 {(testType === 'ping_light' || testType === 'ping') && (
                   <div>
-                    <label className="block text-xs text-gray-600 mb-1">
-                      Timeout {testType === 'ping_light' ? '(TCP connect)' : '(PPTP handshake)'}
+                    <label className="block text-xs font-medium text-gray-600 mb-1">
+                      Timeout
                     </label>
                     {testType === 'ping_light' && (
-                      <div className="flex gap-2 mb-2">
-                        <button onClick={() => setPingTimeouts('2')} className={`px-2 py-1 text-xs rounded ${pingTimeouts === '2' ? 'bg-green-500 text-white' : 'bg-gray-100'}`}>
-                          ⚡ Fast (2s)
+                      <div className="flex gap-1 mb-1">
+                        <button onClick={() => setPingTimeouts('2')} className={`px-2 py-0.5 text-xs rounded ${pingTimeouts === '2' ? 'bg-green-500 text-white' : 'bg-gray-100'}`}>
+                          ⚡2s
                         </button>
-                        <button onClick={() => setPingTimeouts('3')} className={`px-2 py-1 text-xs rounded ${pingTimeouts === '3' ? 'bg-green-500 text-white' : 'bg-gray-100'}`}>
-                          ⚖️ Balanced (3s)
+                        <button onClick={() => setPingTimeouts('3')} className={`px-2 py-0.5 text-xs rounded ${pingTimeouts === '3' ? 'bg-green-500 text-white' : 'bg-gray-100'}`}>
+                          ⚖️3s
                         </button>
-                        <button onClick={() => setPingTimeouts('5')} className={`px-2 py-1 text-xs rounded ${pingTimeouts === '5' ? 'bg-green-500 text-white' : 'bg-gray-100'}`}>
-                          🎯 Thorough (5s)
+                        <button onClick={() => setPingTimeouts('5')} className={`px-2 py-0.5 text-xs rounded ${pingTimeouts === '5' ? 'bg-green-500 text-white' : 'bg-gray-100'}`}>
+                          🎯5s
                         </button>
                       </div>
                     )}
                     {testType === 'ping' && (
-                      <div className="flex gap-2 mb-2">
-                        <button onClick={() => setPingTimeouts('5')} className={`px-2 py-1 text-xs rounded ${pingTimeouts === '5' ? 'bg-blue-500 text-white' : 'bg-gray-100'}`}>
-                          ⚡ Fast (5s)
+                      <div className="flex gap-1 mb-1">
+                        <button onClick={() => setPingTimeouts('5')} className={`px-2 py-0.5 text-xs rounded ${pingTimeouts === '5' ? 'bg-blue-500 text-white' : 'bg-gray-100'}`}>
+                          ⚡5s
                         </button>
-                        <button onClick={() => setPingTimeouts('8')} className={`px-2 py-1 text-xs rounded ${pingTimeouts === '8' ? 'bg-blue-500 text-white' : 'bg-gray-100'}`}>
-                          ⚖️ Balanced (8s)
+                        <button onClick={() => setPingTimeouts('8')} className={`px-2 py-0.5 text-xs rounded ${pingTimeouts === '8' ? 'bg-blue-500 text-white' : 'bg-gray-100'}`}>
+                          ⚖️8s
                         </button>
-                        <button onClick={() => setPingTimeouts('12')} className={`px-2 py-1 text-xs rounded ${pingTimeouts === '12' ? 'bg-blue-500 text-white' : 'bg-gray-100'}`}>
-                          🎯 Thorough (12s)
+                        <button onClick={() => setPingTimeouts('12')} className={`px-2 py-0.5 text-xs rounded ${pingTimeouts === '12' ? 'bg-blue-500 text-white' : 'bg-gray-100'}`}>
+                          🎯12s
                         </button>
                       </div>
                     )}
-                    <input type="text" value={pingTimeouts} onChange={e => setPingTimeouts(e.target.value)} className="w-full border rounded px-2 py-1 text-sm" />
+                    <input type="text" value={pingTimeouts} onChange={e => setPingTimeouts(e.target.value)} className="w-full border rounded px-2 py-1 text-xs h-7" />
                   </div>
                 )}
 
