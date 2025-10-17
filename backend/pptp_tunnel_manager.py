@@ -55,8 +55,11 @@ nodefaultroute
             process = subprocess.Popen(
                 cmd.split(),
                 stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE
+                stderr=subprocess.PIPE,
+                text=True
             )
+            
+            logger.info(f"🔄 PPTP process started with PID {process.pid}, waiting for connection...")
             
             # Wait for connection to establish (max 15 seconds)
             max_wait = 15
@@ -68,9 +71,22 @@ nodefaultroute
                 time.sleep(1)
                 
                 # Check if process is still running
-                if process.poll() is not None:
-                    stderr = process.stderr.read().decode()
-                    logger.error(f"❌ PPTP process died: {stderr}")
+                poll_result = process.poll()
+                if poll_result is not None:
+                    stdout = process.stdout.read()
+                    stderr = process.stderr.read()
+                    logger.error(f"❌ PPTP process died with code {poll_result}")
+                    logger.error(f"   stdout: {stdout}")
+                    logger.error(f"   stderr: {stderr}")
+                    
+                    # Check log file for more details
+                    try:
+                        with open(f'/tmp/pptp_node_{node_id}.log', 'r') as f:
+                            log_content = f.read()
+                            logger.error(f"   pppd log: {log_content[-500:]}")  # Last 500 chars
+                    except Exception:
+                        pass
+                    
                     return None
                 
                 # Try to find the interface
