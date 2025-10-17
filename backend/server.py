@@ -4856,18 +4856,16 @@ async def stop_socks_services(
             if not socks_success:
                 logger.warning(f"⚠️ Failed to stop SOCKS5 server for node {node_id}, continuing with database cleanup")
             
-            # Clear SOCKS data and revert to previous status
+            # ✅ ТЗ ТРЕБОВАНИЕ: Удалить данные SOCKS из базы и вернуть статус в PING OK
             node.socks_ip = None
             node.socks_port = None
             node.socks_login = None
             node.socks_password = None
             
-            # SMART STATUS RESTORATION: 
-            # Manual stop -> node remains speed_ok (live and validated)
-            # Logic: if SOCKS was successfully running, node is proven to be working -> speed_ok
+            # ТЗ: При остановке SOCKS всегда возвращаем статус в ping_ok
             if node.status == "online":
-                node.status = "speed_ok"  # Node is live and validated if SOCKS was running
-                logger.info(f"🔄 SOCKS manual stop: node {node_id} validated as speed_ok (live and working)")
+                node.status = "ping_ok"
+                logger.info(f"🔄 SOCKS STOP: узел {node_id} ({node.ip}) возвращен в статус PING OK")
             
             # Clear previous status after restoration
             node.previous_status = None
