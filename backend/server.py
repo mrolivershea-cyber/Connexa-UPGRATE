@@ -177,6 +177,43 @@ async def startup_event():
     # Start SOCKS monitoring system
     start_socks_monitoring()
     logger.info("✅ SOCKS monitoring service started - checking every 30 seconds")
+    
+    # Check and setup PPTP requirements
+    setup_pptp_environment()
+    logger.info("✅ PPTP environment check completed")
+
+def setup_pptp_environment():
+    """Setup PPTP environment - create /dev/ppp if needed"""
+    import subprocess
+    import os
+    
+    try:
+        # Check if /dev/ppp exists
+        if not os.path.exists('/dev/ppp'):
+            logger.info("🔧 /dev/ppp not found, attempting to create...")
+            try:
+                # Try to create /dev/ppp device
+                subprocess.run('mknod /dev/ppp c 108 0', shell=True, check=False, capture_output=True)
+                subprocess.run('chmod 600 /dev/ppp', shell=True, check=False, capture_output=True)
+                logger.info("✅ Created /dev/ppp device")
+            except Exception as e:
+                logger.warning(f"⚠️ Could not create /dev/ppp: {e}")
+        else:
+            logger.info("✅ /dev/ppp device exists")
+        
+        # Check if we can open /dev/ppp (test permissions)
+        try:
+            with open('/dev/ppp', 'r'):
+                pass
+            logger.info("✅ /dev/ppp is accessible")
+        except PermissionError:
+            logger.error("❌ /dev/ppp exists but not accessible - need CAP_NET_ADMIN capability")
+            logger.error("   Please run container with --cap-add=NET_ADMIN or --privileged")
+        except Exception as e:
+            logger.warning(f"⚠️ /dev/ppp check: {e}")
+            
+    except Exception as e:
+        logger.error(f"❌ Error setting up PPTP environment: {e}")
 
 # Deduplication registry to avoid duplicate tests and reduce load
 # Раздельные TTL для разных типов тестов (УМЕНЬШЕНО для QA тестирования)
