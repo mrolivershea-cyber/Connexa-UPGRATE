@@ -4777,7 +4777,25 @@ async def start_socks_services(
                 continue
             
             # Update node with SOCKS data
-            admin_server_ip = os.environ.get('ADMIN_SERVER_IP', '127.0.0.1')  # External IP of admin server
+            # ✅ ТЗ ТРЕБОВАНИЕ: SOCKS должен быть доступен извне по IP сервера
+            # Получаем внешний адрес из переменной окружения или определяем автоматически
+            admin_server_ip = os.environ.get('ADMIN_SERVER_IP')
+            if not admin_server_ip or admin_server_ip == '127.0.0.1':
+                # Пробуем получить из REACT_APP_BACKEND_URL
+                backend_url = os.environ.get('REACT_APP_BACKEND_URL', '')
+                if backend_url:
+                    # Извлекаем домен из URL (например: https://vpn-tester.preview.emergentagent.com)
+                    import re
+                    domain_match = re.search(r'https?://([^/]+)', backend_url)
+                    if domain_match:
+                        admin_server_ip = domain_match.group(1)
+                        logger.info(f"🌐 Using external domain from REACT_APP_BACKEND_URL: {admin_server_ip}")
+                    else:
+                        admin_server_ip = '127.0.0.1'
+                else:
+                    admin_server_ip = '127.0.0.1'
+                    logger.warning(f"⚠️ ADMIN_SERVER_IP not set, using localhost (not accessible externally!)")
+            
             node.socks_ip = admin_server_ip
             node.socks_port = socks_port
             node.socks_login = login_prefix
