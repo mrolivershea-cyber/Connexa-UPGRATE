@@ -30,12 +30,11 @@ class PPTPTunnelManager:
         try:
             logger.info(f"🔧 Creating PPTP tunnel to {node_ip} for node {node_id}")
             
-            # Create unique config for this tunnel
-            config_dir = f"/tmp/pptp_node_{node_id}"
-            os.makedirs(config_dir, exist_ok=True)
+            # Create unique config for this tunnel  
+            config_name = f"pptp_node_{node_id}"
+            peer_file = f"/etc/ppp/peers/{config_name}"
+            os.makedirs("/etc/ppp/peers", exist_ok=True)
             
-            # Create peers file
-            peer_file = f"{config_dir}/peer"
             with open(peer_file, 'w') as f:
                 f.write(f"""pty "pptp {node_ip} --nolaunchpppd"
 name {username}
