@@ -791,6 +791,19 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], selectAllMode = f
                       </button>
                     </div>
                   )}
+                  {testType === 'ping' && (
+                    <div className="flex gap-2 mb-2">
+                      <button onClick={() => setPingTimeouts('5')} className={`px-2 py-1 text-xs rounded ${pingTimeouts === '5' ? 'bg-blue-500 text-white' : 'bg-gray-100'}`}>
+                        ⚡ Fast (5s)
+                      </button>
+                      <button onClick={() => setPingTimeouts('8')} className={`px-2 py-1 text-xs rounded ${pingTimeouts === '8' ? 'bg-blue-500 text-white' : 'bg-gray-100'}`}>
+                        ⚖️ Balanced (8s)
+                      </button>
+                      <button onClick={() => setPingTimeouts('12')} className={`px-2 py-1 text-xs rounded ${pingTimeouts === '12' ? 'bg-blue-500 text-white' : 'bg-gray-100'}`}>
+                        🎯 Thorough (12s)
+                      </button>
+                    </div>
+                  )}
                   <input type="text" value={pingTimeouts} onChange={e => setPingTimeouts(e.target.value)} className="w-full border rounded px-2 py-1" />
                 </div>
                 <div>
