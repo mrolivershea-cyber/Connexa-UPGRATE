@@ -915,12 +915,8 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], selectAllMode = f
                   </details>
                 )}
               </div>
-              <div className="text-xs text-gray-500 mt-2">
-                <strong>По умолчанию:</strong><br/>
-                • PING LIGHT: Concurrency=100, Timeout=2s, ~76% success<br/>
-                • PING OK: Concurrency=15, Timeout=8s, ~70% conversion<br/>
-                • SPEED OK: Concurrency=8, Sample=128KB, Timeout=60s, ~90% success<br/>
-                <em>Рекомендация: Увеличьте Ping до 25 и Speed до 10 для ускорения на 30%</em>
+              <div className="text-xs text-gray-500 mt-3 p-2 bg-blue-50 rounded border border-blue-200">
+                💡 <strong>Рекомендация:</strong> Используйте пресеты ⚖️ Balanced для оптимального баланса скорости и точности
               </div>
             </CardContent>
           </Card>
