@@ -292,24 +292,32 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], selectAllMode = f
   const [showRetryPrompt, setShowRetryPrompt] = useState(false);
   const [failedNodeCount, setFailedNodeCount] = useState(0);
 
-  // Автоматическое изменение параметров при выборе PING LIGHT (ТЗ требование)
+  // Автоматическое изменение параметров при выборе типа теста
   React.useEffect(() => {
     if (testType === 'ping_light') {
-      // PING LIGHT оптимальные параметры согласно ТЗ
+      // PING LIGHT оптимальные параметры
       setPingConcurrency(100);      // Увеличенный параллелизм для быстрой проверки портов
-      setSpeedConcurrency(0);       // Отключаем Speed тесты (не используется в PING LIGHT)
-      setPingTimeouts('2');         // 2s timeout (Fast preset) - 78% success rate
+      setSpeedConcurrency(0);       // Не используется в PING LIGHT
+      setPingTimeouts('2');         // 2s timeout (Fast preset) - ~76% success rate
       setSpeedSampleKB(0);          // Не используется при проверке порта
       setSpeedTimeout(0);           // Не используется при проверке порта
       console.log('🚀 PING LIGHT режим: параметры оптимизированы для быстрой проверки портов');
-    } else {
-      // Возвращаем дефолтные параметры для других режимов
-      setPingConcurrency(15);       
-      setSpeedConcurrency(8);       
-      setPingTimeouts('0.5');       
-      setSpeedSampleKB(32);         
-      setSpeedTimeout(2);           
-      console.log('🔄 Режим изменен: параметры возвращены к стандартным значениям');
+    } else if (testType === 'ping') {
+      // PING OK оптимальные параметры
+      setPingConcurrency(15);       // Средний параллелизм для PPTP авторизации
+      setSpeedConcurrency(0);       // Не используется в PING OK
+      setPingTimeouts('8');         // 8s timeout для PPTP handshake
+      setSpeedSampleKB(0);          // Не используется
+      setSpeedTimeout(0);           // Не используется
+      console.log('🔄 PING OK режим: параметры установлены для PPTP авторизации');
+    } else if (testType === 'speed') {
+      // SPEED OK оптимальные параметры
+      setPingConcurrency(15);       // Для автоматического PING OK (если нужно)
+      setSpeedConcurrency(8);       // Параллелизм для speed тестов
+      setPingTimeouts('8');         // Для автоматического PING OK
+      setSpeedSampleKB(128);        // Реальный размер пробы (соответствует backend)
+      setSpeedTimeout(60);          // Реальный timeout (соответствует backend)
+      console.log('🔄 SPEED OK режим: параметры установлены для тестов скорости');
     }
   }, [testType]);
 
