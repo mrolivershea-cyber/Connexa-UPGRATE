@@ -459,7 +459,7 @@ socks_proxy = SOCKSProxy()
 
 
 def start_socks_service(node_id: int, node_ip: str, port: int, username: str, 
-                       password: str, masking_config: dict) -> bool:
+                       password: str, ppp_interface: str = None, masking_config: dict = None) -> bool:
     """Start SOCKS5 service for a node"""
     return socks_proxy.start_socks_for_node(
         node_id=node_id,
@@ -467,7 +467,8 @@ def start_socks_service(node_id: int, node_ip: str, port: int, username: str,
         port=port,
         username=username,
         password=password,
-        masking_config=masking_config
+        ppp_interface=ppp_interface or '',
+        masking_config=masking_config or {}
     )
 
 
