@@ -826,7 +826,13 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], selectAllMode = f
                   <input type="number" min={1} max={10} value={speedTimeout} onChange={e => setSpeedTimeout(parseInt(e.target.value) || 2)} className="w-full border rounded px-2 py-1" />
                 </div>
               </div>
-              <div className="text-xs text-gray-500 mt-2">По умолчанию: Ping=15, Speed=8, Ping таймаут=0.5с, Speed=32KB, 2с (ЭКСТРЕМАЛЬНО оптимизировано для максимальной скорости)</div>
+              <div className="text-xs text-gray-500 mt-2">
+                <strong>По умолчанию:</strong><br/>
+                • PING LIGHT: Concurrency=100, Timeout=2s, ~76% success<br/>
+                • PING OK: Concurrency=15, Timeout=8s, ~70% conversion<br/>
+                • SPEED OK: Concurrency=8, Sample=128KB, Timeout=60s, ~90% success<br/>
+                <em>Рекомендация: Увеличьте Ping до 25 и Speed до 10 для ускорения на 30%</em>
+              </div>
             </CardContent>
           </Card>
 
