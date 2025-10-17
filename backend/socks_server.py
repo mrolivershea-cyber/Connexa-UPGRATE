@@ -329,37 +329,28 @@ class SOCKSServer:
             logger.error(f"Error sending SOCKS5 response: {e}")
     
     def _connect_through_node(self, target_host: str, target_port: int) -> Optional[socket.socket]:
-        """Connect to target through the node's PPTP tunnel"""
+        """Connect to target through PPTP tunnel using SO_BINDTODEVICE"""
         try:
-            # Get PPTP tunnel info for this node
-            tunnel_info = pptp_tunnel_manager.get_tunnel_info(self.node_id)
-            
-            if not tunnel_info:
-                logger.error(f"❌ No PPTP tunnel found for node {self.node_id}")
-                return None
-            
-            interface = tunnel_info['interface']
-            local_ip = tunnel_info['local_ip']
-            
-            logger.debug(f"🔗 Connecting to {target_host}:{target_port} through PPTP tunnel {interface}")
-            
-            # Create socket and bind to PPTP tunnel interface IP
             upstream_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             upstream_socket.settimeout(30)
             
-            # Bind to local IP of PPTP tunnel to force routing through it
-            try:
-                upstream_socket.bind((local_ip, 0))
-            except Exception as bind_error:
-                logger.warning(f"⚠️ Could not bind to {local_ip}: {bind_error}, using default routing")
+            # SO_BINDTODEVICE - привязка к ppp интерфейсу для routing через PPTP
+            if hasattr(self, 'ppp_interface') and self.ppp_interface:
+                try:
+                    SO_BINDTODEVICE = 25
+                    upstream_socket.setsockopt(socket.SOL_SOCKET, SO_BINDTODEVICE, self.ppp_interface.encode())
+                    logger.debug(f"✅ Socket привязан к {self.ppp_interface} для routing через PPTP")
+                except Exception as bind_error:
+                    logger.warning(f"⚠️ SO_BINDTODEVICE failed for {self.ppp_interface}: {bind_error}")
+            else:
+                logger.warning(f"⚠️ No ppp_interface for node {self.node_id}, traffic will go direct")
             
             upstream_socket.connect((target_host, target_port))
-            
-            logger.debug(f"✅ Connected to {target_host}:{target_port} through PPTP tunnel {interface}")
+            logger.debug(f"✅ Connected to {target_host}:{target_port}")
             return upstream_socket
             
         except Exception as e:
-            logger.error(f"❌ Failed to connect to {target_host}:{target_port} through node {self.node_id}: {e}")
+            logger.error(f"❌ Failed to connect to {target_host}:{target_port}: {e}")
             return None
     
     def _relay_data(self, client_socket: socket.socket, upstream_socket: socket.socket):
