@@ -723,50 +723,42 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], selectAllMode = f
           </DialogDescription>
         </DialogHeader>
         
-        <div className="space-y-4">
-          {/* Test Type Selection */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm">Тип Тестирования</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                <Select value={testType} onValueChange={setTestType}>
-                  <SelectTrigger data-testid="test-type-select">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="ping_light">
-                      <div className="flex items-center">
-                        <Zap className="h-4 w-4 mr-2 text-yellow-500" />
-                        PING LIGHT (быстро)
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="ping">
-                      <div className="flex items-center">
-                        <Wifi className="h-4 w-4 mr-2" />
-                        PING OK (с авторизацией)
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="speed">
-                      <div className="flex items-center">
-                        <Zap className="h-4 w-4 mr-2" />
-                        Только Скорость
-                      </div>
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-                
-                <div className="text-xs text-gray-600">
-                  {getTestTypeDescription()}
-                </div>
-              </div>
-          {/* Concurrency & Tuning */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm">Параметры Производительности</CardTitle>
-            </CardHeader>
-            <CardContent>
+        <div className="space-y-3">
+          {/* Компактный объединенный блок настроек */}
+          <div className="border rounded-lg p-3 space-y-3">
+            {/* Test Type Selection */}
+            <div>
+              <label className="block text-xs font-semibold text-gray-700 mb-1">Тип Тестирования</label>
+              <Select value={testType} onValueChange={setTestType}>
+                <SelectTrigger data-testid="test-type-select" className="h-9">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ping_light">
+                    <div className="flex items-center">
+                      <Zap className="h-4 w-4 mr-2 text-yellow-500" />
+                      PING LIGHT (быстро)
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="ping">
+                    <div className="flex items-center">
+                      <Wifi className="h-4 w-4 mr-2" />
+                      PING OK (с авторизацией)
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="speed">
+                    <div className="flex items-center">
+                      <Zap className="h-4 w-4 mr-2" />
+                      Только Скорость
+                    </div>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <hr className="border-gray-200" />
+
+            {/* Параметры (компактно) */}
               
               <div className="space-y-3">
                 {/* Параллелизм Ping - для всех типов */}
