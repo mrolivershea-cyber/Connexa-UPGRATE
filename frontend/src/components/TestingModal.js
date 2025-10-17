@@ -854,35 +854,68 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], selectAllMode = f
 
                 {/* Таймауты Ping - только для PING типов */}
                 {(testType === 'ping_light' || testType === 'ping') && (
+                  <div>
+                    <label className="block text-xs text-gray-600 mb-1">
+                      Timeout {testType === 'ping_light' ? '(TCP connect)' : '(PPTP handshake)'}
+                    </label>
+                    {testType === 'ping_light' && (
+                      <div className="flex gap-2 mb-2">
+                        <button onClick={() => setPingTimeouts('2')} className={`px-2 py-1 text-xs rounded ${pingTimeouts === '2' ? 'bg-green-500 text-white' : 'bg-gray-100'}`}>
+                          ⚡ Fast (2s)
+                        </button>
+                        <button onClick={() => setPingTimeouts('3')} className={`px-2 py-1 text-xs rounded ${pingTimeouts === '3' ? 'bg-green-500 text-white' : 'bg-gray-100'}`}>
+                          ⚖️ Balanced (3s)
+                        </button>
+                        <button onClick={() => setPingTimeouts('5')} className={`px-2 py-1 text-xs rounded ${pingTimeouts === '5' ? 'bg-green-500 text-white' : 'bg-gray-100'}`}>
+                          🎯 Thorough (5s)
+                        </button>
+                      </div>
+                    )}
+                    {testType === 'ping' && (
+                      <div className="flex gap-2 mb-2">
+                        <button onClick={() => setPingTimeouts('5')} className={`px-2 py-1 text-xs rounded ${pingTimeouts === '5' ? 'bg-blue-500 text-white' : 'bg-gray-100'}`}>
+                          ⚡ Fast (5s)
+                        </button>
+                        <button onClick={() => setPingTimeouts('8')} className={`px-2 py-1 text-xs rounded ${pingTimeouts === '8' ? 'bg-blue-500 text-white' : 'bg-gray-100'}`}>
+                          ⚖️ Balanced (8s)
+                        </button>
+                        <button onClick={() => setPingTimeouts('12')} className={`px-2 py-1 text-xs rounded ${pingTimeouts === '12' ? 'bg-blue-500 text-white' : 'bg-gray-100'}`}>
+                          🎯 Thorough (12s)
+                        </button>
+                      </div>
+                    )}
+                    <input type="text" value={pingTimeouts} onChange={e => setPingTimeouts(e.target.value)} className="w-full border rounded px-2 py-1 text-sm" />
+                  </div>
+                )}
+
+                {/* Speed Concurrency - только для SPEED */}
+                {testType === 'speed' && (
+                  <div>
+                    <label className="block text-xs text-gray-600 mb-1">Параллелизм Speed</label>
                     <div className="flex gap-2 mb-2">
-                      <button onClick={() => setPingTimeouts('2')} className={`px-2 py-1 text-xs rounded ${pingTimeouts === '2' ? 'bg-green-500 text-white' : 'bg-gray-100'}`}>
-                        ⚡ Fast (2s) ~78%
+                      <button onClick={() => setSpeedConcurrency(5)} className={`px-2 py-1 text-xs rounded ${speedConcurrency === 5 ? 'bg-purple-500 text-white' : 'bg-gray-100'}`}>
+                        🐢 5
                       </button>
-                      <button onClick={() => setPingTimeouts('3')} className={`px-2 py-1 text-xs rounded ${pingTimeouts === '3' ? 'bg-green-500 text-white' : 'bg-gray-100'}`}>
-                        ⚖️ Balanced (3s) ~82%
+                      <button onClick={() => setSpeedConcurrency(8)} className={`px-2 py-1 text-xs rounded ${speedConcurrency === 8 ? 'bg-purple-500 text-white' : 'bg-gray-100'}`}>
+                        ⚖️ 8
                       </button>
-                      <button onClick={() => setPingTimeouts('5')} className={`px-2 py-1 text-xs rounded ${pingTimeouts === '5' ? 'bg-green-500 text-white' : 'bg-gray-100'}`}>
-                        🎯 Thorough (5s) ~88%
+                      <button onClick={() => setSpeedConcurrency(10)} className={`px-2 py-1 text-xs rounded ${speedConcurrency === 10 ? 'bg-purple-500 text-white' : 'bg-gray-100'}`}>
+                        🚀 10
                       </button>
                     </div>
-                  )}
-                  {testType === 'ping' && (
-                    <div className="flex gap-2 mb-2">
-                      <button onClick={() => setPingTimeouts('5')} className={`px-2 py-1 text-xs rounded ${pingTimeouts === '5' ? 'bg-blue-500 text-white' : 'bg-gray-100'}`}>
-                        ⚡ Fast (5s)
-                      </button>
-                      <button onClick={() => setPingTimeouts('8')} className={`px-2 py-1 text-xs rounded ${pingTimeouts === '8' ? 'bg-blue-500 text-white' : 'bg-gray-100'}`}>
-                        ⚖️ Balanced (8s)
-                      </button>
-                      <button onClick={() => setPingTimeouts('12')} className={`px-2 py-1 text-xs rounded ${pingTimeouts === '12' ? 'bg-blue-500 text-white' : 'bg-gray-100'}`}>
-                        🎯 Thorough (12s)
-                      </button>
-                    </div>
-                  )}
-                  <input type="text" value={pingTimeouts} onChange={e => setPingTimeouts(e.target.value)} className="w-full border rounded px-2 py-1" />
-                </div>
-                <div>
-                  <label className="block text-xs text-gray-600 mb-1">Объём пробы Speed (KB)</label>
+                    <input type="number" min={1} max={20} value={speedConcurrency} onChange={e => setSpeedConcurrency(parseInt(e.target.value) || 8)} className="w-full border rounded px-2 py-1 text-sm" />
+                  </div>
+                )}
+
+                {/* Расширенные настройки Speed - только для SPEED */}
+                {testType === 'speed' && (
+                  <details className="mt-2">
+                    <summary className="cursor-pointer text-xs text-blue-600 hover:text-blue-800 select-none">
+                      ▶ Расширенные настройки Speed
+                    </summary>
+                    <div className="mt-3 space-y-3 pl-2 border-l-2 border-blue-200">
+                      {/* Speed Sample Size */}
+                      <div>
                   <div className="flex gap-2 mb-2">
                     <button onClick={() => setSpeedSampleKB(64)} className={`px-2 py-1 text-xs rounded ${speedSampleKB === 64 ? 'bg-blue-500 text-white' : 'bg-gray-100'}`}>
                       ⚡ Fast (64KB)
