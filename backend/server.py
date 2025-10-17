@@ -4895,7 +4895,11 @@ async def stop_socks_services(
             socks_success = stop_socks_service(node_id)
             
             if not socks_success:
-                logger.warning(f"⚠️ Failed to stop SOCKS5 server for node {node_id}, continuing with database cleanup")
+                logger.warning(f"⚠️ Failed to stop SOCKS5 server for node {node_id}, continuing with cleanup")
+            
+            # ✅ ТЗ ТРЕБОВАНИЕ: Разорвать PPTP туннель
+            logger.info(f"🔧 Destroying PPTP tunnel for node {node_id}")
+            pptp_tunnel_manager.destroy_tunnel(node_id)
             
             # ✅ ТЗ ТРЕБОВАНИЕ: Удалить данные SOCKS из базы и вернуть статус в PING OK
             node.socks_ip = None
