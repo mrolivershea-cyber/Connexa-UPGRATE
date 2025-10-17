@@ -167,6 +167,18 @@ frontend:
         agent: "testing"
         comment: "✅ SOCKS MODAL SELECTEDNODE STATE MANAGEMENT TESTING COMPLETED (2025-01-04): Conducted comprehensive testing of the SOCKS modal selectedNodes state management issue that was recently fixed. DETAILED VERIFICATION RESULTS: 1) ✅ LOGIN FUNCTIONALITY: Successfully logged in to admin panel (admin/admin) and accessed the SOCKS interface 2) ✅ INITIAL DISABLED STATE: SOCKS button correctly disabled when no nodes selected, showing proper text 'SOCKS' 3) ✅ NODE SELECTION FUNCTIONALITY: Successfully selected 3 nodes using checkboxes (found 202 checkboxes with role='checkbox'), node selection working correctly 4) ✅ SOCKS BUTTON ENABLED STATE: SOCKS button correctly enabled after node selection (disabled state changed from True to False) 5) ✅ SOCKS MODAL OPENING: Modal opened successfully with correct title 'SOCKS Управление и Настройки' 6) ✅ SELECTED NODES DISPLAY: Selected nodes information displayed correctly in modal, found selected nodes section and node items 7) ✅ STATE PERSISTENCE: Selected nodes state correctly persisted between AdminPanel and SOCKSModal components 8) ✅ NODE DESELECTION: SOCKS button correctly disabled again after deselecting all nodes (returned to disabled state True). CRITICAL FUNCTIONALITY VERIFIED: selectedNodeIds state management working correctly, button enable/disable logic functioning properly, modal displays selected nodes information, state synchronization between components working as expected. The SOCKS modal selectedNodes state management fixes are working correctly and ready for production use."
 
+  - task: "Start/Stop Service Buttons SOCKS Integration"
+    implemented: true
+    working: "NA"
+    file: "AdminPanel.js, server.py"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "ТЗ РЕАЛИЗАЦИЯ (2025-01-08): Интеграция кнопок Start/Stop Service в AdminPanel с SOCKS API. ИЗМЕНЕНИЯ: 1) ✅ handleStartServices() теперь вызывает /api/socks/start вместо /api/services/start 2) ✅ handleStopServices() теперь вызывает /api/socks/stop вместо /api/services/stop 3) ✅ Добавлена проверка PPTP соединения перед запуском SOCKS в /api/socks/start 4) ✅ Исправлена логика возврата статуса: при остановке SOCKS узел всегда возвращается в ping_ok (по ТЗ) 5) ✅ Улучшены сообщения об ошибках на русском языке. ТРЕБУЕТСЯ ТЕСТИРОВАНИЕ: Проверить Start Service с PPTP проверкой, Stop Service с возвратом в ping_ok, обработку ошибок."
+
   - task: "SOCKS Service Launch System - Backend API"
     implemented: true
     working: true
