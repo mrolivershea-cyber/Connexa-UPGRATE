@@ -767,6 +767,43 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], selectAllMode = f
               <CardTitle className="text-sm">Параметры Производительности</CardTitle>
             </CardHeader>
             <CardContent>
+              {/* Пресеты производительности */}
+              <div className="mb-4">
+                <label className="block text-xs text-gray-600 mb-2">Быстрые Пресеты:</label>
+                <div className="flex gap-2 flex-wrap">
+                  <button 
+                    onClick={() => {
+                      setPingConcurrency(15);
+                      setSpeedConcurrency(5);
+                    }}
+                    className="px-3 py-1.5 text-xs rounded bg-yellow-100 hover:bg-yellow-200 border border-yellow-300"
+                  >
+                    🐢 Осторожно (Ping=15, Speed=5)
+                  </button>
+                  <button 
+                    onClick={() => {
+                      setPingConcurrency(25);
+                      setSpeedConcurrency(8);
+                    }}
+                    className="px-3 py-1.5 text-xs rounded bg-green-100 hover:bg-green-200 border border-green-300"
+                  >
+                    ⚖️ Баланс (Ping=25, Speed=8)
+                  </button>
+                  <button 
+                    onClick={() => {
+                      setPingConcurrency(35);
+                      setSpeedConcurrency(10);
+                    }}
+                    className="px-3 py-1.5 text-xs rounded bg-blue-100 hover:bg-blue-200 border border-blue-300"
+                  >
+                    🚀 Максимум (Ping=35, Speed=10)
+                  </button>
+                </div>
+                <div className="text-xs text-gray-500 mt-1">
+                  <em>Баланс рекомендуется: быстро + стабильно</em>
+                </div>
+              </div>
+              
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
                 <div>
                   <label className="block text-xs text-gray-600 mb-1">Параллелизм (Ping)</label>
