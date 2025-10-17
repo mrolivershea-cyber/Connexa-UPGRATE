@@ -804,18 +804,56 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], selectAllMode = f
                 </div>
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
+              <div className="space-y-3">
+                {/* Параллелизм Ping - для всех типов */}
                 <div>
-                  <label className="block text-xs text-gray-600 mb-1">Параллелизм (Ping)</label>
-                  <input type="number" min={1} max={50} value={pingConcurrency} onChange={e => setPingConcurrency(parseInt(e.target.value) || 15)} className="w-full border rounded px-2 py-1" />
+                  <label className="block text-xs text-gray-600 mb-1">
+                    Параллелизм {testType === 'ping_light' ? '(TCP проверка портов)' : testType === 'ping' ? '(PPTP авторизация)' : '(для авто-проверок)'}
+                  </label>
+                  {/* Адаптивные пресеты в зависимости от типа теста */}
+                  <div className="flex gap-2 mb-2">
+                    {testType === 'ping_light' && (
+                      <>
+                        <button onClick={() => setPingConcurrency(50)} className={`px-2 py-1 text-xs rounded ${pingConcurrency === 50 ? 'bg-green-500 text-white' : 'bg-gray-100'}`} title="Медленно но стабильно">
+                          50
+                        </button>
+                        <button onClick={() => setPingConcurrency(100)} className={`px-2 py-1 text-xs rounded ${pingConcurrency === 100 ? 'bg-green-500 text-white' : 'bg-gray-100'}`} title="Рекомендуется">
+                          ⚖️ 100
+                        </button>
+                        <button onClick={() => setPingConcurrency(150)} className={`px-2 py-1 text-xs rounded ${pingConcurrency === 150 ? 'bg-green-500 text-white' : 'bg-gray-100'}`} title="Максимальная скорость">
+                          🚀 150
+                        </button>
+                      </>
+                    )}
+                    {testType === 'ping' && (
+                      <>
+                        <button onClick={() => setPingConcurrency(10)} className={`px-2 py-1 text-xs rounded ${pingConcurrency === 10 ? 'bg-blue-500 text-white' : 'bg-gray-100'}`} title="Осторожно">
+                          10
+                        </button>
+                        <button onClick={() => setPingConcurrency(15)} className={`px-2 py-1 text-xs rounded ${pingConcurrency === 15 ? 'bg-blue-500 text-white' : 'bg-gray-100'}`} title="Рекомендуется">
+                          ⚖️ 15
+                        </button>
+                        <button onClick={() => setPingConcurrency(25)} className={`px-2 py-1 text-xs rounded ${pingConcurrency === 25 ? 'bg-blue-500 text-white' : 'bg-gray-100'}`} title="Быстро">
+                          🚀 25
+                        </button>
+                      </>
+                    )}
+                    {testType === 'speed' && (
+                      <>
+                        <button onClick={() => setPingConcurrency(15)} className={`px-2 py-1 text-xs rounded ${pingConcurrency === 15 ? 'bg-purple-500 text-white' : 'bg-gray-100'}`}>
+                          ⚖️ 15
+                        </button>
+                        <button onClick={() => setPingConcurrency(25)} className={`px-2 py-1 text-xs rounded ${pingConcurrency === 25 ? 'bg-purple-500 text-white' : 'bg-gray-100'}`}>
+                          🚀 25
+                        </button>
+                      </>
+                    )}
+                  </div>
+                  <input type="number" min={1} max={150} value={pingConcurrency} onChange={e => setPingConcurrency(parseInt(e.target.value) || 15)} className="w-full border rounded px-2 py-1 text-sm" />
                 </div>
-                <div>
-                  <label className="block text-xs text-gray-600 mb-1">Параллелизм (Speed)</label>
-                  <input type="number" min={1} max={20} value={speedConcurrency} onChange={e => setSpeedConcurrency(parseInt(e.target.value) || 8)} className="w-full border rounded px-2 py-1" />
-                </div>
-                <div>
-                  <label className="block text-xs text-gray-600 mb-1">Таймауты Ping (сек, через запятую)</label>
-                  {testType === 'ping_light' && (
+
+                {/* Таймауты Ping - только для PING типов */}
+                {(testType === 'ping_light' || testType === 'ping') && (
                     <div className="flex gap-2 mb-2">
                       <button onClick={() => setPingTimeouts('2')} className={`px-2 py-1 text-xs rounded ${pingTimeouts === '2' ? 'bg-green-500 text-white' : 'bg-gray-100'}`}>
                         ⚡ Fast (2s) ~78%
