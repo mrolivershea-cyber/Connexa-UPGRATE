@@ -4758,7 +4758,27 @@ async def start_socks_services(
             # Save previous status for proper restoration later
             node.previous_status = node.status  # Save current status (ping_ok or speed_ok)
             
-            # Start actual SOCKS5 server
+            # ✅ ТЗ ТРЕБОВАНИЕ: Создать PPTP туннель к узлу
+            logger.info(f"🔧 Creating PPTP tunnel to {node.ip} for node {node_id}")
+            tunnel_info = pptp_tunnel_manager.create_tunnel(
+                node_id=node_id,
+                node_ip=node.ip,
+                username=node.login,
+                password=node.password
+            )
+            
+            if not tunnel_info:
+                results.append({
+                    "node_id": node_id,
+                    "ip": node.ip,
+                    "success": False,
+                    "message": f"Не удалось установить PPTP туннель к узлу {node.ip}"
+                })
+                continue
+            
+            logger.info(f"✅ PPTP tunnel created: {tunnel_info['interface']} ({tunnel_info['local_ip']} -> {tunnel_info['remote_ip']})")
+            
+            # Start actual SOCKS5 server (поверх PPTP туннеля)
             socks_success = start_socks_service(
                 node_id=node_id,
                 node_ip=node.ip,  # Target node IP for routing
@@ -4769,6 +4789,8 @@ async def start_socks_services(
             )
             
             if not socks_success:
+                # Cleanup PPTP tunnel if SOCKS failed
+                pptp_tunnel_manager.destroy_tunnel(node_id)
                 results.append({
                     "node_id": node_id,
                     "ip": node.ip,
