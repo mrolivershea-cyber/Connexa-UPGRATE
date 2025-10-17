@@ -907,21 +907,15 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], selectAllMode = f
                   </details>
                 )}
               </div>
-              <div className="text-xs text-gray-500 mt-3 p-2 bg-blue-50 rounded border border-blue-200">
-                💡 <strong>Рекомендация:</strong> Используйте пресеты ⚖️ Balanced для оптимального баланса скорости и точности
+              
+              {/* Компактная подсказка */}
+              <div className="text-xs text-gray-500 mt-2 p-2 bg-blue-50 rounded">
+                💡 <strong>Совет:</strong> Используйте ⚖️ Balanced для оптимального баланса
               </div>
-            </CardContent>
-          </Card>
+            </div>
 
-            </CardContent>
-          </Card>
-
-          {/* Node Selection Info */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm">Выбранные Узлы</CardTitle>
-            </CardHeader>
-            <CardContent>
+          {/* Node Selection - компактная строка вместо Card */}
+          <div className="text-sm px-3 py-2 bg-gray-50 rounded border border-gray-200">
               <div className="text-sm text-gray-600">
                 {(selectAllMode || selectedNodeIds.length > 0) ? (
                   <p>Выбрано {selectAllMode ? `ВСЕ узлы базы (${totalCount} total)` : `${selectedNodeIds.length} узлов`} для тестирования</p>
