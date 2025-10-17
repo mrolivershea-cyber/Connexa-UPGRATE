@@ -29,6 +29,7 @@ from schemas import (
 from services import service_manager, network_tester
 from socks_server import start_socks_service, stop_socks_service, get_socks_stats
 from socks_monitor import start_socks_monitoring, get_proxy_file_content, get_monitoring_stats
+from pptp_tunnel_manager import pptp_tunnel_manager
 
 # Progress Tracking System
 import uuid
