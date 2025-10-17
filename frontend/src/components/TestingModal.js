@@ -916,18 +916,17 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], selectAllMode = f
 
           {/* Node Selection - компактная строка вместо Card */}
           <div className="text-sm px-3 py-2 bg-gray-50 rounded border border-gray-200">
-              <div className="text-sm text-gray-600">
-                {(selectAllMode || selectedNodeIds.length > 0) ? (
-                  <p>Выбрано {selectAllMode ? `ВСЕ узлы базы (${totalCount} total)` : `${selectedNodeIds.length} узлов`} для тестирования</p>
-                ) : (
-                  <p>Используйте чекбоксы в таблице для выбора узлов</p>
-                )}
-                {!selectAllMode && (!selectedNodeIds || selectedNodeIds.length === 0) && (
-                  <div className="text-sm text-red-600">Нет выбранных узлов. Выберите узлы в таблице или используйте Select All.</div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+            {(selectAllMode || selectedNodeIds.length > 0) ? (
+              <span className="text-gray-700">
+                📊 Выбрано: <strong>{selectAllMode ? `ВСЕ (${totalCount})` : selectedNodeIds.length}</strong> узлов
+              </span>
+            ) : (
+              <span className="text-gray-500">Выберите узлы в таблице или используйте Select All</span>
+            )}
+            {!selectAllMode && (!selectedNodeIds || selectedNodeIds.length === 0) && (
+              <span className="text-red-600 ml-2">⚠️ Нет выбранных узлов</span>
+            )}
+          </div>
 
           {/* Progress */}
           {loading && (
