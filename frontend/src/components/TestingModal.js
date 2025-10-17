@@ -723,9 +723,9 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], selectAllMode = f
           </DialogDescription>
         </DialogHeader>
         
-        <div className="space-y-3">
+        <div className="space-y-2">
           {/* Компактный объединенный блок настроек */}
-          <div className="border rounded-lg p-3 space-y-3">
+          <div className="border rounded-lg p-2.5 space-y-2">
             {/* Test Type Selection */}
             <div>
               <label className="block text-xs font-semibold text-gray-700 mb-1">Тип Тестирования</label>
