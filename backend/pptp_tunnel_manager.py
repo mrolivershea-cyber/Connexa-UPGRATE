@@ -134,6 +134,19 @@ nodefaultroute
                             }
                             
                             self.active_tunnels[node_id] = tunnel_info
+                            
+                            # Save ppp_interface to database
+                            try:
+                                from database import SessionLocal, Node as DBNode
+                                db = SessionLocal()
+                                db_node = db.query(DBNode).filter(DBNode.id == node_id).first()
+                                if db_node:
+                                    db_node.ppp_interface = interface
+                                    db.commit()
+                                    logger.info(f"💾 Saved ppp_interface {interface} to database for node {node_id}")
+                                db.close()
+                            except Exception as db_error:
+                                logger.warning(f"⚠️ Could not save ppp_interface to database: {db_error}")
                             return tunnel_info
             
             # Timeout
