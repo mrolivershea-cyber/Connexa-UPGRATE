@@ -333,22 +333,34 @@ class SOCKSServer:
     def _connect_through_node(self, target_host: str, target_port: int) -> Optional[socket.socket]:
         """Connect to target through PPTP tunnel using SO_BINDTODEVICE"""
         try:
+            logger.debug(f"[CONNECT] node={self.node_id} port={self.port} -> {target_host}:{target_port} ppp={getattr(self,'ppp_interface',None)}")
+            
             upstream_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             upstream_socket.settimeout(30)
             
-            # SO_BINDTODEVICE - привязка к ppp интерфейсу для routing через PPTP
+            # SO_MARK для policy routing (КРИТИЧНО!)
+            try:
+                import struct
+                SO_MARK = 36
+                fwmark = max(1, self.port - 1080)
+                upstream_socket.setsockopt(socket.SOL_SOCKET, SO_MARK, struct.pack("I", fwmark))
+                logger.debug(f"[SO_MARK] set={fwmark} (0x{fwmark:x}) for port {self.port}")
+            except Exception as e:
+                logger.warning(f"[SO_MARK] failed: {e}")
+            
+            # SO_BINDTODEVICE - привязка к ppp интерфейсу
             if hasattr(self, 'ppp_interface') and self.ppp_interface:
                 try:
                     SO_BINDTODEVICE = 25
-                    upstream_socket.setsockopt(socket.SOL_SOCKET, SO_BINDTODEVICE, self.ppp_interface.encode())
-                    logger.debug(f"✅ Socket привязан к {self.ppp_interface} для routing через PPTP")
+                    upstream_socket.setsockopt(socket.SOL_SOCKET, SO_BINDTODEVICE, (self.ppp_interface + '\0').encode())
+                    logger.debug(f"[BIND] bound to {self.ppp_interface}")
                 except Exception as bind_error:
-                    logger.warning(f"⚠️ SO_BINDTODEVICE failed for {self.ppp_interface}: {bind_error}")
+                    logger.warning(f"[BIND] failed for {self.ppp_interface}: {bind_error}")
             else:
-                logger.warning(f"⚠️ No ppp_interface for node {self.node_id}, traffic will go direct")
+                logger.warning(f"[WARN] No ppp_interface for node {self.node_id}")
             
             upstream_socket.connect((target_host, target_port))
-            logger.debug(f"✅ Connected to {target_host}:{target_port}")
+            logger.debug(f"[CONNECT OK] node={self.node_id} -> {target_host}:{target_port}")
             return upstream_socket
             
         except Exception as e:
