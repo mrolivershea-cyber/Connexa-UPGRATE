@@ -4831,7 +4831,7 @@ async def start_socks_services(
                 port=socks_port,
                 username=login_prefix,
                 password=password,
-                ppp_interface=tunnel_info['interface'],  # Передать ppp интерфейс для SO_BINDTODEVICE
+                ppp_interface=node.ppp_interface or tunnel_info['interface'],  # Use DB value or fallback to tunnel_info
                 masking_config=masking_settings
             )
             
