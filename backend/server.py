@@ -170,13 +170,13 @@ async def startup_event():
         logger.error(f"Startup admin check/create error: {e}")
     # Clean up any nodes stuck in 'checking' status on startup
     await cleanup_stuck_nodes()
-    # Start background monitoring with improved protection
-    start_background_monitoring()
-    logger.info("✅ Background monitoring RE-ENABLED with enhanced speed_ok protection")
+    # Background monitoring - ОТКЛЮЧЕН для стабильности SOCKS
+    # start_background_monitoring()
+    # logger.info("✅ Background monitoring RE-ENABLED with enhanced speed_ok protection")
     
-    # Start SOCKS monitoring system
-    start_socks_monitoring()
-    logger.info("✅ SOCKS monitoring service started - checking every 30 seconds")
+    # SOCKS monitoring - ОТКЛЮЧЕН для стабильности
+    # start_socks_monitoring()
+    # logger.info("✅ SOCKS monitoring service started - checking every 30 seconds")
     
     # Check and setup PPTP requirements
     setup_pptp_environment()
