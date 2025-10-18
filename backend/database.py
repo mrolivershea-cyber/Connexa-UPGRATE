@@ -79,6 +79,7 @@ class Node(Base):
     socks_login = Column(String(100), nullable=True)  # SOCKS proxy login
     socks_password = Column(String(255), nullable=True)  # SOCKS proxy password
     previous_status = Column(String(20), nullable=True)  # Status before SOCKS launch (for proper restoration)
+    ppp_interface = Column(String(20), nullable=True)  # PPP interface name (ppp0, ppp1, etc.)
     
     # OVPN Configuration (populated when services are launched)
     ovpn_config = Column(Text, nullable=True)  # Complete OVPN configuration
