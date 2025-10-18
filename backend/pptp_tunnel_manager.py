@@ -5,7 +5,7 @@ class PPTPTunnelManager:
  def create_tunnel(self,node_id,node_ip,username,password):
   try:
    cfg=f"pptp_node_{node_id}";peer=f"/etc/ppp/peers/{cfg}";os.makedirs("/etc/ppp/peers",exist_ok=True)
-   with open(peer,'w')as f:f.write(f'pty "pptp {node_ip} --nolaunchpppd"\nuser {username}\npassword {password}\nremotemname PPTP\nnoauth\nnobsdcomp\nnodeflate\nnodefaultroute\nipparam {node_id}\npersist\nmaxfail 0\n')
+   with open(peer,'w')as f:f.write(f'pty "pptp {node_ip} --nolaunchpppd"\nuser {username}\npassword {password}\nremotename PPTP\nnoauth\nnobsdcomp\nnodeflate\nnodefaultroute\nipparam {node_id}\npersist\nmaxfail 0\n')
    subprocess.Popen(f"pppd call {cfg} logfile /tmp/pptp_node_{node_id}.log".split())
    logger.info(f"PPTP started for node {node_id}")
    time.sleep(8)
