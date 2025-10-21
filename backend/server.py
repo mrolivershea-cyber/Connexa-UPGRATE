@@ -4897,6 +4897,32 @@ async def start_socks_services(
                 })
                 continue
             
+            # ✅ ОБЯЗАТЕЛЬНАЯ ПРОВЕРКА: Трафик РЕАЛЬНО проходит через SOCKS → PPTP
+            logger.info(f"🔍 Запуск обязательной проверки трафика через SOCKS для узла {node_id}")
+            startup_retries = int(os.environ.get('SOCKS_STARTUP_CHECK_RETRIES', 5))
+            traffic_check = await verify_socks_traffic(
+                node_ip=node.ip,
+                socks_port=socks_port,
+                socks_login=login_prefix,
+                socks_password=password,
+                retries=startup_retries
+            )
+            
+            if not traffic_check.get("success"):
+                # Откатить: остановить SOCKS и удалить PPTP туннель
+                logger.error(f"❌ SOCKS трафик не проходит для узла {node_id} после {startup_retries} попыток, откатываем...")
+                stop_socks_service(node_id)
+                pptp_tunnel_manager.destroy_tunnel(node_id)
+                results.append({
+                    "node_id": node_id,
+                    "ip": node.ip,
+                    "success": False,
+                    "message": f"SOCKS трафик не проходит после {startup_retries} попыток проверки"
+                })
+                continue
+            
+            logger.info(f"✅ SOCKS трафик успешно проверен для узла {node_id} (попытка {traffic_check.get('attempt')})")
+            
             # Update node with SOCKS data
             # ✅ ТЗ ТРЕБОВАНИЕ: SOCKS должен быть доступен извне по IP сервера
             # Получаем внешний адрес из переменной окружения или определяем автоматически
