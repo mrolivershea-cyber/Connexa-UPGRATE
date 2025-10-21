@@ -5,7 +5,7 @@ import json
 import time
 
 # Test the import functionality
-base_url = "https://vpn-tester.preview.emergentagent.com"
+base_url = "https://vpnproxy.preview.emergentagent.com"
 api_url = f"{base_url}/api"
 
 # Login

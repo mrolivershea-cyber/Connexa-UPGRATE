@@ -6,7 +6,7 @@ from datetime import datetime
 import time
 
 # Comprehensive test for all timestamp scenarios from review request
-BASE_URL = "https://vpn-tester.preview.emergentagent.com"
+BASE_URL = "https://vpnproxy.preview.emergentagent.com"
 API_URL = f"{BASE_URL}/api"
 
 def login():
