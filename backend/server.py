@@ -4698,6 +4698,63 @@ async def get_socks_proxy_file(
         logger.error(f"Error getting SOCKS proxy file: {e}")
         return {"content": "# Ошибка получения файла SOCKS прокси"}
 
+
+async def verify_socks_traffic(node_ip: str, socks_port: int, socks_login: str, socks_password: str, retries: int = 5) -> dict:
+    """
+    Проверить что трафик РЕАЛЬНО проходит через SOCKS → PPTP
+    Мягкая проверка: несколько попыток с задержкой между ними
+    """
+    import subprocess
+    
+    retry_delay = int(os.environ.get('SOCKS_STARTUP_RETRY_DELAY', 20))
+    check_timeout = int(os.environ.get('SOCKS_STARTUP_CHECK_TIMEOUT', 30))
+    
+    for attempt in range(1, retries + 1):
+        try:
+            logger.info(f"🔍 Проверка SOCKS трафика (попытка {attempt}/{retries}): порт {socks_port}")
+            
+            # Простая проверка TCP соединения через SOCKS к 1.1.1.1:443
+            cmd = [
+                'timeout', str(check_timeout),
+                'curl', '-sS',
+                '-x', f'socks5://{socks_login}:{socks_password}@127.0.0.1:{socks_port}',
+                '--connect-timeout', str(check_timeout),
+                '--max-time', str(check_timeout),
+                'https://1.1.1.1'
+            ]
+            
+            result = subprocess.run(
+                cmd,
+                capture_output=True,
+                text=True,
+                timeout=check_timeout + 5
+            )
+            
+            if result.returncode == 0:
+                logger.info(f"✅ SOCKS трафик проверен успешно (попытка {attempt}): порт {socks_port}")
+                return {"success": True, "attempt": attempt, "message": f"SOCKS трафик проходит (попытка {attempt})"}
+            else:
+                logger.warning(f"⚠️ SOCKS проверка не прошла (попытка {attempt}/{retries}): {result.stderr[:200]}")
+                
+                # Если не последняя попытка - подождать
+                if attempt < retries:
+                    logger.info(f"⏳ Ожидание {retry_delay} секунд перед следующей попыткой...")
+                    await asyncio.sleep(retry_delay)
+                    
+        except subprocess.TimeoutExpired:
+            logger.warning(f"⏱️ SOCKS проверка timeout (попытка {attempt}/{retries})")
+            if attempt < retries:
+                await asyncio.sleep(retry_delay)
+        except Exception as e:
+            logger.error(f"❌ Ошибка проверки SOCKS (попытка {attempt}/{retries}): {e}")
+            if attempt < retries:
+                await asyncio.sleep(retry_delay)
+    
+    # Все попытки исчерпаны
+    logger.error(f"❌ SOCKS трафик не проходит после {retries} попыток: порт {socks_port}")
+    return {"success": False, "attempt": retries, "message": f"SOCKS трафик не проходит после {retries} попыток"}
+
+
 @api_router.post("/socks/start")
 async def start_socks_services(
     request_data: dict,
