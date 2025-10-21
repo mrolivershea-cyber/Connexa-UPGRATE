@@ -341,7 +341,7 @@ class SOCKSServer:
             logger.debug(f"[CONNECT] node={self.node_id} port={self.port} -> {target_host}:{target_port} ppp={getattr(self,'ppp_interface',None)}")
             
             upstream_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            upstream_socket.settimeout(30)
+            upstream_socket.settimeout(self.connect_timeout)  # Используем мягкий таймаут из .env
             
             # SO_MARK для policy routing (КРИТИЧНО!)
             try:
