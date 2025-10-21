@@ -379,7 +379,7 @@ class SOCKSServer:
             bytes_transferred = 0
             
             while True:
-                ready, _, _ = select.select(sockets, [], [], 30)  # 30 second timeout
+                ready, _, _ = select.select(sockets, [], [], self.idle_timeout)  # Мягкий таймаут из .env
                 
                 if not ready:
                     break  # Timeout
