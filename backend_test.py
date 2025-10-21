@@ -19855,6 +19855,20 @@ City: TestCity"""
             print("❌ Login failed - stopping tests")
             return False
         
+        # ========== SOCKS SOFT CHECKS TESTS (Russian User Review Request) ==========
+        print("\n" + "🔥" * 80)
+        print("🇷🇺 SOCKS SOFT CHECKS IMPLEMENTATION TESTING")
+        print("🔥" * 80)
+        print("КОНТЕКСТ: Протестировать реализацию мягких проверок SOCKS над PPTP")
+        print("РЕАЛИЗОВАННЫЕ ИЗМЕНЕНИЯ:")
+        print("1. Увеличены таймауты в socks_server.py (connect_timeout: 120s, read_timeout: 600s, idle_timeout: 600s)")
+        print("2. Добавлена функция verify_socks_traffic() в server.py (5 попыток, 20s задержка, 30s timeout)")
+        print("3. Создан PPTP Watchdog (pptp_watchdog.py) - проверка каждые 180s с гистерезисом")
+        print("4. Конфигурация через .env (SOCKS_CONNECT_TIMEOUT, SOCKS_READ_TIMEOUT, WATCHDOG_CHECK_INTERVAL)")
+        print("🔥" * 80)
+        
+        self.test_socks_soft_checks_comprehensive()
+        
         # ========== SELECT ALL WITH FILTERS TESTS (Russian User Review Request) ==========
         print("\n" + "🔥" * 80)
         print("🇷🇺 COMPREHENSIVE TESTING: Select All with Filters для Testing и SOCKS")
