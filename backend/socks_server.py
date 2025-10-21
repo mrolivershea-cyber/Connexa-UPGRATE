@@ -128,6 +128,11 @@ class SOCKSServer:
         self.server_thread: Optional[Thread] = None
         self.active_connections: Set[Thread] = set()
         
+        # Timeouts (мягкие для медленных соединений)
+        self.connect_timeout = int(os.environ.get('SOCKS_CONNECT_TIMEOUT', 120))
+        self.read_timeout = int(os.environ.get('SOCKS_READ_TIMEOUT', 600))
+        self.idle_timeout = int(os.environ.get('SOCKS_IDLE_TIMEOUT', 600))
+        
         # Traffic masking components
         self.obfuscation_key = secrets.token_bytes(32) if masking_config.get('obfuscation') else None
         self.timing_randomizer = TimingRandomizer() if masking_config.get('timing_randomization') else None
