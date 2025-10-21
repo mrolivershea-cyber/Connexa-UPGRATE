@@ -7,7 +7,7 @@ from datetime import datetime
 
 class FocusedSpeedTester:
     def __init__(self):
-        self.base_url = "https://vpnproxy.preview.emergentagent.com"
+        self.base_url = "https://proxy-route-fix.preview.emergentagent.com"
         self.api_url = f"{self.base_url}/api"
         self.token = None
         self.headers = {'Content-Type': 'application/json'}
