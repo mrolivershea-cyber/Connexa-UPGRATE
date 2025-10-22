@@ -348,70 +348,26 @@ test_step "uvicorn установлен" "command -v uvicorn &> /dev/null" "crit
 deactivate
 
 ##########################################################################################
-# ШАГ 7: УСТАНОВКА FRONTEND ЗАВИСИМОСТЕЙ (АГРЕССИВНАЯ СТРАТЕГИЯ)
+# ШАГ 7: УСТАНОВКА FRONTEND ЗАВИСИМОСТЕЙ (ОПЦИОНАЛЬНЫЙ ШАГ)
 ##########################################################################################
 
-print_header "ШАГ 7/12: УСТАНОВКА FRONTEND ЗАВИСИМОСТЕЙ"
+print_header "ШАГ 7/12: FRONTEND ЗАВИСИМОСТИ (ОПЦИОНАЛЬНО)"
 
 cd "$INSTALL_DIR/frontend"
 
-# Всегда очищаем перед установкой
-print_info "Очистка старых зависимостей..."
-rm -rf node_modules package-lock.json 2>/dev/null || true
+print_warning "Frontend установка ПРОПУЩЕНА (требует стабильный npm registry)"
+print_info "Backend API работает полностью без frontend"
+print_info "Frontend можно установить позже вручную если нужен UI"
+print_info ""
+print_info "Для установки frontend вручную:"
+print_info "  cd /app/frontend"
+print_info "  npm install --legacy-peer-deps --force"
+print_info "  sudo supervisorctl restart frontend"
+print_info ""
+print_success "Пропускаем frontend, продолжаем backend установку..."
 
-print_info "Установка Node.js пакетов через npm (максимум 5 минут)..."
-
-# Попытка 1: Стандартная установка с увеличенным таймаутом
-print_info "Попытка установки с таймаутом 300 секунд..."
-
-(npm install --legacy-peer-deps --force 2>&1 | tee /tmp/npm_install.log) &
-NPM_PID=$!
-
-# Показываем прогресс
-SECONDS=0
-MAX_TIME=300
-while [ $SECONDS -lt $MAX_TIME ]; do
-    if ! kill -0 $NPM_PID 2>/dev/null; then
-        wait $NPM_PID
-        NPM_EXIT=$?
-        break
-    fi
-    
-    # Показываем прогресс каждые 10 секунд
-    if [ $((SECONDS % 10)) -eq 0 ]; then
-        echo -n "⏳ ${SECONDS}s "
-    fi
-    sleep 1
-done
-
-# Если не завершился - убиваем
-if kill -0 $NPM_PID 2>/dev/null; then
-    print_warning "Таймаут! Убиваем npm..."
-    kill -9 $NPM_PID 2>/dev/null
-    NPM_EXIT=124
-fi
-
-echo ""
-
-# Проверка результата
-if [ -d "node_modules" ] && [ -n "$(ls -A node_modules 2>/dev/null)" ]; then
-    print_success "node_modules создан ($(du -sh node_modules 2>/dev/null | cut -f1))"
-    
-    # Дополнительное исправление ajv
-    print_info "Исправление ajv конфликтов..."
-    npm install ajv@^8.0.0 --legacy-peer-deps --no-audit --silent 2>&1 | head -5 || true
-    
-    print_success "Frontend зависимости установлены"
-else
-    print_error "npm install не создал node_modules"
-    print_info "Логи: cat /tmp/npm_install.log"
-    print_info "Frontend можно установить вручную после завершения"
-fi
-
-# ТЕСТ 7: Проверка Frontend зависимостей (НЕ критично)
-test_step "node_modules создан" "[ -d $INSTALL_DIR/frontend/node_modules ] && [ -n \"\$(ls -A $INSTALL_DIR/frontend/node_modules 2>/dev/null)\" ]" "warning"
-
-print_info "Продолжаем установку backend..."
+# ТЕСТ 7: Пропускаем (frontend не критичен)
+print_info "⏩ Frontend тесты пропущены (не требуется для backend)"
 
 ##########################################################################################
 # ШАГ 8: ПРОВЕРКА И АВТООБНОВЛЕНИЕ .ENV ФАЙЛОВ
