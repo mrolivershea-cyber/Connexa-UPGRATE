@@ -314,60 +314,54 @@ test_step "uvicorn установлен" "command -v uvicorn &> /dev/null" "crit
 deactivate
 
 ##########################################################################################
-# ШАГ 7: УСТАНОВКА FRONTEND ЗАВИСИМОСТЕЙ (С ТАЙМАУТОМ)
+# ШАГ 7: УСТАНОВКА FRONTEND ЗАВИСИМОСТЕЙ (С ИСПРАВЛЕНИЕМ КОНФЛИКТОВ)
 ##########################################################################################
 
 print_header "ШАГ 7/12: УСТАНОВКА FRONTEND ЗАВИСИМОСТЕЙ"
 
 cd "$INSTALL_DIR/frontend"
 
-if [ ! -d "node_modules" ]; then
-    print_info "Установка Node.js пакетов через npm (максимум 3 минуты)..."
+if [ ! -d "node_modules" ] || [ ! "$(ls -A node_modules 2>/dev/null)" ]; then
+    print_info "Установка Node.js пакетов через npm..."
     
-    # Запускаем npm install в фоне с таймаутом
-    print_info "Попытка установки с таймаутом 180 секунд..."
+    # Попытка 1: Обычная установка с таймаутом
+    print_info "Попытка 1: npm install с --legacy-peer-deps --force (максимум 3 минуты)..."
     
-    # Функция установки с таймаутом
-    (
-        npm install --legacy-peer-deps --no-audit 2>&1 | tee /tmp/npm_install.log &
-        NPM_PID=$!
-        
-        # Ждём максимум 180 секунд
-        SECONDS=0
-        while [ $SECONDS -lt 180 ]; do
-            if ! kill -0 $NPM_PID 2>/dev/null; then
-                # npm завершился
-                wait $NPM_PID
-                exit $?
-            fi
-            sleep 5
-            echo -n "."
-        done
-        
-        # Таймаут - убиваем npm
+    timeout 180 npm install --legacy-peer-deps --force --no-audit 2>&1 | tee /tmp/npm_install.log | tail -5 &
+    NPM_PID=$!
+    
+    # Показываем прогресс
+    SECONDS=0
+    while [ $SECONDS -lt 180 ]; do
+        if ! kill -0 $NPM_PID 2>/dev/null; then
+            wait $NPM_PID
+            NPM_EXIT=$?
+            break
+        fi
+        echo -n "."
+        sleep 5
+    done
+    
+    # Если не завершился - убиваем
+    if kill -0 $NPM_PID 2>/dev/null; then
         kill -9 $NPM_PID 2>/dev/null
-        exit 124
-    ) &
-    
-    INSTALL_PID=$!
-    wait $INSTALL_PID
-    INSTALL_EXIT=$?
+        NPM_EXIT=124
+    fi
     
     echo ""
     
-    if [ $INSTALL_EXIT -eq 124 ]; then
-        print_warning "npm install превысил таймаут (3 минуты)"
-        print_info "Frontend будет установлен позже вручную"
-        print_info "Команда: cd $INSTALL_DIR/frontend && npm install"
-    elif [ $INSTALL_EXIT -eq 0 ]; then
-        if [ -d "node_modules" ] && [ "$(ls -A node_modules 2>/dev/null)" ]; then
-            print_success "Frontend зависимости установлены"
-        else
-            print_warning "npm завершился но node_modules пустой"
-        fi
+    # Проверка результата
+    if [ -d "node_modules" ] && [ "$(ls -A node_modules 2>/dev/null)" ]; then
+        print_success "npm install завершён"
+        
+        # Исправление проблем с ajv (если есть)
+        print_info "Проверка и исправление зависимостей..."
+        npm install ajv@latest --legacy-peer-deps --no-audit --silent 2>&1 | grep -v "npm WARN" || true
+        
+        print_success "Frontend зависимости установлены"
     else
-        print_warning "npm install завершился с ошибкой (код: $INSTALL_EXIT)"
-        print_info "Frontend будет установлен позже вручную"
+        print_warning "npm install не установил зависимости"
+        print_info "Frontend можно установить позже вручную"
     fi
 else
     print_info "node_modules уже существует"
@@ -375,9 +369,8 @@ fi
 
 # ТЕСТ 7: Проверка Frontend зависимостей (НЕ критично)
 test_step "node_modules создан" "[ -d $INSTALL_DIR/frontend/node_modules ]" "warning"
-test_step "react установлен" "[ -d $INSTALL_DIR/frontend/node_modules/react ] || true" "warning"
 
-print_info "Продолжаем установку backend (frontend можно установить позже)..."
+print_info "Продолжаем установку (frontend опционален)..."
 
 ##########################################################################################
 # ШАГ 8: ПРОВЕРКА .ENV ФАЙЛОВ
