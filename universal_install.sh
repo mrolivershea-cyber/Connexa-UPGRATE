@@ -285,10 +285,10 @@ fi
 source venv/bin/activate
 
 print_info "Обновление pip..."
-pip install --upgrade pip > /dev/null 2>&1
+pip install --upgrade pip --quiet 2>&1 | grep -v "WARNING" || true
 
 print_info "Установка Python пакетов из requirements.txt..."
-pip install -r requirements.txt > /dev/null 2>&1
+pip install -r requirements.txt --quiet 2>&1 | grep -v "WARNING" || true
 
 print_success "Python зависимости установлены"
 
