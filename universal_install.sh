@@ -450,7 +450,7 @@ import sys
 sys.path.insert(0, '/app/backend')
 
 try:
-    from database import Base, engine, SessionLocal, User, get_password_hash
+    from database import Base, engine, SessionLocal, User, hash_password
     
     # Создать все таблицы
     Base.metadata.create_all(bind=engine)
