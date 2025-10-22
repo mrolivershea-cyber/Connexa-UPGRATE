@@ -7,7 +7,7 @@ import time
 from datetime import datetime
 
 class PingTestFocused:
-    def __init__(self, base_url="https://proxy-route-fix.preview.emergentagent.com"):
+    def __init__(self, base_url="https://socks-pptp-bridge.preview.emergentagent.com"):
         self.base_url = base_url
         self.api_url = f"{base_url}/api"
         self.token = None

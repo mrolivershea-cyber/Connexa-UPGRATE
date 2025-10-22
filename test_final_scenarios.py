@@ -6,7 +6,7 @@ import time
 import random
 
 # Test the restored import functionality
-base_url = "https://proxy-route-fix.preview.emergentagent.com"
+base_url = "https://socks-pptp-bridge.preview.emergentagent.com"
 api_url = f"{base_url}/api"
 
 # Login

@@ -4931,7 +4931,7 @@ async def start_socks_services(
                 # Пробуем получить из REACT_APP_BACKEND_URL
                 backend_url = os.environ.get('REACT_APP_BACKEND_URL', '')
                 if backend_url:
-                    # Извлекаем домен из URL (например: https://proxy-route-fix.preview.emergentagent.com)
+                    # Извлекаем домен из URL (например: https://socks-pptp-bridge.preview.emergentagent.com)
                     import re
                     domain_match = re.search(r'https?://([^/]+)', backend_url)
                     if domain_match:
