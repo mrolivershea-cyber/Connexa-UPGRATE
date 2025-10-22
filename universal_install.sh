@@ -173,10 +173,10 @@ test_step "supervisor установлен" "command -v supervisorctl &> /dev/nu
 print_success "Системные пакеты установлены"
 
 ##########################################################################################
-# ШАГ 2: УСТАНОВКА NODE.JS И YARN
+# ШАГ 2: УСТАНОВКА NODE.JS (БЕЗ YARN)
 ##########################################################################################
 
-print_header "ШАГ 2/12: УСТАНОВКА NODE.JS И YARN"
+print_header "ШАГ 2/12: УСТАНОВКА NODE.JS"
 
 if ! command -v node &> /dev/null || [ "$(node --version | cut -d'.' -f1 | tr -d 'v')" -lt 18 ]; then
     print_info "Установка Node.js 18.x..."
@@ -190,31 +190,16 @@ else
     print_info "Node.js уже установлен: $(node --version)"
 fi
 
-if ! command -v yarn &> /dev/null; then
-    print_info "Установка Yarn через corepack (встроен в Node.js 18)..."
-    corepack enable 2>&1 | grep -v "warning" || true
-    corepack prepare yarn@stable --activate 2>&1 | grep -v "warning" || true
-    
-    # Если corepack не сработал, пробуем npm
-    if ! command -v yarn &> /dev/null; then
-        print_info "Установка Yarn через npm..."
-        npm install -g yarn 2>&1 | grep -v "npm WARN" || true
-    fi
-    
-    # Проверка финальная
-    if command -v yarn &> /dev/null; then
-        print_success "Yarn установлен: $(yarn --version)"
-    else
-        print_warning "Yarn не установлен, но это не критично"
-        print_info "Frontend зависимости будут установлены через npm"
-    fi
-else
-    print_info "Yarn уже установлен: $(yarn --version)"
-fi
+# Настройка npm для работы с проблемами сети
+print_info "Настройка npm для стабильной работы..."
+npm config set fetch-retry-mintimeout 20000 2>/dev/null || true
+npm config set fetch-retry-maxtimeout 120000 2>/dev/null || true
+npm config set fetch-timeout 300000 2>/dev/null || true
+npm config set registry https://registry.npmjs.org/ 2>/dev/null || true
 
-# ТЕСТ 2: Проверка Node.js и Yarn
+# ТЕСТ 2: Проверка Node.js
 test_step "Node.js версия >= 18" "[ \$(node --version | cut -d'.' -f1 | tr -d 'v') -ge 18 ]" "critical"
-test_step "Yarn доступен" "command -v yarn &> /dev/null" "warning"
+test_step "npm доступен" "command -v npm &> /dev/null" "critical"
 
 ##########################################################################################
 # ШАГ 3: КЛОНИРОВАНИЕ РЕПОЗИТОРИЯ
