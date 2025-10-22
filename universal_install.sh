@@ -473,11 +473,13 @@ if [ -f "$INSTALL_DIR/backend/.env" ]; then
         ADMIN_IP=$(grep ADMIN_SERVER_IP "$INSTALL_DIR/backend/.env" | cut -d'=' -f2 | tr -d '"' | tr -d "'")
         print_info "ADMIN_SERVER_IP = $ADMIN_IP"
         
-        # Автоматически обновить на реальный IP если это emergentagent.com или localhost
-        if [[ "$ADMIN_IP" == *"emergentagent.com"* ]] || [[ "$ADMIN_IP" == "localhost"* ]]; then
-            print_warning "ADMIN_SERVER_IP указывает на тестовый домен, обновляем..."
+        # Автоматически обновить на реальный IP если это emergentagent или localhost
+        if [[ "$ADMIN_IP" == *"emergent"* ]] || [[ "$ADMIN_IP" == "localhost"* ]] || [[ "$ADMIN_IP" == "127.0.0.1"* ]]; then
+            print_warning "ADMIN_SERVER_IP указывает на тестовый домен ($ADMIN_IP), обновляем..."
             sed -i "s|ADMIN_SERVER_IP=.*|ADMIN_SERVER_IP=$SERVER_IP|g" "$INSTALL_DIR/backend/.env"
             print_success "ADMIN_SERVER_IP обновлён на $SERVER_IP"
+        else
+            print_info "ADMIN_SERVER_IP уже правильный: $ADMIN_IP"
         fi
     else
         print_warning "ADMIN_SERVER_IP не найден, добавляем..."
