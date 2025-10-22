@@ -167,7 +167,10 @@ print_header "ШАГ 2/12: УСТАНОВКА NODE.JS И YARN"
 if ! command -v node &> /dev/null || [ "$(node --version | cut -d'.' -f1 | tr -d 'v')" -lt 18 ]; then
     print_info "Установка Node.js 18.x..."
     curl -fsSL https://deb.nodesource.com/setup_18.x | bash - > /dev/null 2>&1
-    apt-get install -y -qq nodejs
+    apt-get install -y -qq \
+        -o Dpkg::Options::="--force-confdef" \
+        -o Dpkg::Options::="--force-confold" \
+        nodejs 2>&1 | grep -v "debconf:" || true
     print_success "Node.js установлен: $(node --version)"
 else
     print_info "Node.js уже установлен: $(node --version)"
