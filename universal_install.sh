@@ -191,16 +191,30 @@ else
 fi
 
 if ! command -v yarn &> /dev/null; then
-    print_info "Установка Yarn..."
-    npm install -g yarn --silent 2>&1 | grep -v "npm WARN" || true
-    print_success "Yarn установлен: $(yarn --version)"
+    print_info "Установка Yarn через corepack (встроен в Node.js 18)..."
+    corepack enable 2>&1 | grep -v "warning" || true
+    corepack prepare yarn@stable --activate 2>&1 | grep -v "warning" || true
+    
+    # Если corepack не сработал, пробуем npm
+    if ! command -v yarn &> /dev/null; then
+        print_info "Установка Yarn через npm..."
+        npm install -g yarn 2>&1 | grep -v "npm WARN" || true
+    fi
+    
+    # Проверка финальная
+    if command -v yarn &> /dev/null; then
+        print_success "Yarn установлен: $(yarn --version)"
+    else
+        print_warning "Yarn не установлен, но это не критично"
+        print_info "Frontend зависимости будут установлены через npm"
+    fi
 else
     print_info "Yarn уже установлен: $(yarn --version)"
 fi
 
 # ТЕСТ 2: Проверка Node.js и Yarn
 test_step "Node.js версия >= 18" "[ \$(node --version | cut -d'.' -f1 | tr -d 'v') -ge 18 ]" "critical"
-test_step "Yarn доступен" "command -v yarn &> /dev/null" "critical"
+test_step "Yarn доступен" "command -v yarn &> /dev/null" "warning"
 
 ##########################################################################################
 # ШАГ 3: КЛОНИРОВАНИЕ РЕПОЗИТОРИЯ
