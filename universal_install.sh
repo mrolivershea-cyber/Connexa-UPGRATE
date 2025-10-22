@@ -498,7 +498,7 @@ import sys
 sys.path.insert(0, '/app/backend')
 
 try:
-    from database import SessionLocal, User, get_password_hash
+    from database import SessionLocal, User, hash_password
     
     db = SessionLocal()
     admin = db.query(User).filter(User.username == "admin").first()
