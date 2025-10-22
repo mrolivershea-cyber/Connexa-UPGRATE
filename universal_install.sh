@@ -337,8 +337,18 @@ print_header "ШАГ 7/12: УСТАНОВКА FRONTEND ЗАВИСИМОСТЕЙ"
 cd "$INSTALL_DIR/frontend"
 
 if [ ! -d "node_modules" ]; then
-    print_info "Установка Node.js пакетов через Yarn..."
-    yarn install --silent --non-interactive 2>&1 | grep -v "warning" || true
+    print_info "Установка Node.js пакетов..."
+    
+    # Попробовать yarn если доступен
+    if command -v yarn &> /dev/null; then
+        print_info "Используем Yarn..."
+        yarn install --silent --non-interactive 2>&1 | grep -v "warning" || true
+    else
+        # Fallback на npm
+        print_info "Используем npm (fallback)..."
+        npm install --silent 2>&1 | grep -v "npm WARN" || true
+    fi
+    
     print_success "Frontend зависимости установлены"
 else
     print_warning "node_modules уже существует. Пропускаю установку"
