@@ -464,7 +464,7 @@ try:
     if not existing_admin:
         admin = User(
             username="admin",
-            password=get_password_hash("admin")
+            password=hash_password("admin")
         )
         db.add(admin)
         db.commit()
