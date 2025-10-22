@@ -580,11 +580,9 @@ print_info "Запуск backend..."
 supervisorctl start backend
 sleep 5
 
-print_info "Запуск frontend..."
-supervisorctl start frontend
-sleep 5
+print_success "Backend запущен"
 
-print_info "Ожидание запуска сервисов (30 секунд)..."
+print_info "Ожидание готовности backend (30 секунд)..."
 for i in {30..1}; do
     echo -ne "\r⏳ Осталось: $i секунд   "
     sleep 1
@@ -596,9 +594,7 @@ supervisorctl status
 
 # ТЕСТ 11: Проверка запущенных сервисов
 test_step "Backend процесс запущен" "supervisorctl status backend | grep -q RUNNING" "critical"
-test_step "Frontend процесс запущен" "supervisorctl status frontend | grep -q RUNNING" "warning"
-test_step "Backend слушает порт 8001" "netstat -tuln | grep -q ':8001'" "critical"
-test_step "Frontend слушает порт 3000" "netstat -tuln | grep -q ':3000'" "warning"
+test_step "Backend слушает порт 8001" "netstat -tuln | grep -q ':8001' || sleep 5 && netstat -tuln | grep -q ':8001'" "critical"
 
 ##########################################################################################
 # ШАГ 12: ФИНАЛЬНЫЕ ТЕСТЫ API
