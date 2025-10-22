@@ -533,7 +533,7 @@ print_success "Backend конфигурация создана"
 print_info "Создание конфигурации frontend..."
 cat > /etc/supervisor/conf.d/connexa-frontend.conf << EOF
 [program:frontend]
-command=/usr/bin/yarn start
+command=/usr/bin/npm start
 directory=$INSTALL_DIR/frontend
 autostart=true
 autorestart=true
