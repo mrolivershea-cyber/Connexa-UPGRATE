@@ -737,6 +737,22 @@ echo "  sudo supervisorctl restart all"
 echo ""
 echo "════════════════════════════════════════════════════════════════════════════════"
 
+# Если frontend не запустился - показать как исправить
+if ! supervisorctl status frontend | grep -q "RUNNING"; then
+    echo ""
+    echo "⚠️  Frontend не запустился из-за конфликтов npm зависимостей"
+    echo ""
+    echo "Для исправления выполните:"
+    echo "  cd /app/frontend"
+    echo "  rm -rf node_modules package-lock.json"
+    echo "  npm install --legacy-peer-deps --force"
+    echo "  npm install ajv@latest --legacy-peer-deps"
+    echo "  sudo supervisorctl restart frontend"
+    echo ""
+    echo "Или используйте только Backend API: http://$(hostname -I | awk '{print $1}'):8001/docs"
+    echo ""
+fi
+
 # Проверка критических проблем
 if ! [ -e /dev/ppp ]; then
     echo ""
