@@ -507,7 +507,7 @@ try:
         print("✅ Пользователь admin существует")
     else:
         print("⚠️  Пользователь admin не найден, создаём...")
-        admin = User(username="admin", password=get_password_hash("admin"))
+        admin = User(username="admin", password=hash_password("admin"))
         db.add(admin)
         db.commit()
         print("✅ Пользователь admin создан")
