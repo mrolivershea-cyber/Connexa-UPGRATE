@@ -704,10 +704,23 @@ echo "════════════════════════�
 echo ""
 echo "1. Откройте браузер и перейдите на URL админки"
 echo "2. Войдите с логином admin/admin"
-echo "3. Импортируйте узлы через кнопку 'Import'"
-echo "4. Выберите узлы с статусом 'ping_ok' или 'speed_ok'"
-echo "5. Нажмите 'Start Services' для запуска SOCKS прокси"
 echo ""
+
+# Если frontend не установлен - показать как установить
+if [ ! -d "$INSTALL_DIR/frontend/node_modules" ] || [ ! "$(ls -A $INSTALL_DIR/frontend/node_modules 2>/dev/null)" ]; then
+    echo "⚠️  Frontend зависимости не установлены из-за проблем с сетью"
+    echo ""
+    echo "Для установки frontend вручную выполните:"
+    echo "  cd $INSTALL_DIR/frontend"
+    echo "  npm install --legacy-peer-deps"
+    echo "  sudo supervisorctl restart frontend"
+    echo ""
+else
+    echo "3. Импортируйте узлы через кнопку 'Import'"
+    echo "4. Выберите узлы с статусом 'ping_ok' или 'speed_ok'"
+    echo "5. Нажмите 'Start Services' для запуска SOCKS прокси"
+    echo ""
+fi
 echo "════════════════════════════════════════════════════════════════════════════════"
 echo -e "${CYAN}📝 ПОЛЕЗНЫЕ КОМАНДЫ${NC}"
 echo "════════════════════════════════════════════════════════════════════════════════"
