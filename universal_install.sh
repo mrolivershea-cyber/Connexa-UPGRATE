@@ -348,63 +348,70 @@ test_step "uvicorn установлен" "command -v uvicorn &> /dev/null" "crit
 deactivate
 
 ##########################################################################################
-# ШАГ 7: УСТАНОВКА FRONTEND ЗАВИСИМОСТЕЙ (С ИСПРАВЛЕНИЕМ КОНФЛИКТОВ)
+# ШАГ 7: УСТАНОВКА FRONTEND ЗАВИСИМОСТЕЙ (АГРЕССИВНАЯ СТРАТЕГИЯ)
 ##########################################################################################
 
 print_header "ШАГ 7/12: УСТАНОВКА FRONTEND ЗАВИСИМОСТЕЙ"
 
 cd "$INSTALL_DIR/frontend"
 
-if [ ! -d "node_modules" ] || [ ! "$(ls -A node_modules 2>/dev/null)" ]; then
-    print_info "Установка Node.js пакетов через npm..."
-    
-    # Попытка 1: Обычная установка с таймаутом
-    print_info "Попытка 1: npm install с --legacy-peer-deps --force (максимум 3 минуты)..."
-    
-    timeout 180 npm install --legacy-peer-deps --force --no-audit 2>&1 | tee /tmp/npm_install.log | tail -5 &
-    NPM_PID=$!
-    
-    # Показываем прогресс
-    SECONDS=0
-    while [ $SECONDS -lt 180 ]; do
-        if ! kill -0 $NPM_PID 2>/dev/null; then
-            wait $NPM_PID
-            NPM_EXIT=$?
-            break
-        fi
-        echo -n "."
-        sleep 5
-    done
-    
-    # Если не завершился - убиваем
-    if kill -0 $NPM_PID 2>/dev/null; then
-        kill -9 $NPM_PID 2>/dev/null
-        NPM_EXIT=124
+# Всегда очищаем перед установкой
+print_info "Очистка старых зависимостей..."
+rm -rf node_modules package-lock.json 2>/dev/null || true
+
+print_info "Установка Node.js пакетов через npm (максимум 5 минут)..."
+
+# Попытка 1: Стандартная установка с увеличенным таймаутом
+print_info "Попытка установки с таймаутом 300 секунд..."
+
+(npm install --legacy-peer-deps --force 2>&1 | tee /tmp/npm_install.log) &
+NPM_PID=$!
+
+# Показываем прогресс
+SECONDS=0
+MAX_TIME=300
+while [ $SECONDS -lt $MAX_TIME ]; do
+    if ! kill -0 $NPM_PID 2>/dev/null; then
+        wait $NPM_PID
+        NPM_EXIT=$?
+        break
     fi
     
-    echo ""
-    
-    # Проверка результата
-    if [ -d "node_modules" ] && [ "$(ls -A node_modules 2>/dev/null)" ]; then
-        print_success "npm install завершён"
-        
-        # Исправление проблем с ajv (если есть)
-        print_info "Проверка и исправление зависимостей..."
-        npm install ajv@latest --legacy-peer-deps --no-audit --silent 2>&1 | grep -v "npm WARN" || true
-        
-        print_success "Frontend зависимости установлены"
-    else
-        print_warning "npm install не установил зависимости"
-        print_info "Frontend можно установить позже вручную"
+    # Показываем прогресс каждые 10 секунд
+    if [ $((SECONDS % 10)) -eq 0 ]; then
+        echo -n "⏳ ${SECONDS}s "
     fi
+    sleep 1
+done
+
+# Если не завершился - убиваем
+if kill -0 $NPM_PID 2>/dev/null; then
+    print_warning "Таймаут! Убиваем npm..."
+    kill -9 $NPM_PID 2>/dev/null
+    NPM_EXIT=124
+fi
+
+echo ""
+
+# Проверка результата
+if [ -d "node_modules" ] && [ -n "$(ls -A node_modules 2>/dev/null)" ]; then
+    print_success "node_modules создан ($(du -sh node_modules 2>/dev/null | cut -f1))"
+    
+    # Дополнительное исправление ajv
+    print_info "Исправление ajv конфликтов..."
+    npm install ajv@^8.0.0 --legacy-peer-deps --no-audit --silent 2>&1 | head -5 || true
+    
+    print_success "Frontend зависимости установлены"
 else
-    print_info "node_modules уже существует"
+    print_error "npm install не создал node_modules"
+    print_info "Логи: cat /tmp/npm_install.log"
+    print_info "Frontend можно установить вручную после завершения"
 fi
 
 # ТЕСТ 7: Проверка Frontend зависимостей (НЕ критично)
-test_step "node_modules создан" "[ -d $INSTALL_DIR/frontend/node_modules ]" "warning"
+test_step "node_modules создан" "[ -d $INSTALL_DIR/frontend/node_modules ] && [ -n \"\$(ls -A $INSTALL_DIR/frontend/node_modules 2>/dev/null)\" ]" "warning"
 
-print_info "Продолжаем установку (frontend опционален)..."
+print_info "Продолжаем установку backend..."
 
 ##########################################################################################
 # ШАГ 8: ПРОВЕРКА .ENV ФАЙЛОВ
