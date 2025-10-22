@@ -450,15 +450,12 @@ import sys
 sys.path.insert(0, '/app/backend')
 
 try:
-    from database import Base, engine, SessionLocal
+    from database import Base, engine, SessionLocal, User, get_password_hash
     
     # Создать все таблицы
     Base.metadata.create_all(bind=engine)
     
     # Создать админа по умолчанию
-    from models import User
-    from auth import hash_password
-    
     db = SessionLocal()
     
     # Проверить есть ли уже admin
@@ -467,7 +464,7 @@ try:
     if not existing_admin:
         admin = User(
             username="admin",
-            password=hash_password("admin")
+            password=get_password_hash("admin")
         )
         db.add(admin)
         db.commit()
@@ -480,6 +477,8 @@ try:
     
 except Exception as e:
     print(f"❌ Ошибка инициализации БД: {e}")
+    import traceback
+    traceback.print_exc()
     sys.exit(1)
 PYTHON_SCRIPT
 
@@ -487,6 +486,7 @@ PYTHON_SCRIPT
         print_success "База данных создана"
     else
         print_error "Ошибка создания базы данных"
+        print_warning "Продолжаем установку без БД - создайте вручную"
     fi
 else
     print_info "База данных connexa.db уже существует"
@@ -498,8 +498,7 @@ import sys
 sys.path.insert(0, '/app/backend')
 
 try:
-    from database import SessionLocal
-    from models import User
+    from database import SessionLocal, User, get_password_hash
     
     db = SessionLocal()
     admin = db.query(User).filter(User.username == "admin").first()
@@ -507,9 +506,8 @@ try:
     if admin:
         print("✅ Пользователь admin существует")
     else:
-        print("⚠️  Пользователь admin не найден")
-        from auth import hash_password
-        admin = User(username="admin", password=hash_password("admin"))
+        print("⚠️  Пользователь admin не найден, создаём...")
+        admin = User(username="admin", password=get_password_hash("admin"))
         db.add(admin)
         db.commit()
         print("✅ Пользователь admin создан")
