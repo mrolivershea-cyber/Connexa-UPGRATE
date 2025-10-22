@@ -117,36 +117,72 @@ fi
 print_success "Запущено с правами root"
 
 ##########################################################################################
-# ОЧИСТКА ЗАБЛОКИРОВАННЫХ ПРОЦЕССОВ APT/DPKG
+# ОЧИСТКА ЗАБЛОКИРОВАННЫХ ПРОЦЕССОВ APT/DPKG (АГРЕССИВНАЯ)
 ##########################################################################################
 
 print_header "ПОДГОТОВКА СИСТЕМЫ"
 
-print_info "Проверка заблокированных процессов apt/dpkg..."
+print_info "Ожидание завершения других процессов установки..."
 
-# Убить все процессы apt-get и dpkg если есть
-if pgrep -x "apt-get" > /dev/null; then
-    print_warning "Найден запущенный apt-get процесс, останавливаем..."
-    pkill -9 apt-get 2>/dev/null || true
-    sleep 2
-fi
+# Функция для агрессивного убийства процесса
+kill_process_hard() {
+    local process_name=$1
+    local max_attempts=5
+    local attempt=1
+    
+    while [ $attempt -le $max_attempts ]; do
+        if pgrep -x "$process_name" > /dev/null; then
+            print_info "Попытка $attempt: Убиваем процесс $process_name..."
+            pkill -9 "$process_name" 2>/dev/null || true
+            sleep 2
+            
+            if ! pgrep -x "$process_name" > /dev/null; then
+                print_success "Процесс $process_name остановлен"
+                return 0
+            fi
+        else
+            return 0
+        fi
+        attempt=$((attempt + 1))
+    done
+    
+    print_warning "Не удалось остановить $process_name после $max_attempts попыток"
+    return 1
+}
 
-if pgrep -x "dpkg" > /dev/null; then
-    print_warning "Найден запущенный dpkg процесс, останавливаем..."
-    pkill -9 dpkg 2>/dev/null || true
-    sleep 2
-fi
+# Убить все процессы которые могут блокировать dpkg
+print_info "Остановка конфликтующих процессов..."
+kill_process_hard "apt-get"
+kill_process_hard "apt"
+kill_process_hard "dpkg"
+kill_process_hard "unattended-upgr"
+kill_process_hard "packagekitd"
 
-# Удалить lock файлы
-print_info "Очистка lock файлов..."
+# Подождать
+sleep 3
+
+# Удалить все lock файлы
+print_info "Удаление всех lock файлов..."
 rm -f /var/lib/dpkg/lock-frontend 2>/dev/null || true
 rm -f /var/lib/dpkg/lock 2>/dev/null || true
 rm -f /var/lib/apt/lists/lock 2>/dev/null || true
 rm -f /var/cache/apt/archives/lock 2>/dev/null || true
+rm -f /var/lib/dpkg/lock-backend 2>/dev/null || true
+
+# Ещё одна проверка и ожидание
+sleep 2
 
 # Исправить dpkg если нужно
-print_info "Проверка состояния dpkg..."
-dpkg --configure -a 2>&1 | grep -v "debconf:" || true
+print_info "Восстановление состояния dpkg..."
+dpkg --configure -a 2>&1 | head -10 | grep -v "debconf:" || true
+
+# Финальная проверка
+if pgrep -x "dpkg" > /dev/null || pgrep -x "apt-get" > /dev/null; then
+    print_error "Процессы всё ещё запущены. Ожидаем 10 секунд..."
+    sleep 10
+    pkill -9 dpkg apt-get apt 2>/dev/null || true
+    sleep 2
+fi
 
 print_success "Система готова к установке"
 
