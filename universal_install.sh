@@ -414,10 +414,14 @@ test_step "node_modules создан" "[ -d $INSTALL_DIR/frontend/node_modules ]
 print_info "Продолжаем установку backend..."
 
 ##########################################################################################
-# ШАГ 8: ПРОВЕРКА .ENV ФАЙЛОВ
+# ШАГ 8: ПРОВЕРКА И АВТООБНОВЛЕНИЕ .ENV ФАЙЛОВ
 ##########################################################################################
 
-print_header "ШАГ 8/12: ПРОВЕРКА ПЕРЕМЕННЫХ ОКРУЖЕНИЯ"
+print_header "ШАГ 8/12: НАСТРОЙКА ПЕРЕМЕННЫХ ОКРУЖЕНИЯ"
+
+# Определить IP сервера
+SERVER_IP=$(hostname -I | awk '{print $1}')
+print_info "IP сервера: $SERVER_IP"
 
 # Backend .env
 if [ -f "$INSTALL_DIR/backend/.env" ]; then
@@ -427,45 +431,62 @@ if [ -f "$INSTALL_DIR/backend/.env" ]; then
         ADMIN_IP=$(grep ADMIN_SERVER_IP "$INSTALL_DIR/backend/.env" | cut -d'=' -f2 | tr -d '"' | tr -d "'")
         print_info "ADMIN_SERVER_IP = $ADMIN_IP"
         
-        if [[ "$ADMIN_IP" == *"preview.emergentagent.com"* ]] || [[ "$ADMIN_IP" == "localhost"* ]]; then
-            print_warning "ADMIN_SERVER_IP использует значение по умолчанию"
-            print_info "Рекомендуется обновить на ваш реальный домен/IP"
-            print_info "Редактировать: nano $INSTALL_DIR/backend/.env"
+        # Автоматически обновить на реальный IP если это emergentagent.com или localhost
+        if [[ "$ADMIN_IP" == *"emergentagent.com"* ]] || [[ "$ADMIN_IP" == "localhost"* ]]; then
+            print_warning "ADMIN_SERVER_IP указывает на тестовый домен, обновляем..."
+            sed -i "s|ADMIN_SERVER_IP=.*|ADMIN_SERVER_IP=$SERVER_IP|g" "$INSTALL_DIR/backend/.env"
+            print_success "ADMIN_SERVER_IP обновлён на $SERVER_IP"
         fi
     else
-        print_warning "ADMIN_SERVER_IP не найден в backend/.env"
+        print_warning "ADMIN_SERVER_IP не найден, добавляем..."
+        echo "ADMIN_SERVER_IP=$SERVER_IP" >> "$INSTALL_DIR/backend/.env"
+        print_success "ADMIN_SERVER_IP добавлен"
     fi
 else
-    print_error "Backend .env не найден!"
-    print_info "Создание базового .env файла..."
+    print_warning "Backend .env не найден, создаём..."
     cat > "$INSTALL_DIR/backend/.env" << EOF
-ADMIN_SERVER_IP=localhost
+ADMIN_SERVER_IP=$SERVER_IP
 DATABASE_URL=sqlite:///./connexa.db
 SECRET_KEY=$(openssl rand -hex 32)
 EOF
-    print_success "Базовый .env создан"
+    print_success "Backend .env создан"
 fi
 
-# Frontend .env
+# Frontend .env - КРИТИЧЕСКИ ВАЖНО
 if [ -f "$INSTALL_DIR/frontend/.env" ]; then
     print_success "Frontend .env найден"
     
     if grep -q "REACT_APP_BACKEND_URL" "$INSTALL_DIR/frontend/.env"; then
         BACKEND_URL=$(grep REACT_APP_BACKEND_URL "$INSTALL_DIR/frontend/.env" | cut -d'=' -f2)
-        print_info "REACT_APP_BACKEND_URL = $BACKEND_URL"
+        print_info "Текущий REACT_APP_BACKEND_URL = $BACKEND_URL"
+        
+        # АВТОМАТИЧЕСКИ ОБНОВИТЬ НА ПРАВИЛЬНЫЙ URL
+        if [[ "$BACKEND_URL" != "http://$SERVER_IP:8001" ]]; then
+            print_warning "REACT_APP_BACKEND_URL неправильный, обновляем..."
+            sed -i "s|REACT_APP_BACKEND_URL=.*|REACT_APP_BACKEND_URL=http://$SERVER_IP:8001|g" "$INSTALL_DIR/frontend/.env"
+            print_success "REACT_APP_BACKEND_URL обновлён на http://$SERVER_IP:8001"
+        else
+            print_success "REACT_APP_BACKEND_URL уже правильный"
+        fi
+    else
+        print_warning "REACT_APP_BACKEND_URL не найден, добавляем..."
+        echo "REACT_APP_BACKEND_URL=http://$SERVER_IP:8001" >> "$INSTALL_DIR/frontend/.env"
+        print_success "REACT_APP_BACKEND_URL добавлен"
     fi
 else
-    print_warning "Frontend .env не найден"
-    print_info "Создание базового frontend/.env..."
+    print_warning "Frontend .env не найден, создаём..."
     cat > "$INSTALL_DIR/frontend/.env" << EOF
-REACT_APP_BACKEND_URL=http://localhost:8001
+REACT_APP_BACKEND_URL=http://$SERVER_IP:8001
 EOF
-    print_success "Базовый frontend/.env создан"
+    print_success "Frontend .env создан"
 fi
+
+print_success "Переменные окружения настроены для IP: $SERVER_IP"
 
 # ТЕСТ 8: Проверка .env файлов
 test_step "Backend .env существует" "[ -f $INSTALL_DIR/backend/.env ]" "critical"
-test_step "Frontend .env существует" "[ -f $INSTALL_DIR/frontend/.env ]" "warning"
+test_step "Frontend .env существует" "[ -f $INSTALL_DIR/frontend/.env ]" "critical"
+test_step "REACT_APP_BACKEND_URL правильный" "grep -q \"REACT_APP_BACKEND_URL=http://$SERVER_IP:8001\" $INSTALL_DIR/frontend/.env" "critical"
 
 ##########################################################################################
 # ШАГ 9: ИНИЦИАЛИЗАЦИЯ БАЗЫ ДАННЫХ
