@@ -629,22 +629,16 @@ else
     print_test "Тестирование логина admin/admin..."
     LOGIN_RESULT=$(curl -s -X POST http://localhost:8001/api/auth/login \
         -H "Content-Type: application/json" \
-        -d '{"username":"admin","password":"admin"}' | grep -o "access_token" || echo "")
+        -d '{"username":"admin","password":"admin"}')
     
-    if [ -n "$LOGIN_RESULT" ]; then
-        print_success "Логин admin/admin работает"
+    if echo "$LOGIN_RESULT" | grep -q "access_token"; then
+        print_success "Логин admin/admin работает ✅"
+        TOKEN=$(echo "$LOGIN_RESULT" | grep -o '"access_token":"[^"]*"' | cut -d'"' -f4)
+        print_info "Токен получен: ${TOKEN:0:50}..."
     else
         print_warning "Не удалось войти с admin/admin"
-        print_info "Попробуйте вручную после завершения установки"
+        print_info "Результат: $LOGIN_RESULT"
     fi
-fi
-
-# Проверка frontend
-print_info "Проверка frontend..."
-if curl -s -f http://localhost:3000 > /dev/null 2>&1; then
-    print_success "Frontend отвечает"
-else
-    print_warning "Frontend не отвечает. Возможно, требуется больше времени для запуска"
 fi
 
 ##########################################################################################
