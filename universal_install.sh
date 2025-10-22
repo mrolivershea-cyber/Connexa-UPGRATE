@@ -558,30 +558,17 @@ EOF
 
 print_success "Backend конфигурация создана"
 
-# Frontend config
-print_info "Создание конфигурации frontend..."
-cat > /etc/supervisor/conf.d/connexa-frontend.conf << EOF
-[program:frontend]
-command=/usr/bin/npm start
-directory=$INSTALL_DIR/frontend
-autostart=true
-autorestart=true
-stderr_logfile=/var/log/supervisor/frontend.err.log
-stdout_logfile=/var/log/supervisor/frontend.out.log
-environment=PATH="/usr/local/bin:/usr/bin:/bin",HOST="0.0.0.0",PORT="3000"
-user=root
-EOF
-
-print_success "Frontend конфигурация создана"
+print_info "Frontend supervisor конфиг ПРОПУЩЕН (устанавливается вручную при необходимости)"
 
 # Reload supervisor
 print_info "Перезагрузка Supervisor..."
 supervisorctl reread
 supervisorctl update
 
+print_success "Supervisor настроен"
+
 # ТЕСТ 10: Проверка Supervisor конфигурации
 test_step "Backend supervisor config создан" "[ -f /etc/supervisor/conf.d/connexa-backend.conf ]" "critical"
-test_step "Frontend supervisor config создан" "[ -f /etc/supervisor/conf.d/connexa-frontend.conf ]" "critical"
 
 ##########################################################################################
 # ШАГ 11: ЗАПУСК СЕРВИСОВ
