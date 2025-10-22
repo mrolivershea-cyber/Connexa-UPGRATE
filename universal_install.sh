@@ -683,9 +683,18 @@ print_info "Запуск backend..."
 supervisorctl start backend
 sleep 5
 
-print_success "Backend запущен"
+# Запустить frontend если установлен
+if [ -d "$INSTALL_DIR/frontend/node_modules" ] && [ -n "$(ls -A $INSTALL_DIR/frontend/node_modules 2>/dev/null)" ]; then
+    print_info "Запуск frontend..."
+    supervisorctl start frontend
+    sleep 5
+else
+    print_warning "Frontend пропущен (node_modules не установлен)"
+fi
 
-print_info "Ожидание готовности backend (30 секунд)..."
+print_success "Сервисы запущены"
+
+print_info "Ожидание готовности сервисов (30 секунд)..."
 for i in {30..1}; do
     echo -ne "\r⏳ Осталось: $i секунд   "
     sleep 1
@@ -698,6 +707,12 @@ supervisorctl status
 # ТЕСТ 11: Проверка запущенных сервисов
 test_step "Backend процесс запущен" "supervisorctl status backend | grep -q RUNNING" "critical"
 test_step "Backend слушает порт 8001" "netstat -tuln | grep -q ':8001' || sleep 5 && netstat -tuln | grep -q ':8001'" "critical"
+
+# Frontend проверка только если установлен
+if [ -d "$INSTALL_DIR/frontend/node_modules" ]; then
+    test_step "Frontend процесс запущен" "supervisorctl status frontend | grep -q RUNNING" "warning"
+    test_step "Frontend слушает порт 3000" "netstat -tuln | grep -q ':3000'" "warning"
+fi
 
 ##########################################################################################
 # ШАГ 12: ФИНАЛЬНЫЕ ТЕСТЫ API
