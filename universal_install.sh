@@ -23,7 +23,7 @@ NC='\033[0m' # No Color
 
 # Глобальные переменные
 INSTALL_DIR="/app"
-REPO_URL="https://github.com/mrolivershea-cyber/10-16-2025-final-fix-auto.git"
+REPO_URL="https://github.com/mrolivershea-cyber/10-22-2025-final-fix-auto.git"
 BRANCH="main"
 ERRORS_FOUND=0
 WARNINGS_FOUND=0
