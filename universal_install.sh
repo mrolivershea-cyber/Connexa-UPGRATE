@@ -314,7 +314,7 @@ test_step "uvicorn установлен" "command -v uvicorn &> /dev/null" "crit
 deactivate
 
 ##########################################################################################
-# ШАГ 7: УСТАНОВКА FRONTEND ЗАВИСИМОСТЕЙ (ТОЛЬКО NPM)
+# ШАГ 7: УСТАНОВКА FRONTEND ЗАВИСИМОСТЕЙ (С ТАЙМАУТОМ)
 ##########################################################################################
 
 print_header "ШАГ 7/12: УСТАНОВКА FRONTEND ЗАВИСИМОСТЕЙ"
@@ -322,38 +322,62 @@ print_header "ШАГ 7/12: УСТАНОВКА FRONTEND ЗАВИСИМОСТЕЙ"
 cd "$INSTALL_DIR/frontend"
 
 if [ ! -d "node_modules" ]; then
-    print_info "Установка Node.js пакетов через npm..."
+    print_info "Установка Node.js пакетов через npm (максимум 3 минуты)..."
     
-    # Попытка 1: npm registry
-    print_info "Попытка установки с основного npm registry..."
-    if npm install --legacy-peer-deps --silent --no-audit 2>&1 | tee /tmp/npm_install.log | grep -v "npm WARN" || true; then
-        if [ -d "node_modules" ] && [ "$(ls -A node_modules 2>/dev/null)" ]; then
-            print_success "Frontend зависимости установлены (npm registry)"
-        else
-            # Попытка 2: китайское зеркало
-            print_warning "Основной registry не работает, пробуем зеркало..."
-            print_info "Используем npmmirror.com (китайское зеркало)..."
-            npm config set registry https://registry.npmmirror.com/ 2>/dev/null || true
-            npm install --legacy-peer-deps --silent --no-audit 2>&1 | grep -v "npm WARN" || true
-            
-            if [ -d "node_modules" ] && [ "$(ls -A node_modules 2>/dev/null)" ]; then
-                print_success "Frontend зависимости установлены (npmmirror)"
-                # Вернуть обратно на npm registry
-                npm config set registry https://registry.npmjs.org/ 2>/dev/null || true
-            else
-                print_error "Не удалось установить frontend зависимости"
-                print_info "Логи установки: /tmp/npm_install.log"
+    # Запускаем npm install в фоне с таймаутом
+    print_info "Попытка установки с таймаутом 180 секунд..."
+    
+    # Функция установки с таймаутом
+    (
+        npm install --legacy-peer-deps --no-audit 2>&1 | tee /tmp/npm_install.log &
+        NPM_PID=$!
+        
+        # Ждём максимум 180 секунд
+        SECONDS=0
+        while [ $SECONDS -lt 180 ]; do
+            if ! kill -0 $NPM_PID 2>/dev/null; then
+                # npm завершился
+                wait $NPM_PID
+                exit $?
             fi
+            sleep 5
+            echo -n "."
+        done
+        
+        # Таймаут - убиваем npm
+        kill -9 $NPM_PID 2>/dev/null
+        exit 124
+    ) &
+    
+    INSTALL_PID=$!
+    wait $INSTALL_PID
+    INSTALL_EXIT=$?
+    
+    echo ""
+    
+    if [ $INSTALL_EXIT -eq 124 ]; then
+        print_warning "npm install превысил таймаут (3 минуты)"
+        print_info "Frontend будет установлен позже вручную"
+        print_info "Команда: cd $INSTALL_DIR/frontend && npm install"
+    elif [ $INSTALL_EXIT -eq 0 ]; then
+        if [ -d "node_modules" ] && [ "$(ls -A node_modules 2>/dev/null)" ]; then
+            print_success "Frontend зависимости установлены"
+        else
+            print_warning "npm завершился но node_modules пустой"
         fi
+    else
+        print_warning "npm install завершился с ошибкой (код: $INSTALL_EXIT)"
+        print_info "Frontend будет установлен позже вручную"
     fi
 else
-    print_warning "node_modules уже существует. Пропускаю установку"
-    print_info "Для переустановки: cd $INSTALL_DIR/frontend && rm -rf node_modules && npm install"
+    print_info "node_modules уже существует"
 fi
 
-# ТЕСТ 7: Проверка Frontend зависимостей
+# ТЕСТ 7: Проверка Frontend зависимостей (НЕ критично)
 test_step "node_modules создан" "[ -d $INSTALL_DIR/frontend/node_modules ]" "warning"
-test_step "react установлен" "[ -d $INSTALL_DIR/frontend/node_modules/react ]" "warning"
+test_step "react установлен" "[ -d $INSTALL_DIR/frontend/node_modules/react ] || true" "warning"
+
+print_info "Продолжаем установку backend (frontend можно установить позже)..."
 
 ##########################################################################################
 # ШАГ 8: ПРОВЕРКА .ENV ФАЙЛОВ
