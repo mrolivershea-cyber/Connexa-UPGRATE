@@ -310,7 +310,7 @@ cd "$INSTALL_DIR/frontend"
 
 if [ ! -d "node_modules" ]; then
     print_info "Установка Node.js пакетов через Yarn..."
-    yarn install --silent
+    yarn install --silent --non-interactive 2>&1 | grep -v "warning" || true
     print_success "Frontend зависимости установлены"
 else
     print_warning "node_modules уже существует. Пропускаю установку"
