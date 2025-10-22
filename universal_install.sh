@@ -178,7 +178,7 @@ fi
 
 if ! command -v yarn &> /dev/null; then
     print_info "Установка Yarn..."
-    npm install -g yarn > /dev/null 2>&1
+    npm install -g yarn --silent 2>&1 | grep -v "npm WARN" || true
     print_success "Yarn установлен: $(yarn --version)"
 else
     print_info "Yarn уже установлен: $(yarn --version)"
