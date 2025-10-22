@@ -9,52 +9,28 @@ class PPTPTunnelManager:
    subprocess.Popen(f"pppd call {cfg} logfile /tmp/pptp_node_{node_id}.log".split())
    logger.info(f"PPTP started for node {node_id}")
    time.sleep(8)
-   
-   # Определить ppp интерфейс из лог-файла
-   ppp_iface = None
-   log_file = f"/tmp/pptp_node_{node_id}.log"
+   ppp_iface=None;log_file=f"/tmp/pptp_node_{node_id}.log"
    if os.path.exists(log_file):
-       with open(log_file, 'r') as f:
-           log_content = f.read()
-           # Ищем "using channel X" или "Connect: pppX"
-           match = re.search(r'Connect: (ppp\d+)', log_content)
-           if match:
-               ppp_iface = match.group(1)
-               logger.info(f"✅ Found ppp interface from log: {ppp_iface}")
-   
-   # Если не нашли в логе - ищем в системе
+       with open(log_file,'r')as f:
+           log_content=f.read();match=re.search(r'Connect: (ppp\d+)',log_content)
+           if match:ppp_iface=match.group(1);logger.info(f"✅ Found ppp from log: {ppp_iface}")
    if not ppp_iface:
-       ip_output = subprocess.check_output("ip addr show | grep ppp", shell=True, text=True)
-       # Ищем новый интерфейс
-       for line in ip_output.split('\n'):
-           if 'ppp' in line and 'UP' in line:
-               match = re.search(r'(ppp\d+)', line)
-               if match:
-                   ppp_iface = match.group(1)
-                   logger.info(f"✅ Found ppp interface from system: {ppp_iface}")
-                   break
-   
-   if not ppp_iface:
-       logger.error(f"❌ Could not determine ppp interface for node {node_id}")
-       return None
-   
-   # Сохранить ppp_interface в БД
+       try:
+           ip_output=subprocess.check_output("ip addr show | grep ppp",shell=True,text=True)
+           for line in ip_output.split('\n'):
+               if 'ppp' in line and 'UP' in line:
+                   match=re.search(r'(ppp\d+)',line)
+                   if match:ppp_iface=match.group(1);logger.info(f"✅ Found ppp from system: {ppp_iface}");break
+       except:pass
+   if not ppp_iface:logger.error(f"❌ Could not determine ppp for node {node_id}");return None
    from database import SessionLocal,Node
    db=SessionLocal();n=db.query(Node).filter(Node.id==node_id).first()
-   if n:
-       n.ppp_interface = ppp_iface
-       db.commit()
-       logger.info(f"✅ Saved ppp_interface to DB: {ppp_iface}")
+   if n:n.ppp_interface=ppp_iface;db.commit();logger.info(f"✅ Saved ppp to DB: {ppp_iface}")
    db.close()
-   
-   # Настроить routing
    subprocess.run(f"/usr/local/bin/link_socks_to_ppp.sh {1083+node_id} {ppp_iface}",shell=True)
    ti={'interface':ppp_iface,'local_ip':'','remote_ip':'','pid':0,'node_ip':node_ip,'node_id':node_id}
-   self.active_tunnels[node_id]=ti
-   logger.info(f"Tunnel OK: {ppp_iface}, routing setup")
+   self.active_tunnels[node_id]=ti;logger.info(f"Tunnel OK: {ppp_iface}")
    return ti
-  except Exception as e:
-   logger.error(f"Error: {e}")
-   return None
+  except Exception as e:logger.error(f"Error: {e}");return None
  def destroy_tunnel(self,nid):return True
 pptp_tunnel_manager=PPTPTunnelManager()
