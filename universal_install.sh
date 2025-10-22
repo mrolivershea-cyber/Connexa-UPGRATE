@@ -170,19 +170,26 @@ rm -f /var/cache/apt/archives/lock 2>/dev/null || true
 rm -f /var/lib/dpkg/lock-backend 2>/dev/null || true
 
 # Ещё одна проверка и ожидание
-sleep 2
+sleep 3
 
-# Исправить dpkg если нужно
-print_info "Восстановление состояния dpkg..."
-dpkg --configure -a 2>&1 | head -10 | grep -v "debconf:" || true
+# Исправить dpkg И ДОЖДАТЬСЯ ЗАВЕРШЕНИЯ
+print_info "Восстановление состояния dpkg (может занять 1-2 минуты)..."
+DEBIAN_FRONTEND=noninteractive dpkg --configure -a 2>&1 | tee /tmp/dpkg_configure.log | tail -5
 
-# Финальная проверка
-if pgrep -x "dpkg" > /dev/null || pgrep -x "apt-get" > /dev/null; then
-    print_error "Процессы всё ещё запущены. Ожидаем 10 секунд..."
+# Ждём завершения dpkg
+print_info "Ожидание полного завершения dpkg..."
+sleep 5
+
+# Проверка что dpkg завершился
+if pgrep -x "dpkg" > /dev/null; then
+    print_warning "dpkg всё ещё работает, ждём ещё 10 секунд..."
     sleep 10
-    pkill -9 dpkg apt-get apt 2>/dev/null || true
-    sleep 2
 fi
+
+# Финальная очистка lock файлов после dpkg
+print_info "Финальная очистка lock файлов..."
+rm -f /var/lib/dpkg/lock-frontend 2>/dev/null || true
+rm -f /var/lib/dpkg/lock 2>/dev/null || true
 
 print_success "Система готова к установке"
 
