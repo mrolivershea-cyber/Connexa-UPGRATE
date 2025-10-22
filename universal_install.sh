@@ -129,10 +129,12 @@ if ! command -v apt-get &> /dev/null; then
 fi
 
 print_info "Обновление списка пакетов..."
-apt-get update -qq
+apt-get update -qq 2>&1 | grep -v "debconf:" || true
 
 print_info "Установка базовых пакетов..."
 apt-get install -y -qq \
+    -o Dpkg::Options::="--force-confdef" \
+    -o Dpkg::Options::="--force-confold" \
     python3 \
     python3-pip \
     python3-venv \
@@ -145,7 +147,7 @@ apt-get install -y -qq \
     supervisor \
     net-tools \
     iputils-ping \
-    iptables 2>&1 | grep -v "debconf:"
+    iptables 2>&1 | grep -v "debconf:" || true
 
 # ТЕСТ 1: Проверка установленных пакетов
 test_step "Python3 установлен" "command -v python3 &> /dev/null" "critical"
