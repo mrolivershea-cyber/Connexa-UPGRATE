@@ -117,6 +117,40 @@ fi
 print_success "Запущено с правами root"
 
 ##########################################################################################
+# ОЧИСТКА ЗАБЛОКИРОВАННЫХ ПРОЦЕССОВ APT/DPKG
+##########################################################################################
+
+print_header "ПОДГОТОВКА СИСТЕМЫ"
+
+print_info "Проверка заблокированных процессов apt/dpkg..."
+
+# Убить все процессы apt-get и dpkg если есть
+if pgrep -x "apt-get" > /dev/null; then
+    print_warning "Найден запущенный apt-get процесс, останавливаем..."
+    pkill -9 apt-get 2>/dev/null || true
+    sleep 2
+fi
+
+if pgrep -x "dpkg" > /dev/null; then
+    print_warning "Найден запущенный dpkg процесс, останавливаем..."
+    pkill -9 dpkg 2>/dev/null || true
+    sleep 2
+fi
+
+# Удалить lock файлы
+print_info "Очистка lock файлов..."
+rm -f /var/lib/dpkg/lock-frontend 2>/dev/null || true
+rm -f /var/lib/dpkg/lock 2>/dev/null || true
+rm -f /var/lib/apt/lists/lock 2>/dev/null || true
+rm -f /var/cache/apt/archives/lock 2>/dev/null || true
+
+# Исправить dpkg если нужно
+print_info "Проверка состояния dpkg..."
+dpkg --configure -a 2>&1 | grep -v "debconf:" || true
+
+print_success "Система готова к установке"
+
+##########################################################################################
 # ШАГ 1: УСТАНОВКА СИСТЕМНЫХ ПАКЕТОВ
 ##########################################################################################
 
