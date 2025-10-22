@@ -128,6 +128,20 @@ if ! command -v apt-get &> /dev/null; then
     exit 1
 fi
 
+# Отключить интерактивные перезагрузки служб
+print_info "Отключение интерактивных диалогов..."
+if [ -f /etc/needrestart/needrestart.conf ]; then
+    sed -i "s/#\$nrconf{restart} = 'i';/\$nrconf{restart} = 'a';/" /etc/needrestart/needrestart.conf 2>/dev/null || true
+fi
+
+# Отключить диалоги kernel upgrade
+if [ -f /etc/needrestart/conf.d/50-local.conf ]; then
+    echo "\$nrconf{kernelhints} = 0;" > /etc/needrestart/conf.d/50-local.conf
+else
+    mkdir -p /etc/needrestart/conf.d/
+    echo "\$nrconf{kernelhints} = 0;" > /etc/needrestart/conf.d/50-local.conf
+fi
+
 print_info "Обновление списка пакетов..."
 apt-get update -qq 2>&1 | grep -v "debconf:" || true
 
