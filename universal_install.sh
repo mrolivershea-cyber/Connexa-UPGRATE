@@ -587,8 +587,28 @@ sys.path.insert(0, '/app/backend')
 try:
     from database import Base, engine, SessionLocal, User, hash_password
     
-    # Создать все таблицы
+    # Создать все таблицы (включая новые колонки scamalytics)
     Base.metadata.create_all(bind=engine)
+    
+    # Миграция: добавить новые колонки если их нет
+    import sqlite3
+    conn = sqlite3.connect('/app/backend/connexa.db')
+    cursor = conn.cursor()
+    
+    # Проверить и добавить scamalytics_fraud_score
+    cursor.execute("PRAGMA table_info(nodes)")
+    columns = [col[1] for col in cursor.fetchall()]
+    
+    if 'scamalytics_fraud_score' not in columns:
+        cursor.execute('ALTER TABLE nodes ADD COLUMN scamalytics_fraud_score INTEGER DEFAULT NULL')
+        print("✅ Добавлена колонка scamalytics_fraud_score")
+    
+    if 'scamalytics_risk' not in columns:
+        cursor.execute('ALTER TABLE nodes ADD COLUMN scamalytics_risk TEXT DEFAULT NULL')
+        print("✅ Добавлена колонка scamalytics_risk")
+    
+    conn.commit()
+    conn.close()
     
     # Создать админа по умолчанию
     db = SessionLocal()
