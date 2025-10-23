@@ -5083,10 +5083,18 @@ async def stop_socks_services(
             node.socks_login = None
             node.socks_password = None
             
-            # ТЗ: При остановке SOCKS всегда возвращаем статус в ping_ok
+            # ✅ УМНАЯ ЛОГИКА: Вернуть статус из previous_status (если был), иначе ping_ok
             if node.status == "online":
-                node.status = "ping_ok"
-                logger.info(f"🔄 SOCKS STOP: узел {node_id} ({node.ip}) возвращен в статус PING OK")
+                # Проверить previous_status
+                if node.previous_status and node.previous_status in ["speed_ok", "ping_ok"]:
+                    node.status = node.previous_status
+                    logger.info(f"🔄 SOCKS STOP: узел {node_id} возвращён в {node.previous_status}")
+                else:
+                    node.status = "ping_ok"
+                    logger.info(f"🔄 SOCKS STOP: узел {node_id} возвращён в ping_ok (previous_status не найден)")
+                
+                # Очистить previous_status
+                node.previous_status = None
             
             # Clear previous status after restoration
             node.previous_status = None
