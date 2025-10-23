@@ -326,18 +326,21 @@ def apply_node_filters(query, filters: dict):
     if 'comment' in filters and filters['comment']:
         query = query.filter(Node.comment.contains(filters['comment']))
     
-    # Speed filters (новые)
+    # Speed filters (новые) - speed хранится как String, конвертируем
     if 'speed_min' in filters and filters['speed_min']:
         try:
             speed_min = float(filters['speed_min'])
-            query = query.filter(Node.speed >= speed_min)
+            # Фильтруем по числовому значению (CAST)
+            query = query.filter(Node.speed != None).filter(Node.speed != "")
+            query = query.filter(func.cast(Node.speed, Float) >= speed_min)
         except:
             pass
     
     if 'speed_max' in filters and filters['speed_max']:
         try:
             speed_max = float(filters['speed_max'])
-            query = query.filter(Node.speed <= speed_max)
+            query = query.filter(Node.speed != None).filter(Node.speed != "")
+            query = query.filter(func.cast(Node.speed, Float) <= speed_max)
         except:
             pass
     
