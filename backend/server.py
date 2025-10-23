@@ -1848,6 +1848,13 @@ def parse_format_6(block: str, node_data: dict) -> dict:
                 node_data['city'] = city
         elif line.startswith("ZIP:"):
             node_data['zipcode'] = line.split(':', 1)[1].strip()
+        elif line.startswith("Scamalytics Fraud Score:"):
+            try:
+                node_data['scamalytics_fraud_score'] = int(line.split(':', 1)[1].strip())
+            except:
+                node_data['scamalytics_fraud_score'] = None
+        elif line.startswith("Scamalytics Risk:"):
+            node_data['scamalytics_risk'] = line.split(':', 1)[1].strip().lower()
     return node_data
 
 def parse_format_7(block: str, node_data: dict) -> dict:
