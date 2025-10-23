@@ -403,13 +403,17 @@ rm -rf node_modules package-lock.json 2>/dev/null || true
 
 print_info "Установка через китайское зеркало npmmirror.com (обычно 2-3 минуты)..."
 
-# Настройка китайского registry
+# Настройка китайского registry + ФОРСИРОВАТЬ IPv4
 npm config set registry https://registry.npmmirror.com/ 2>/dev/null || true
+npm config set prefer-online true 2>/dev/null || true
 
-print_info "npm install (максимум 5 минут)..."
+# КРИТИЧНО: Отключить IPv6 для npm (использовать только IPv4)
+export NPM_CONFIG_PREFER_IPV4=true
+
+print_info "npm install через IPv4 (максимум 5 минут)..."
 
 # Запуск npm install в фоне
-(npm install --legacy-peer-deps --force 2>&1 | tee /tmp/npm_install.log) &
+(npm install --legacy-peer-deps --force --prefer-offline=false 2>&1 | tee /tmp/npm_install.log) &
 NPM_PID=$!
 
 SECONDS=0
