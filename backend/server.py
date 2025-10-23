@@ -1666,13 +1666,12 @@ def parse_format_1(block: str, node_data: dict) -> dict:
         elif key == 'provider':
             node_data['provider'] = value
         elif key == 'scamalytics fraud score':
-            # Parse integer value
             try:
                 node_data['scamalytics_fraud_score'] = int(value)
             except:
                 node_data['scamalytics_fraud_score'] = None
         elif key == 'scamalytics risk':
-            node_data['scamalytics_risk'] = value.lower()  # low, medium, high
+            node_data['scamalytics_risk'] = value.lower()
     
     return node_data
 
@@ -1813,13 +1812,6 @@ def parse_format_5(block: str, node_data: dict) -> dict:
                 node_data['city'] = city
         elif line.startswith("ZIP:"):
             node_data['zipcode'] = line.split(':', 1)[1].strip()
-        elif line.startswith("Scamalytics Fraud Score:"):
-            try:
-                node_data['scamalytics_fraud_score'] = int(line.split(':', 1)[1].strip())
-            except:
-                node_data['scamalytics_fraud_score'] = None
-        elif line.startswith("Scamalytics Risk:"):
-            node_data['scamalytics_risk'] = line.split(':', 1)[1].strip().lower()
     return node_data
 
 def parse_format_6(block: str, node_data: dict) -> dict:
@@ -1848,13 +1840,6 @@ def parse_format_6(block: str, node_data: dict) -> dict:
                 node_data['city'] = city
         elif line.startswith("ZIP:"):
             node_data['zipcode'] = line.split(':', 1)[1].strip()
-        elif line.startswith("Scamalytics Fraud Score:"):
-            try:
-                node_data['scamalytics_fraud_score'] = int(line.split(':', 1)[1].strip())
-            except:
-                node_data['scamalytics_fraud_score'] = None
-        elif line.startswith("Scamalytics Risk:"):
-            node_data['scamalytics_risk'] = line.split(':', 1)[1].strip().lower()
     return node_data
 
 def parse_format_7(block: str, node_data: dict) -> dict:
@@ -1863,6 +1848,24 @@ def parse_format_7(block: str, node_data: dict) -> dict:
     if len(parts) == 3:
         node_data['ip'] = parts[0].strip()
         node_data['login'] = parts[1].strip()
+        node_data['password'] = parts[2].strip()
+    return node_data
+
+
+def normalize_state_country(state_code: str, country: str = "") -> str:
+    """Convert state codes to full names for multiple countries"""
+    
+    # USA States
+    usa_states = {
+        "AL": "Alabama", "AK": "Alaska", "AZ": "Arizona", "AR": "Arkansas", "CA": "California",
+        "CO": "Colorado", "CT": "Connecticut", "DE": "Delaware", "FL": "Florida", "GA": "Georgia",
+        "HI": "Hawaii", "ID": "Idaho", "IL": "Illinois", "IN": "Indiana", "IA": "Iowa",
+        "KS": "Kansas", "KY": "Kentucky", "LA": "Louisiana", "ME": "Maine", "MD": "Maryland",
+        "MA": "Massachusetts", "MI": "Michigan", "MN": "Minnesota", "MS": "Mississippi", "MO": "Missouri",
+        "MT": "Montana", "NE": "Nebraska", "NV": "Nevada", "NH": "New Hampshire", "NJ": "New Jersey",
+        "NM": "New Mexico", "NY": "New York", "NC": "North Carolina", "ND": "North Dakota", "OH": "Ohio",
+        "OK": "Oklahoma", "OR": "Oregon", "PA": "Pennsylvania", "RI": "Rhode Island", "SC": "South Carolina",
+        "SD": "South Dakota", "TN": "Tennessee", "TX": "Texas", "UT": "Utah", "VT": "Vermont",  node_data['login'] = parts[1].strip()
         node_data['password'] = parts[2].strip()
     return node_data
 
