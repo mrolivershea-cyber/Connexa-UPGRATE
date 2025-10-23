@@ -3,7 +3,7 @@ from fastapi.responses import JSONResponse, FileResponse, StreamingResponse
 from starlette.middleware.sessions import SessionMiddleware
 from starlette.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
-from sqlalchemy import and_, or_
+from sqlalchemy import and_, or_, func, Float
 from typing import List, Dict, Optional
 import os
 import re
