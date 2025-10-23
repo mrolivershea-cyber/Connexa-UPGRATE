@@ -3,7 +3,7 @@ from fastapi.responses import JSONResponse, FileResponse, StreamingResponse
 from starlette.middleware.sessions import SessionMiddleware
 from starlette.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
-from sqlalchemy import and_, or_, func, Float
+from sqlalchemy import and_, or_
 from typing import List, Dict, Optional
 import os
 import re
@@ -29,16 +29,15 @@ from schemas import (
 from services import service_manager, network_tester
 from socks_server import start_socks_service, stop_socks_service, get_socks_stats
 from socks_monitor import start_socks_monitoring, get_proxy_file_content, get_monitoring_stats
-from pptp_tunnel_manager import pptp_tunnel_manager
 
 # Progress Tracking System
 import uuid
 progress_store = {}
 import_progress = {}  # For chunked import progress tracking
 
-# Global testing concurrency controls
+# Global testing concurrency controls (АГРЕССИВНО увеличено для скорости)
 MAX_PING_GLOBAL = 20   # МАКСИМАЛЬНО увеличено для скорости ping
-MAX_SPEED_GLOBAL = 8  # Восстановлено: оригинальная скорость
+MAX_SPEED_GLOBAL = 10  # МАКСИМАЛЬНО увеличено для скорости speed
 
 # СПЕЦИАЛЬНЫЕ ЛИМИТЫ ДЛЯ PING LIGHT (ТЗ требование)
 MAX_PING_LIGHT_GLOBAL = 100  # Увеличенный параллелизм для быстрой проверки портов без авторизации
@@ -146,7 +145,7 @@ logger = logging.getLogger(__name__)
 # Status helpers according to new business rules (sticky PING OK baseline)
 
 def has_ping_baseline(status: str) -> bool:
-    return status in ("ping_light", "ping_ok", "speed_ok", "online")
+    return status in ("ping_ok", "speed_ok", "online")
 
 
 # Create tables on startup
@@ -170,56 +169,19 @@ async def startup_event():
         logger.error(f"Startup admin check/create error: {e}")
     # Clean up any nodes stuck in 'checking' status on startup
     await cleanup_stuck_nodes()
-    # Background monitoring - ОТКЛЮЧЕН для стабильности SOCKS
-    # start_background_monitoring()
-    # logger.info("✅ Background monitoring RE-ENABLED with enhanced speed_ok protection")
+    # Start background monitoring with improved protection
+    start_background_monitoring()
+    logger.info("✅ Background monitoring RE-ENABLED with enhanced speed_ok protection")
     
-    # SOCKS monitoring - ОТКЛЮЧЕН для стабильности
-    # start_socks_monitoring()
-    # logger.info("✅ SOCKS monitoring service started - checking every 30 seconds")
-    
-    # Check and setup PPTP requirements
-    setup_pptp_environment()
-    logger.info("✅ PPTP environment check completed")
-
-def setup_pptp_environment():
-    """Setup PPTP environment - create /dev/ppp if needed"""
-    import subprocess
-    import os
-    
-    try:
-        # Check if /dev/ppp exists
-        if not os.path.exists('/dev/ppp'):
-            logger.info("🔧 /dev/ppp not found, attempting to create...")
-            try:
-                # Try to create /dev/ppp device
-                subprocess.run('mknod /dev/ppp c 108 0', shell=True, check=False, capture_output=True)
-                subprocess.run('chmod 600 /dev/ppp', shell=True, check=False, capture_output=True)
-                logger.info("✅ Created /dev/ppp device")
-            except Exception as e:
-                logger.warning(f"⚠️ Could not create /dev/ppp: {e}")
-        else:
-            logger.info("✅ /dev/ppp device exists")
-        
-        # Check if we can open /dev/ppp (test permissions)
-        try:
-            with open('/dev/ppp', 'r'):
-                pass
-            logger.info("✅ /dev/ppp is accessible")
-        except PermissionError:
-            logger.error("❌ /dev/ppp exists but not accessible - need CAP_NET_ADMIN capability")
-            logger.error("   Please run container with --cap-add=NET_ADMIN or --privileged")
-        except Exception as e:
-            logger.warning(f"⚠️ /dev/ppp check: {e}")
-            
-    except Exception as e:
-        logger.error(f"❌ Error setting up PPTP environment: {e}")
+    # Start SOCKS monitoring system
+    start_socks_monitoring()
+    logger.info("✅ SOCKS monitoring service started - checking every 30 seconds")
 
 # Deduplication registry to avoid duplicate tests and reduce load
-# Раздельные TTL для разных типов тестов (УМЕНЬШЕНО для QA тестирования)
-TEST_DEDUPE_TTL_PING = 10   # seconds - уменьшено с 60 для стабильности тестов
-TEST_DEDUPE_TTL_SPEED = 30  # seconds - уменьшено с 120 для стабильности тестов
-TEST_DEDUPE_TTL_DEFAULT = 10 # seconds - уменьшено для стабильности тестов
+# Раздельные TTL для разных типов тестов
+TEST_DEDUPE_TTL_PING = 60   # seconds - для PING тестов (быстрее)
+TEST_DEDUPE_TTL_SPEED = 120  # seconds - для SPEED тестов (медленнее, тяжелее)
+TEST_DEDUPE_TTL_DEFAULT = 60 # seconds - для остальных тестов
 _test_recent: dict = {}  # key: (node_id, mode) -> expires timestamp (epoch)
 _test_inflight: set = set()  # node_ids currently being tested
 
@@ -255,15 +217,7 @@ def test_dedupe_mark_enqueued(node_id: int, mode: str):
     _test_inflight.add(node_id)
 
 def test_dedupe_mark_finished(node_id: int):
-    """
-    Очищает узел из очереди тестирования
-    ИСПРАВЛЕНО: Теперь также очищает _test_recent для немедленного повторного тестирования
-    """
     _test_inflight.discard(node_id)
-    # Очищаем из _test_recent для всех режимов
-    keys_to_remove = [k for k in _test_recent.keys() if k[0] == node_id]
-    for key in keys_to_remove:
-        _test_recent.pop(key, None)
 
 def test_dedupe_cleanup():
     now = datetime.utcnow().timestamp()
@@ -325,44 +279,6 @@ def apply_node_filters(query, filters: dict):
     # Comment filter
     if 'comment' in filters and filters['comment']:
         query = query.filter(Node.comment.contains(filters['comment']))
-    
-    # Speed filters (новые) - speed хранится как String, конвертируем
-    if 'speed_min' in filters and filters['speed_min']:
-        try:
-            speed_min = float(filters['speed_min'])
-            # Фильтруем по числовому значению (CAST)
-            query = query.filter(Node.speed != None).filter(Node.speed != "")
-            query = query.filter(func.cast(Node.speed, Float) >= speed_min)
-        except:
-            pass
-    
-    if 'speed_max' in filters and filters['speed_max']:
-        try:
-            speed_max = float(filters['speed_max'])
-            query = query.filter(Node.speed != None).filter(Node.speed != "")
-            query = query.filter(func.cast(Node.speed, Float) <= speed_max)
-        except:
-            pass
-    
-    # Scamalytics fraud score filters (новые)
-    if 'scam_fraud_score_min' in filters and filters['scam_fraud_score_min']:
-        try:
-            fraud_min = int(filters['scam_fraud_score_min'])
-            query = query.filter(Node.scamalytics_fraud_score >= fraud_min)
-        except:
-            pass
-    
-    if 'scam_fraud_score_max' in filters and filters['scam_fraud_score_max']:
-        try:
-            fraud_max = int(filters['scam_fraud_score_max'])
-            query = query.filter(Node.scamalytics_fraud_score <= fraud_max)
-        except:
-            pass
-    
-    # Scamalytics risk filter (новый) - конвертируем в lowercase
-    if 'scam_risk' in filters and filters['scam_risk'] and filters['scam_risk'] != 'all':
-        risk_value = filters['scam_risk'].lower()  # LOW → low
-        query = query.filter(Node.scamalytics_risk == risk_value)
     
     return query
 
@@ -1212,10 +1128,10 @@ async def process_import_testing_batches(session_id: str, node_ids: list, testin
     await process_testing_batches(
         session_id, node_ids, testing_mode, db_session,
         ping_concurrency=50,
-        speed_concurrency=8,  # Восстановлено: оригинальная скорость
+        speed_concurrency=8,
         ping_timeouts=[0.8,1.2,1.6],
         speed_sample_kb=512,
-        speed_timeout=60  # Увеличен timeout для Speedtest CLI
+        speed_timeout=15
     )
 
 # Import/Export Routes
@@ -1665,13 +1581,6 @@ def parse_format_1(block: str, node_data: dict) -> dict:
             node_data['country'] = value
         elif key == 'provider':
             node_data['provider'] = value
-        elif key == 'scamalytics fraud score':
-            try:
-                node_data['scamalytics_fraud_score'] = int(value)
-            except:
-                node_data['scamalytics_fraud_score'] = None
-        elif key == 'scamalytics risk':
-            node_data['scamalytics_risk'] = value.lower()
     
     return node_data
 
@@ -1848,24 +1757,6 @@ def parse_format_7(block: str, node_data: dict) -> dict:
     if len(parts) == 3:
         node_data['ip'] = parts[0].strip()
         node_data['login'] = parts[1].strip()
-        node_data['password'] = parts[2].strip()
-    return node_data
-
-
-def normalize_state_country(state_code: str, country: str = "") -> str:
-    """Convert state codes to full names for multiple countries"""
-    
-    # USA States
-    usa_states = {
-        "AL": "Alabama", "AK": "Alaska", "AZ": "Arizona", "AR": "Arkansas", "CA": "California",
-        "CO": "Colorado", "CT": "Connecticut", "DE": "Delaware", "FL": "Florida", "GA": "Georgia",
-        "HI": "Hawaii", "ID": "Idaho", "IL": "Illinois", "IN": "Indiana", "IA": "Iowa",
-        "KS": "Kansas", "KY": "Kentucky", "LA": "Louisiana", "ME": "Maine", "MD": "Maryland",
-        "MA": "Massachusetts", "MI": "Michigan", "MN": "Minnesota", "MS": "Mississippi", "MO": "Missouri",
-        "MT": "Montana", "NE": "Nebraska", "NV": "Nevada", "NH": "New Hampshire", "NJ": "New Jersey",
-        "NM": "New Mexico", "NY": "New York", "NC": "North Carolina", "ND": "North Dakota", "OH": "Ohio",
-        "OK": "Oklahoma", "OR": "Oregon", "PA": "Pennsylvania", "RI": "Rhode Island", "SC": "South Carolina",
-        "SD": "South Dakota", "TN": "Tennessee", "TX": "Texas", "UT": "Utah", "VT": "Vermont",  node_data['login'] = parts[1].strip()
         node_data['password'] = parts[2].strip()
     return node_data
 
@@ -2844,7 +2735,6 @@ async def test_ping(
             # Update status based on ping result
             if ping_result['reachable']:
                 node.status = "ping_ok"
-                node.port = 1723  # ✅ Устанавливаем port при успехе
                 logger.info(f"✅ Test ping: Node {node_id} SUCCESS - {original_status} -> ping_ok")
             else:
                 node.status = "ping_failed"
@@ -3277,20 +3167,9 @@ async def manual_ping_light_test(
             original_status = node.status
             node.last_update = datetime.utcnow()
             
-            # ✅ ИСПОЛЬЗУЕМ test_node_ping_light НАПРЯМУЮ без импорта
-            import asyncio
-            import time
-            
-            start_time = time.time()
-            try:
-                future = asyncio.open_connection(node.ip, 1723)
-                reader, writer = await asyncio.wait_for(future, timeout=2.0)
-                writer.close()
-                await writer.wait_closed()
-                elapsed_ms = (time.time() - start_time) * 1000.0
-                ping_result = {"success": True, "message": f"PING LIGHT OK - TCP 1723 accessible in {elapsed_ms:.1f}ms"}
-            except Exception:
-                ping_result = {"success": False, "message": "PING LIGHT FAILED - TCP 1723 not accessible"}
+            # Выполнить PING LIGHT тест
+            from ping_speed_test import test_node_ping_light
+            ping_result = await test_node_ping_light(node.ip)
             
             # Обновить статус на основе результата (С ЗАЩИТОЙ для ping_light)
             if ping_result['success']:
@@ -3379,17 +3258,8 @@ async def manual_ping_test(
             # Note: get_db() will auto-commit
             
             # Perform full PING OK test with authentication
-            # ПРОСТАЯ РЕАЛИЗАЦИЯ без импорта из поврежденного файла
-            try:
-                reader, writer = await asyncio.wait_for(
-                    asyncio.open_connection(node.ip, 1723),
-                    timeout=2.0
-                )
-                writer.close()
-                await writer.wait_closed()
-                ping_result = {"success": True, "success_rate": 100.0}
-            except:
-                ping_result = {"success": False, "success_rate": 0.0}
+            from ping_speed_test import test_node_ping
+            ping_result = await test_node_ping(node.ip, node.login or 'admin', node.password or 'admin')
             # Add packet_loss for UI compatibility (100 - success_rate)
             try:
                 ping_result["packet_loss"] = round(100.0 - float(ping_result.get("success_rate", 0.0)), 1)
@@ -3399,14 +3269,12 @@ async def manual_ping_test(
             # Update status based on AUTHENTIC PPTP result (ИСПРАВЛЕНО)
             if ping_result['success']:
                 node.status = "ping_ok"
-                node.port = 1723  # ✅ Устанавливаем port при успехе
                 logger.info(f"✅ Node {node_id} AUTHENTIC PPTP SUCCESS - status: {original_status} -> ping_ok")
             else:
                 # ИСПРАВЛЕНО: При провале PING OK теста статус должен быть ping_failed
                 # Исключение: только для speed_ok и online делаем откат до ping_ok (они уже прошли валидацию)
                 if original_status in ("speed_ok", "online"):
                     node.status = "ping_ok"  # откат до baseline для высоких статусов
-                    node.port = 1723  # ✅ Сохраняем port даже при rollback
                     logger.info(f"🔄 Node {node_id} AUTHENTIC PPTP FAILED - rolling back from {original_status} to ping_ok (baseline preserved)")
                 else:
                     # Для ping_ok и других статусов - четко ping_failed при провале авторизации
@@ -3479,10 +3347,10 @@ async def manual_ping_test_batch(
     asyncio.create_task(process_testing_batches(
         session_id, [n.id for n in nodes], "ping_only", db,
         ping_concurrency=test_request.ping_concurrency or 15,  # АГРЕССИВНО увеличено
-        speed_concurrency=test_request.speed_concurrency or 8,   # Восстановлено: оригинальная скорость
+        speed_concurrency=test_request.speed_concurrency or 8,   # АГРЕССИВНО увеличено
         ping_timeouts=test_request.ping_timeouts or [0.8,1.2,1.6],
         speed_sample_kb=test_request.speed_sample_kb or 512,
-        speed_timeout=test_request.speed_timeout or 60  # Увеличен для Speedtest CLI
+        speed_timeout=test_request.speed_timeout or 15
     ))
     
     return {"results": [], "session_id": session_id, "message": f"Запущено тестирование {len(nodes)} узлов"}
@@ -3599,10 +3467,10 @@ async def manual_ping_test_batch_progress(
     asyncio.create_task(process_testing_batches(
         session_id, [n.id for n in nodes], "ping_only", db,
         ping_concurrency=test_request.ping_concurrency or 15,  # АГРЕССИВНО увеличено
-        speed_concurrency=test_request.speed_concurrency or 8,   # Восстановлено: оригинальная скорость
+        speed_concurrency=test_request.speed_concurrency or 8,   # АГРЕССИВНО увеличено
         ping_timeouts=test_request.ping_timeouts or [0.8,1.2,1.6],
         speed_sample_kb=test_request.speed_sample_kb or 512,
-        speed_timeout=test_request.speed_timeout or 60  # Увеличен для Speedtest CLI
+        speed_timeout=test_request.speed_timeout or 15
     ))
     
     return {"session_id": session_id, "message": f"Запущено тестирование {len(nodes)} узлов", "started": True}
@@ -3657,10 +3525,10 @@ async def manual_speed_test_batch_progress(
     asyncio.create_task(process_testing_batches(
         session_id, [n.id for n in nodes], "speed_only", db,
         ping_concurrency=test_request.ping_concurrency or 15,  # АГРЕССИВНО увеличено
-        speed_concurrency=test_request.speed_concurrency or 8,   # Восстановлено: оригинальная скорость
+        speed_concurrency=test_request.speed_concurrency or 8,   # АГРЕССИВНО увеличено
         ping_timeouts=test_request.ping_timeouts or [0.8,1.2,1.6],
         speed_sample_kb=test_request.speed_sample_kb or 512,
-        speed_timeout=test_request.speed_timeout or 60  # Увеличен для Speedtest CLI
+        speed_timeout=test_request.speed_timeout or 15
     ))
     
     return {"session_id": session_id, "message": f"Запущено тестирование {len(nodes)} узлов", "started": True}
@@ -3686,19 +3554,19 @@ async def manual_ping_speed_test_batch_progress(
     asyncio.create_task(process_testing_batches(
         session_id, [n.id for n in nodes], "speed_only", db,
         ping_concurrency=test_request.ping_concurrency or 15,  # АГРЕССИВНО увеличено
-        speed_concurrency=test_request.speed_concurrency or 8,   # Восстановлено: оригинальная скорость
+        speed_concurrency=test_request.speed_concurrency or 8,   # АГРЕССИВНО увеличено
         ping_timeouts=test_request.ping_timeouts or [0.8,1.2,1.6],
         speed_sample_kb=test_request.speed_sample_kb or 512,
-        speed_timeout=test_request.speed_timeout or 60  # Увеличен для Speedtest CLI
+        speed_timeout=test_request.speed_timeout or 15
     ))
     return {"session_id": session_id, "message": f"Запущено тестирование {len(nodes)} узлов (speed)", "started": True}
 
 async def process_testing_batches(session_id: str, node_ids: list, testing_mode: str, db_session, *,
                                   ping_concurrency: int = 15,   # АГРЕССИВНО увеличено для скорости
-                                  speed_concurrency: int = 8,   # Восстановлено: оригинальная скорость
+                                  speed_concurrency: int = 8,   # АГРЕССИВНО увеличено для скорости  
                                   ping_timeouts: list[float] | None = None,
-                                  speed_sample_kb: int = 512,    # Увеличено для Speedtest CLI
-                                  speed_timeout: int = 60):      # Увеличен для Speedtest CLI
+                                  speed_sample_kb: int = 32,    # МИНИМИЗИРОВАНО для максимальной скорости
+                                  speed_timeout: int = 2):      # ЭКСТРЕМАЛЬНО быстро
     """Process testing in batches for any test type with concurrency controls"""
     
     total_nodes = len(node_ids)
@@ -3723,10 +3591,8 @@ async def process_testing_batches(session_id: str, node_ids: list, testing_mode:
         
         logger.info(f"🚀 Testing Batch: Starting {total_nodes} nodes in batches of {BATCH_SIZE}, mode: {testing_mode}")
         
-        # ✅ НЕ используем ping_speed_test.py (поврежден null bytes)
-        # Вместо этого используем pptp_auth_test.py и accurate_speed_test.py напрямую
-        from pptp_auth_test import PPTPAuthenticator, test_node_ping_authentic_with_retry
-        from accurate_speed_test import test_node_accurate_speed as test_node_speed
+        # Import testing functions
+        from ping_speed_test import test_node_ping, test_node_speed
         
         # Process nodes in batches
         for batch_start in range(0, total_nodes, BATCH_SIZE):
@@ -3769,89 +3635,13 @@ async def process_testing_batches(session_id: str, node_ids: list, testing_mode:
                             original_status = node.status
                             logger.info(f"🔍 Testing batch: Node {node.id} ({node.ip}) original status: {original_status}")
 
-                            # Decide actions - УМНАЯ АВТОМАТИЧЕСКАЯ ЦЕПОЧКА
+                            # Decide actions
                             do_ping = False
                             do_speed = False
-                            
                             if testing_mode == "ping_only":
-                                # PING ONLY режим
-                                # Работает для ping_light и выше, для остальных пропуск
-                                if original_status in ("ping_light", "ping_ok", "speed_ok", "online"):
-                                    do_ping = True
-                                else:
-                                    # not_tested или ping_failed - пропускаем PING OK
-                                    logger.info(f"⏭️ Пропуск PING OK для {node.ip}: требуется ping_light (статус: {original_status})")
-                                    progress_increment(session_id, f"⏭️ {node.ip} - пропущен (нужен ping_light для PING OK)", {"node_id": node.id, "ip": node.ip, "status": original_status, "success": False})
-                                    return True
-                                
+                                do_ping = not has_ping_baseline(original_status)
                             elif testing_mode == "speed_only":
-                                # SPEED ONLY режим - УМНАЯ АВТОМАТИЧЕСКАЯ ЦЕПОЧКА
-                                
-                                if original_status == "not_tested":
-                                    # Автоматически: PING LIGHT → PING OK → SPEED OK
-                                    logger.info(f"🔗 {node.ip}: not_tested → автоцепочка: PING LIGHT → PING OK → SPEED")
-                                    
-                                    # ЭТАП 1: PING LIGHT встроенный
-                                    try:
-                                        reader_pl, writer_pl = await asyncio.wait_for(
-                                            asyncio.open_connection(node.ip, 1723),
-                                            timeout=2.0
-                                        )
-                                        writer_pl.close()
-                                        await writer_pl.wait_closed()
-                                        node.status = "ping_light"  # БАЗОВЫЙ ДЕФОЛТНЫЙ установлен!
-                                        node.last_update = datetime.now(timezone.utc)
-                                        local_db.commit()
-                                        logger.info(f"✅ {node.ip} PING LIGHT OK → ping_light (базовый дефолтный)")
-                                        # Продолжаем к PING OK и SPEED
-                                        do_ping = True
-                                        do_speed = True
-                                    except:
-                                        node.status = "ping_failed"
-                                        node.last_update = datetime.now(timezone.utc)
-                                        local_db.commit()
-                                        logger.info(f"❌ {node.ip} PING LIGHT FAILED → ping_failed, СТОП")
-                                        progress_increment(session_id, f"❌ {node.ip} - ping_failed", {"node_id": node.id, "ip": node.ip, "status": "ping_failed", "success": False})
-                                        return False
-                                        
-                                elif original_status == "ping_light":
-                                    # Автоматически: PING OK → SPEED OK
-                                    logger.info(f"🔗 {node.ip}: ping_light → автоцепочка: PING OK → SPEED")
-                                    do_ping = True
-                                    do_speed = True
-                                    
-                                elif original_status in ("ping_ok", "speed_ok", "online"):
-                                    # Уже авторизован - сразу SPEED
-                                    logger.info(f"✅ {node.ip}: {original_status} → сразу SPEED")
-                                    do_speed = True
-                                    
-                                elif original_status == "ping_failed":
-                                    # ping_failed - автоматически PING LIGHT → остальное
-                                    logger.info(f"🔗 {node.ip}: ping_failed → автоцепочка: PING LIGHT → PING OK → SPEED")
-                                    
-                                    # ЭТАП 1: PING LIGHT встроенный
-                                    try:
-                                        reader_pl, writer_pl = await asyncio.wait_for(
-                                            asyncio.open_connection(node.ip, 1723),
-                                            timeout=2.0
-                                        )
-                                        writer_pl.close()
-                                        await writer_pl.wait_closed()
-                                        node.status = "ping_light"  # БАЗОВЫЙ ДЕФОЛТНЫЙ установлен!
-                                        node.last_update = datetime.now(timezone.utc)
-                                        local_db.commit()
-                                        logger.info(f"✅ {node.ip} PING LIGHT OK → ping_light (базовый дефолтный)")
-                                        # Продолжаем к PING OK и SPEED
-                                        do_ping = True
-                                        do_speed = True
-                                    except:
-                                        node.status = "ping_failed"
-                                        node.last_update = datetime.now(timezone.utc)
-                                        local_db.commit()
-                                        logger.info(f"❌ {node.ip} PING LIGHT FAILED → ping_failed остается, СТОП")
-                                        progress_increment(session_id, f"❌ {node.ip} - ping_failed", {"node_id": node.id, "ip": node.ip, "status": "ping_failed", "success": False})
-                                        return False
-                                        
+                                do_speed = (original_status != "ping_failed")
                             else:
                                 # Treat any other as skip
                                 return True
@@ -3864,86 +3654,53 @@ async def process_testing_batches(session_id: str, node_ids: list, testing_mode:
                             # Do ping
                             if do_ping:
                                 try:
-                                    # ✅ ИСПОЛЬЗУЕМ УЛУЧШЕННУЮ PPTP АВТОРИЗАЦИЮ С RETRY
-                                    login = node.login or 'admin'
-                                    password = node.password or 'admin'
-                                    logger.info(f"🔍 REAL PPTP Auth testing {node.ip} with {login}:{password}")
+                                    from ping_speed_test import multiport_tcp_ping
+                                    ports = get_ping_ports_for_node(node)
+                                    logger.info(f"🔍 Ping testing {node.ip} on ports {ports}")
                                     
-                                    ping_result = await PPTPAuthenticator.authentic_pptp_test(node.ip, login, password, timeout=8.0)
-                                    logger.info(f"🏓 REAL PPTP result for {node.ip}: {ping_result}")
+                                    ping_result = await multiport_tcp_ping(node.ip, ports=ports, timeouts=ping_timeouts)
+                                    logger.info(f"🏓 Ping result for {node.ip}: {ping_result}")
                                     
                                     if ping_result.get('success'):
                                         node.status = "ping_ok"
-                                        node.port = 1723
-                                        logger.info(f"✅ {node.ip} REAL PPTP AUTH SUCCESS: {ping_result.get('avg_time', 0)}ms → ping_ok")
-                                        # PING OK прошел - можно продолжать к SPEED (если был запланирован)
+                                        logger.info(f"✅ {node.ip} ping success: {ping_result.get('avg_time', 0)}ms")
                                     else:
-                                        # ПО ТЗ: При неудаче PING OK откатываемся до базового дефолтного ping_light
-                                        if has_ping_baseline(original_status):
-                                            node.status = "ping_light"  # Откат до базового дефолтного!
-                                            logger.info(f"❌ {node.ip} REAL PPTP AUTH FAILED - откат до базового дефолтного: ping_light")
-                                        else:
-                                            # Нет ping_light baseline - значит PING LIGHT еще не был пройден
-                                            logger.warning(f"⚠️ PING OK без PING LIGHT baseline для {node.ip}")
-                                            node.status = "ping_failed"
-                                            logger.info(f"❌ {node.ip} REAL PPTP AUTH FAILED - нет baseline: ping_failed")
-                                        
-                                        # КРИТИЧЕСКИ ВАЖНО: PING OK не прошел → НЕ запускать SPEED
-                                        do_speed = False
-                                        logger.info(f"🛑 {node.ip} PING OK FAILED → SPEED тест ОТМЕНЕН")
+                                        node.status = original_status if has_ping_baseline(original_status) else "ping_failed"
+                                        logger.info(f"❌ {node.ip} ping failed: {ping_result.get('message', 'timeout')}")
                                     
                                     node.last_update = datetime.now(timezone.utc)
                                     local_db.commit()
                                 except Exception as ping_error:
-                                    logger.error(f"❌ REAL PPTP Auth error for {node.ip}: {ping_error}")
-                                    # ПО ТЗ: При ошибке откат до базового дефолтного ping_light
-                                    if has_ping_baseline(original_status):
-                                        node.status = "ping_light"
-                                    else:
-                                        node.status = "ping_failed"
+                                    logger.error(f"❌ Ping test error for {node.ip}: {ping_error}")
+                                    node.status = original_status if has_ping_baseline(original_status) else "ping_failed"
                                     node.last_update = datetime.now(timezone.utc)
                                     local_db.commit()
-                                    
-                                    # КРИТИЧЕСКИ ВАЖНО: PING OK exception → НЕ запускать SPEED
-                                    do_speed = False
-                                    logger.info(f"🛑 {node.ip} PING OK exception → SPEED тест ОТМЕНЕН")
 
                             # Do speed
                             if do_speed:
                                 try:
-                                    from accurate_speed_test import test_node_accurate_speed
+                                    from ping_speed_test import test_node_speed
                                     logger.info(f"🚀 Speed testing {node.ip}")
                                     
-                                    speed_result = await test_node_accurate_speed(node.ip, node.login or 'admin', node.password or 'admin', sample_kb=speed_sample_kb, timeout=speed_timeout)
+                                    speed_result = await test_node_speed(node.ip, sample_kb=speed_sample_kb, timeout_total=speed_timeout)
                                     logger.info(f"📊 Speed result for {node.ip}: {speed_result}")
                                     
                                     # ИСПРАВЛЕНО: Проверка download_mbps (НЕ download)
                                     if speed_result.get('success') and speed_result.get('download_mbps'):
                                         download_speed = speed_result['download_mbps']
-                                        node.speed = f"{download_speed:.2f} Mbps"
-                                        node.status = "speed_ok"  # ✅ ВСЕГДА speed_ok если тест прошел
-                                        node.port = 1723  # ✅ Устанавливаем port при успехе
-                                        logger.info(f"✅ {node.ip} speed success: {download_speed:.2f} Mbps → speed_ok")
+                                        node.speed = f"{download_speed:.1f} Mbps"
+                                        node.status = "speed_ok" if download_speed > 1.0 else "ping_ok"
+                                        logger.info(f"✅ {node.ip} speed success: {download_speed:.1f} Mbps")
                                     else:
-                                        # ПО ТЗ: При неудаче SPEED OK откатываемся до базового ping_light
-                                        if has_ping_baseline(original_status):
-                                            node.status = "ping_light"  # Откат до baseline!
-                                            logger.info(f"❌ {node.ip} speed failed - откат до baseline: ping_light")
-                                        else:
-                                            # Нет baseline - ошибка последовательности
-                                            logger.warning(f"⚠️ SPEED OK без baseline для {node.ip}")
-                                            node.status = "ping_failed"
+                                        node.status = "ping_ok" if has_ping_baseline(original_status) else "ping_failed"
                                         node.speed = None
+                                        logger.info(f"❌ {node.ip} speed failed - result: {speed_result}")
                                     
                                     node.last_update = datetime.now(timezone.utc)
                                     local_db.commit()
                                 except Exception as speed_error:
                                     logger.error(f"❌ Speed test error for {node.ip}: {speed_error}")
-                                    # ПО ТЗ: При ошибке откат до baseline ping_light
-                                    if has_ping_baseline(original_status):
-                                        node.status = "ping_light"
-                                    else:
-                                        node.status = "ping_failed"
+                                    node.status = "ping_ok" if has_ping_baseline(original_status) else "ping_failed"
                                     node.speed = None
                                     node.last_update = datetime.now(timezone.utc)
                                     local_db.commit()
@@ -4092,8 +3849,8 @@ async def process_ping_light_batches(session_id: str, node_ids: list, db_session
         
         logger.info(f"🚀 PING LIGHT Batch: Starting {total_nodes} nodes in batches of {BATCH_SIZE}")
         
-        # ✅ ИСПОЛЬЗУЕМ test_node_ping_light НАПРЯМУЮ без импорта
-        # Прямая реализация для избежания ошибок с поврежденным ping_speed_test.py
+        # Import testing functions
+        from ping_speed_test import test_node_ping_light
         
         # Process nodes in batches
         for batch_start in range(0, total_nodes, BATCH_SIZE):
@@ -4127,41 +3884,21 @@ async def process_ping_light_batches(session_id: str, node_ids: list, db_session
                         original_status = node.status
                         logger.info(f"🔍 PING LIGHT batch: Node {node.id} ({node.ip}) original status: {original_status}")
 
-                        # ✅ PING LIGHT быстрый одиночный тест (восстановлено для скорости)
-                        import asyncio
-                        import time
+                        # Выполнить PING LIGHT тест с заданным timeout
+                        ping_result = await test_node_ping_light(node.ip, timeout=timeout)
                         
-                        start_time = time.time()
-                        try:
-                            future = asyncio.open_connection(node.ip, 1723)
-                            reader, writer = await asyncio.wait_for(future, timeout=2.0)
-                            writer.close()
-                            await writer.wait_closed()
-                            elapsed_ms = (time.time() - start_time) * 1000.0
-                            ping_result = {
-                                "success": True, 
-                                "message": f"PING LIGHT OK - TCP 1723 accessible in {elapsed_ms:.1f}ms"
-                            }
-                        except Exception as e:
-                            ping_result = {
-                                "success": False, 
-                                "message": f"PING LIGHT FAILED - TCP 1723 not accessible"
-                            }
-                        
-                        # Обновить статус на основе результата
+                        # Обновить статус на основе результата (С ЗАЩИТОЙ для ping_light)
                         if ping_result['success']:
                             node.status = "ping_light"
                             logger.info(f"✅ PING LIGHT batch: Node {node_id} SUCCESS - status: {original_status} -> ping_light")
                             success = True
                         else:
-                            # ✅ ПРАВИЛЬНАЯ ЛОГИКА: PING LIGHT - это РЕАЛЬНЫЙ тест
-                            # Если порт 1723 закрыт → узел не работает → ping_failed
-                            # ЗАЩИТА: сохраняем статус для узлов которые УЖЕ прошли тесты
+                            # ЗАЩИТА: если уже был ping_light (порт работал хотя бы раз), сохраняем статус
                             if original_status in ("ping_light", "ping_ok", "speed_ok", "online"):
-                                node.status = original_status  # Не откатываем успешные статусы
-                                logger.info(f"🛡️ PING LIGHT batch: Node {node_id} FAILED - preserving {original_status}")
+                                node.status = original_status  # Сохраняем! Не откатываем до ping_failed
+                                logger.info(f"🛡️ PING LIGHT batch: Node {node_id} FAILED but preserving status {original_status}")
                             else:
-                                node.status = "ping_failed"  # Узел не прошел базовый тест
+                                node.status = "ping_failed"
                                 logger.info(f"❌ PING LIGHT batch: Node {node_id} FAILED - status: {original_status} -> ping_failed")
                             success = False
                         
@@ -4243,9 +3980,7 @@ async def manual_ping_speed_test_batch(
 ):
     """Optimized batch ping + speed test with sequential execution"""
     import asyncio
-    # Import testing functions с улучшенной retry logic
-    from pptp_auth_test import PPTPAuthenticator, test_node_ping_authentic_with_retry
-    from accurate_speed_test import test_node_accurate_speed as test_node_speed
+    from ping_speed_test import test_node_ping, test_node_speed
     
     # Get all nodes first
     nodes = []
@@ -4269,17 +4004,9 @@ async def manual_ping_speed_test_batch(
             db.commit()
             
             # New single-port multi-timeout TCP ping
-            # PING LIGHT без импорта из поврежденного файла
-            try:
-                reader, writer = await asyncio.wait_for(
-                    asyncio.open_connection(node.ip, 1723),
-                    timeout=2.0
-                )
-                writer.close()
-                await writer.wait_closed()
-                ping_result = {"success": True}
-            except:
-                ping_result = {"success": False}
+            from ping_speed_test import multiport_tcp_ping
+            ports = get_ping_ports_for_node(node)
+            ping_result = await multiport_tcp_ping(node.ip, ports=ports, timeouts=[0.8, 1.2, 1.6])
             
             if not ping_result or not ping_result.get('success', False):
                 # Ping failed - never drop below PING OK baseline
@@ -4303,7 +4030,6 @@ async def manual_ping_speed_test_batch(
             
             # Step 2: Ping successful, now test speed
             node.status = "ping_ok"
-            node.port = 1723  # ✅ Устанавливаем port при успехе
             node.last_update = datetime.utcnow()
             
             # Note: Database will auto-commit via get_db() dependency
@@ -4312,7 +4038,7 @@ async def manual_ping_speed_test_batch(
             await asyncio.sleep(0.5)
             
             speed_result = await asyncio.wait_for(
-                test_node_speed(node.ip, node.login or 'admin', node.password or 'admin'),
+                test_node_speed(node.ip),
                 timeout=15.0
             )
             
@@ -4320,7 +4046,6 @@ async def manual_ping_speed_test_batch(
             if speed_result and speed_result.get('success', False):
                 # On successful speed test, ensure baseline PING OK and set SPEED OK
                 node.status = "speed_ok"
-                node.port = 1723  # ✅ Устанавливаем port при успехе
                 node.speed = f"{speed_result.get('download', 0)} Mbps"
             else:
                 # Speed failed: downgrade from SPEED OK only to PING OK; never to PING FAILED
@@ -4466,8 +4191,8 @@ async def manual_speed_test(
             db.commit()
             
             # Perform real speed test
-            from accurate_speed_test import test_node_accurate_speed
-            speed_result = await test_node_accurate_speed(node.ip, node.login or 'admin', node.password or 'admin')
+            from ping_speed_test import test_node_speed
+            speed_result = await test_node_speed(node.ip)
             
             if speed_result.get('success') and speed_result.get('download'):
                 node.speed = f"{speed_result['download']:.1f}"
@@ -4552,17 +4277,10 @@ async def manual_launch_services(
             
             # Launch SOCKS + OVPN services simultaneously
             from ovpn_generator import ovpn_generator
-            # PPTP CONNECTION TEST без импорта из поврежденного файла
-            try:
-                reader, writer = await asyncio.wait_for(
-                    asyncio.open_connection(node.ip, 1723),
-                    timeout=3.0
-                )
-                writer.close()
-                await writer.wait_closed()
-                pptp_result = {"success": True}
-            except:
-                pptp_result = {"success": False}
+            from ping_speed_test import test_pptp_connection
+            
+            # Test PPTP connection - skip ping check since node already passed speed_ok
+            pptp_result = await test_pptp_connection(node.ip, node.login, node.password, skip_ping_check=True)
             
             if pptp_result['success']:
                 # Generate SOCKS credentials
@@ -4761,70 +4479,13 @@ async def get_socks_proxy_file(
         logger.error(f"Error getting SOCKS proxy file: {e}")
         return {"content": "# Ошибка получения файла SOCKS прокси"}
 
-
-async def verify_socks_traffic(node_ip: str, socks_port: int, socks_login: str, socks_password: str, retries: int = 5) -> dict:
-    """
-    Проверить что трафик РЕАЛЬНО проходит через SOCKS → PPTP
-    Мягкая проверка: несколько попыток с задержкой между ними
-    """
-    import subprocess
-    
-    retry_delay = int(os.environ.get('SOCKS_STARTUP_RETRY_DELAY', 20))
-    check_timeout = int(os.environ.get('SOCKS_STARTUP_CHECK_TIMEOUT', 30))
-    
-    for attempt in range(1, retries + 1):
-        try:
-            logger.info(f"🔍 Проверка SOCKS трафика (попытка {attempt}/{retries}): порт {socks_port}")
-            
-            # Простая проверка TCP соединения через SOCKS к 1.1.1.1:443
-            cmd = [
-                'timeout', str(check_timeout),
-                'curl', '-sS',
-                '-x', f'socks5://{socks_login}:{socks_password}@127.0.0.1:{socks_port}',
-                '--connect-timeout', str(check_timeout),
-                '--max-time', str(check_timeout),
-                'https://1.1.1.1'
-            ]
-            
-            result = subprocess.run(
-                cmd,
-                capture_output=True,
-                text=True,
-                timeout=check_timeout + 5
-            )
-            
-            if result.returncode == 0:
-                logger.info(f"✅ SOCKS трафик проверен успешно (попытка {attempt}): порт {socks_port}")
-                return {"success": True, "attempt": attempt, "message": f"SOCKS трафик проходит (попытка {attempt})"}
-            else:
-                logger.warning(f"⚠️ SOCKS проверка не прошла (попытка {attempt}/{retries}): {result.stderr[:200]}")
-                
-                # Если не последняя попытка - подождать
-                if attempt < retries:
-                    logger.info(f"⏳ Ожидание {retry_delay} секунд перед следующей попыткой...")
-                    await asyncio.sleep(retry_delay)
-                    
-        except subprocess.TimeoutExpired:
-            logger.warning(f"⏱️ SOCKS проверка timeout (попытка {attempt}/{retries})")
-            if attempt < retries:
-                await asyncio.sleep(retry_delay)
-        except Exception as e:
-            logger.error(f"❌ Ошибка проверки SOCKS (попытка {attempt}/{retries}): {e}")
-            if attempt < retries:
-                await asyncio.sleep(retry_delay)
-    
-    # Все попытки исчерпаны
-    logger.error(f"❌ SOCKS трафик не проходит после {retries} попыток: порт {socks_port}")
-    return {"success": False, "attempt": retries, "message": f"SOCKS трафик не проходит после {retries} попыток"}
-
-
 @api_router.post("/socks/start")
 async def start_socks_services(
     request_data: dict,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Start SOCKS5 services for selected nodes with PPTP verification"""
+    """Start SOCKS services for selected nodes or filtered nodes"""
     node_ids = request_data.get("node_ids", [])
     filters = request_data.get("filters", {})
     masking_settings = request_data.get("masking_settings", {})
@@ -4845,9 +4506,6 @@ async def start_socks_services(
     
     results = []
     
-    # Import PPTP authenticator for connection verification
-    from pptp_auth_test import PPTPAuthenticator
-    
     for node_id in node_ids:
         try:
             node = db.query(Node).filter(Node.id == node_id).first()
@@ -4859,52 +4517,14 @@ async def start_socks_services(
                 })
                 continue
             
-            # Check if node has ping_ok, speed_ok or online status
-            # online = перезапуск (сначала останавливаем, потом запускаем)
-            if node.status == "online":
-                # Перезапуск: сначала остановить SOCKS
-                logger.info(f"🔄 Перезапуск SOCKS для онлайн узла {node_id}")
-                stop_socks_service(node_id)
-                # Продолжаем запуск ниже
-            elif node.status not in ["ping_ok", "speed_ok"]:
+            # Check if node has ping_ok or speed_ok status
+            if node.status not in ["ping_ok", "speed_ok"]:
                 results.append({
                     "node_id": node_id,
                     "ip": node.ip,
                     "success": False,
-                    "message": f"Узел должен иметь статус PING OK, SPEED OK или ONLINE (текущий: {node.status})"
+                    "message": f"Node must have ping_ok or speed_ok status (current: {node.status})"
                 })
-                continue
-            
-            # ✅ ТЗ ТРЕБОВАНИЕ: Проверить наличие активного PPTP-соединения
-            logger.info(f"🔍 SOCKS START: Проверка PPTP соединения для узла {node_id} ({node.ip})")
-            try:
-                pptp_result = await PPTPAuthenticator.authentic_pptp_test(
-                    ip=node.ip,
-                    login=node.login or "",
-                    password=node.password or "",
-                    timeout=8.0
-                )
-                
-                if not pptp_result.get("success"):
-                    results.append({
-                        "node_id": node_id,
-                        "ip": node.ip,
-                        "success": False,
-                        "message": f"PPTP соединение не установлено: {pptp_result.get('error', 'Unknown error')}"
-                    })
-                    logger.warning(f"❌ SOCKS START: PPTP проверка не прошла для узла {node_id}")
-                    continue
-                
-                logger.info(f"✅ SOCKS START: PPTP соединение проверено для узла {node_id}")
-                
-            except Exception as pptp_error:
-                results.append({
-                    "node_id": node_id,
-                    "ip": node.ip,
-                    "success": False,
-                    "message": f"Ошибка проверки PPTP: {str(pptp_error)}"
-                })
-                logger.error(f"❌ SOCKS START: Ошибка PPTP проверки для узла {node_id}: {pptp_error}")
                 continue
             
             # Generate SOCKS credentials
@@ -4921,43 +4541,17 @@ async def start_socks_services(
             # Save previous status for proper restoration later
             node.previous_status = node.status  # Save current status (ping_ok or speed_ok)
             
-            # ✅ ТЗ ТРЕБОВАНИЕ: Создать PPTP туннель к узлу
-            logger.info(f"🔧 Creating PPTP tunnel to {node.ip} for node {node_id}")
-            tunnel_info = pptp_tunnel_manager.create_tunnel(
-                node_id=node_id,
-                node_ip=node.ip,
-                username=node.login,
-                password=node.password
-            )
-            
-            if not tunnel_info:
-                results.append({
-                    "node_id": node_id,
-                    "ip": node.ip,
-                    "success": False,
-                    "message": f"Не удалось установить PPTP туннель к узлу {node.ip}"
-                })
-                continue
-            
-            logger.info(f"✅ PPTP tunnel created: {tunnel_info['interface']} ({tunnel_info['local_ip']} -> {tunnel_info['remote_ip']})")
-            
-            # Save ppp_interface to node
-            node.ppp_interface = tunnel_info['interface']
-            
-            # Start actual SOCKS5 server (поверх PPTP туннеля)
+            # Start actual SOCKS5 server
             socks_success = start_socks_service(
                 node_id=node_id,
                 node_ip=node.ip,  # Target node IP for routing
                 port=socks_port,
                 username=login_prefix,
                 password=password,
-                ppp_interface=node.ppp_interface or tunnel_info['interface'],  # Use DB value or fallback to tunnel_info
                 masking_config=masking_settings
             )
             
             if not socks_success:
-                # Cleanup PPTP tunnel if SOCKS failed
-                pptp_tunnel_manager.destroy_tunnel(node_id)
                 results.append({
                     "node_id": node_id,
                     "ip": node.ip,
@@ -4966,52 +4560,8 @@ async def start_socks_services(
                 })
                 continue
             
-            # ✅ ОБЯЗАТЕЛЬНАЯ ПРОВЕРКА: Трафик РЕАЛЬНО проходит через SOCKS → PPTP
-            logger.info(f"🔍 Запуск обязательной проверки трафика через SOCKS для узла {node_id}")
-            startup_retries = int(os.environ.get('SOCKS_STARTUP_CHECK_RETRIES', 5))
-            traffic_check = await verify_socks_traffic(
-                node_ip=node.ip,
-                socks_port=socks_port,
-                socks_login=login_prefix,
-                socks_password=password,
-                retries=startup_retries
-            )
-            
-            if not traffic_check.get("success"):
-                # Откатить: остановить SOCKS и удалить PPTP туннель
-                logger.error(f"❌ SOCKS трафик не проходит для узла {node_id} после {startup_retries} попыток, откатываем...")
-                stop_socks_service(node_id)
-                pptp_tunnel_manager.destroy_tunnel(node_id)
-                results.append({
-                    "node_id": node_id,
-                    "ip": node.ip,
-                    "success": False,
-                    "message": f"SOCKS трафик не проходит после {startup_retries} попыток проверки"
-                })
-                continue
-            
-            logger.info(f"✅ SOCKS трафик успешно проверен для узла {node_id} (попытка {traffic_check.get('attempt')})")
-            
             # Update node with SOCKS data
-            # ✅ ТЗ ТРЕБОВАНИЕ: SOCKS должен быть доступен извне по IP сервера
-            # Получаем внешний адрес из переменной окружения или определяем автоматически
-            admin_server_ip = os.environ.get('ADMIN_SERVER_IP')
-            if not admin_server_ip or admin_server_ip == '127.0.0.1':
-                # Пробуем получить из REACT_APP_BACKEND_URL
-                backend_url = os.environ.get('REACT_APP_BACKEND_URL', '')
-                if backend_url:
-                    # Извлекаем домен из URL (например: https://socks-pptp-bridge.preview.emergentagent.com)
-                    import re
-                    domain_match = re.search(r'https?://([^/]+)', backend_url)
-                    if domain_match:
-                        admin_server_ip = domain_match.group(1)
-                        logger.info(f"🌐 Using external domain from REACT_APP_BACKEND_URL: {admin_server_ip}")
-                    else:
-                        admin_server_ip = '127.0.0.1'
-                else:
-                    admin_server_ip = '127.0.0.1'
-                    logger.warning(f"⚠️ ADMIN_SERVER_IP not set, using localhost (not accessible externally!)")
-            
+            admin_server_ip = os.environ.get('ADMIN_SERVER_IP', '127.0.0.1')  # External IP of admin server
             node.socks_ip = admin_server_ip
             node.socks_port = socks_port
             node.socks_login = login_prefix
@@ -5088,30 +4638,20 @@ async def stop_socks_services(
             socks_success = stop_socks_service(node_id)
             
             if not socks_success:
-                logger.warning(f"⚠️ Failed to stop SOCKS5 server for node {node_id}, continuing with cleanup")
+                logger.warning(f"⚠️ Failed to stop SOCKS5 server for node {node_id}, continuing with database cleanup")
             
-            # ✅ ТЗ ТРЕБОВАНИЕ: Разорвать PPTP туннель
-            logger.info(f"🔧 Destroying PPTP tunnel for node {node_id}")
-            pptp_tunnel_manager.destroy_tunnel(node_id)
-            
-            # ✅ ТЗ ТРЕБОВАНИЕ: Удалить данные SOCKS из базы и вернуть статус в PING OK
+            # Clear SOCKS data and revert to previous status
             node.socks_ip = None
             node.socks_port = None
             node.socks_login = None
             node.socks_password = None
             
-            # ✅ УМНАЯ ЛОГИКА: Вернуть статус из previous_status (если был), иначе ping_ok
+            # SMART STATUS RESTORATION: 
+            # Manual stop -> node remains speed_ok (live and validated)
+            # Logic: if SOCKS was successfully running, node is proven to be working -> speed_ok
             if node.status == "online":
-                # Проверить previous_status
-                if node.previous_status and node.previous_status in ["speed_ok", "ping_ok"]:
-                    node.status = node.previous_status
-                    logger.info(f"🔄 SOCKS STOP: узел {node_id} возвращён в {node.previous_status}")
-                else:
-                    node.status = "ping_ok"
-                    logger.info(f"🔄 SOCKS STOP: узел {node_id} возвращён в ping_ok (previous_status не найден)")
-                
-                # Очистить previous_status
-                node.previous_status = None
+                node.status = "speed_ok"  # Node is live and validated if SOCKS was running
+                logger.info(f"🔄 SOCKS manual stop: node {node_id} validated as speed_ok (live and working)")
             
             # Clear previous status after restoration
             node.previous_status = None
