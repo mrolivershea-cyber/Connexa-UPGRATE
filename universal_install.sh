@@ -466,16 +466,13 @@ if [ -d "node_modules" ] && [ -n "$(ls -A node_modules 2>/dev/null)" ]; then
     NODE_MODULES_SIZE=$(du -sh node_modules 2>/dev/null | cut -f1)
     print_success "✅ node_modules создан ($NODE_MODULES_SIZE)"
     
-    # КРИТИЧНО: Удалить ajv@6 и установить ajv@8 (версия 6 не имеет dist/compile/codegen)
-    print_info "Исправление ajv: удаление v6 и установка v8..."
+    # КРИТИЧНО: Переустановить ajv@8 ПОВЕРХ старого (не удаляя)
+    print_info "Обновление ajv@6 → ajv@8 поверх существующего..."
     sysctl -w net.ipv6.conf.all.disable_ipv6=1 > /dev/null 2>&1 || true
     npm config set registry https://registry.npmmirror.com/ 2>/dev/null || true
     
-    # Удалить всё что связано с ajv
-    rm -rf node_modules/ajv node_modules/ajv-* 2>/dev/null || true
-    
-    # Установить ajv@8 и совместимые пакеты
-    npm install ajv@8.12.0 ajv-keywords@5.1.0 ajv-formats@2.1.1 --legacy-peer-deps --no-save 2>&1 | head -5 || true
+    # Установить ajv@8 поверх существующего v6
+    npm install ajv@8.12.0 --legacy-peer-deps --force --no-save 2>&1 | tail -3 || true
     
     npm config set registry https://registry.npmjs.org/ 2>/dev/null || true
     sysctl -w net.ipv6.conf.all.disable_ipv6=0 > /dev/null 2>&1 || true
