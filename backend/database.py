@@ -84,6 +84,10 @@ class Node(Base):
     # OVPN Configuration (populated when services are launched)
     ovpn_config = Column(Text, nullable=True)  # Complete OVPN configuration
     
+    # Scamalytics data (fraud detection)
+    scamalytics_fraud_score = Column(Integer, nullable=True, default=None)  # Fraud score 0-100
+    scamalytics_risk = Column(String(20), nullable=True, default=None)  # Risk level: low, medium, high
+    
     last_check = Column(DateTime, nullable=True)
     last_update = Column(DateTime, nullable=True)  # Explicitly set in Python code, not by DB
     created_at = Column(DateTime, server_default=func.now())
