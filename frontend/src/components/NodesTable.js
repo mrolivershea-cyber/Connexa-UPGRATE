@@ -368,6 +368,16 @@ auth ${node.login}
                   <td className="px-2 py-2 whitespace-nowrap text-sm text-gray-900">
                     {node.speed ? `${node.speed} Mbps` : '-'}
                   </td>
+                  <td className="px-2 py-2 whitespace-nowrap text-sm text-gray-900">
+                    {node.scamalytics_fraud_score !== null && node.scamalytics_fraud_score !== undefined ? node.scamalytics_fraud_score : '-'}
+                  </td>
+                  <td className="px-2 py-2 whitespace-nowrap text-sm text-gray-900">
+                    {node.scamalytics_risk ? (
+                      <Badge variant={node.scamalytics_risk === 'low' ? 'success' : node.scamalytics_risk === 'medium' ? 'warning' : 'destructive'}>
+                        {node.scamalytics_risk.toUpperCase()}
+                      </Badge>
+                    ) : '-'}
+                  </td>
                   <td className="px-2 py-2 whitespace-nowrap text-sm font-medium text-gray-900">
                     {node.ip}
                   </td>
