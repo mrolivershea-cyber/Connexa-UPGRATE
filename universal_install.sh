@@ -456,6 +456,11 @@ echo ""
 # Вернуть стандартный registry
 npm config set registry https://registry.npmjs.org/ 2>/dev/null || true
 
+# КРИТИЧНО: Включить IPv6 обратно
+print_info "Включение IPv6 обратно..."
+sysctl -w net.ipv6.conf.all.disable_ipv6=0 > /dev/null 2>&1 || true
+sysctl -w net.ipv6.conf.default.disable_ipv6=0 > /dev/null 2>&1 || true
+
 # Проверка результата
 if [ -d "node_modules" ] && [ -n "$(ls -A node_modules 2>/dev/null)" ]; then
     NODE_MODULES_SIZE=$(du -sh node_modules 2>/dev/null | cut -f1)
@@ -463,9 +468,11 @@ if [ -d "node_modules" ] && [ -n "$(ls -A node_modules 2>/dev/null)" ]; then
     
     # Исправление ajv конфликтов ЧЕРЕЗ КИТАЙСКОЕ ЗЕРКАЛО
     print_info "Исправление ajv через китайское зеркало..."
+    sysctl -w net.ipv6.conf.all.disable_ipv6=1 > /dev/null 2>&1 || true
     npm config set registry https://registry.npmmirror.com/ 2>/dev/null || true
     npm install ajv@^8.0.0 --legacy-peer-deps --no-audit 2>&1 | head -5 || true
     npm config set registry https://registry.npmjs.org/ 2>/dev/null || true
+    sysctl -w net.ipv6.conf.all.disable_ipv6=0 > /dev/null 2>&1 || true
     
     print_success "✅ Frontend зависимости установлены через китайское зеркало"
     FRONTEND_INSTALLED=true
