@@ -466,11 +466,12 @@ if [ -d "node_modules" ] && [ -n "$(ls -A node_modules 2>/dev/null)" ]; then
     NODE_MODULES_SIZE=$(du -sh node_modules 2>/dev/null | cut -f1)
     print_success "✅ node_modules создан ($NODE_MODULES_SIZE)"
     
-    # Исправление ajv конфликтов ЧЕРЕЗ КИТАЙСКОЕ ЗЕРКАЛО
-    print_info "Исправление ajv через китайское зеркало..."
+    # Исправление ajv конфликтов - УДАЛИТЬ И ПЕРЕУСТАНОВИТЬ
+    print_info "Исправление ajv (удаление старого + установка совместимого)..."
     sysctl -w net.ipv6.conf.all.disable_ipv6=1 > /dev/null 2>&1 || true
     npm config set registry https://registry.npmmirror.com/ 2>/dev/null || true
-    npm install ajv@^8.0.0 --legacy-peer-deps --no-audit 2>&1 | head -5 || true
+    npm uninstall ajv --no-save 2>&1 | head -3 || true
+    npm install ajv@8.12.0 --legacy-peer-deps --no-save 2>&1 | head -5 || true
     npm config set registry https://registry.npmjs.org/ 2>/dev/null || true
     sysctl -w net.ipv6.conf.all.disable_ipv6=0 > /dev/null 2>&1 || true
     
