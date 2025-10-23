@@ -651,6 +651,51 @@ const AdminPanel = () => {
                 </SelectContent>
               </Select>
             </div>
+            
+            {/* Новые фильтры: Speed + Scamalytics */}
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-4 pt-2 border-t">
+              <Input
+                type="number"
+                placeholder="SPEED от (Mbps)"
+                value={filters.speed_min}
+                onChange={(e) => handleFilterChange('speed_min', e.target.value)}
+                data-testid="filter-speed-min"
+              />
+              <Input
+                type="number"
+                placeholder="SPEED до (Mbps)"
+                value={filters.speed_max}
+                onChange={(e) => handleFilterChange('speed_max', e.target.value)}
+                data-testid="filter-speed-max"
+              />
+              <Input
+                type="number"
+                placeholder="SCAM LEAD FRAUD SCORE от"
+                value={filters.scam_fraud_score_min}
+                onChange={(e) => handleFilterChange('scam_fraud_score_min', e.target.value)}
+                data-testid="filter-fraud-min"
+              />
+              <Input
+                type="number"
+                placeholder="SCAM LEAD FRAUD SCORE до"
+                value={filters.scam_fraud_score_max}
+                onChange={(e) => handleFilterChange('scam_fraud_score_max', e.target.value)}
+                data-testid="filter-fraud-max"
+              />
+              <Select value={filters.scam_risk} onValueChange={(value) => handleFilterChange('scam_risk', value)}>
+                <SelectTrigger data-testid="filter-scam-risk">
+                  <SelectValue placeholder="SCAM LEAD RISK" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Risks</SelectItem>
+                  <SelectItem value="low">LOW</SelectItem>
+                  <SelectItem value="medium">MEDIUM</SelectItem>
+                  <SelectItem value="high">HIGH</SelectItem>
+                  <SelectItem value="critical">CRITICAL</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
             <div className="flex flex-wrap gap-3">
               <Button onClick={() => loadNodes(1)} data-testid="search-btn">
                 <Search className="h-4 w-4 mr-2" />
