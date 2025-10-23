@@ -652,46 +652,54 @@ const AdminPanel = () => {
               </Select>
             </div>
             
-            {/* Новые фильтры: Speed + Scamalytics */}
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-4 pt-2 border-t">
-              <Input
-                type="number"
-                placeholder="SPEED от (Mbps)"
-                value={filters.speed_min}
-                onChange={(e) => handleFilterChange('speed_min', e.target.value)}
-                data-testid="filter-speed-min"
-              />
-              <Input
-                type="number"
-                placeholder="SPEED до (Mbps)"
-                value={filters.speed_max}
-                onChange={(e) => handleFilterChange('speed_max', e.target.value)}
-                data-testid="filter-speed-max"
-              />
-              <Input
-                type="number"
-                placeholder="SCAM LEAD FRAUD SCORE от"
-                value={filters.scam_fraud_score_min}
-                onChange={(e) => handleFilterChange('scam_fraud_score_min', e.target.value)}
-                data-testid="filter-fraud-min"
-              />
-              <Input
-                type="number"
-                placeholder="SCAM LEAD FRAUD SCORE до"
-                value={filters.scam_fraud_score_max}
-                onChange={(e) => handleFilterChange('scam_fraud_score_max', e.target.value)}
-                data-testid="filter-fraud-max"
-              />
+            {/* Новые фильтры: Speed + Scamalytics - КОМПАКТНО */}
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-4 pt-2 border-t">
+              <div className="flex gap-2">
+                <Input
+                  type="number"
+                  placeholder="Speed от"
+                  value={filters.speed_min}
+                  onChange={(e) => handleFilterChange('speed_min', e.target.value)}
+                  className="text-sm"
+                  data-testid="filter-speed-min"
+                />
+                <Input
+                  type="number"
+                  placeholder="Speed до"
+                  value={filters.speed_max}
+                  onChange={(e) => handleFilterChange('speed_max', e.target.value)}
+                  className="text-sm"
+                  data-testid="filter-speed-max"
+                />
+              </div>
+              <div className="flex gap-2">
+                <Input
+                  type="number"
+                  placeholder="Fraud от"
+                  value={filters.scam_fraud_score_min}
+                  onChange={(e) => handleFilterChange('scam_fraud_score_min', e.target.value)}
+                  className="text-sm"
+                  data-testid="filter-fraud-min"
+                />
+                <Input
+                  type="number"
+                  placeholder="Fraud до"
+                  value={filters.scam_fraud_score_max}
+                  onChange={(e) => handleFilterChange('scam_fraud_score_max', e.target.value)}
+                  className="text-sm"
+                  data-testid="filter-fraud-max"
+                />
+              </div>
               <Select value={filters.scam_risk} onValueChange={(value) => handleFilterChange('scam_risk', value)}>
-                <SelectTrigger data-testid="filter-scam-risk">
-                  <SelectValue placeholder="SCAM LEAD RISK" />
+                <SelectTrigger className="text-sm" data-testid="filter-scam-risk">
+                  <SelectValue placeholder="Scam Risk" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Risks</SelectItem>
-                  <SelectItem value="low">LOW</SelectItem>
-                  <SelectItem value="medium">MEDIUM</SelectItem>
-                  <SelectItem value="high">HIGH</SelectItem>
-                  <SelectItem value="critical">CRITICAL</SelectItem>
+                  <SelectItem value="low">Low</SelectItem>
+                  <SelectItem value="medium">Medium</SelectItem>
+                  <SelectItem value="high">High</SelectItem>
+                  <SelectItem value="critical">Critical</SelectItem>
                 </SelectContent>
               </Select>
             </div>
