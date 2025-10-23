@@ -391,48 +391,88 @@ test_step "uvicorn установлен" "command -v uvicorn &> /dev/null" "crit
 deactivate
 
 ##########################################################################################
-# ШАГ 7: FRONTEND - ПРОПУСК (НЕ БЛОКИРУЕТ УСТАНОВКУ)
+# ШАГ 7: FRONTEND ЧЕРЕЗ КИТАЙСКОЕ ЗЕРКАЛО (АВТОМАТИЧЕСКИ)
 ##########################################################################################
 
-print_header "ШАГ 7/12: FRONTEND (ПРОПУЩЕН - BACKEND ONLY)"
+print_header "ШАГ 7/12: FRONTEND ЗАВИСИМОСТИ (КИТАЙСКОЕ ЗЕРКАЛО)"
 
 cd "$INSTALL_DIR/frontend"
 
-print_warning "⚠️  Frontend установка ПРОПУЩЕНА"
-print_info "Причина: npm install нестабилен на некоторых серверах (сетевые таймауты)"
-print_info ""
-print_success "✅ Backend работает полностью БЕЗ frontend"
-print_info "✅ Можно использовать через API: http://\$(hostname -I | awk '{print \$1}'):8001/docs"
-print_info ""
-print_info "📝 Для установки frontend вручную (если нужен UI):"
-print_info "  cd /app/frontend"
-print_info "  npm config set registry https://registry.npmmirror.com/"
-print_info "  npm install --legacy-peer-deps --force"
-print_info "  npm install ajv@^8.0.0 --legacy-peer-deps"
-print_info "  npm config set registry https://registry.npmjs.org/"
-print_info ""
-print_info "  # Создать supervisor конфиг:"
-print_info "  sudo bash -c 'cat > /etc/supervisor/conf.d/connexa-frontend.conf << \"FRONTENDEOF\""
-print_info "  [program:frontend]"
-print_info "  command=/usr/bin/npm start"
-print_info "  directory=/app/frontend"
-print_info "  autostart=true"
-print_info "  autorestart=true"
-print_info "  stderr_logfile=/var/log/supervisor/frontend.err.log"
-print_info "  stdout_logfile=/var/log/supervisor/frontend.out.log"
-print_info "  environment=PATH=\"/usr/local/bin:/usr/bin:/bin\",HOST=\"0.0.0.0\",PORT=\"3000\""
-print_info "  user=root"
-print_info "  FRONTENDEOF'"
-print_info ""
-print_info "  # Запустить frontend:"
-print_info "  sudo supervisorctl reread"
-print_info "  sudo supervisorctl update"
-print_info "  sudo supervisorctl start frontend"
-print_info ""
-print_success "Продолжаем установку backend (занимает 2-3 минуты)..."
+print_info "Очистка старых зависимостей..."
+rm -rf node_modules package-lock.json 2>/dev/null || true
 
-# ТЕСТ 7: Пропускаем frontend тесты
-print_info "⏩ Frontend тесты пропущены (не критичен для работы)"
+print_info "Установка через китайское зеркало npmmirror.com (обычно 2-3 минуты)..."
+
+# Настройка китайского registry
+npm config set registry https://registry.npmmirror.com/ 2>/dev/null || true
+
+print_info "npm install (максимум 5 минут)..."
+
+# Запуск npm install в фоне
+(npm install --legacy-peer-deps --force 2>&1 | tee /tmp/npm_install.log) &
+NPM_PID=$!
+
+SECONDS=0
+MAX_TIME=300
+LAST_OUTPUT_TIME=0
+
+while [ $SECONDS -lt $MAX_TIME ]; do
+    if ! kill -0 $NPM_PID 2>/dev/null; then
+        # npm завершился
+        wait $NPM_PID
+        NPM_EXIT=$?
+        break
+    fi
+    
+    # Проверка что npm ещё работает (пишет в лог)
+    if [ -f /tmp/npm_install.log ]; then
+        CURRENT_SIZE=$(wc -c < /tmp/npm_install.log)
+        if [ $CURRENT_SIZE -gt $LAST_OUTPUT_TIME ]; then
+            LAST_OUTPUT_TIME=$CURRENT_SIZE
+        fi
+    fi
+    
+    # Показываем прогресс каждые 10 секунд
+    if [ $((SECONDS % 10)) -eq 0 ]; then
+        echo -n "⏳ ${SECONDS}s "
+    fi
+    sleep 1
+done
+
+# Если не завершился - убить
+if kill -0 $NPM_PID 2>/dev/null; then
+    print_warning "Таймаут ${MAX_TIME}s! Убиваем npm..."
+    kill -9 $NPM_PID 2>/dev/null
+    NPM_EXIT=124
+fi
+
+echo ""
+
+# Вернуть стандартный registry
+npm config set registry https://registry.npmjs.org/ 2>/dev/null || true
+
+# Проверка результата
+if [ -d "node_modules" ] && [ -n "$(ls -A node_modules 2>/dev/null)" ]; then
+    NODE_MODULES_SIZE=$(du -sh node_modules 2>/dev/null | cut -f1)
+    print_success "✅ node_modules создан ($NODE_MODULES_SIZE)"
+    
+    # Исправление ajv конфликтов
+    print_info "Исправление ajv..."
+    npm install ajv@^8.0.0 --legacy-peer-deps --no-audit 2>&1 | head -5 || true
+    
+    print_success "✅ Frontend зависимости установлены через китайское зеркало"
+    FRONTEND_INSTALLED=true
+else
+    print_warning "⚠️  npm install не создал node_modules"
+    print_info "Логи: cat /tmp/npm_install.log | tail -50"
+    print_warning "Frontend будет пропущен, backend установится"
+    FRONTEND_INSTALLED=false
+fi
+
+# ТЕСТ 7: Проверка Frontend (НЕ критично)
+test_step "node_modules создан" "[ -d $INSTALL_DIR/frontend/node_modules ] && [ -n \"\$(ls -A $INSTALL_DIR/frontend/node_modules 2>/dev/null)\" ]" "warning"
+
+print_info "Продолжаем установку..."
 
 ##########################################################################################
 # ШАГ 8: ПРОВЕРКА И АВТООБНОВЛЕНИЕ .ENV ФАЙЛОВ
