@@ -466,16 +466,21 @@ if [ -d "node_modules" ] && [ -n "$(ls -A node_modules 2>/dev/null)" ]; then
     NODE_MODULES_SIZE=$(du -sh node_modules 2>/dev/null | cut -f1)
     print_success "✅ node_modules создан ($NODE_MODULES_SIZE)"
     
-    # Исправление ajv конфликтов - УДАЛИТЬ И ПЕРЕУСТАНОВИТЬ
-    print_info "Исправление ajv (удаление старого + установка совместимого)..."
+    # КРИТИЧНО: Удалить ajv@6 и установить ajv@8 (версия 6 не имеет dist/compile/codegen)
+    print_info "Исправление ajv: удаление v6 и установка v8..."
     sysctl -w net.ipv6.conf.all.disable_ipv6=1 > /dev/null 2>&1 || true
     npm config set registry https://registry.npmmirror.com/ 2>/dev/null || true
-    npm uninstall ajv --no-save 2>&1 | head -3 || true
-    npm install ajv@8.12.0 --legacy-peer-deps --no-save 2>&1 | head -5 || true
+    
+    # Удалить всё что связано с ajv
+    rm -rf node_modules/ajv node_modules/ajv-* 2>/dev/null || true
+    
+    # Установить ajv@8 и совместимые пакеты
+    npm install ajv@8.12.0 ajv-keywords@5.1.0 ajv-formats@2.1.1 --legacy-peer-deps --no-save 2>&1 | head -5 || true
+    
     npm config set registry https://registry.npmjs.org/ 2>/dev/null || true
     sysctl -w net.ipv6.conf.all.disable_ipv6=0 > /dev/null 2>&1 || true
     
-    print_success "✅ Frontend зависимости установлены через китайское зеркало"
+    print_success "✅ Frontend зависимости установлены (ajv обновлён до v8)"
     FRONTEND_INSTALLED=true
 else
     print_warning "⚠️  npm install не создал node_modules"
