@@ -456,9 +456,11 @@ if [ -d "node_modules" ] && [ -n "$(ls -A node_modules 2>/dev/null)" ]; then
     NODE_MODULES_SIZE=$(du -sh node_modules 2>/dev/null | cut -f1)
     print_success "✅ node_modules создан ($NODE_MODULES_SIZE)"
     
-    # Исправление ajv конфликтов
-    print_info "Исправление ajv..."
+    # Исправление ajv конфликтов ЧЕРЕЗ КИТАЙСКОЕ ЗЕРКАЛО
+    print_info "Исправление ajv через китайское зеркало..."
+    npm config set registry https://registry.npmmirror.com/ 2>/dev/null || true
     npm install ajv@^8.0.0 --legacy-peer-deps --no-audit 2>&1 | head -5 || true
+    npm config set registry https://registry.npmjs.org/ 2>/dev/null || true
     
     print_success "✅ Frontend зависимости установлены через китайское зеркало"
     FRONTEND_INSTALLED=true
