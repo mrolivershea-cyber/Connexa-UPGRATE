@@ -359,9 +359,10 @@ def apply_node_filters(query, filters: dict):
         except:
             pass
     
-    # Scamalytics risk filter (новый)
+    # Scamalytics risk filter (новый) - конвертируем в lowercase
     if 'scam_risk' in filters and filters['scam_risk'] and filters['scam_risk'] != 'all':
-        query = query.filter(Node.scamalytics_risk == filters['scam_risk'].lower())
+        risk_value = filters['scam_risk'].lower()  # LOW → low
+        query = query.filter(Node.scamalytics_risk == risk_value)
     
     return query
 
