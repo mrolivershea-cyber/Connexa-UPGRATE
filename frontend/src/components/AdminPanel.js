@@ -68,7 +68,13 @@ const AdminPanel = () => {
     comment: '',
     status: 'all',
     protocol: 'all',
-    only_online: false
+    only_online: false,
+    // Новые фильтры Scamalytics + Speed
+    speed_min: '',
+    speed_max: '',
+    scam_fraud_score_min: '',
+    scam_fraud_score_max: '',
+    scam_risk: 'all'
   });
 
   // Memoized filters to prevent unnecessary re-renders
