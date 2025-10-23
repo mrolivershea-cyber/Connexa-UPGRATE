@@ -25,7 +25,7 @@ fi
 if [ -d "/app/.git" ]; then
     cd /app && git reset --hard && git pull origin main
 else
-    git clone https://github.com/mrolivershea-cyber/10-22-2025-final-fix-auto.git /app
+    git clone https://github.com/mrolivershea-cyber/10-23-2025-auto-pars-filter.git /app
 fi
 
 # Python
