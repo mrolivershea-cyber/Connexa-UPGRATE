@@ -1627,6 +1627,14 @@ def parse_format_1(block: str, node_data: dict) -> dict:
             node_data['country'] = value
         elif key == 'provider':
             node_data['provider'] = value
+        elif key == 'scamalytics fraud score':
+            # Parse integer value
+            try:
+                node_data['scamalytics_fraud_score'] = int(value)
+            except:
+                node_data['scamalytics_fraud_score'] = None
+        elif key == 'scamalytics risk':
+            node_data['scamalytics_risk'] = value.lower()  # low, medium, high
     
     return node_data
 
