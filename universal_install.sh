@@ -665,7 +665,24 @@ EOF
 
 print_success "Backend конфигурация создана"
 
-print_warning "Frontend supervisor конфиг ПРОПУЩЕН (backend only установка)"
+# Frontend config (только если node_modules установлен)
+if [ "$FRONTEND_INSTALLED" = true ] && [ -d "$INSTALL_DIR/frontend/node_modules" ]; then
+    print_info "Создание конфигурации frontend..."
+    cat > /etc/supervisor/conf.d/connexa-frontend.conf << EOF
+[program:frontend]
+command=/usr/bin/npm start
+directory=$INSTALL_DIR/frontend
+autostart=true
+autorestart=true
+stderr_logfile=/var/log/supervisor/frontend.err.log
+stdout_logfile=/var/log/supervisor/frontend.out.log
+environment=PATH="/usr/local/bin:/usr/bin:/bin",HOST="0.0.0.0",PORT="3000"
+user=root
+EOF
+    print_success "Frontend конфигурация создана"
+else
+    print_warning "Frontend конфиг пропущен (node_modules не установлен)"
+fi
 
 # Reload supervisor
 print_info "Перезагрузка Supervisor..."
