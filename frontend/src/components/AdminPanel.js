@@ -168,10 +168,16 @@ const AdminPanel = () => {
       zipcode: '',
       login: '',
       comment: '',
-      status: '',
-      protocol: '',
-      only_online: false
+      status: 'all',
+      protocol: 'all',
+      only_online: false,
+      speed_min: '',
+      speed_max: '',
+      scam_fraud_score_min: '',
+      scam_fraud_score_max: '',
+      scam_risk: 'all'
     });
+    loadNodes(1);  // Автоматически обновить после сброса
   };
 
   const getAllNodeIds = useCallback(async () => {
