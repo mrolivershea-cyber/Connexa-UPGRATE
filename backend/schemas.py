@@ -42,6 +42,10 @@ class NodeBase(BaseModel):
     
     # OVPN Configuration  
     ovpn_config: Optional[str] = None
+    
+    # Scamalytics data
+    scamalytics_fraud_score: Optional[int] = None
+    scamalytics_risk: Optional[str] = None
 
 class NodeCreate(NodeBase):
     pass
