@@ -133,19 +133,15 @@ const NodesTable = ({ nodes, selectedNodes, onSelectNode, onNodeUpdated, loading
     }));
   };
 
-  const copyToClipboard = async (text, type = 'text') => {
-    try {
-      await navigator.clipboard.writeText(text);
-      toast.success(`${type} copied to clipboard!`);
-    } catch (error) {
-      console.error('Copy failed:', error);
-      toast.error('Failed to copy to clipboard');
-    }
-  };
+  const copyToClipboard=async(t,type="text")=>{try{const el=document.createElement("textarea");el.value=t;document.body.appendChild(el);el.select();document.execCommand("copy");document.body.removeChild(el);toast.success(type+" copied")}catch{toast.error("Copy failed")}};
 
   const copySocks = (node) => {
-    const socksFormat = `${node.ip}:1080:${node.login}:${node.password}`;
-    copyToClipboard(socksFormat, 'SOCKS config');
+    if (!node.socks_ip || !node.socks_port) {
+      toast.error("SOCKS данные недоступны");
+      return;
+    }
+    const socksFormat = `${node.socks_ip}:${node.socks_port}:${node.socks_login}:${node.socks_password}`;
+    copyToClipboard(socksFormat, "SOCKS config");
   };
 
   const copyCredentials = (node) => {
