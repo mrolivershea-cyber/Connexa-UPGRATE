@@ -151,11 +151,6 @@ const AdminPanel = () => {
 
   const handleFilterChange = (key, value) => {
     setFilters(prev => ({ ...prev, [key]: value }));
-    
-    // Автоматически применить фильтр для dropdown (status, protocol, scam_risk)
-    if (['status', 'protocol', 'scam_risk'].includes(key)) {
-      setTimeout(() => loadNodes(1), 100);
-    }
   };
 
   const resetFilters = () => {
