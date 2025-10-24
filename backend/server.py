@@ -4857,8 +4857,16 @@ async def get_settings(
 ):
     """Get application settings"""
     return {
+        # Геолокация
+        "geo_service": os.getenv('GEO_SERVICE', 'ip-api'),
+        "ipinfo_token": os.getenv('IPINFO_TOKEN', ''),
+        "maxmind_key": os.getenv('MAXMIND_KEY', ''),
+        
+        # Fraud detection
+        "fraud_service": os.getenv('FRAUD_SERVICE', 'ipqs'),
         "ipqs_api_key": os.getenv('IPQS_API_KEY', ''),
-        "ipqs_enabled": bool(os.getenv('IPQS_API_KEY'))
+        "scamalytics_key": os.getenv('SCAMALYTICS_KEY', ''),
+        "abuseipdb_key": os.getenv('ABUSEIPDB_KEY', '')
     }
 
 @api_router.post("/settings")
@@ -4867,9 +4875,6 @@ async def save_settings(
     current_user: User = Depends(get_current_user)
 ):
     """Save application settings"""
-    ipqs_key = settings_data.get('ipqs_api_key', '')
-    
-    # Сохранить в .env файл
     env_path = Path(__file__).parent / '.env'
     
     # Читаем существующий .env
@@ -4878,29 +4883,49 @@ async def save_settings(
         with open(env_path, 'r') as f:
             env_lines = f.readlines()
     
-    # Обновить или добавить IPQS_API_KEY
-    key_found = False
-    for i, line in enumerate(env_lines):
-        if line.startswith('IPQS_API_KEY='):
-            env_lines[i] = f'IPQS_API_KEY={ipqs_key}\n'
-            key_found = True
-            break
+    # Функция для обновления/добавления ключа
+    def update_env_key(lines, key, value):
+        key_found = False
+        for i, line in enumerate(lines):
+            if line.startswith(f'{key}='):
+                lines[i] = f'{key}={value}\n'
+                key_found = True
+                break
+        if not key_found:
+            lines.append(f'{key}={value}\n')
+        return lines
     
-    if not key_found:
-        env_lines.append(f'IPQS_API_KEY={ipqs_key}\n')
+    # Обновить все ключи
+    if 'geo_service' in settings_data:
+        env_lines = update_env_key(env_lines, 'GEO_SERVICE', settings_data['geo_service'])
+    if 'ipinfo_token' in settings_data:
+        env_lines = update_env_key(env_lines, 'IPINFO_TOKEN', settings_data['ipinfo_token'])
+    if 'maxmind_key' in settings_data:
+        env_lines = update_env_key(env_lines, 'MAXMIND_KEY', settings_data['maxmind_key'])
+    if 'fraud_service' in settings_data:
+        env_lines = update_env_key(env_lines, 'FRAUD_SERVICE', settings_data['fraud_service'])
+    if 'ipqs_api_key' in settings_data:
+        env_lines = update_env_key(env_lines, 'IPQS_API_KEY', settings_data['ipqs_api_key'])
+    if 'scamalytics_key' in settings_data:
+        env_lines = update_env_key(env_lines, 'SCAMALYTICS_KEY', settings_data['scamalytics_key'])
+    if 'abuseipdb_key' in settings_data:
+        env_lines = update_env_key(env_lines, 'ABUSEIPDB_KEY', settings_data['abuseipdb_key'])
     
     # Сохранить
     with open(env_path, 'w') as f:
         f.writelines(env_lines)
     
     # Обновить в памяти
-    os.environ['IPQS_API_KEY'] = ipqs_key
+    for key, value in settings_data.items():
+        if key == 'geo_service':
+            os.environ['GEO_SERVICE'] = value
+        elif key == 'fraud_service':
+            os.environ['FRAUD_SERVICE'] = value
+        else:
+            env_key = key.upper()
+            os.environ[env_key] = value
     
-    # Обновить checker
-    from ipqs_checker import ipqs_checker
-    ipqs_checker.api_key = ipqs_key
-    
-    logger.info(f"✅ Settings saved: IPQS API key updated")
+    logger.info(f"✅ Settings saved: {list(settings_data.keys())}")
     
     return {"success": True, "message": "Настройки сохранены"}
 
