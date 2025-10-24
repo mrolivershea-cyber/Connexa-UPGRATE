@@ -172,7 +172,6 @@ const AdminPanel = () => {
       scam_fraud_score_max: '',
       scam_risk: 'all'
     });
-    loadNodes(1);  // Автоматически обновить после сброса
   };
 
   const getAllNodeIds = useCallback(async () => {
