@@ -203,141 +203,51 @@ const OptionsModal = ({ isOpen, onClose }) => {
             </Card>
           </TabsContent>
           
-          <TabsContent value="system" className="space-y-4">
+          <TabsContent value="system" className="space-y-3">
             <Card>
-              <CardHeader>
-                <CardTitle>Геолокация (IP → City/State/ZIP)</CardTitle>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base">Геолокация</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-3">
+              <CardContent className="space-y-2">
+                <div className="space-y-2">
                   <div className="flex items-center space-x-2">
-                    <input 
-                      type="radio" 
-                      id="geo-ipapi" 
-                      name="geo_service"
-                      checked={apiSettings.geo_service === 'ip-api'}
-                      onChange={() => setApiSettings(prev => ({...prev, geo_service: 'ip-api'}))}
-                    />
-                    <Label htmlFor="geo-ipapi" className="font-semibold">ip-api.com (Бесплатно)</Label>
+                    <input type="radio" id="geo-ipapi" name="geo_service" checked={apiSettings.geo_service === 'ip-api'} onChange={() => setApiSettings(prev => ({...prev, geo_service: 'ip-api'}))} />
+                    <Label htmlFor="geo-ipapi" className="text-sm">ip-api.com (бесплатно)</Label>
                   </div>
-                  <p className="text-xs text-gray-500 ml-6">
-                    45 запросов/мин, не требует API ключ
-                  </p>
-                  
-                  <div className="flex items-center space-x-2 mt-4">
-                    <input 
-                      type="radio" 
-                      id="geo-ipapico" 
-                      name="geo_service"
-                      checked={apiSettings.geo_service === 'ipapi.co'}
-                      onChange={() => setApiSettings(prev => ({...prev, geo_service: 'ipapi.co'}))}
-                    />
-                    <Label htmlFor="geo-ipapico">ipapi.co (Бесплатно)</Label>
+                  <div className="flex items-center space-x-2">
+                    <input type="radio" id="geo-ipapico" name="geo_service" checked={apiSettings.geo_service === 'ipapi.co'} onChange={() => setApiSettings(prev => ({...prev, geo_service: 'ipapi.co'}))} />
+                    <Label htmlFor="geo-ipapico" className="text-sm">ipapi.co (бесплатно)</Label>
                   </div>
-                  <p className="text-xs text-gray-500 ml-6">
-                    1000 запросов/день, не требует API ключ
-                  </p>
-                  
-                  <div className="flex items-center space-x-2 mt-4">
-                    <input 
-                      type="radio" 
-                      id="geo-ipinfo" 
-                      name="geo_service"
-                      checked={apiSettings.geo_service === 'ipinfo'}
-                      onChange={() => setApiSettings(prev => ({...prev, geo_service: 'ipinfo'}))}
-                    />
-                    <Label htmlFor="geo-ipinfo">ipinfo.io</Label>
+                  <div className="flex items-center space-x-2">
+                    <input type="radio" id="geo-ipinfo" name="geo_service" checked={apiSettings.geo_service === 'ipinfo'} onChange={() => setApiSettings(prev => ({...prev, geo_service: 'ipinfo'}))} />
+                    <Label htmlFor="geo-ipinfo" className="text-sm">ipinfo.io</Label>
                   </div>
-                  <Input
-                    placeholder="API токен ipinfo.io"
-                    className="ml-6 text-sm"
-                    value={apiSettings.ipinfo_token}
-                    onChange={(e) => setApiSettings(prev => ({...prev, ipinfo_token: e.target.value}))}
-                  />
-                  
-                  <div className="flex items-center space-x-2 mt-4">
-                    <input 
-                      type="radio" 
-                      id="geo-maxmind" 
-                      name="geo_service"
-                      checked={apiSettings.geo_service === 'maxmind'}
-                      onChange={() => setApiSettings(prev => ({...prev, geo_service: 'maxmind'}))}
-                    />
-                    <Label htmlFor="geo-maxmind">MaxMind GeoIP2</Label>
-                  </div>
-                  <Input
-                    placeholder="License Key MaxMind"
-                    className="ml-6 text-sm"
-                    value={apiSettings.maxmind_key}
-                    onChange={(e) => setApiSettings(prev => ({...prev, maxmind_key: e.target.value}))}
-                  />
+                  <Input placeholder="API токен" className="text-xs h-8" value={apiSettings.ipinfo_token} onChange={(e) => setApiSettings(prev => ({...prev, ipinfo_token: e.target.value}))} />
                 </div>
               </CardContent>
             </Card>
             
             <Card>
-              <CardHeader>
-                <CardTitle>Fraud Detection (Scamalytics)</CardTitle>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base">Fraud Detection</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-3">
+              <CardContent className="space-y-2">
+                <div className="space-y-2">
                   <div className="flex items-center space-x-2">
-                    <input 
-                      type="radio" 
-                      id="fraud-ipqs" 
-                      name="fraud_service"
-                      checked={apiSettings.fraud_service === 'ipqs'}
-                      onChange={() => setApiSettings(prev => ({...prev, fraud_service: 'ipqs'}))}
-                    />
-                    <Label htmlFor="fraud-ipqs" className="font-semibold">IPQualityScore</Label>
+                    <input type="radio" id="fraud-ipqs" name="fraud_service" checked={apiSettings.fraud_service === 'ipqs'} onChange={() => setApiSettings(prev => ({...prev, fraud_service: 'ipqs'}))} />
+                    <Label htmlFor="fraud-ipqs" className="text-sm">IPQualityScore</Label>
                   </div>
-                  <div className="space-y-2 ml-6">
-                    <Input
-                      type="text"
-                      placeholder="API Key IPQualityScore"
-                      className="text-sm"
-                      value={apiSettings.ipqs_api_key}
-                      onChange={(e) => setApiSettings(prev => ({...prev, ipqs_api_key: e.target.value}))}
-                    />
-                  </div>
+                  <Input placeholder="API Key" className="text-xs h-8" value={apiSettings.ipqs_api_key} onChange={(e) => setApiSettings(prev => ({...prev, ipqs_api_key: e.target.value}))} />
                   
-                  <div className="flex items-center space-x-2 mt-4">
-                    <input 
-                      type="radio" 
-                      id="fraud-scamalytics" 
-                      name="fraud_service"
-                      checked={apiSettings.fraud_service === 'scamalytics'}
-                      onChange={() => setApiSettings(prev => ({...prev, fraud_service: 'scamalytics'}))}
-                    />
-                    <Label htmlFor="fraud-scamalytics">Scamalytics.com</Label>
+                  <div className="flex items-center space-x-2">
+                    <input type="radio" id="fraud-abuseipdb" name="fraud_service" checked={apiSettings.fraud_service === 'abuseipdb'} onChange={() => setApiSettings(prev => ({...prev, fraud_service: 'abuseipdb'}))} />
+                    <Label htmlFor="fraud-abuseipdb" className="text-sm">AbuseIPDB</Label>
                   </div>
-                  <Input
-                    placeholder="API ключ Scamalytics"
-                    className="ml-6 text-sm"
-                    value={apiSettings.scamalytics_key}
-                    onChange={(e) => setApiSettings(prev => ({...prev, scamalytics_key: e.target.value}))}
-                  />
-                  
-                  <div className="flex items-center space-x-2 mt-4">
-                    <input 
-                      type="radio" 
-                      id="fraud-abuseipdb" 
-                      name="fraud_service"
-                      checked={apiSettings.fraud_service === 'abuseipdb'}
-                      onChange={() => setApiSettings(prev => ({...prev, fraud_service: 'abuseipdb'}))}
-                    />
-                    <Label htmlFor="fraud-abuseipdb">AbuseIPDB.com</Label>
-                  </div>
-                  <Input
-                    placeholder="API ключ AbuseIPDB"
-                    className="ml-6 text-sm"
-                    value={apiSettings.abuseipdb_key}
-                    onChange={(e) => setApiSettings(prev => ({...prev, abuseipdb_key: e.target.value}))}
-                  />
+                  <Input placeholder="API Key" className="text-xs h-8" value={apiSettings.abuseipdb_key} onChange={(e) => setApiSettings(prev => ({...prev, abuseipdb_key: e.target.value}))} />
                 </div>
                 
-                <Button onClick={saveApiSettings} className="w-full" size="sm">
-                  Сохранить настройки
+                <Button onClick={saveApiSettings} className="w-full mt-2" size="sm">
+                  Сохранить
                 </Button>
               </CardContent>
             </Card>
