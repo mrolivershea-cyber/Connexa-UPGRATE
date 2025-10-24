@@ -280,6 +280,45 @@ def apply_node_filters(query, filters: dict):
     if 'comment' in filters and filters['comment']:
         query = query.filter(Node.comment.contains(filters['comment']))
     
+    # Speed filters (новые)
+    if 'speed_min' in filters and filters['speed_min']:
+        try:
+            from sqlalchemy import func, Float
+            speed_min = float(filters['speed_min'])
+            query = query.filter(Node.speed != None).filter(Node.speed != "")
+            query = query.filter(func.cast(Node.speed, Float) >= speed_min)
+        except:
+            pass
+    
+    if 'speed_max' in filters and filters['speed_max']:
+        try:
+            from sqlalchemy import func, Float
+            speed_max = float(filters['speed_max'])
+            query = query.filter(Node.speed != None).filter(Node.speed != "")
+            query = query.filter(func.cast(Node.speed, Float) <= speed_max)
+        except:
+            pass
+    
+    # Scamalytics fraud score filters (новые)
+    if 'scam_fraud_score_min' in filters and filters['scam_fraud_score_min']:
+        try:
+            fraud_min = int(filters['scam_fraud_score_min'])
+            query = query.filter(Node.scamalytics_fraud_score >= fraud_min)
+        except:
+            pass
+    
+    if 'scam_fraud_score_max' in filters and filters['scam_fraud_score_max']:
+        try:
+            fraud_max = int(filters['scam_fraud_score_max'])
+            query = query.filter(Node.scamalytics_fraud_score <= fraud_max)
+        except:
+            pass
+    
+    # Scamalytics risk filter (новый)
+    if 'scam_risk' in filters and filters['scam_risk'] and filters['scam_risk'] != 'all':
+        risk_value = filters['scam_risk'].lower()
+        query = query.filter(Node.scamalytics_risk == risk_value)
+    
     return query
 
 # Helper to choose ping ports based on node configuration
