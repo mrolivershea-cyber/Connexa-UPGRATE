@@ -168,21 +168,82 @@ const OptionsModal = ({ isOpen, onClose }) => {
           <TabsContent value="system" className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle>IPQualityScore API Settings</CardTitle>
+                <CardTitle>Геолокация (IP → City/State/ZIP)</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="ipqs-api-key">IPQualityScore API Key</Label>
-                  <Input
-                    id="ipqs-api-key"
-                    type="text"
-                    placeholder="Введите API ключ от ipqualityscore.com"
-                    defaultValue="uMGBBCbfRXOHbojCTJBloiA6tIIqJcFj"
-                    data-testid="ipqs-api-key"
-                  />
-                  <p className="text-xs text-gray-500">
-                    API ключ используется для автоматической проверки IP на мошенничество после PING OK теста
+                <div className="space-y-3">
+                  <div className="flex items-center space-x-2">
+                    <input type="checkbox" id="geo-ipapi" defaultChecked />
+                    <Label htmlFor="geo-ipapi" className="font-semibold">ip-api.com (Бесплатно)</Label>
+                  </div>
+                  <p className="text-xs text-gray-500 ml-6">
+                    45 запросов/мин, не требует API ключ
                   </p>
+                  
+                  <div className="flex items-center space-x-2 mt-4">
+                    <input type="checkbox" id="geo-ipinfo" />
+                    <Label htmlFor="geo-ipinfo">ipinfo.io</Label>
+                  </div>
+                  <Input
+                    placeholder="API ключ ipinfo.io"
+                    className="ml-6 text-sm"
+                    disabled
+                  />
+                  
+                  <div className="flex items-center space-x-2 mt-4">
+                    <input type="checkbox" id="geo-maxmind" />
+                    <Label htmlFor="geo-maxmind">MaxMind GeoIP2</Label>
+                  </div>
+                  <Input
+                    placeholder="License Key MaxMind"
+                    className="ml-6 text-sm"
+                    disabled
+                  />
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader>
+                <CardTitle>Fraud Detection (Scamalytics)</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-3">
+                  <div className="flex items-center space-x-2">
+                    <input type="checkbox" id="fraud-ipqs" defaultChecked />
+                    <Label htmlFor="fraud-ipqs" className="font-semibold">IPQualityScore (Активен)</Label>
+                  </div>
+                  <div className="space-y-2 ml-6">
+                    <Label htmlFor="ipqs-api-key" className="text-sm">API Key</Label>
+                    <Input
+                      id="ipqs-api-key"
+                      type="text"
+                      placeholder="Введите API ключ"
+                      defaultValue="uMGBBCbfRXOHbojCTJBloiA6tIIqJcFj"
+                      className="text-sm"
+                      data-testid="ipqs-api-key"
+                    />
+                  </div>
+                  
+                  <div className="flex items-center space-x-2 mt-4">
+                    <input type="checkbox" id="fraud-scamalytics" />
+                    <Label htmlFor="fraud-scamalytics">Scamalytics.com</Label>
+                  </div>
+                  <Input
+                    placeholder="API ключ Scamalytics"
+                    className="ml-6 text-sm"
+                    disabled
+                  />
+                  
+                  <div className="flex items-center space-x-2 mt-4">
+                    <input type="checkbox" id="fraud-abuseipdb" />
+                    <Label htmlFor="fraud-abuseipdb">AbuseIPDB.com</Label>
+                  </div>
+                  <Input
+                    placeholder="API ключ AbuseIPDB"
+                    className="ml-6 text-sm"
+                    disabled
+                  />
                 </div>
                 
                 <Button 
@@ -207,7 +268,7 @@ const OptionsModal = ({ isOpen, onClose }) => {
                     }
                   }}
                 >
-                  Сохранить API ключ
+                  Сохранить настройки
                 </Button>
               </CardContent>
             </Card>
