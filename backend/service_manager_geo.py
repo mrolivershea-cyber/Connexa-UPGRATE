@@ -60,7 +60,49 @@ class ServiceManager:
             logger.error(f"Fraud service error: {e}")
             return {'success': False, 'error': str(e)}
     
-    async def enrich_node_geolocation(self, node, db_session):
+    async def enrich_node_complete(self, node, db_session):
+        """
+        УМНАЯ ЛОГИКА: Обогатить узел ВСЕМИ данными
+        Если используется IPQualityScore - один запрос для гео + fraud
+        Иначе - два отдельных запроса
+        """
+        fraud_service = os.getenv('FRAUD_SERVICE', self.active_fraud_service)
+        
+        # УМНАЯ ЛОГИКА: IPQualityScore даёт ВСЁ в одном запросе
+        if fraud_service == 'ipqs':
+            logger.info(f"🎯 Using IPQualityScore for ALL data (geo + fraud) for {node.ip}")
+            try:
+                from ipqs_checker import ipqs_checker
+                result = await ipqs_checker.check_ip(node.ip)
+                
+                if result.get('success'):
+                    # Заполнить ВСЁ из одного запроса
+                    if not node.country and result.get('country'):
+                        node.country = result['country']
+                    if not node.state and result.get('region'):
+                        node.state = result['region']
+                    if not node.city and result.get('city'):
+                        node.city = result['city']
+                    if not node.zipcode and result.get('zipcode'):
+                        node.zipcode = result['zipcode']
+                    if not node.provider and result.get('isp'):
+                        node.provider = result['isp']
+                    if node.scamalytics_fraud_score is None:
+                        node.scamalytics_fraud_score = result.get('fraud_score', 0)
+                    if node.scamalytics_risk is None:
+                        node.scamalytics_risk = result.get('risk_level', 'low')
+                    
+                    logger.info(f"✅ IPQS complete: {node.ip} → City={node.city}, Fraud={node.scamalytics_fraud_score}")
+                    return True
+            except Exception as e:
+                logger.error(f"IPQS complete check error: {e}")
+                return False
+        else:
+            # Отдельные запросы для гео и fraud
+            geo_success = await self.enrich_node_geolocation(node, db_session)
+            fraud_success = await self.enrich_node_fraud(node, db_session)
+            return geo_success or fraud_success
+
         """Обогатить узел геолокацией"""
         needs_geo = not node.city or not node.state or not node.zipcode
         
