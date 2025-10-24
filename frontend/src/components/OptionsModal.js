@@ -115,11 +115,11 @@ const OptionsModal = ({ isOpen, onClose }) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[600px]" data-testid="options-modal">
-        <DialogHeader>
-          <DialogTitle className="flex items-center">
-            <Settings className="h-5 w-5 mr-2" />
-            Admin Panel Options
+      <DialogContent className="max-w-2xl max-h-[85vh]" data-testid="options-modal">
+        <DialogHeader className="pb-2">
+          <DialogTitle className="text-lg flex items-center gap-2">
+            <Settings className="h-4 w-4" />
+            Settings
           </DialogTitle>
           <DialogDescription>
             Manage your admin panel settings and preferences.
