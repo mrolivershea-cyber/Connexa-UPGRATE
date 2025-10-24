@@ -605,6 +605,11 @@ async def get_nodes(
     status: Optional[str] = None,
     protocol: Optional[str] = None,
     only_online: Optional[bool] = False,
+    speed_min: Optional[str] = None,
+    speed_max: Optional[str] = None,
+    scam_fraud_score_min: Optional[str] = None,
+    scam_fraud_score_max: Optional[str] = None,
+    scam_risk: Optional[str] = None,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
