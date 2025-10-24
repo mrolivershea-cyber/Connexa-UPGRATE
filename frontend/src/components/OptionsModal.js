@@ -336,7 +336,7 @@ const OptionsModal = ({ isOpen, onClose }) => {
                   />
                 </div>
                 
-                <Button onClick={saveApiSettings}>
+                <Button onClick={saveApiSettings} className="w-full" size="sm">
                   Сохранить настройки
                 </Button>
               </CardContent>
