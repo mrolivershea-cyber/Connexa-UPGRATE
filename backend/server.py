@@ -3972,15 +3972,6 @@ async def process_ping_light_batches(session_id: str, node_ids: list, db_session
                                     logger.info(f"🌍 Geolocation enriched for {node.ip}")
                             except Exception as geo_error:
                                 logger.warning(f"Geolocation error for {node.ip}: {geo_error}")
-                            
-                            # IPQS Scamalytics check (если поля пустые)
-                            try:
-                                from ipqs_checker import ipqs_checker
-                                ipqs_success = await ipqs_checker.enrich_node_after_ping_ok(node, local_db)
-                                if ipqs_success:
-                                    logger.info(f"🔍 IPQS Scamalytics enriched for {node.ip}")
-                            except Exception as ipqs_error:
-                                logger.warning(f"IPQS error for {node.ip}: {ipqs_error}")
                         else:
                             # ЗАЩИТА: если уже был ping_light (порт работал хотя бы раз), сохраняем статус
                             if original_status in ("ping_light", "ping_ok", "speed_ok", "online"):
