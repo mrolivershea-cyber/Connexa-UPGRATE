@@ -287,28 +287,6 @@ const OptionsModal = ({ isOpen, onClose }) => {
             </Card>
           </TabsContent>
           
-          <TabsContent value="info" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>System Info</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="text-sm text-gray-600">
-                  <strong>Version:</strong> Connexa v1.7
-                </div>
-                <div className="text-sm text-gray-600">
-                  <strong>Database:</strong> SQLite
-                </div>
-                <div className="text-sm text-gray-600">
-                  <strong>Backend:</strong> FastAPI
-                </div>
-                <div className="text-sm text-gray-600">
-                  <strong>Frontend:</strong> React + ShadCN UI
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-          
           <TabsContent value="notifications" className="space-y-4">
             <Card>
               <CardHeader>
