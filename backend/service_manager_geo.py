@@ -62,62 +62,91 @@ class ServiceManager:
     
     async def enrich_node_complete(self, node, db_session):
         """
-        УМНАЯ ЛОГИКА: Обогатить узел ВСЕМИ данными
-        Если используется IPQualityScore - один запрос для гео + fraud
-        Иначе - два отдельных запроса
+        УМНАЯ ЛОГИКА: Обогатить узел ВСЕМИ данными с автодополнением
+        1. Основной сервис (ipqs, abuseipdb и т.д.)
+        2. Если не хватает данных → бесплатные сервисы (ip-api.com, ipapi.co)
         """
         fraud_service = os.getenv('FRAUD_SERVICE', self.active_fraud_service)
         
-        # УМНАЯ ЛОГИКА: IPQualityScore даёт ВСЁ в одном запросе
-        if fraud_service == 'ipqs':
-            logger.info(f"🎯 Using IPQualityScore for ALL data (geo + fraud) for {node.ip}")
-            try:
-                from ipqs_checker import ipqs_checker
-                result = await ipqs_checker.check_ip(node.ip)
+        # Шаг 1: Проверка через основной fraud сервис
+        logger.info(f"🎯 Checking {node.ip} with {fraud_service}")
+        
+        try:
+            fraud_result = await self.check_fraud(node.ip)
+            
+            if fraud_result.get('success'):
+                # Заполнить fraud данные
+                if node.scamalytics_fraud_score is None:
+                    node.scamalytics_fraud_score = fraud_result.get('fraud_score', 0)
+                if node.scamalytics_risk is None:
+                    node.scamalytics_risk = fraud_result.get('risk_level', 'low')
                 
-                if result.get('success'):
-                    # Заполнить ВСЁ из одного запроса
-                    if not node.country and result.get('country'):
-                        node.country = result['country']
-                    if not node.state and result.get('region'):
-                        node.state = result['region']
-                    if not node.city and result.get('city'):
-                        node.city = result['city']
-                    if not node.zipcode and result.get('zipcode'):
-                        zip_value = result['zipcode']
-                        # Не сохранять "N/A" или пустые значения
-                        if zip_value and zip_value not in ['N/A', 'NA', 'n/a', 'Unknown']:
-                            node.zipcode = zip_value
-                    
-                    # FALLBACK: Если IPQS не дал ZIP, запросить у ip-api.com
+                # Заполнить гео данные если есть
+                if not node.country and fraud_result.get('country'):
+                    node.country = fraud_result['country']
+                if not node.state and fraud_result.get('region'):
+                    node.state = fraud_result['region']
+                if not node.city and fraud_result.get('city'):
+                    node.city = fraud_result['city']
+                if not node.zipcode and fraud_result.get('zipcode'):
+                    zip_val = fraud_result['zipcode']
+                    if zip_val not in ['N/A', 'NA', 'Unknown']:
+                        node.zipcode = zip_val
+                if not node.provider and fraud_result.get('isp'):
+                    node.provider = fraud_result['isp']
+                
+                logger.info(f"✅ {fraud_service}: fraud={node.scamalytics_fraud_score}, city={node.city}")
+        except Exception as e:
+            logger.error(f"{fraud_service} error: {e}")
+        
+        # Шаг 2: Дополнить недостающие ГЕО данные через БЕСПЛАТНЫЕ сервисы
+        needs_geo = not node.city or not node.state or not node.zipcode or not node.provider
+        
+        if needs_geo:
+            logger.info(f"📍 {node.ip}: Недостающие гео данные, запрос к бесплатным сервисам...")
+            
+            # Попытка 1: ip-api.com
+            try:
+                from ip_geolocation import get_ip_geolocation
+                geo_result = await get_ip_geolocation(node.ip)
+                
+                if geo_result.get('success'):
+                    if not node.country:
+                        node.country = geo_result.get('country', '')
+                    if not node.state:
+                        node.state = geo_result.get('state', '')
+                    if not node.city:
+                        node.city = geo_result.get('city', '')
                     if not node.zipcode:
-                        logger.info("ZIP not available from IPQS, trying ip-api.com fallback...")
-                        try:
-                            from ip_geolocation import get_ip_geolocation
-                            geo_result = await get_ip_geolocation(node.ip)
-                            if geo_result.get('success') and geo_result.get('zipcode'):
-                                node.zipcode = geo_result['zipcode']
-                                logger.info(f"✅ ZIP from ip-api.com: {node.zipcode}")
-                        except Exception as zip_error:
-                            logger.debug(f"ZIP fallback failed: {zip_error}")
+                        node.zipcode = geo_result.get('zipcode', '')
+                    if not node.provider:
+                        node.provider = geo_result.get('provider', '')
                     
-                    if not node.provider and result.get('isp'):
-                        node.provider = result['isp']
-                    if node.scamalytics_fraud_score is None:
-                        node.scamalytics_fraud_score = result.get('fraud_score', 0)
-                    if node.scamalytics_risk is None:
-                        node.scamalytics_risk = result.get('risk_level', 'low')
-                    
-                    logger.info(f"✅ IPQS complete: {node.ip} → City={node.city}, Fraud={node.scamalytics_fraud_score}")
-                    return True
+                    logger.info(f"✅ ip-api.com: city={node.city}, zip={node.zipcode}")
             except Exception as e:
-                logger.error(f"IPQS complete check error: {e}")
-                return False
-        else:
-            # Отдельные запросы для гео и fraud
-            geo_success = await self.enrich_node_geolocation(node, db_session)
-            fraud_success = await self.enrich_node_fraud(node, db_session)
-            return geo_success or fraud_success
+                logger.debug(f"ip-api.com error: {e}")
+            
+            # Попытка 2: Если всё ещё не хватает → ipapi.co
+            still_needs = not node.city or not node.state or not node.zipcode
+            
+            if still_needs:
+                try:
+                    from ipapico_checker import ipapico_checker
+                    geo2_result = await ipapico_checker.get_geolocation(node.ip)
+                    
+                    if geo2_result.get('success'):
+                        if not node.city:
+                            node.city = geo2_result.get('city', '')
+                        if not node.state:
+                            node.state = geo2_result.get('state', '')
+                        if not node.zipcode:
+                            node.zipcode = geo2_result.get('zipcode', '')
+                        
+                        logger.info(f"✅ ipapi.co: city={node.city}")
+                except Exception as e:
+                    logger.debug(f"ipapi.co error: {e}")
+        
+        return True
     
     async def enrich_node_geolocation(self, node, db_session):
         """Обогатить узел геолокацией"""
