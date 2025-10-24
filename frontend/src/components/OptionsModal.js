@@ -127,18 +127,21 @@ const OptionsModal = ({ isOpen, onClose }) => {
         </DialogHeader>
         
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="password" data-testid="password-tab">
-              <Lock className="h-4 w-4 mr-2" />
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="password" data-testid="password-tab" className="flex items-center gap-1 text-xs">
+              <Lock className="h-3 w-3" />
               Security
             </TabsTrigger>
-            <TabsTrigger value="system" data-testid="system-tab">
-              <Settings className="h-4 w-4 mr-2" />
-              System
+            <TabsTrigger value="system" data-testid="system-tab" className="flex items-center gap-1 text-xs">
+              <Settings className="h-3 w-3" />
+              Services
             </TabsTrigger>
-            <TabsTrigger value="notifications" data-testid="notifications-tab">
-              <Bell className="h-4 w-4 mr-2" />
-              Notifications
+            <TabsTrigger value="info" data-testid="info-tab" className="flex items-center gap-1 text-xs">
+              Info
+            </TabsTrigger>
+            <TabsTrigger value="notifications" data-testid="notifications-tab" className="flex items-center gap-1 text-xs">
+              <Bell className="h-3 w-3" />
+              Alerts
             </TabsTrigger>
           </TabsList>
           
