@@ -255,6 +255,12 @@ const OptionsModal = ({ isOpen, onClose }) => {
                     <Label htmlFor="fraud-abuseipdb" className="text-sm">AbuseIPDB</Label>
                   </div>
                   <Input placeholder="API Key" className="text-xs h-8" value={apiSettings.abuseipdb_key} onChange={(e) => setApiSettings(prev => ({...prev, abuseipdb_key: e.target.value}))} />
+                  
+                  <div className="flex items-center space-x-2">
+                    <input type="radio" id="fraud-scamalytics" name="fraud_service" checked={apiSettings.fraud_service === 'scamalytics'} onChange={() => setApiSettings(prev => ({...prev, fraud_service: 'scamalytics'}))} />
+                    <Label htmlFor="fraud-scamalytics" className="text-sm">Scamalytics</Label>
+                  </div>
+                  <Input placeholder="API Key" className="text-xs h-8" value={apiSettings.scamalytics_key} onChange={(e) => setApiSettings(prev => ({...prev, scamalytics_key: e.target.value}))} />
                 </div>
                 
                 <Button onClick={saveApiSettings} className="w-full mt-2" size="sm">
