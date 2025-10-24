@@ -271,7 +271,9 @@ const OptionsModal = ({ isOpen, onClose }) => {
                 </Button>
               </CardContent>
             </Card>
-            
+          </TabsContent>
+          
+          <TabsContent value="info" className="space-y-4">
             <Card>
               <CardHeader>
                 <CardTitle>System Info</CardTitle>
