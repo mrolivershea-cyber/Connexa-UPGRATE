@@ -211,7 +211,13 @@ const OptionsModal = ({ isOpen, onClose }) => {
               <CardContent className="space-y-4">
                 <div className="space-y-3">
                   <div className="flex items-center space-x-2">
-                    <input type="checkbox" id="geo-ipapi" defaultChecked />
+                    <input 
+                      type="radio" 
+                      id="geo-ipapi" 
+                      name="geo_service"
+                      checked={apiSettings.geo_service === 'ip-api'}
+                      onChange={() => setApiSettings(prev => ({...prev, geo_service: 'ip-api'}))}
+                    />
                     <Label htmlFor="geo-ipapi" className="font-semibold">ip-api.com (Бесплатно)</Label>
                   </div>
                   <p className="text-xs text-gray-500 ml-6">
@@ -219,23 +225,51 @@ const OptionsModal = ({ isOpen, onClose }) => {
                   </p>
                   
                   <div className="flex items-center space-x-2 mt-4">
-                    <input type="checkbox" id="geo-ipinfo" />
+                    <input 
+                      type="radio" 
+                      id="geo-ipapico" 
+                      name="geo_service"
+                      checked={apiSettings.geo_service === 'ipapi.co'}
+                      onChange={() => setApiSettings(prev => ({...prev, geo_service: 'ipapi.co'}))}
+                    />
+                    <Label htmlFor="geo-ipapico">ipapi.co (Бесплатно)</Label>
+                  </div>
+                  <p className="text-xs text-gray-500 ml-6">
+                    1000 запросов/день, не требует API ключ
+                  </p>
+                  
+                  <div className="flex items-center space-x-2 mt-4">
+                    <input 
+                      type="radio" 
+                      id="geo-ipinfo" 
+                      name="geo_service"
+                      checked={apiSettings.geo_service === 'ipinfo'}
+                      onChange={() => setApiSettings(prev => ({...prev, geo_service: 'ipinfo'}))}
+                    />
                     <Label htmlFor="geo-ipinfo">ipinfo.io</Label>
                   </div>
                   <Input
-                    placeholder="API ключ ipinfo.io"
+                    placeholder="API токен ipinfo.io"
                     className="ml-6 text-sm"
-                    disabled
+                    value={apiSettings.ipinfo_token}
+                    onChange={(e) => setApiSettings(prev => ({...prev, ipinfo_token: e.target.value}))}
                   />
                   
                   <div className="flex items-center space-x-2 mt-4">
-                    <input type="checkbox" id="geo-maxmind" />
+                    <input 
+                      type="radio" 
+                      id="geo-maxmind" 
+                      name="geo_service"
+                      checked={apiSettings.geo_service === 'maxmind'}
+                      onChange={() => setApiSettings(prev => ({...prev, geo_service: 'maxmind'}))}
+                    />
                     <Label htmlFor="geo-maxmind">MaxMind GeoIP2</Label>
                   </div>
                   <Input
                     placeholder="License Key MaxMind"
                     className="ml-6 text-sm"
-                    disabled
+                    value={apiSettings.maxmind_key}
+                    onChange={(e) => setApiSettings(prev => ({...prev, maxmind_key: e.target.value}))}
                   />
                 </div>
               </CardContent>
