@@ -6,7 +6,7 @@ from datetime import datetime
 import time
 
 # Comprehensive test for all timestamp scenarios from review request
-BASE_URL = "https://socks-pptp-bridge.preview.emergentagent.com"
+BASE_URL = "https://memory-mcp.preview.emergentagent.com"
 API_URL = f"{BASE_URL}/api"
 
 def login():

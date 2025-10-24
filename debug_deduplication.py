@@ -4,7 +4,7 @@ import requests
 import sys
 
 class DeduplicationDebugger:
-    def __init__(self, base_url="https://socks-pptp-bridge.preview.emergentagent.com"):
+    def __init__(self, base_url="https://memory-mcp.preview.emergentagent.com"):
         self.base_url = base_url
         self.api_url = f"{base_url}/api"
         self.token = None

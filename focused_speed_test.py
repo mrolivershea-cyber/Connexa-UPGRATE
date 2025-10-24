@@ -7,7 +7,7 @@ from datetime import datetime
 
 class FocusedSpeedTester:
     def __init__(self):
-        self.base_url = "https://socks-pptp-bridge.preview.emergentagent.com"
+        self.base_url = "https://memory-mcp.preview.emergentagent.com"
         self.api_url = f"{self.base_url}/api"
         self.token = None
         self.headers = {'Content-Type': 'application/json'}

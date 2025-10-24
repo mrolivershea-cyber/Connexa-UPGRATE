@@ -6,7 +6,7 @@ import time
 import random
 
 # Test the restored import functionality
-base_url = "https://socks-pptp-bridge.preview.emergentagent.com"
+base_url = "https://memory-mcp.preview.emergentagent.com"
 api_url = f"{base_url}/api"
 
 # Login
