@@ -4123,15 +4123,15 @@ async def manual_ping_speed_test_batch(
             node.status = "ping_ok"
             node.last_update = datetime.utcnow()
             
-            # IPQS Scamalytics check после успешного PING OK - через service manager
+            # УМНАЯ ЛОГИКА: Один запрос для гео + fraud если используется IPQualityScore
             try:
                 from service_manager_geo import service_manager
-                fraud_success = await service_manager.enrich_node_fraud(node, db)
-                if fraud_success:
-                    logger.info(f"🔍 Fraud check: {node.ip} → Score={node.scamalytics_fraud_score}, Risk={node.scamalytics_risk}")
+                complete_success = await service_manager.enrich_node_complete(node, db)
+                if complete_success:
+                    logger.info(f"✅ Node enriched: {node.ip}")
                     db.commit()
-            except Exception as fraud_error:
-                logger.warning(f"Fraud check error for {node.ip}: {fraud_error}")
+            except Exception as enrich_error:
+                logger.warning(f"Enrichment error for {node.ip}: {enrich_error}")
             
             # Note: Database will auto-commit via get_db() dependency
             
