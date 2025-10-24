@@ -228,6 +228,12 @@ const OptionsModal = ({ isOpen, onClose }) => {
                     <Label htmlFor="geo-ipinfo" className="text-sm">ipinfo.io</Label>
                   </div>
                   <Input placeholder="API токен" className="text-xs h-8" value={apiSettings.ipinfo_token} onChange={(e) => setApiSettings(prev => ({...prev, ipinfo_token: e.target.value}))} />
+                  
+                  <div className="flex items-center space-x-2">
+                    <input type="radio" id="geo-maxmind" name="geo_service" checked={apiSettings.geo_service === 'maxmind'} onChange={() => setApiSettings(prev => ({...prev, geo_service: 'maxmind'}))} />
+                    <Label htmlFor="geo-maxmind" className="text-sm">MaxMind GeoIP2</Label>
+                  </div>
+                  <Input placeholder="License Key" className="text-xs h-8" value={apiSettings.maxmind_key} onChange={(e) => setApiSettings(prev => ({...prev, maxmind_key: e.target.value}))} />
                 </div>
               </CardContent>
             </Card>
