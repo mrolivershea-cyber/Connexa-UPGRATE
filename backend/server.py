@@ -3924,6 +3924,15 @@ async def process_ping_light_batches(session_id: str, node_ids: list, db_session
                             node.status = "ping_light"
                             logger.info(f"✅ PING LIGHT batch: Node {node_id} SUCCESS - status: {original_status} -> ping_light")
                             success = True
+                            
+                            # НОВОЕ: Получить геолокацию если поля пустые
+                            try:
+                                from ip_geolocation import enrich_node_with_geolocation
+                                geo_success = await enrich_node_with_geolocation(node, local_db)
+                                if geo_success:
+                                    logger.info(f"🌍 Geolocation enriched for {node.ip}")
+                            except Exception as geo_error:
+                                logger.warning(f"Geolocation error for {node.ip}: {geo_error}")
                         else:
                             # ЗАЩИТА: если уже был ping_light (порт работал хотя бы раз), сохраняем статус
                             if original_status in ("ping_light", "ping_ok", "speed_ok", "online"):
