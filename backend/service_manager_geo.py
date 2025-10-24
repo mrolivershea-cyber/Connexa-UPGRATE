@@ -84,7 +84,10 @@ class ServiceManager:
                     if not node.city and result.get('city'):
                         node.city = result['city']
                     if not node.zipcode and result.get('zipcode'):
-                        node.zipcode = result['zipcode']
+                        zip_value = result['zipcode']
+                        # Не сохранять "N/A" или пустые значения
+                        if zip_value and zip_value not in ['N/A', 'NA', 'n/a', 'Unknown']:
+                            node.zipcode = zip_value
                     if not node.provider and result.get('isp'):
                         node.provider = result['isp']
                     if node.scamalytics_fraud_score is None:
