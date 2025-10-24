@@ -3736,15 +3736,15 @@ async def process_testing_batches(session_id: str, node_ids: list, testing_mode:
                                         node.status = "ping_ok"
                                         logger.info(f"✅ {node.ip} ping success: {ping_result.get('avg_time', 0)}ms")
                                         
-                                        # IPQS Scamalytics check после успешного PING OK
+                                        # IPQS Scamalytics check после успешного PING OK - через service manager
                                         try:
-                                            from ipqs_checker import ipqs_checker
-                                            ipqs_success = await ipqs_checker.enrich_node_after_ping_ok(node, local_db)
-                                            if ipqs_success:
-                                                logger.info(f"🔍 IPQS enriched: {node.ip} → Fraud={node.scamalytics_fraud_score}, Risk={node.scamalytics_risk}")
+                                            from service_manager_geo import service_manager
+                                            fraud_success = await service_manager.enrich_node_fraud(node, local_db)
+                                            if fraud_success:
+                                                logger.info(f"🔍 Fraud check: {node.ip} → Score={node.scamalytics_fraud_score}, Risk={node.scamalytics_risk}")
                                                 local_db.commit()
-                                        except Exception as ipqs_error:
-                                            logger.warning(f"IPQS error for {node.ip}: {ipqs_error}")
+                                        except Exception as fraud_error:
+                                            logger.warning(f"Fraud check error for {node.ip}: {fraud_error}")
                                     else:
                                         node.status = original_status if has_ping_baseline(original_status) else "ping_failed"
                                         logger.info(f"❌ {node.ip} ping failed: {ping_result.get('message', 'timeout')}")
