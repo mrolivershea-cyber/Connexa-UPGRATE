@@ -11,7 +11,7 @@ import { toast } from 'sonner';
 import { Settings, Lock, Bell } from 'lucide-react';
 
 const OptionsModal = ({ isOpen, onClose }) => {
-  const { changePassword, API } = useAuth();
+  const { changePassword, API, token } = useAuth();
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('password');
   
@@ -36,19 +36,24 @@ const OptionsModal = ({ isOpen, onClose }) => {
   
   // Load settings on open
   React.useEffect(() => {
-    if (isOpen) {
-      fetch(`${API}/settings`)
+    if (isOpen && token) {
+      fetch(`${API}/settings`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      })
         .then(r => r.json())
         .then(data => setApiSettings(data))
         .catch(err => console.error('Failed to load settings:', err));
     }
-  }, [isOpen, API]);
+  }, [isOpen, API, token]);
   
   const saveApiSettings = async () => {
     try {
       const response = await fetch(`${API}/settings`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify(apiSettings)
       });
       if (response.ok) {
