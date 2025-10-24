@@ -88,6 +88,19 @@ class ServiceManager:
                         # Не сохранять "N/A" или пустые значения
                         if zip_value and zip_value not in ['N/A', 'NA', 'n/a', 'Unknown']:
                             node.zipcode = zip_value
+                    
+                    # FALLBACK: Если IPQS не дал ZIP, запросить у ip-api.com
+                    if not node.zipcode:
+                        logger.info(f"ZIP not available from IPQS, trying ip-api.com fallback...")
+                        try:
+                            from ip_geolocation import get_ip_geolocation
+                            geo_result = await get_ip_geolocation(node.ip)
+                            if geo_result.get('success') and geo_result.get('zipcode'):
+                                node.zipcode = geo_result['zipcode']
+                                logger.info(f"✅ ZIP from ip-api.com: {node.zipcode}")
+                        except Exception as zip_error:
+                            logger.debug(f"ZIP fallback failed: {zip_error}")
+                    
                     if not node.provider and result.get('isp'):
                         node.provider = result['isp']
                     if node.scamalytics_fraud_score is None:
