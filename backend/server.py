@@ -1713,14 +1713,30 @@ def parse_format_5(block: str, node_data: dict) -> dict:
                 node_data['password'] = password.strip()
         elif line.startswith("Location:"):
             location = line.split(':', 1)[1].strip()
-            # Parse "State (City)" format
+            # УЛУЧШЕННЫЙ парсинг: Country (State, City) ИЛИ State (City)
             if '(' in location and ')' in location:
-                state = location.split('(')[0].strip()
-                city = location.split('(')[1].split(')')[0].strip()
-                node_data['state'] = state
-                node_data['city'] = city
+                before = location.split('(')[0].strip()
+                inside = location.split('(')[1].split(')')[0].strip()
+                
+                if ',' in inside:
+                    # US (Missouri, Kansas City)
+                    node_data['country'] = before
+                    parts = inside.split(',', 1)
+                    node_data['state'] = parts[0].strip()
+                    node_data['city'] = parts[1].strip()
+                else:
+                    # Texas (Austin)
+                    node_data['state'] = before
+                    node_data['city'] = inside
         elif line.startswith("ZIP:"):
             node_data['zipcode'] = line.split(':', 1)[1].strip()
+        elif line.startswith("Scamalytics Fraud Score:"):
+            try:
+                node_data['scamalytics_fraud_score'] = int(line.split(':', 1)[1].strip())
+            except:
+                pass
+        elif line.startswith("Scamalytics Risk:"):
+            node_data['scamalytics_risk'] = line.split(':', 1)[1].strip().lower()
     return node_data
 
 def parse_format_6(block: str, node_data: dict) -> dict:
