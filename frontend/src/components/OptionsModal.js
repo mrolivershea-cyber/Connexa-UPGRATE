@@ -168,14 +168,60 @@ const OptionsModal = ({ isOpen, onClose }) => {
           <TabsContent value="system" className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle>System Settings</CardTitle>
+                <CardTitle>IPQualityScore API Settings</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="ipqs-api-key">IPQualityScore API Key</Label>
+                  <Input
+                    id="ipqs-api-key"
+                    type="text"
+                    placeholder="Введите API ключ от ipqualityscore.com"
+                    defaultValue="uMGBBCbfRXOHbojCTJBloiA6tIIqJcFj"
+                    data-testid="ipqs-api-key"
+                  />
+                  <p className="text-xs text-gray-500">
+                    API ключ используется для автоматической проверки IP на мошенничество после PING OK теста
+                  </p>
+                </div>
+                
+                <Button 
+                  onClick={async () => {
+                    const key = document.getElementById('ipqs-api-key').value;
+                    try {
+                      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/settings`, {
+                        method: 'POST',
+                        headers: {
+                          'Content-Type': 'application/json',
+                          'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        },
+                        body: JSON.stringify({ ipqs_api_key: key })
+                      });
+                      if (response.ok) {
+                        toast.success('API ключ сохранён');
+                      } else {
+                        toast.error('Ошибка сохранения');
+                      }
+                    } catch (error) {
+                      toast.error('Ошибка: ' + error.message);
+                    }
+                  }}
+                >
+                  Сохранить API ключ
+                </Button>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader>
+                <CardTitle>System Info</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="text-sm text-gray-600">
                   <strong>Version:</strong> Connexa v1.7
                 </div>
                 <div className="text-sm text-gray-600">
-                  <strong>Database:</strong> PostgreSQL
+                  <strong>Database:</strong> SQLite
                 </div>
                 <div className="text-sm text-gray-600">
                   <strong>Backend:</strong> FastAPI
@@ -183,14 +229,6 @@ const OptionsModal = ({ isOpen, onClose }) => {
                 <div className="text-sm text-gray-600">
                   <strong>Frontend:</strong> React + ShadCN UI
                 </div>
-                
-                <Alert>
-                  <AlertDescription>
-                    Advanced system settings will be available in future versions.
-                    Current settings include table pagination (200 rows), auto-refresh intervals,
-                    and connection timeouts configured for optimal performance.
-                  </AlertDescription>
-                </Alert>
               </CardContent>
             </Card>
           </TabsContent>
