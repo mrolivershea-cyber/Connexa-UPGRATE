@@ -551,6 +551,11 @@ def apply_node_filters_kwargs(query, **filters):
     status = filters.get('status')
     protocol = filters.get('protocol')
     only_online = filters.get('only_online')
+    speed_min = filters.get('speed_min')
+    speed_max = filters.get('speed_max')
+    scam_fraud_score_min = filters.get('scam_fraud_score_min')
+    scam_fraud_score_max = filters.get('scam_fraud_score_max')
+    scam_risk = filters.get('scam_risk')
     
     # Apply filters - optimize for exact matches first, then partial
     if ip:
@@ -587,6 +592,45 @@ def apply_node_filters_kwargs(query, **filters):
         query = query.filter(Node.protocol == protocol)
     if only_online:
         query = query.filter(Node.status == "online")
+    
+    # Speed filters (новые)
+    if speed_min:
+        try:
+            from sqlalchemy import func, Float
+            speed_min_val = float(speed_min)
+            query = query.filter(Node.speed != None).filter(Node.speed != "")
+            query = query.filter(func.cast(Node.speed, Float) >= speed_min_val)
+        except:
+            pass
+    
+    if speed_max:
+        try:
+            from sqlalchemy import func, Float
+            speed_max_val = float(speed_max)
+            query = query.filter(Node.speed != None).filter(Node.speed != "")
+            query = query.filter(func.cast(Node.speed, Float) <= speed_max_val)
+        except:
+            pass
+    
+    # Scamalytics fraud score filters (новые)
+    if scam_fraud_score_min:
+        try:
+            fraud_min = int(scam_fraud_score_min)
+            query = query.filter(Node.scamalytics_fraud_score >= fraud_min)
+        except:
+            pass
+    
+    if scam_fraud_score_max:
+        try:
+            fraud_max = int(scam_fraud_score_max)
+            query = query.filter(Node.scamalytics_fraud_score <= fraud_max)
+        except:
+            pass
+    
+    # Scamalytics risk filter (новый)
+    if scam_risk and scam_risk != 'all':
+        risk_value = scam_risk.lower()
+        query = query.filter(Node.scamalytics_risk == risk_value)
     
     return query
 
