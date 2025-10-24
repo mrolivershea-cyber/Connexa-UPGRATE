@@ -83,7 +83,8 @@ class ServiceManager:
                 
                 # Заполнить гео данные если есть
                 if not node.country and fraud_result.get('country'):
-                    node.country = fraud_result['country']
+                    from country_normalize import normalize_country
+                    node.country = normalize_country(fraud_result['country'])
                 if not node.state and fraud_result.get('region'):
                     node.state = fraud_result['region']
                 if not node.city and fraud_result.get('city'):
