@@ -112,7 +112,8 @@ const AuthProvider = ({ children }) => {
     changePassword,
     loading,
     isAuthenticated: !!user,
-    API
+    API,
+    token
   };
 
   return (
