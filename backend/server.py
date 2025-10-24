@@ -4829,6 +4829,62 @@ async def get_socks_monitoring_info(
         }
 
 # Include API router
+
+# Settings API endpoints
+@api_router.get("/settings")
+async def get_settings(
+    current_user: User = Depends(get_current_user)
+):
+    """Get application settings"""
+    return {
+        "ipqs_api_key": os.getenv('IPQS_API_KEY', ''),
+        "ipqs_enabled": bool(os.getenv('IPQS_API_KEY'))
+    }
+
+@api_router.post("/settings")
+async def save_settings(
+    settings_data: dict,
+    current_user: User = Depends(get_current_user)
+):
+    """Save application settings"""
+    ipqs_key = settings_data.get('ipqs_api_key', '')
+    
+    # Сохранить в .env файл
+    env_path = Path(__file__).parent / '.env'
+    
+    # Читаем существующий .env
+    env_lines = []
+    if env_path.exists():
+        with open(env_path, 'r') as f:
+            env_lines = f.readlines()
+    
+    # Обновить или добавить IPQS_API_KEY
+    key_found = False
+    for i, line in enumerate(env_lines):
+        if line.startswith('IPQS_API_KEY='):
+            env_lines[i] = f'IPQS_API_KEY={ipqs_key}\n'
+            key_found = True
+            break
+    
+    if not key_found:
+        env_lines.append(f'IPQS_API_KEY={ipqs_key}\n')
+    
+    # Сохранить
+    with open(env_path, 'w') as f:
+        f.writelines(env_lines)
+    
+    # Обновить в памяти
+    os.environ['IPQS_API_KEY'] = ipqs_key
+    
+    # Обновить checker
+    from ipqs_checker import ipqs_checker
+    ipqs_checker.api_key = ipqs_key
+    
+    logger.info(f"✅ Settings saved: IPQS API key updated")
+    
+    return {"success": True, "message": "Настройки сохранены"}
+
+
 app.include_router(api_router)
 
 # Health check
