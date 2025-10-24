@@ -113,7 +113,8 @@ class ServiceManager:
                 
                 if geo_result.get('success'):
                     if not node.country:
-                        node.country = geo_result.get('country', '')
+                        from country_normalize import normalize_country
+                        node.country = normalize_country(geo_result.get('country', ''))
                     if not node.state:
                         node.state = geo_result.get('state', '')
                     if not node.city:
