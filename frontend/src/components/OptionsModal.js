@@ -282,64 +282,61 @@ const OptionsModal = ({ isOpen, onClose }) => {
               <CardContent className="space-y-4">
                 <div className="space-y-3">
                   <div className="flex items-center space-x-2">
-                    <input type="checkbox" id="fraud-ipqs" defaultChecked />
-                    <Label htmlFor="fraud-ipqs" className="font-semibold">IPQualityScore (Активен)</Label>
+                    <input 
+                      type="radio" 
+                      id="fraud-ipqs" 
+                      name="fraud_service"
+                      checked={apiSettings.fraud_service === 'ipqs'}
+                      onChange={() => setApiSettings(prev => ({...prev, fraud_service: 'ipqs'}))}
+                    />
+                    <Label htmlFor="fraud-ipqs" className="font-semibold">IPQualityScore</Label>
                   </div>
                   <div className="space-y-2 ml-6">
-                    <Label htmlFor="ipqs-api-key" className="text-sm">API Key</Label>
                     <Input
-                      id="ipqs-api-key"
                       type="text"
-                      placeholder="Введите API ключ"
-                      defaultValue="uMGBBCbfRXOHbojCTJBloiA6tIIqJcFj"
+                      placeholder="API Key IPQualityScore"
                       className="text-sm"
-                      data-testid="ipqs-api-key"
+                      value={apiSettings.ipqs_api_key}
+                      onChange={(e) => setApiSettings(prev => ({...prev, ipqs_api_key: e.target.value}))}
                     />
                   </div>
                   
                   <div className="flex items-center space-x-2 mt-4">
-                    <input type="checkbox" id="fraud-scamalytics" />
+                    <input 
+                      type="radio" 
+                      id="fraud-scamalytics" 
+                      name="fraud_service"
+                      checked={apiSettings.fraud_service === 'scamalytics'}
+                      onChange={() => setApiSettings(prev => ({...prev, fraud_service: 'scamalytics'}))}
+                    />
                     <Label htmlFor="fraud-scamalytics">Scamalytics.com</Label>
                   </div>
                   <Input
                     placeholder="API ключ Scamalytics"
                     className="ml-6 text-sm"
-                    disabled
+                    value={apiSettings.scamalytics_key}
+                    onChange={(e) => setApiSettings(prev => ({...prev, scamalytics_key: e.target.value}))}
                   />
                   
                   <div className="flex items-center space-x-2 mt-4">
-                    <input type="checkbox" id="fraud-abuseipdb" />
+                    <input 
+                      type="radio" 
+                      id="fraud-abuseipdb" 
+                      name="fraud_service"
+                      checked={apiSettings.fraud_service === 'abuseipdb'}
+                      onChange={() => setApiSettings(prev => ({...prev, fraud_service: 'abuseipdb'}))}
+                    />
                     <Label htmlFor="fraud-abuseipdb">AbuseIPDB.com</Label>
                   </div>
                   <Input
                     placeholder="API ключ AbuseIPDB"
                     className="ml-6 text-sm"
-                    disabled
+                    value={apiSettings.abuseipdb_key}
+                    onChange={(e) => setApiSettings(prev => ({...prev, abuseipdb_key: e.target.value}))}
                   />
                 </div>
                 
-                <Button 
-                  onClick={async () => {
-                    const key = document.getElementById('ipqs-api-key').value;
-                    try {
-                      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/settings`, {
-                        method: 'POST',
-                        headers: {
-                          'Content-Type': 'application/json',
-                          'Authorization': `Bearer ${localStorage.getItem('token')}`
-                        },
-                        body: JSON.stringify({ ipqs_api_key: key })
-                      });
-                      if (response.ok) {
-                        toast.success('API ключ сохранён');
-                      } else {
-                        toast.error('Ошибка сохранения');
-                      }
-                    } catch (error) {
-                      toast.error('Ошибка: ' + error.message);
-                    }
-                  }}
-                >
+                <Button onClick={saveApiSettings}>
                   Сохранить настройки
                 </Button>
               </CardContent>
