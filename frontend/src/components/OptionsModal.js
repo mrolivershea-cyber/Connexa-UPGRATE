@@ -11,7 +11,7 @@ import { toast } from 'sonner';
 import { Settings, Lock, Bell } from 'lucide-react';
 
 const OptionsModal = ({ isOpen, onClose }) => {
-  const { changePassword } = useAuth();
+  const { changePassword, API } = useAuth();
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('password');
   
@@ -22,6 +22,44 @@ const OptionsModal = ({ isOpen, onClose }) => {
     confirmPassword: ''
   });
   const [passwordError, setPasswordError] = useState('');
+  
+  // API Settings state
+  const [apiSettings, setApiSettings] = useState({
+    geo_service: 'ip-api',
+    fraud_service: 'ipqs',
+    ipinfo_token: '',
+    maxmind_key: '',
+    ipqs_api_key: 'uMGBBCbfRXOHbojCTJBloiA6tIIqJcFj',
+    scamalytics_key: '',
+    abuseipdb_key: ''
+  });
+  
+  // Load settings on open
+  React.useEffect(() => {
+    if (isOpen) {
+      fetch(`${API}/settings`)
+        .then(r => r.json())
+        .then(data => setApiSettings(data))
+        .catch(err => console.error('Failed to load settings:', err));
+    }
+  }, [isOpen, API]);
+  
+  const saveApiSettings = async () => {
+    try {
+      const response = await fetch(`${API}/settings`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(apiSettings)
+      });
+      if (response.ok) {
+        toast.success('Настройки сохранены');
+      } else {
+        toast.error('Ошибка сохранения');
+      }
+    } catch (error) {
+      toast.error('Ошибка: ' + error.message);
+    }
+  };
 
   const handlePasswordSubmit = async (e) => {
     e.preventDefault();
