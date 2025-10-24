@@ -4121,6 +4121,16 @@ async def manual_ping_speed_test_batch(
             node.status = "ping_ok"
             node.last_update = datetime.utcnow()
             
+            # IPQS Scamalytics check после успешного PING OK
+            try:
+                from ipqs_checker import ipqs_checker
+                ipqs_success = await ipqs_checker.enrich_node_after_ping_ok(node, db)
+                if ipqs_success:
+                    logger.info(f"🔍 IPQS enriched for {node.ip}: Fraud={node.scamalytics_fraud_score}, Risk={node.scamalytics_risk}")
+                    db.commit()  # Сохранить Scamalytics данные
+            except Exception as ipqs_error:
+                logger.warning(f"IPQS error for {node.ip}: {ipqs_error}")
+            
             # Note: Database will auto-commit via get_db() dependency
             
             # Small delay before speed test
