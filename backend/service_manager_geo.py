@@ -26,6 +26,9 @@ class ServiceManager:
             elif service == 'ipinfo':
                 from ipinfo_checker import ipinfo_checker
                 result = await ipinfo_checker.get_geolocation(ip)
+            elif service == 'maxmind':
+                from maxmind_checker import maxmind_checker
+                result = await maxmind_checker.get_geolocation(ip)
             else:
                 # Fallback
                 from ip_geolocation import get_ip_geolocation
