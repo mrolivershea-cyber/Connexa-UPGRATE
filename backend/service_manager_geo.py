@@ -102,7 +102,8 @@ class ServiceManager:
             geo_success = await self.enrich_node_geolocation(node, db_session)
             fraud_success = await self.enrich_node_fraud(node, db_session)
             return geo_success or fraud_success
-
+    
+    async def enrich_node_geolocation(self, node, db_session):
         """Обогатить узел геолокацией"""
         needs_geo = not node.city or not node.state or not node.zipcode
         
