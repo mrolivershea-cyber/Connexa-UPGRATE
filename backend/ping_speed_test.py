@@ -78,6 +78,7 @@ async def ping_light_tcp_check(ip: str, port: int = 1723, timeout: float = 2.0) 
     except Exception as e:
         elapsed_ms = (time.time() - start_time) * 1000.0
         error_type = type(e).__name__
+        error_msg = str(e)
         return {
             "success": False,
             "avg_time": 0.0,
@@ -85,8 +86,8 @@ async def ping_light_tcp_check(ip: str, port: int = 1723, timeout: float = 2.0) 
             "success_rate": 0.0,
             "attempts_total": 1,
             "attempts_ok": 0,
-            "details": {port: {"ok": 0, "fail": 1, "best_ms": None}},
-            "message": f"PING LIGHT FAILED - TCP {port} error: {error_type}",
+            "details": {port: {"ok": 0, "fail": 1, "best_ms": None, "error": error_msg}},
+            "message": f"PING LIGHT FAILED - TCP {port} error: {error_type}: {error_msg}",
         }
 
 async def multiport_tcp_ping(ip: str, ports: List[int], timeouts: List[float]) -> Dict:
