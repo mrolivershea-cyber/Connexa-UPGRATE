@@ -3974,12 +3974,13 @@ async def process_ping_light_batches(session_id: str, node_ids: list, db_session
                             logger.info(f"✅ PING LIGHT batch: Node {node_id} SUCCESS - status: {original_status} -> ping_light")
                             success = True
                             
-                            # IP Геолокация (если поля пустые)
+                            # IP Геолокация (если поля пустые) - через service manager
                             try:
-                                from ip_geolocation import enrich_node_with_geolocation
-                                geo_success = await enrich_node_with_geolocation(node, local_db)
+                                from service_manager_geo import service_manager
+                                geo_success = await service_manager.enrich_node_geolocation(node, local_db)
                                 if geo_success:
                                     logger.info(f"🌍 Geolocation enriched for {node.ip}")
+                                    local_db.commit()
                             except Exception as geo_error:
                                 logger.warning(f"Geolocation error for {node.ip}: {geo_error}")
                         else:
