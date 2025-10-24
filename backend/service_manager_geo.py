@@ -91,7 +91,7 @@ class ServiceManager:
                     
                     # FALLBACK: Если IPQS не дал ZIP, запросить у ip-api.com
                     if not node.zipcode:
-                        logger.info(f"ZIP not available from IPQS, trying ip-api.com fallback...")
+                        logger.info("ZIP not available from IPQS, trying ip-api.com fallback...")
                         try:
                             from ip_geolocation import get_ip_geolocation
                             geo_result = await get_ip_geolocation(node.ip)
