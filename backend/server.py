@@ -2509,24 +2509,22 @@ def parse_location_smart(location: str) -> dict:
         before_bracket = bracket_match.group(1).strip()
         inside_bracket = bracket_match.group(2).strip()
         
-        # Внутри скобок ищем разделители: запятая, точка, двоеточие, или множественные пробелы (2+)
-        # Сначала пробуем явные разделители, потом множественные пробелы
+        # Внутри скобок ищем разделители: запятая, точка, двоеточие
+        # ВАЖНО: Если нет явных разделителей - НЕ разбиваем по пробелу!
+        # "Costa Mesa" должно остаться как один город, а не разбиваться
         if ',' in inside_bracket:
             # Запятая - приоритет 1
             inside_parts = [p.strip() for p in inside_bracket.split(',') if p.strip()]
-        elif '.' in inside_bracket:
+        elif '.' in inside_bracket and inside_bracket.count('.') >= 1:
             # Точка - приоритет 2
             inside_parts = [p.strip() for p in inside_bracket.split('.') if p.strip()]
         elif ':' in inside_bracket:
             # Двоеточие - приоритет 3
             inside_parts = [p.strip() for p in inside_bracket.split(':') if p.strip()]
         else:
-            # Нет явных разделителей - используем множественные пробелы (2+) или один пробел
-            inside_parts = re.split(r'\s{2,}', inside_bracket)
-            if len(inside_parts) == 1:
-                # Нет множественных пробелов - пробуем одиночный пробел
-                inside_parts = inside_bracket.split()
-            inside_parts = [p.strip() for p in inside_parts if p.strip()]
+            # НЕТ явных разделителей - значит это ОДИН город
+            # "Costa Mesa", "Wappingers Falls" - оставляем как есть
+            inside_parts = [inside_bracket]
         
         if len(inside_parts) >= 2:
             # Country (State, City) - формат с несколькими частями в скобках
