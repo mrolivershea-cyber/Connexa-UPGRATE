@@ -1806,21 +1806,14 @@ def parse_format_5(block: str, node_data: dict) -> dict:
                 node_data['password'] = password.strip()
         elif line.startswith("Location:"):
             location = line.split(':', 1)[1].strip()
-            # УЛУЧШЕННЫЙ парсинг: Country (State, City) ИЛИ State (City)
-            if '(' in location and ')' in location:
-                before = location.split('(')[0].strip()
-                inside = location.split('(')[1].split(')')[0].strip()
-                
-                if ',' in inside:
-                    # US (Missouri, Kansas City)
-                    node_data['country'] = before
-                    parts = inside.split(',', 1)
-                    node_data['state'] = parts[0].strip()
-                    node_data['city'] = parts[1].strip()
-                else:
-                    # Texas (Austin)
-                    node_data['state'] = before
-                    node_data['city'] = inside
+            # Используем умный парсер Location
+            location_data = parse_location_smart(location)
+            if location_data['country']:
+                node_data['country'] = location_data['country']
+            if location_data['state']:
+                node_data['state'] = location_data['state']
+            if location_data['city']:
+                node_data['city'] = location_data['city']
         elif line.startswith("ZIP:"):
             node_data['zipcode'] = line.split(':', 1)[1].strip()
         elif line.startswith("Scamalytics Fraud Score:"):
