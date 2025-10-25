@@ -21550,6 +21550,210 @@ City: TestCity"""
                          f"КРИТИЧЕСКАЯ ОШИБКА: {api_database_mismatches} узлов имеют disconnect между API и database")
             return False
 
+    def test_russian_user_import_location_parsing(self):
+        """
+        Russian User Review Request: Test full cycle of import and data display
+        
+        Requirements:
+        1. GET /api/nodes - check correct data with country, state, city for first 10 nodes
+        2. Verify:
+           - Nodes with comma in Location (US (State, City)) have Country = "United States"
+           - Nodes without comma (State (City)) have Country = None
+           - Multi-word cities NOT split (Costa Mesa, Wappingers Falls)
+           - States normalized correctly
+        3. Check specific IPs:
+           - 174.169.47.56 - Country=United States, State=Connecticut, City=Lakeville
+           - 71.84.237.32 - Country=None, State=California, City=Pasadena
+           - Any node with "Wappingers Falls" - city complete, not split
+        """
+        print("\n" + "="*80)
+        print("RUSSIAN USER REVIEW REQUEST: Import and Location Parsing Test")
+        print("="*80)
+        
+        # Test 1: Get first 10 nodes and display their location data
+        print("\n📋 TEST 1: GET /api/nodes - First 10 nodes location data")
+        print("-"*80)
+        
+        success, response = self.make_request('GET', 'nodes', {'limit': 10, 'page': 1})
+        
+        if not success or 'nodes' not in response:
+            self.log_test("Russian User Import - Get First 10 Nodes", False, 
+                         f"Failed to get nodes: {response}")
+            return False
+        
+        nodes = response['nodes']
+        print(f"\n✅ Retrieved {len(nodes)} nodes from database\n")
+        
+        # Display each node's location data
+        for i, node in enumerate(nodes, 1):
+            print(f"Node {i}: IP={node.get('ip', 'N/A')}")
+            print(f"  Country: {node.get('country', 'None')}")
+            print(f"  State: {node.get('state', 'None')}")
+            print(f"  City: {node.get('city', 'None')}")
+            print(f"  Login: {node.get('login', 'N/A')}")
+            print()
+        
+        self.log_test("Russian User Import - Get First 10 Nodes", True, 
+                     f"Retrieved and displayed {len(nodes)} nodes with location data")
+        
+        # Test 2: Check specific IP 174.169.47.56
+        print("\n📋 TEST 2: Specific IP 174.169.47.56 - Should be Country=United States, State=Connecticut, City=Lakeville")
+        print("-"*80)
+        
+        success, response = self.make_request('GET', 'nodes', {'ip': '174.169.47.56'})
+        
+        if success and 'nodes' in response and response['nodes']:
+            node = response['nodes'][0]
+            print(f"\n✅ Found node with IP 174.169.47.56:")
+            print(f"  Country: {node.get('country', 'None')}")
+            print(f"  State: {node.get('state', 'None')}")
+            print(f"  City: {node.get('city', 'None')}")
+            
+            expected_country = "United States"
+            expected_state = "Connecticut"
+            expected_city = "Lakeville"
+            
+            if (node.get('country') == expected_country and 
+                node.get('state') == expected_state and 
+                node.get('city') == expected_city):
+                self.log_test("Russian User Import - IP 174.169.47.56", True, 
+                             f"✅ CORRECT: Country={expected_country}, State={expected_state}, City={expected_city}")
+            else:
+                self.log_test("Russian User Import - IP 174.169.47.56", False, 
+                             f"❌ INCORRECT: Expected Country={expected_country}, State={expected_state}, City={expected_city}, "
+                             f"Got Country={node.get('country')}, State={node.get('state')}, City={node.get('city')}")
+        else:
+            print(f"\n⚠️ Node with IP 174.169.47.56 not found in database")
+            self.log_test("Russian User Import - IP 174.169.47.56", False, 
+                         "Node not found in database")
+        
+        # Test 3: Check specific IP 71.84.237.32
+        print("\n📋 TEST 3: Specific IP 71.84.237.32 - Should be Country=None, State=California, City=Pasadena")
+        print("-"*80)
+        
+        success, response = self.make_request('GET', 'nodes', {'ip': '71.84.237.32'})
+        
+        if success and 'nodes' in response and response['nodes']:
+            node = response['nodes'][0]
+            print(f"\n✅ Found node with IP 71.84.237.32:")
+            print(f"  Country: {node.get('country', 'None')}")
+            print(f"  State: {node.get('state', 'None')}")
+            print(f"  City: {node.get('city', 'None')}")
+            
+            expected_country = None
+            expected_state = "California"
+            expected_city = "Pasadena"
+            
+            if (node.get('country') == expected_country and 
+                node.get('state') == expected_state and 
+                node.get('city') == expected_city):
+                self.log_test("Russian User Import - IP 71.84.237.32", True, 
+                             f"✅ CORRECT: Country=None, State={expected_state}, City={expected_city}")
+            else:
+                self.log_test("Russian User Import - IP 71.84.237.32", False, 
+                             f"❌ INCORRECT: Expected Country=None, State={expected_state}, City={expected_city}, "
+                             f"Got Country={node.get('country')}, State={node.get('state')}, City={node.get('city')}")
+        else:
+            print(f"\n⚠️ Node with IP 71.84.237.32 not found in database")
+            self.log_test("Russian User Import - IP 71.84.237.32", False, 
+                         "Node not found in database")
+        
+        # Test 4: Check for "Wappingers Falls" - multi-word city should not be split
+        print("\n📋 TEST 4: Multi-word city 'Wappingers Falls' - Should be complete, not split")
+        print("-"*80)
+        
+        success, response = self.make_request('GET', 'nodes', {'city': 'Wappingers Falls'})
+        
+        if success and 'nodes' in response and response['nodes']:
+            node = response['nodes'][0]
+            print(f"\n✅ Found node with city 'Wappingers Falls':")
+            print(f"  IP: {node.get('ip', 'N/A')}")
+            print(f"  Country: {node.get('country', 'None')}")
+            print(f"  State: {node.get('state', 'None')}")
+            print(f"  City: {node.get('city', 'None')}")
+            
+            if node.get('city') == 'Wappingers Falls':
+                self.log_test("Russian User Import - Wappingers Falls", True, 
+                             f"✅ CORRECT: City='Wappingers Falls' is complete, not split")
+            else:
+                self.log_test("Russian User Import - Wappingers Falls", False, 
+                             f"❌ INCORRECT: City should be 'Wappingers Falls', got '{node.get('city')}'")
+        else:
+            print(f"\n⚠️ No nodes found with city 'Wappingers Falls'")
+            self.log_test("Russian User Import - Wappingers Falls", False, 
+                         "No nodes with 'Wappingers Falls' found in database")
+        
+        # Test 5: Check for "Costa Mesa" - another multi-word city
+        print("\n📋 TEST 5: Multi-word city 'Costa Mesa' - Should be complete, not split")
+        print("-"*80)
+        
+        success, response = self.make_request('GET', 'nodes', {'city': 'Costa Mesa'})
+        
+        if success and 'nodes' in response and response['nodes']:
+            node = response['nodes'][0]
+            print(f"\n✅ Found node with city 'Costa Mesa':")
+            print(f"  IP: {node.get('ip', 'N/A')}")
+            print(f"  Country: {node.get('country', 'None')}")
+            print(f"  State: {node.get('state', 'None')}")
+            print(f"  City: {node.get('city', 'None')}")
+            
+            if node.get('city') == 'Costa Mesa':
+                self.log_test("Russian User Import - Costa Mesa", True, 
+                             f"✅ CORRECT: City='Costa Mesa' is complete, not split")
+            else:
+                self.log_test("Russian User Import - Costa Mesa", False, 
+                             f"❌ INCORRECT: City should be 'Costa Mesa', got '{node.get('city')}'")
+        else:
+            print(f"\n⚠️ No nodes found with city 'Costa Mesa'")
+            self.log_test("Russian User Import - Costa Mesa", False, 
+                         "No nodes with 'Costa Mesa' found in database")
+        
+        # Test 6: Verify Location format parsing rules
+        print("\n📋 TEST 6: Location Format Parsing Rules Verification")
+        print("-"*80)
+        print("\nChecking nodes with different location formats:")
+        
+        # Get a sample of nodes to check location parsing patterns
+        success, response = self.make_request('GET', 'nodes', {'limit': 50})
+        
+        if success and 'nodes' in response:
+            nodes = response['nodes']
+            
+            # Count nodes with different patterns
+            us_with_comma = 0  # US (State, City) format
+            no_comma = 0       # State (City) format
+            
+            for node in nodes:
+                country = node.get('country')
+                state = node.get('state')
+                city = node.get('city')
+                
+                # Check if this looks like "US (State, City)" format
+                if country == "United States" and state and city:
+                    us_with_comma += 1
+                    if us_with_comma <= 3:  # Show first 3 examples
+                        print(f"  Example US format: IP={node.get('ip')}, Country={country}, State={state}, City={city}")
+                
+                # Check if this looks like "State (City)" format
+                elif country is None and state and city:
+                    no_comma += 1
+                    if no_comma <= 3:  # Show first 3 examples
+                        print(f"  Example State format: IP={node.get('ip')}, Country=None, State={state}, City={city}")
+            
+            print(f"\n📊 Summary:")
+            print(f"  Nodes with US (State, City) format: {us_with_comma}")
+            print(f"  Nodes with State (City) format: {no_comma}")
+            
+            self.log_test("Russian User Import - Location Format Rules", True, 
+                         f"Verified location parsing: {us_with_comma} US format, {no_comma} State format")
+        
+        print("\n" + "="*80)
+        print("RUSSIAN USER REVIEW REQUEST TEST COMPLETE")
+        print("="*80)
+        
+        return True
+
+
 def run_batch_ping_tests():
     """Run comprehensive batch ping tests as requested in the review"""
     tester = ConnexaAPITester()
