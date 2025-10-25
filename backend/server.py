@@ -2492,9 +2492,23 @@ def parse_location_smart(location: str) -> dict:
         inside_bracket = bracket_match.group(2).strip()
         
         # Внутри скобок ищем разделители: запятая, точка, двоеточие, или множественные пробелы (2+)
-        # Используем regex для гибкого разделения
-        inside_parts = re.split(r'[,.\:]\s*|\s{2,}', inside_bracket)
-        inside_parts = [p.strip() for p in inside_parts if p.strip()]
+        # Сначала пробуем явные разделители, потом множественные пробелы
+        if ',' in inside_bracket:
+            # Запятая - приоритет 1
+            inside_parts = [p.strip() for p in inside_bracket.split(',') if p.strip()]
+        elif '.' in inside_bracket:
+            # Точка - приоритет 2
+            inside_parts = [p.strip() for p in inside_bracket.split('.') if p.strip()]
+        elif ':' in inside_bracket:
+            # Двоеточие - приоритет 3
+            inside_parts = [p.strip() for p in inside_bracket.split(':') if p.strip()]
+        else:
+            # Нет явных разделителей - используем множественные пробелы (2+) или один пробел
+            inside_parts = re.split(r'\s{2,}', inside_bracket)
+            if len(inside_parts) == 1:
+                # Нет множественных пробелов - пробуем одиночный пробел
+                inside_parts = inside_bracket.split()
+            inside_parts = [p.strip() for p in inside_parts if p.strip()]
         
         if len(inside_parts) >= 2:
             # Country (State, City) - формат с несколькими частями в скобках
