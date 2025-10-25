@@ -2294,9 +2294,18 @@ def process_parsed_nodes_bulk(db: Session, parsed_data: dict, testing_mode: str)
                 logger.info(f"🔍 Removed {duplicates_removed} duplicates from bulk insert data")
             
             # Use INSERT OR IGNORE to handle any remaining duplicates (DB-level protection)
+            # ИСПРАВЛЕНО: добавлены ВСЕ поля
             insert_stmt = text("""
-                INSERT OR IGNORE INTO nodes (ip, login, password, protocol, status, last_update)
-                VALUES (:ip, :login, :password, :protocol, :status, datetime('now'))
+                INSERT OR IGNORE INTO nodes (
+                    ip, login, password, protocol, status, port,
+                    country, state, city, zipcode, provider, comment,
+                    scamalytics_fraud_score, scamalytics_risk, last_update
+                )
+                VALUES (
+                    :ip, :login, :password, :protocol, :status, :port,
+                    :country, :state, :city, :zipcode, :provider, :comment,
+                    :scamalytics_fraud_score, :scamalytics_risk, datetime('now')
+                )
             """)
             
             db.execute(insert_stmt, deduplicated_data)
