@@ -110,9 +110,9 @@ for i, test in enumerate(test_cases, 1):
     print(f"{'-'*100}")
     print(f"📍 Input: '{test['input']}'")
     print(f"\n📊 Expected → Got:")
-    print(f"  Country: {exp_country:20} → {country:20} {'✅' if country_match else '❌'}")
-    print(f"  State:   {exp_state:20} → {state:20} {'✅' if state_match else '❌'}")
-    print(f"  City:    {exp_city:20} → {city:20} {'✅' if city_match else '❌'}")
+    print(f"  Country: {str(exp_country):20} → {str(country):20} {'✅' if country_match else '❌'}")
+    print(f"  State:   {str(exp_state):20} → {str(state):20} {'✅' if state_match else '❌'}")
+    print(f"  City:    {str(exp_city):20} → {str(city):20} {'✅' if city_match else '❌'}")
     print(f"\n{status}")
     
     if all_match:
