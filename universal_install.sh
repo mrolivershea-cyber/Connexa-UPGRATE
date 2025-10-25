@@ -2,8 +2,8 @@
 ##########################################################################################
 # CONNEXA ADMIN PANEL - УНИВЕРСАЛЬНЫЙ УСТАНОВОЧНЫЙ СКРИПТ  
 # Автоматическая установка с GitHub с поэтапными тестами и проверками
-# Версия: 5.0 - РЕПОЗИТОРИЙ auto-pars-filter1 + SCAMALYTICS
-# Репозиторий: https://github.com/mrolivershea-cyber/10-23-2025-auto-pars-filter1
+# Версия: 6.0 - UPGRADED VERSION с исправленными фильтрами и супер-парсером
+# Репозиторий: https://github.com/mrolivershea-cyber/Connexa-UPGRATE
 ##########################################################################################
 
 set -e  # Exit on any error
@@ -23,7 +23,7 @@ NC='\033[0m' # No Color
 
 # Глобальные переменные
 INSTALL_DIR="/app"
-REPO_URL="https://github.com/mrolivershea-cyber/10-23-2025-auto-pars-filter1.git"
+REPO_URL="https://github.com/mrolivershea-cyber/Connexa-UPGRATE.git"
 BRANCH="main"
 ERRORS_FOUND=0
 WARNINGS_FOUND=0
