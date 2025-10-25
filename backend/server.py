@@ -2473,6 +2473,120 @@ def process_parsed_nodes(db: Session, parsed_data: dict, testing_mode: str = "no
         results["errors"].append({"general": f"Database commit error: {str(e)}"})
     
     return results
+def parse_location_smart(location: str) -> dict:
+    """
+    Умный парсинг Location с поддержкой ЛЮБЫХ форматов и вариаций
+    
+    Поддерживаемые форматы:
+    1. US (Washington, Mill Creek)     - Country (State, City)
+    2. Washington, Mill Creek          - State, City
+    3. Texas (Austin)                  - State (City)
+    4. US Washington, Mill Creek       - Country State, City (без скобок)
+    5. US (Washington. Mill Creek)     - точка вместо запятой
+    6. US Washington Mill Creek        - только пробелы
+    7. US: Washington: Mill Creek      - через двоеточия
+    8. US, Washington, Mill Creek      - через запятые
+    9. Washington. Mill Creek          - точка как разделитель
+    10. Washington Mill Creek          - только пробелы
+    
+    Возвращает: {'country': ..., 'state': ..., 'city': ...}
+    """
+    location = location.strip()
+    result = {'country': None, 'state': None, 'city': None}
+    
+    if not location:
+        return result
+    
+    # PATTERN 1: Со скобками - Country (State, City) или State (City)
+    # Поддерживает любые разделители внутри: запятая, точка, двоеточие, пробел
+    bracket_match = re.match(r'^([^(]+)\(([^)]+)\)$', location)
+    if bracket_match:
+        before_bracket = bracket_match.group(1).strip()
+        inside_bracket = bracket_match.group(2).strip()
+        
+        # Внутри скобок ищем разделители: запятая, точка, двоеточие, или несколько пробелов
+        # Используем regex для гибкого разделения
+        inside_parts = re.split(r'[,.\:]\s*|\s{2,}', inside_bracket)
+        inside_parts = [p.strip() for p in inside_parts if p.strip()]
+        
+        if len(inside_parts) >= 2:
+            # Country (State, City) - формат с несколькими частями в скобках
+            result['country'] = before_bracket
+            result['state'] = inside_parts[0]
+            result['city'] = ' '.join(inside_parts[1:])  # Объединяем остальное как город
+        elif len(inside_parts) == 1:
+            # State (City) - формат с одной частью в скобках
+            result['state'] = before_bracket
+            result['city'] = inside_parts[0]
+        
+        return result
+    
+    # PATTERN 2: Без скобок - пробуем разделители
+    # Приоритет разделителей: запятая > точка > двоеточие > пробелы
+    
+    # Пробуем запятую как основной разделитель
+    if ',' in location:
+        parts = [p.strip() for p in location.split(',') if p.strip()]
+        if len(parts) >= 3:
+            # Country, State, City
+            result['country'] = parts[0]
+            result['state'] = parts[1]
+            result['city'] = ' '.join(parts[2:])
+        elif len(parts) == 2:
+            # State, City
+            result['state'] = parts[0]
+            result['city'] = parts[1]
+        return result
+    
+    # Пробуем точку как разделитель
+    if '.' in location and location.count('.') >= 1:
+        parts = [p.strip() for p in location.split('.') if p.strip()]
+        if len(parts) >= 3:
+            result['country'] = parts[0]
+            result['state'] = parts[1]
+            result['city'] = ' '.join(parts[2:])
+        elif len(parts) == 2:
+            result['state'] = parts[0]
+            result['city'] = parts[1]
+        return result
+    
+    # Пробуем двоеточие как разделитель
+    if ':' in location and location.count(':') >= 1:
+        parts = [p.strip() for p in location.split(':') if p.strip()]
+        if len(parts) >= 3:
+            result['country'] = parts[0]
+            result['state'] = parts[1]
+            result['city'] = ' '.join(parts[2:])
+        elif len(parts) == 2:
+            result['state'] = parts[0]
+            result['city'] = parts[1]
+        return result
+    
+    # PATTERN 3: Только пробелы - умное разделение
+    # Ищем паттерн: "US Washington Mill Creek" или "Washington Mill Creek"
+    parts = location.split()
+    
+    if len(parts) >= 3:
+        # Проверяем первую часть - это код страны (2-3 буквы ВСЕ ЗАГЛАВНЫЕ)?
+        if len(parts[0]) <= 3 and parts[0].isupper():
+            # Country State City
+            result['country'] = parts[0]
+            result['state'] = parts[1]
+            result['city'] = ' '.join(parts[2:])
+        else:
+            # State City (несколько слов для города)
+            result['state'] = parts[0]
+            result['city'] = ' '.join(parts[1:])
+    elif len(parts) == 2:
+        # State City
+        result['state'] = parts[0]
+        result['city'] = parts[1]
+    elif len(parts) == 1:
+        # Только State
+        result['state'] = parts[0]
+    
+    return result
+
 def is_valid_ip(ip: str) -> bool:
     """Basic IP validation"""
     import ipaddress
