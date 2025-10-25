@@ -479,24 +479,31 @@ auth ${node.login}
 
                 {/* Second Row: Location and Date Information */}
                 <tr className={`${index % 2 === 0 ? 'bg-gray-25' : 'bg-gray-75'} text-xs text-gray-600 border-b-2 border-gray-200`}>
+                  {/* Колонка 2: под Status - показываем Last Update */}
                   <td className="px-2 py-1 text-xs text-gray-500">
                     {formatDate(node.last_update)}
                   </td>
-                  <td className="px-2 py-1 text-xs text-gray-900 max-w-xs truncate">
+                  {/* Колонка 3-5: под Speed, Fraud Score, Lead Risk - показываем Comment */}
+                  <td className="px-2 py-1 text-xs text-gray-900 max-w-xs truncate" colSpan={3}>
                     {node.comment || 'Empty'}
                   </td>
+                  {/* Колонка 6: под IP - показываем Country */}
                   <td className="px-2 py-1 text-xs text-gray-700">
                     {node.country || 'Empty'}
                   </td>
+                  {/* Колонка 7: под Protocol - показываем State */}
                   <td className="px-2 py-1 text-xs text-gray-700">
                     {node.state || 'Empty'}
                   </td>
+                  {/* Колонка 8: под Login - показываем City */}
                   <td className="px-2 py-1 text-xs text-gray-700">
                     {node.city || 'Empty'}
                   </td>
+                  {/* Колонка 9: под Password - показываем ZIP */}
                   <td className="px-2 py-1 text-xs text-gray-700">
                     {node.zipcode || 'Empty'}
                   </td>
+                  {/* Колонки 10-13: под SOCKS, OVPN, Actions, Comment - показываем Provider */}
                   <td className="px-2 py-1 text-xs text-gray-700" colSpan={4}>
                     {node.provider || 'Empty'}
                   </td>
