@@ -70,9 +70,9 @@ print("=" * 80)
 print("\n📋 TEST 1: Format 5 (OLD - without Scamalytics)")
 print("-" * 80)
 result1 = parse_nodes_text(test_format_5_old)
-print(f"Parsed nodes: {len(result1['parsed_nodes'])}")
-if result1['parsed_nodes']:
-    node = result1['parsed_nodes'][0]
+print(f"Parsed nodes: {len(result1['nodes'])}")
+if result1['nodes']:
+    node = result1['nodes'][0]
     print(f"  IP: {node.get('ip')}")
     print(f"  Login: {node.get('login')}")
     print(f"  State: {node.get('state')}")
@@ -88,9 +88,9 @@ else:
 print("\n📋 TEST 2: Format 5 (NEW - with Scamalytics)")
 print("-" * 80)
 result2 = parse_nodes_text(test_format_5_new)
-print(f"Parsed nodes: {len(result2['parsed_nodes'])}")
-if result2['parsed_nodes']:
-    node = result2['parsed_nodes'][0]
+print(f"Parsed nodes: {len(result2['nodes'])}")
+if result2['nodes']:
+    node = result2['nodes'][0]
     print(f"  IP: {node.get('ip')}")
     print(f"  Login: {node.get('login')}")
     print(f"  Country: {node.get('country')}")
@@ -109,9 +109,9 @@ else:
 print("\n📋 TEST 3: Format 6 (with PPTP header + Scamalytics)")
 print("-" * 80)
 result3 = parse_nodes_text(test_format_6_new)
-print(f"Parsed nodes: {len(result3['parsed_nodes'])}")
-if result3['parsed_nodes']:
-    node = result3['parsed_nodes'][0]
+print(f"Parsed nodes: {len(result3['nodes'])}")
+if result3['nodes']:
+    node = result3['nodes'][0]
     print(f"  IP: {node.get('ip')}")
     print(f"  Login: {node.get('login')}")
     print(f"  State: {node.get('state')}")
@@ -129,9 +129,9 @@ else:
 print("\n📋 TEST 4: Format 7 (Simple IP:Login:Pass)")
 print("-" * 80)
 result4 = parse_nodes_text(test_format_7)
-print(f"Parsed nodes: {len(result4['parsed_nodes'])}")
-if result4['parsed_nodes']:
-    node = result4['parsed_nodes'][0]
+print(f"Parsed nodes: {len(result4['nodes'])}")
+if result4['nodes']:
+    node = result4['nodes'][0]
     print(f"  IP: {node.get('ip')}")
     print(f"  Login: {node.get('login')}")
     print(f"  Password: {node.get('password')}")
@@ -143,9 +143,9 @@ else:
 print("\n📋 TEST 5: Format 4 (Colon-separated)")
 print("-" * 80)
 result5 = parse_nodes_text(test_format_4)
-print(f"Parsed nodes: {len(result5['parsed_nodes'])}")
-if result5['parsed_nodes']:
-    node = result5['parsed_nodes'][0]
+print(f"Parsed nodes: {len(result5['nodes'])}")
+if result5['nodes']:
+    node = result5['nodes'][0]
     print(f"  IP: {node.get('ip')}")
     print(f"  Port: {node.get('port')}")
     print(f"  Login: {node.get('login')}")
@@ -160,16 +160,16 @@ else:
 print("\n📋 TEST 6: Mixed formats (Format 7 + Format 5 + Format 4)")
 print("-" * 80)
 result6 = parse_nodes_text(test_mixed)
-print(f"Parsed nodes: {len(result6['parsed_nodes'])}")
+print(f"Parsed nodes: {len(result6['nodes'])}")
 print(f"Expected: 3 nodes")
-if len(result6['parsed_nodes']) == 3:
+if len(result6['nodes']) == 3:
     print(f"  ✅ Mixed formats: PASSED - All 3 nodes parsed")
-    for i, node in enumerate(result6['parsed_nodes'], 1):
+    for i, node in enumerate(result6['nodes'], 1):
         print(f"    Node {i}: {node.get('ip')} - {node.get('login')}")
         if node.get('scamalytics_fraud_score'):
             print(f"      Scam: {node.get('scamalytics_fraud_score')} / {node.get('scamalytics_risk')}")
 else:
-    print(f"  ❌ FAILED: Expected 3 nodes, got {len(result6['parsed_nodes'])}")
+    print(f"  ❌ FAILED: Expected 3 nodes, got {len(result6['nodes'])}")
 
 # Summary
 print("\n" + "=" * 80)
@@ -177,12 +177,12 @@ print("SUMMARY")
 print("=" * 80)
 total_tests = 6
 passed_tests = sum([
-    len(result1['parsed_nodes']) > 0,
-    len(result2['parsed_nodes']) > 0 and result2['parsed_nodes'][0].get('scamalytics_fraud_score') == 35,
-    len(result3['parsed_nodes']) > 0 and result3['parsed_nodes'][0].get('scamalytics_fraud_score') == 75,
-    len(result4['parsed_nodes']) > 0,
-    len(result5['parsed_nodes']) > 0,
-    len(result6['parsed_nodes']) == 3
+    len(result1['nodes']) > 0,
+    len(result2['nodes']) > 0 and result2['nodes'][0].get('scamalytics_fraud_score') == 35,
+    len(result3['nodes']) > 0 and result3['nodes'][0].get('scamalytics_fraud_score') == 75,
+    len(result4['nodes']) > 0,
+    len(result5['nodes']) > 0,
+    len(result6['nodes']) == 3
 ])
 
 print(f"\n✅ PASSED: {passed_tests}/{total_tests} tests")
