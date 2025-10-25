@@ -302,7 +302,16 @@ else
     fi
     
     print_info "Клонирование репозитория..."
-    git clone -b $BRANCH $REPO_URL $INSTALL_DIR
+    
+    # Поддержка GitHub токена для приватных репозиториев
+    if [ -n "$GITHUB_TOKEN" ]; then
+        print_info "Используется GitHub токен для клонирования..."
+        REPO_URL_WITH_TOKEN=$(echo $REPO_URL | sed "s|https://|https://$GITHUB_TOKEN@|")
+        git clone -b $BRANCH $REPO_URL_WITH_TOKEN $INSTALL_DIR > /dev/null 2>&1
+    else
+        git clone -b $BRANCH $REPO_URL $INSTALL_DIR
+    fi
+    
     print_success "Репозиторий склонирован"
 fi
 
