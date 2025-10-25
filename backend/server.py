@@ -2248,13 +2248,22 @@ def process_parsed_nodes_bulk(db: Session, parsed_data: dict, testing_mode: str)
                 except:
                     pass  # If date parsing fails, treat as replaceable
             
-            # Add to bulk insert
+            # Add to bulk insert - ИСПРАВЛЕНО: добавлены ВСЕ поля
             bulk_insert_data.append({
                 'ip': ip,
                 'login': login,
                 'password': password,
                 'protocol': protocol,
-                'status': 'not_tested'
+                'status': 'not_tested',
+                'port': node_data.get('port'),
+                'country': node_data.get('country'),
+                'state': node_data.get('state'),
+                'city': node_data.get('city'),
+                'zipcode': node_data.get('zipcode'),
+                'provider': node_data.get('provider'),
+                'comment': node_data.get('comment'),
+                'scamalytics_fraud_score': node_data.get('scamalytics_fraud_score'),
+                'scamalytics_risk': node_data.get('scamalytics_risk')
             })
             
             if ip not in existing_ips:
