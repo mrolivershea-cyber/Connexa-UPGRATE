@@ -2474,6 +2474,7 @@ def parse_location_smart(location: str) -> dict:
     8. US, Washington, Mill Creek      - через запятые
     9. Washington. Mill Creek          - точка как разделитель
     10. Washington Mill Creek          - только пробелы
+    11. US (Washington  Mill Creek)    - двойной/множественный пробел
     
     Возвращает: {'country': ..., 'state': ..., 'city': ...}
     """
@@ -2484,13 +2485,13 @@ def parse_location_smart(location: str) -> dict:
         return result
     
     # PATTERN 1: Со скобками - Country (State, City) или State (City)
-    # Поддерживает любые разделители внутри: запятая, точка, двоеточие, пробел
+    # Поддерживает любые разделители внутри: запятая, точка, двоеточие, пробел (включая множественные)
     bracket_match = re.match(r'^([^(]+)\(([^)]+)\)$', location)
     if bracket_match:
         before_bracket = bracket_match.group(1).strip()
         inside_bracket = bracket_match.group(2).strip()
         
-        # Внутри скобок ищем разделители: запятая, точка, двоеточие, или несколько пробелов
+        # Внутри скобок ищем разделители: запятая, точка, двоеточие, или множественные пробелы (2+)
         # Используем regex для гибкого разделения
         inside_parts = re.split(r'[,.\:]\s*|\s{2,}', inside_bracket)
         inside_parts = [p.strip() for p in inside_parts if p.strip()]
@@ -2504,6 +2505,10 @@ def parse_location_smart(location: str) -> dict:
             # State (City) - формат с одной частью в скобках
             result['state'] = before_bracket
             result['city'] = inside_parts[0]
+        else:
+            # Внутри скобок ничего нет или не распарсилось - пробуем как State (полный текст)
+            result['state'] = before_bracket
+            result['city'] = inside_bracket
         
         return result
     
@@ -2524,7 +2529,7 @@ def parse_location_smart(location: str) -> dict:
             result['city'] = parts[1]
         return result
     
-    # Пробуем точку как разделитель
+    # Пробуем точку как разделитель (но не если это просто окончание предложения)
     if '.' in location and location.count('.') >= 1:
         parts = [p.strip() for p in location.split('.') if p.strip()]
         if len(parts) >= 3:
@@ -2536,8 +2541,9 @@ def parse_location_smart(location: str) -> dict:
             result['city'] = parts[1]
         return result
     
-    # Пробуем двоеточие как разделитель
-    if ':' in location and location.count(':') >= 1:
+    # Пробуем двоеточие как разделитель (но НЕ если это часть "Location:")
+    colon_count = location.count(':')
+    if colon_count >= 1:
         parts = [p.strip() for p in location.split(':') if p.strip()]
         if len(parts) >= 3:
             result['country'] = parts[0]
