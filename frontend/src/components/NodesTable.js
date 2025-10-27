@@ -468,9 +468,6 @@ auth ${node.login}
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </td>
-                  <td className="px-2 py-2 whitespace-nowrap text-sm text-gray-900 max-w-xs">
-                    <EditableCell node={node} field="comment" className="max-w-xs truncate" />
-                  </td>
                 </tr>
 
                 {/* Second Row: Location and Date Information */}
@@ -490,8 +487,11 @@ auth ${node.login}
                   <td className="px-2 py-1 text-xs text-gray-700">
                     {node.zipcode || 'Empty'}
                   </td>
-                  <td className="px-2 py-1 text-xs text-gray-700" colSpan={7}>
+                  <td className="px-2 py-1 text-xs text-gray-700">
                     {node.provider || 'Empty'}
+                  </td>
+                  <td className="px-2 py-1 text-xs text-gray-900 max-w-xs truncate" colSpan={6}>
+                    <EditableCell node={node} field="comment" className="max-w-xs truncate" />
                   </td>
                 </tr>
               </Fragment>
