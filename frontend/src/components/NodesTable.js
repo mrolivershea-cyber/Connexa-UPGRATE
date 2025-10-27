@@ -479,32 +479,24 @@ auth ${node.login}
 
                 {/* Second Row: Location and Date Information */}
                 <tr className={`${index % 2 === 0 ? 'bg-gray-25' : 'bg-gray-75'} text-xs text-gray-600 border-b-2 border-gray-200`}>
-                  {/* Checkbox пропущен - rowSpan=2 */}
-                  {/* Под Status - Last Update */}
                   <td className="px-2 py-1 text-xs text-gray-500">
                     {formatDate(node.last_update)}
                   </td>
-                  {/* Под Speed, Fraud Score, Lead Risk - Comment дублируется */}
-                  <td className="px-2 py-1 text-xs text-gray-900 max-w-xs truncate" colSpan={3}>
+                  <td className="px-2 py-1 text-xs text-gray-900 max-w-xs truncate">
                     {node.comment || 'Empty'}
                   </td>
-                  {/* Под IP - Country */}
                   <td className="px-2 py-1 text-xs text-gray-700">
                     {node.country || 'Empty'}
                   </td>
-                  {/* Под Protocol - State */}
                   <td className="px-2 py-1 text-xs text-gray-700">
                     {node.state || 'Empty'}
                   </td>
-                  {/* Под Login - City */}
                   <td className="px-2 py-1 text-xs text-gray-700">
                     {node.city || 'Empty'}
                   </td>
-                  {/* Под Password - ZIP */}
                   <td className="px-2 py-1 text-xs text-gray-700">
                     {node.zipcode || 'Empty'}
                   </td>
-                  {/* Под SOCKS, OVPN, Actions, Comment - Provider растянут */}
                   <td className="px-2 py-1 text-xs text-gray-700" colSpan={4}>
                     {node.provider || 'Empty'}
                   </td>
