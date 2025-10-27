@@ -339,9 +339,6 @@ auth ${node.login}
               <th className="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Actions
               </th>
-              <th className="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Comment
-              </th>
             </tr>
           </thead>
           <tbody className="bg-white">
