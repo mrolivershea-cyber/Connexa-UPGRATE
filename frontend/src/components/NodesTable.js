@@ -482,9 +482,6 @@ auth ${node.login}
                   <td className="px-2 py-1 text-xs text-gray-500">
                     {formatDate(node.last_update)}
                   </td>
-                  <td className="px-2 py-1 text-xs text-gray-900 max-w-xs truncate">
-                    {node.comment || 'Empty'}
-                  </td>
                   <td className="px-2 py-1 text-xs text-gray-700">
                     {node.country || 'Empty'}
                   </td>
@@ -497,7 +494,7 @@ auth ${node.login}
                   <td className="px-2 py-1 text-xs text-gray-700">
                     {node.zipcode || 'Empty'}
                   </td>
-                  <td className="px-2 py-1 text-xs text-gray-700" colSpan={6}>
+                  <td className="px-2 py-1 text-xs text-gray-700" colSpan={7}>
                     {node.provider || 'Empty'}
                   </td>
                 </tr>
