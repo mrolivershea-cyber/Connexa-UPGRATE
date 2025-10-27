@@ -497,7 +497,7 @@ auth ${node.login}
                   <td className="px-2 py-1 text-xs text-gray-700">
                     {node.zipcode || 'Empty'}
                   </td>
-                  <td className="px-2 py-1 text-xs text-gray-700" colSpan={4}>
+                  <td className="px-2 py-1 text-xs text-gray-700" colSpan={6}>
                     {node.provider || 'Empty'}
                   </td>
                 </tr>
