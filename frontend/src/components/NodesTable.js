@@ -480,26 +480,35 @@ auth ${node.login}
                 {/* Second Row: Location and Date Information */}
                 <tr className={`${index % 2 === 0 ? 'bg-gray-25' : 'bg-gray-75'} text-xs text-gray-600 border-b-2 border-gray-200`}>
                   {/* Checkbox пропущен - rowSpan=2 */}
-                  <td className="px-2 py-1 text-xs text-gray-500">
+                  {/* Под Status, Speed - Last Update */}
+                  <td className="px-2 py-1 text-xs text-gray-500" colSpan={2}>
                     {formatDate(node.last_update)}
                   </td>
-                  <td className="px-2 py-1 text-xs text-gray-900 max-w-xs truncate">
-                    {node.comment || 'Empty'}
-                  </td>
+                  {/* Под Fraud Score, Lead Risk - пусто */}
+                  <td className="px-2 py-1 text-xs text-gray-700" colSpan={2}></td>
+                  {/* Под IP - Country */}
                   <td className="px-2 py-1 text-xs text-gray-700">
                     {node.country || 'Empty'}
                   </td>
+                  {/* Под Protocol - State */}
                   <td className="px-2 py-1 text-xs text-gray-700">
                     {node.state || 'Empty'}
                   </td>
+                  {/* Под Login - City */}
                   <td className="px-2 py-1 text-xs text-gray-700">
                     {node.city || 'Empty'}
                   </td>
+                  {/* Под Password - ZIP */}
                   <td className="px-2 py-1 text-xs text-gray-700">
                     {node.zipcode || 'Empty'}
                   </td>
-                  <td className="px-2 py-1 text-xs text-gray-700" colSpan={4}>
+                  {/* Под SOCKS, OVPN - Provider */}
+                  <td className="px-2 py-1 text-xs text-gray-700" colSpan={2}>
                     {node.provider || 'Empty'}
+                  </td>
+                  {/* Под Actions, Comment - Comment */}
+                  <td className="px-2 py-1 text-xs text-gray-900 max-w-xs truncate" colSpan={2}>
+                    {node.comment || 'Empty'}
                   </td>
                 </tr>
               </Fragment>
