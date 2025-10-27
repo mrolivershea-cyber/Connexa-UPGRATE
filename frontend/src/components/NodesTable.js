@@ -441,10 +441,6 @@ auth ${node.login}
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => copyToClipboard(node.ip, 'IP Address')}>
-                          <Copy className="h-4 w-4 mr-2" />
-                          Copy IP
-                        </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => copySocks(node)}>
                           <Copy className="h-4 w-4 mr-2" />
                           Copy SOCKS
