@@ -479,33 +479,42 @@ auth ${node.login}
 
                 {/* Second Row: Location and Date Information */}
                 <tr className={`${index % 2 === 0 ? 'bg-gray-25' : 'bg-gray-75'} text-xs text-gray-600 border-b-2 border-gray-200`}>
-                  {/* Колонка 2: под Status - показываем Last Update */}
+                  {/* Ячейка 1 пропущена - rowSpan от Checkbox */}
+                  {/* Ячейка 2: под Status - Last Update */}
                   <td className="px-2 py-1 text-xs text-gray-500">
                     {formatDate(node.last_update)}
                   </td>
-                  {/* Колонка 3-5: под Speed, Fraud Score, Lead Risk - показываем Comment */}
-                  <td className="px-2 py-1 text-xs text-gray-900 max-w-xs truncate" colSpan={3}>
-                    {node.comment || 'Empty'}
+                  {/* Ячейка 3-4: под Speed и Fraud Score - пусто */}
+                  <td className="px-2 py-1 text-xs text-gray-500" colSpan={2}>
+                    {/* Empty */}
                   </td>
-                  {/* Колонка 6: под IP - показываем Country */}
+                  {/* Ячейка 5: под Lead Risk - пусто */}
+                  <td className="px-2 py-1 text-xs text-gray-500">
+                    {/* Empty */}
+                  </td>
+                  {/* Ячейка 6: под IP - Country */}
                   <td className="px-2 py-1 text-xs text-gray-700">
                     {node.country || 'Empty'}
                   </td>
-                  {/* Колонка 7: под Protocol - показываем State */}
+                  {/* Ячейка 7: под Protocol - State */}
                   <td className="px-2 py-1 text-xs text-gray-700">
                     {node.state || 'Empty'}
                   </td>
-                  {/* Колонка 8: под Login - показываем City */}
+                  {/* Ячейка 8: под Login - City */}
                   <td className="px-2 py-1 text-xs text-gray-700">
                     {node.city || 'Empty'}
                   </td>
-                  {/* Колонка 9: под Password - показываем ZIP */}
+                  {/* Ячейка 9: под Password - ZIP */}
                   <td className="px-2 py-1 text-xs text-gray-700">
                     {node.zipcode || 'Empty'}
                   </td>
-                  {/* Колонки 10-13: под SOCKS, OVPN, Actions, Comment - показываем Provider */}
-                  <td className="px-2 py-1 text-xs text-gray-700" colSpan={4}>
+                  {/* Ячейка 10: под SOCKS - Provider */}
+                  <td className="px-2 py-1 text-xs text-gray-700">
                     {node.provider || 'Empty'}
+                  </td>
+                  {/* Ячейки 11-13: под OVPN, Actions, Comment - Comment */}
+                  <td className="px-2 py-1 text-xs text-gray-900 max-w-xs truncate" colSpan={3}>
+                    {node.comment || 'Empty'}
                   </td>
                 </tr>
               </Fragment>
