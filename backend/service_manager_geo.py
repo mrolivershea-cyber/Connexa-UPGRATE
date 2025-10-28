@@ -181,9 +181,16 @@ class ServiceManager:
             return True
         return False
     
-    async def enrich_node_fraud(self, node, db_session):
-        """Обогатить узел fraud данными"""
-        needs_fraud = node.scamalytics_fraud_score is None or node.scamalytics_risk is None
+    async def enrich_node_fraud(self, node, db_session, force=False):
+        """Обогатить узел fraud данными
+        
+        Args:
+            node: Node объект
+            db_session: Database session
+            force: Если True - проверяет ВСЕГДА, даже если данные есть
+        """
+        # Принудительная проверка или только если данных нет
+        needs_fraud = force or (node.scamalytics_fraud_score is None or node.scamalytics_risk is None)
         
         if not needs_fraud:
             return False
@@ -191,9 +198,10 @@ class ServiceManager:
         result = await self.check_fraud(node.ip)
         
         if result.get('success'):
-            if node.scamalytics_fraud_score is None:
+            # При force=True - ВСЕГДА обновляем
+            if force or node.scamalytics_fraud_score is None:
                 node.scamalytics_fraud_score = result.get('fraud_score', 0)
-            if node.scamalytics_risk is None:
+            if force or node.scamalytics_risk is None:
                 node.scamalytics_risk = result.get('risk_level', 'low')
             return True
         return False
