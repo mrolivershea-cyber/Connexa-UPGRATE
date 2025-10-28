@@ -150,9 +150,16 @@ class ServiceManager:
         
         return True
     
-    async def enrich_node_geolocation(self, node, db_session):
-        """Обогатить узел геолокацией"""
-        needs_geo = not node.city or not node.state or not node.zipcode
+    async def enrich_node_geolocation(self, node, db_session, force=False):
+        """Обогатить узел геолокацией
+        
+        Args:
+            node: Node объект
+            db_session: Database session
+            force: Если True - проверяет ВСЕГДА, даже если данные есть
+        """
+        # Принудительная проверка или только если данных нет
+        needs_geo = force or (not node.city or not node.state or not node.zipcode)
         
         if not needs_geo:
             return False
@@ -160,15 +167,16 @@ class ServiceManager:
         result = await self.get_geolocation(node.ip)
         
         if result.get('success'):
-            if not node.country:
+            # При force=True - ВСЕГДА обновляем, даже если есть
+            if force or not node.country:
                 node.country = result.get('country', '')
-            if not node.state:
+            if force or not node.state:
                 node.state = result.get('state', '')
-            if not node.city:
+            if force or not node.city:
                 node.city = result.get('city', '')
-            if not node.zipcode:
+            if force or not node.zipcode:
                 node.zipcode = result.get('zipcode', '')
-            if not node.provider:
+            if force or not node.provider:
                 node.provider = result.get('provider', '')
             return True
         return False
