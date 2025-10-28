@@ -743,7 +743,7 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], selectAllMode = f
                   <SelectItem value="ping_light">
                     <div className="flex items-center">
                       <Zap className="h-4 w-4 mr-2 text-yellow-500" />
-                      PING LIGHT (быстро)
+                      Ping Test
                     </div>
                   </SelectItem>
                   <SelectItem value="ping">
@@ -755,7 +755,7 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], selectAllMode = f
                   <SelectItem value="speed">
                     <div className="flex items-center">
                       <Zap className="h-4 w-4 mr-2" />
-                      Только Скорость
+                      Speed Test
                     </div>
                   </SelectItem>
                   <SelectItem value="geo">
