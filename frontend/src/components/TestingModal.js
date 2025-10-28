@@ -410,6 +410,12 @@ const TestingModal = ({ isOpen, onClose, selectedNodeIds = [], selectAllMode = f
         endpoint = 'manual/ping-test-batch-progress';  // Full ping with auth
       } else if (testType === 'speed') {
         endpoint = 'manual/speed-test-batch-progress';
+      } else if (testType === 'geo') {
+        endpoint = 'manual/geo-test-batch';  // GEO check
+      } else if (testType === 'fraud') {
+        endpoint = 'manual/fraud-test-batch';  // Fraud check
+      } else if (testType === 'geo_fraud') {
+        endpoint = 'manual/geo-fraud-test-batch';  // Combined GEO + Fraud
       }
       
       // No more progress simulation - SSE will provide real progress
