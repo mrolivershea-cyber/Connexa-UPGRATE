@@ -3705,8 +3705,8 @@ async def manual_geo_test_batch(
     
     for node in nodes:
         try:
-            # Вызываем геолокацию
-            success = await service_manager.enrich_node_geolocation(node, db)
+            # Вызываем геолокацию с force=True для принудительного обновления
+            success = await service_manager.enrich_node_geolocation(node, db, force=True)
             
             if success:
                 db.commit()
