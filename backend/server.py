@@ -3678,6 +3678,164 @@ async def manual_ping_light_test_batch_progress(
     
     return {"session_id": session_id, "message": f"Запущено PING LIGHT тестирование {len(nodes)} узлов", "started": True}
 
+
+@api_router.post("/manual/geo-test-batch")
+async def manual_geo_test_batch(
+    test_request: TestRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_current_user)
+):
+    """GEO Test - проверка и обновление геолокации и провайдера"""
+    
+    node_ids = test_request.node_ids or []
+    
+    # Получаем узлы
+    if not node_ids:
+        raise HTTPException(status_code=400, detail="No nodes selected")
+    
+    nodes = db.query(Node).filter(Node.id.in_(node_ids)).all()
+    
+    results = []
+    
+    from service_manager_geo import service_manager
+    
+    for node in nodes:
+        try:
+            # Вызываем геолокацию
+            success = await service_manager.enrich_node_geolocation(node, db)
+            
+            if success:
+                db.commit()
+                results.append({
+                    "node_id": node.id,
+                    "ip": node.ip,
+                    "success": True,
+                    "country": node.country,
+                    "state": node.state,
+                    "city": node.city,
+                    "provider": node.provider
+                })
+            else:
+                results.append({
+                    "node_id": node.id,
+                    "ip": node.ip,
+                    "success": False,
+                    "message": "No updates needed or failed"
+                })
+        except Exception as e:
+            results.append({
+                "node_id": node.id,
+                "ip": node.ip,
+                "success": False,
+                "message": str(e)
+            })
+    
+    return {"results": results}
+
+@api_router.post("/manual/fraud-test-batch")
+async def manual_fraud_test_batch(
+    test_request: TestRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Fraud Test - проверка Fraud Score и Risk Level"""
+    
+    node_ids = test_request.node_ids or []
+    
+    if not node_ids:
+        raise HTTPException(status_code=400, detail="No nodes selected")
+    
+    nodes = db.query(Node).filter(Node.id.in_(node_ids)).all()
+    
+    results = []
+    
+    from service_manager_geo import service_manager
+    
+    for node in nodes:
+        try:
+            # Вызываем fraud check
+            success = await service_manager.enrich_node_fraud(node, db)
+            
+            if success:
+                db.commit()
+                results.append({
+                    "node_id": node.id,
+                    "ip": node.ip,
+                    "success": True,
+                    "fraud_score": node.scamalytics_fraud_score,
+                    "risk": node.scamalytics_risk
+                })
+            else:
+                results.append({
+                    "node_id": node.id,
+                    "ip": node.ip,
+                    "success": False,
+                    "message": "No updates needed or failed"
+                })
+        except Exception as e:
+            results.append({
+                "node_id": node.id,
+                "ip": node.ip,
+                "success": False,
+                "message": str(e)
+            })
+    
+    return {"results": results}
+
+@api_router.post("/manual/geo-fraud-test-batch")
+async def manual_geo_fraud_test_batch(
+    test_request: TestRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """GEO + Fraud Test - полная проверка"""
+    
+    node_ids = test_request.node_ids or []
+    
+    if not node_ids:
+        raise HTTPException(status_code=400, detail="No nodes selected")
+    
+    nodes = db.query(Node).filter(Node.id.in_(node_ids)).all()
+    
+    results = []
+    
+    from service_manager_geo import service_manager
+    
+    for node in nodes:
+        try:
+            # Вызываем complete check
+            success = await service_manager.enrich_node_complete(node, db)
+            
+            if success:
+                db.commit()
+                results.append({
+                    "node_id": node.id,
+                    "ip": node.ip,
+                    "success": True,
+                    "country": node.country,
+                    "state": node.state,
+                    "city": node.city,
+                    "provider": node.provider,
+                    "fraud_score": node.scamalytics_fraud_score,
+                    "risk": node.scamalytics_risk
+                })
+            else:
+                results.append({
+                    "node_id": node.id,
+                    "ip": node.ip,
+                    "success": False,
+                    "message": "No updates needed or failed"
+                })
+        except Exception as e:
+            results.append({
+                "node_id": node.id,
+                "ip": node.ip,
+                "success": False,
+                "message": str(e)
+            })
+    
+    return {"results": results}
+
 @api_router.post("/manual/ping-test-batch-progress")
 async def manual_ping_test_batch_progress(
     test_request: TestRequest,
