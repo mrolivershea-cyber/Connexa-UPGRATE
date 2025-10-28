@@ -3689,52 +3689,65 @@ async def manual_geo_test_batch(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """GEO Test - проверка и обновление геолокации и провайдера"""
+    """GEO Test - проверка и обновление геолокации и провайдера С ПРОГРЕССОМ"""
     
     node_ids = test_request.node_ids or []
     
-    # Получаем узлы
     if not node_ids:
         raise HTTPException(status_code=400, detail="No nodes selected")
     
-    nodes = db.query(Node).filter(Node.id.in_(node_ids)).all()
+    # Создаем session для прогресса
+    session_id = str(uuid.uuid4())
     
-    results = []
+    # Создаем progress tracker
+    tracker = ProgressTracker(session_id, len(node_ids))
+    progress_store[session_id] = tracker
     
-    from service_manager_geo import service_manager
+    # Запускаем в background
+    asyncio.create_task(process_geo_test_background(session_id, node_ids, db))
     
-    for node in nodes:
-        try:
-            # Вызываем геолокацию с force=True для принудительного обновления
-            success = await service_manager.enrich_node_geolocation(node, db, force=True)
-            
-            if success:
-                db.commit()
-                results.append({
-                    "node_id": node.id,
-                    "ip": node.ip,
-                    "success": True,
-                    "country": node.country,
-                    "state": node.state,
-                    "city": node.city,
-                    "provider": node.provider
-                })
-            else:
-                results.append({
-                    "node_id": node.id,
-                    "ip": node.ip,
-                    "success": False,
-                    "message": "No updates needed or failed"
-                })
-        except Exception as e:
-            results.append({
-                "node_id": node.id,
-                "ip": node.ip,
-                "success": False,
-                "message": str(e)
-            })
+    return {
+        "session_id": session_id,
+        "message": f"Запущен GEO тест для {len(node_ids)} узлов",
+        "started": True
+    }
+
+async def process_geo_test_background(session_id: str, node_ids: list, db_session):
+    """Background обработка GEO теста с прогрессом"""
+    local_db = SessionLocal()
     
-    return {"results": results}
+    try:
+        from service_manager_geo import service_manager
+        
+        for i, node_id in enumerate(node_ids, 1):
+            try:
+                node = local_db.query(Node).filter(Node.id == node_id).first()
+                if not node:
+                    continue
+                
+                # Обновляем прогресс
+                if session_id in progress_store:
+                    progress_store[session_id].update(i, f"GEO проверка {node.ip} ({i}/{len(node_ids)})")
+                
+                # Выполняем проверку
+                success = await service_manager.enrich_node_geolocation(node, local_db, force=True)
+                
+                if success:
+                    local_db.commit()
+                
+            except Exception as e:
+                logger.error(f"GEO test error for node {node_id}: {e}")
+        
+        # Завершаем
+        if session_id in progress_store:
+            progress_store[session_id].complete("completed")
+        
+    except Exception as e:
+        logger.error(f"GEO background task error: {e}")
+        if session_id in progress_store:
+            progress_store[session_id].complete("failed")
+    finally:
+        local_db.close()
 
 @api_router.post("/manual/fraud-test-batch")
 async def manual_fraud_test_batch(
@@ -3742,49 +3755,65 @@ async def manual_fraud_test_batch(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Fraud Test - проверка Fraud Score и Risk Level"""
+    """Fraud Test - проверка Fraud Score и Risk Level С ПРОГРЕССОМ"""
     
     node_ids = test_request.node_ids or []
     
     if not node_ids:
         raise HTTPException(status_code=400, detail="No nodes selected")
     
-    nodes = db.query(Node).filter(Node.id.in_(node_ids)).all()
+    # Создаем session для прогресса
+    session_id = str(uuid.uuid4())
     
-    results = []
+    # Создаем progress tracker
+    tracker = ProgressTracker(session_id, len(node_ids))
+    progress_store[session_id] = tracker
     
-    from service_manager_geo import service_manager
+    # Запускаем в background
+    asyncio.create_task(process_fraud_test_background(session_id, node_ids, db))
     
-    for node in nodes:
-        try:
-            # Вызываем fraud check с force=True для принудительного обновления
-            success = await service_manager.enrich_node_fraud(node, db, force=True)
-            
-            if success:
-                db.commit()
-                results.append({
-                    "node_id": node.id,
-                    "ip": node.ip,
-                    "success": True,
-                    "fraud_score": node.scamalytics_fraud_score,
-                    "risk": node.scamalytics_risk
-                })
-            else:
-                results.append({
-                    "node_id": node.id,
-                    "ip": node.ip,
-                    "success": False,
-                    "message": "No updates needed or failed"
-                })
-        except Exception as e:
-            results.append({
-                "node_id": node.id,
-                "ip": node.ip,
-                "success": False,
-                "message": str(e)
-            })
+    return {
+        "session_id": session_id,
+        "message": f"Запущен Fraud тест для {len(node_ids)} узлов",
+        "started": True
+    }
+
+async def process_fraud_test_background(session_id: str, node_ids: list, db_session):
+    """Background обработка Fraud теста с прогрессом"""
+    local_db = SessionLocal()
     
-    return {"results": results}
+    try:
+        from service_manager_geo import service_manager
+        
+        for i, node_id in enumerate(node_ids, 1):
+            try:
+                node = local_db.query(Node).filter(Node.id == node_id).first()
+                if not node:
+                    continue
+                
+                # Обновляем прогресс
+                if session_id in progress_store:
+                    progress_store[session_id].update(i, f"Fraud проверка {node.ip} ({i}/{len(node_ids)})")
+                
+                # Выполняем проверку
+                success = await service_manager.enrich_node_fraud(node, local_db, force=True)
+                
+                if success:
+                    local_db.commit()
+                
+            except Exception as e:
+                logger.error(f"Fraud test error for node {node_id}: {e}")
+        
+        # Завершаем
+        if session_id in progress_store:
+            progress_store[session_id].complete("completed")
+        
+    except Exception as e:
+        logger.error(f"Fraud background task error: {e}")
+        if session_id in progress_store:
+            progress_store[session_id].complete("failed")
+    finally:
+        local_db.close()
 
 @api_router.post("/manual/geo-fraud-test-batch")
 async def manual_geo_fraud_test_batch(
@@ -3792,53 +3821,65 @@ async def manual_geo_fraud_test_batch(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """GEO + Fraud Test - полная проверка"""
+    """GEO + Fraud Test - полная проверка С ПРОГРЕССОМ"""
     
     node_ids = test_request.node_ids or []
     
     if not node_ids:
         raise HTTPException(status_code=400, detail="No nodes selected")
     
-    nodes = db.query(Node).filter(Node.id.in_(node_ids)).all()
+    # Создаем session для прогресса
+    session_id = str(uuid.uuid4())
     
-    results = []
+    # Создаем progress tracker
+    tracker = ProgressTracker(session_id, len(node_ids))
+    progress_store[session_id] = tracker
     
-    from service_manager_geo import service_manager
+    # Запускаем в background
+    asyncio.create_task(process_geo_fraud_test_background(session_id, node_ids, db))
     
-    for node in nodes:
-        try:
-            # Вызываем complete check
-            success = await service_manager.enrich_node_complete(node, db)
-            
-            if success:
-                db.commit()
-                results.append({
-                    "node_id": node.id,
-                    "ip": node.ip,
-                    "success": True,
-                    "country": node.country,
-                    "state": node.state,
-                    "city": node.city,
-                    "provider": node.provider,
-                    "fraud_score": node.scamalytics_fraud_score,
-                    "risk": node.scamalytics_risk
-                })
-            else:
-                results.append({
-                    "node_id": node.id,
-                    "ip": node.ip,
-                    "success": False,
-                    "message": "No updates needed or failed"
-                })
-        except Exception as e:
-            results.append({
-                "node_id": node.id,
-                "ip": node.ip,
-                "success": False,
-                "message": str(e)
-            })
+    return {
+        "session_id": session_id,
+        "message": f"Запущен GEO + Fraud тест для {len(node_ids)} узлов",
+        "started": True
+    }
+
+async def process_geo_fraud_test_background(session_id: str, node_ids: list, db_session):
+    """Background обработка GEO + Fraud теста с прогрессом"""
+    local_db = SessionLocal()
     
-    return {"results": results}
+    try:
+        from service_manager_geo import service_manager
+        
+        for i, node_id in enumerate(node_ids, 1):
+            try:
+                node = local_db.query(Node).filter(Node.id == node_id).first()
+                if not node:
+                    continue
+                
+                # Обновляем прогресс
+                if session_id in progress_store:
+                    progress_store[session_id].update(i, f"Полная проверка {node.ip} ({i}/{len(node_ids)})")
+                
+                # Выполняем полную проверку
+                success = await service_manager.enrich_node_complete(node, local_db)
+                
+                if success:
+                    local_db.commit()
+                
+            except Exception as e:
+                logger.error(f"GEO+Fraud test error for node {node_id}: {e}")
+        
+        # Завершаем
+        if session_id in progress_store:
+            progress_store[session_id].complete("completed")
+        
+    except Exception as e:
+        logger.error(f"GEO+Fraud background task error: {e}")
+        if session_id in progress_store:
+            progress_store[session_id].complete("failed")
+    finally:
+        local_db.close()
 
 @api_router.post("/manual/ping-test-batch-progress")
 async def manual_ping_test_batch_progress(
