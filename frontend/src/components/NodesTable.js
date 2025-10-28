@@ -320,7 +320,7 @@ auth ${node.login}
                 Fraud Score
               </th>
               <th className="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Lead Risk
+                Risk Level
               </th>
               <th className="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 IP
