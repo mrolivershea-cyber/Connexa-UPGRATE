@@ -545,7 +545,7 @@ auth ${node.login}
                   <td className="px-2 py-1 text-xs text-gray-700">
                     {node.provider || 'Empty'}
                   </td>
-                  <td className="px-2 py-1 text-xs text-gray-900 max-w-xs truncate" colSpan={6}>
+                  <td className="px-2 py-1 text-xs text-gray-900 max-w-xs truncate" colSpan={7}>
                     <EditableCell node={node} field="comment" className="max-w-xs truncate" />
                   </td>
                 </tr>
