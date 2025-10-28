@@ -3235,11 +3235,15 @@ async def test_single_node(
         raise HTTPException(status_code=404, detail="Node not found")
     
     try:
-        # Set status to checking
-        node.status = "checking"
-        node.last_check = datetime.utcnow()
-        node.last_update = datetime.utcnow()  # Update time when status changes
-        db.commit()
+        # Сохраняем оригинальный статус
+        original_status = node.status
+        
+        # Set status to checking только для ping тестов
+        if test_type == "ping":
+            node.status = "checking"
+            node.last_check = datetime.utcnow()
+            node.last_update = datetime.utcnow()
+            db.commit()
         
         if test_type == "ping":
             result = await network_tester.ping_test(node.ip)
