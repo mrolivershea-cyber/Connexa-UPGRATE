@@ -635,7 +635,7 @@ const AdminPanel = () => {
                 <SelectContent>
                   <SelectItem value="all">All Status</SelectItem>
                   <SelectItem value="not_tested">Not Tested</SelectItem>
-                  <SelectItem value="ping_light">PING LIGHT</SelectItem>
+                  <SelectItem value="ping_light">Ping Test</SelectItem>
                   <SelectItem value="ping_failed">PING Failed</SelectItem>
                   <SelectItem value="ping_ok">PING OK</SelectItem>
                   <SelectItem value="speed_ok">Speed OK</SelectItem>
