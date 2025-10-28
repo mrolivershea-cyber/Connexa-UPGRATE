@@ -437,6 +437,37 @@ auth ${node.login}
                       Config
                     </Button>
                   </td>
+                  <td className="px-2 py-2 whitespace-nowrap text-sm text-gray-900">
+                    <div className="flex gap-1">
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        onClick={() => testNode(node.id, 'speed')}
+                        className="text-xs px-1 py-0.5"
+                        title="Speed Test"
+                      >
+                        S
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        onClick={() => testNode(node.id, 'geo')}
+                        className="text-xs px-1 py-0.5"
+                        title="GEO Test"
+                      >
+                        G
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        onClick={() => testNode(node.id, 'fraud')}
+                        className="text-xs px-1 py-0.5"
+                        title="Fraud Test"
+                      >
+                        F
+                      </Button>
+                    </div>
+                  </td>
                   <td className="px-2 py-2 whitespace-nowrap text-right text-sm font-medium">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
