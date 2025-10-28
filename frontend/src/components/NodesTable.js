@@ -89,47 +89,48 @@ const NodesTable = ({ nodes, selectedNodes, onSelectNode, onNodeUpdated, loading
   const testNode = async (nodeId, testType = 'ping') => {
     try {
       let endpoint;
+      let requestData;
       
-      // Определяем endpoint в зависимости от типа теста
-      if (testType === 'geo') {
+      // Используем ТЕ ЖЕ endpoints что и в Testing Modal!
+      if (testType === 'ping') {
+        endpoint = `${API}/manual/ping-light-test-batch-progress`;
+        requestData = { node_ids: [nodeId] };
+      } else if (testType === 'speed') {
+        endpoint = `${API}/manual/speed-test-batch-progress`;
+        requestData = { node_ids: [nodeId] };
+      } else if (testType === 'geo') {
         endpoint = `${API}/manual/geo-test-batch`;
+        requestData = { node_ids: [nodeId] };
       } else if (testType === 'fraud') {
         endpoint = `${API}/manual/fraud-test-batch`;
+        requestData = { node_ids: [nodeId] };
       } else if (testType === 'geo_fraud') {
         endpoint = `${API}/manual/geo-fraud-test-batch`;
-      } else {
-        // Старые тесты (ping, speed)
-        endpoint = `${API}/nodes/${nodeId}/test?test_type=${testType}`;
+        requestData = { node_ids: [nodeId] };
       }
       
-      let response;
+      const response = await axios.post(endpoint, requestData);
       
-      if (['geo', 'fraud', 'geo_fraud'].includes(testType)) {
-        // Новые batch endpoints
-        response = await axios.post(endpoint, { node_ids: [nodeId] });
-        
-        if (response.data.results && response.data.results.length > 0) {
-          const result = response.data.results[0];
-          if (result.success) {
-            toast.success(`${testType.toUpperCase()} test completed for ${result.ip}`);
-            onNodeUpdated();
-          } else {
-            toast.error(`Test failed: ${result.message || 'Unknown error'}`);
-          }
-        }
-      } else {
-        // Старые endpoints
-        response = await axios.post(endpoint);
-        if (response.data.success) {
-          toast.success(`Test ${testType} completed for node ${nodeId}`);
+      // Обработка ответов
+      if (response.data.results && response.data.results.length > 0) {
+        const result = response.data.results[0];
+        if (result.success) {
+          toast.success(`Тест ${testType} завершен для ${result.ip || nodeId}`);
           onNodeUpdated();
         } else {
-          toast.error(`Test failed: ${response.data.message}`);
+          toast.error(`Тест не выполнен: ${result.message || 'Неизвестная ошибка'}`);
         }
+      } else if (response.data.session_id) {
+        // Для ping/speed с прогрессом
+        toast.success(`Тест ${testType} запущен`);
+        setTimeout(() => onNodeUpdated(), 3000); // Обновим через 3 сек
+      } else {
+        toast.success(`Тест ${testType} завершен`);
+        onNodeUpdated();
       }
     } catch (error) {
-      console.error('Test error:', error);
-      toast.error('Test failed: ' + (error.response?.data?.detail || error.message));
+      console.error('Ошибка теста:', error);
+      toast.error('Ошибка теста: ' + (error.response?.data?.detail || error.message));
     }
   };
 
