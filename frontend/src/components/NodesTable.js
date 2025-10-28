@@ -466,37 +466,6 @@ auth ${node.login}
                       Config
                     </Button>
                   </td>
-                  <td className="px-2 py-2 whitespace-nowrap text-sm text-gray-900">
-                    <div className="flex gap-1">
-                      <Button 
-                        size="sm" 
-                        variant="outline" 
-                        onClick={() => testNode(node.id, 'speed')}
-                        className="text-xs px-1 py-0.5"
-                        title="Speed Test"
-                      >
-                        S
-                      </Button>
-                      <Button 
-                        size="sm" 
-                        variant="outline" 
-                        onClick={() => testNode(node.id, 'geo')}
-                        className="text-xs px-1 py-0.5"
-                        title="GEO Test"
-                      >
-                        G
-                      </Button>
-                      <Button 
-                        size="sm" 
-                        variant="outline" 
-                        onClick={() => testNode(node.id, 'fraud')}
-                        className="text-xs px-1 py-0.5"
-                        title="Fraud Test"
-                      >
-                        F
-                      </Button>
-                    </div>
-                  </td>
                   <td className="px-2 py-2 whitespace-nowrap text-right text-sm font-medium">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -508,6 +477,22 @@ auth ${node.login}
                         <DropdownMenuItem onClick={() => testNode(node.id, 'ping')}>
                           <Activity className="h-4 w-4 mr-2" />
                           Test Ping
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => testNode(node.id, 'speed')}>
+                          <Zap className="h-4 w-4 mr-2" />
+                          Speed Test
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => testNode(node.id, 'geo')}>
+                          <svg className="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          GEO Test
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => testNode(node.id, 'fraud')}>
+                          <svg className="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                          </svg>
+                          Fraud Test
                         </DropdownMenuItem>
                         <DropdownMenuItem 
                           onClick={() => deleteNode(node.id)}
