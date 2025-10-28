@@ -3757,8 +3757,8 @@ async def manual_fraud_test_batch(
     
     for node in nodes:
         try:
-            # Вызываем fraud check
-            success = await service_manager.enrich_node_fraud(node, db)
+            # Вызываем fraud check с force=True для принудительного обновления
+            success = await service_manager.enrich_node_fraud(node, db, force=True)
             
             if success:
                 db.commit()
