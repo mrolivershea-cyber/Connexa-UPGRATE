@@ -87,12 +87,44 @@ const NodesTable = ({ nodes, selectedNodes, onSelectNode, onNodeUpdated, loading
 
   const testNode = async (nodeId, testType = 'ping') => {
     try {
-      const response = await axios.post(`${API}/nodes/${nodeId}/test?test_type=${testType}`);
-      if (response.data.success) {
-        toast.success(`Test ${testType} completed for node ${nodeId}`);
-        onNodeUpdated();
+      let endpoint;
+      
+      // Определяем endpoint в зависимости от типа теста
+      if (testType === 'geo') {
+        endpoint = `${API}/manual/geo-test-batch`;
+      } else if (testType === 'fraud') {
+        endpoint = `${API}/manual/fraud-test-batch`;
+      } else if (testType === 'geo_fraud') {
+        endpoint = `${API}/manual/geo-fraud-test-batch`;
       } else {
-        toast.error(`Test failed: ${response.data.message}`);
+        // Старые тесты (ping, speed)
+        endpoint = `${API}/nodes/${nodeId}/test?test_type=${testType}`;
+      }
+      
+      let response;
+      
+      if (['geo', 'fraud', 'geo_fraud'].includes(testType)) {
+        // Новые batch endpoints
+        response = await axios.post(endpoint, { node_ids: [nodeId] });
+        
+        if (response.data.results && response.data.results.length > 0) {
+          const result = response.data.results[0];
+          if (result.success) {
+            toast.success(`${testType.toUpperCase()} test completed for ${result.ip}`);
+            onNodeUpdated();
+          } else {
+            toast.error(`Test failed: ${result.message || 'Unknown error'}`);
+          }
+        }
+      } else {
+        // Старые endpoints
+        response = await axios.post(endpoint);
+        if (response.data.success) {
+          toast.success(`Test ${testType} completed for node ${nodeId}`);
+          onNodeUpdated();
+        } else {
+          toast.error(`Test failed: ${response.data.message}`);
+        }
       }
     } catch (error) {
       console.error('Test error:', error);
