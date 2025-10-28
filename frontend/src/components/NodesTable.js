@@ -442,21 +442,9 @@ auth ${node.login}
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => copySocks(node)}>
-                          <Copy className="h-4 w-4 mr-2" />
-                          Copy SOCKS
-                        </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => testNode(node.id, 'ping')}>
                           <Activity className="h-4 w-4 mr-2" />
                           Test Ping
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => startServices(node.id)}>
-                          <Play className="h-4 w-4 mr-2" />
-                          Start Services
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => stopServices(node.id)}>
-                          <Square className="h-4 w-4 mr-2" />
-                          Stop Services
                         </DropdownMenuItem>
                         <DropdownMenuItem 
                           onClick={() => deleteNode(node.id)}
