@@ -3683,7 +3683,7 @@ async def manual_ping_light_test_batch_progress(
 async def manual_geo_test_batch(
     test_request: TestRequest,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_current_user)
+    db: Session = Depends(get_db)
 ):
     """GEO Test - проверка и обновление геолокации и провайдера"""
     
