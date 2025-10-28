@@ -542,7 +542,7 @@ const AdminPanel = () => {
           <Card>
             <CardContent className="pt-6">
               <div className="text-2xl font-bold text-yellow-600">{stats.ping_light || 0}</div>
-              <p className="text-xs text-muted-foreground">🟡 PING LIGHT</p>
+              <p className="text-xs text-muted-foreground">🟡 Ping Test</p>
             </CardContent>
           </Card>
           <Card>
